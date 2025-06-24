@@ -51,19 +51,39 @@ export default function App() {
 
   function salvarPedidoCompleto() {
     if (!cidadeSelecionada || !escolaSelecionada || itensTemp.length === 0) {
-      alert("Selecione a escola e adicione pelo menos um item ao pedido.");
+      alert("Selecione a escola e adicione pelo menos um item.");
       return;
     }
 
-    const novaEntrada = {
-      id: Date.now(),
-      cidade: cidadeSelecionada,
-      escola:
-        escolas.find((e) => e.id === parseInt(escolaSelecionada))?.nome || "",
-      itens: itensTemp,
-    };
+    const agora = Date.now();
+    const cincoDiasMs = 5 * 24 * 60 * 60 * 1000;
 
-    setPedidos((prev) => [...prev, novaEntrada]);
+    const pedidosAtualizados = [...pedidos];
+    const indexExistente = pedidos.findIndex(
+      (p) =>
+        p.escolaId === parseInt(escolaSelecionada) &&
+        agora - p.data < cincoDiasMs
+    );
+
+    if (indexExistente !== -1) {
+      // Adiciona ao pedido existente
+      pedidosAtualizados[indexExistente].itens.push(...itensTemp);
+    } else {
+      // Cria novo pedido
+      const novoPedido = {
+        id: Date.now(),
+        data: agora,
+        cidade: cidadeSelecionada,
+        escolaId: parseInt(escolaSelecionada),
+        escola:
+          escolas.find((e) => e.id === parseInt(escolaSelecionada))?.nome ||
+          "",
+        itens: itensTemp,
+      };
+      pedidosAtualizados.push(novoPedido);
+    }
+
+    setPedidos(pedidosAtualizados);
     setItensTemp([]);
     setProdutoSelecionado("");
     setSaborSelecionado("");
@@ -158,4 +178,54 @@ export default function App() {
 
         <button
           onClick={adicionarItemAoPedido}
-          className="w-full bg-orangeMid hover:bg-orangeDark text-white font-bold py-3 rounded-xl
+          className="w-full bg-orangeMid hover:bg-orangeDark text-white font-bold py-3 rounded-xl transition-colors"
+        >
+          Adicionar Item
+        </button>
+
+        {itensTemp.length > 0 && (
+          <div className="mt-6 bg-orangeLight border rounded-xl p-4">
+            <h2 className="font-semibold text-orangeDark mb-2">
+              Itens a serem salvos:
+            </h2>
+            {itensTemp.map((item, i) => (
+              <p key={i}>
+                {item.produto} - {item.sabor} ({item.quantidade})
+              </p>
+            ))}
+            <button
+              onClick={salvarPedidoCompleto}
+              className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-xl"
+            >
+              Salvar Pedido da Escola
+            </button>
+          </div>
+        )}
+
+        {pedidos.length > 0 && (
+          <>
+            <h2 className="mt-10 mb-4 text-xl font-semibold text-orangeDark">
+              Pedidos Salvos
+            </h2>
+            <div className="max-h-64 overflow-y-auto border border-orangeMid rounded-xl p-4">
+              {pedidos.map((p) => (
+                <div key={p.id} className="mb-4 border-b pb-2">
+                  <p className="font-bold">
+                    {p.escola} ({p.cidade})
+                  </p>
+                  <ul className="pl-4 list-disc">
+                    {p.itens.map((item, i) => (
+                      <li key={i}>
+                        {item.produto} – {item.sabor} – {item.quantidade}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </main>
+  );
+}
