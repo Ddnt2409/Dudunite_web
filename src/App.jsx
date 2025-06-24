@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { cidades, escolas, produtosPorEscola } from "./data";
+import { cidades, escolas, produtosPorEscola, saboresPorProduto } from "./data";
 
 export default function App() {
   const [cidadeSelecionada, setCidadeSelecionada] = useState("");
   const [escolaSelecionada, setEscolaSelecionada] = useState("");
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
+  const [saborSelecionado, setSaborSelecionado] = useState("");
   const [quantidade, setQuantidade] = useState("");
   const [pedidos, setPedidos] = useState([]);
 
@@ -17,6 +18,11 @@ export default function App() {
       ? produtosPorEscola[escolaSelecionada]
       : [];
 
+  const saboresFiltrados =
+    saboresPorProduto[produtoSelecionado]
+      ? saboresPorProduto[produtoSelecionado]
+      : [];
+
   useEffect(() => {
     const pedidosSalvos = JSON.parse(localStorage.getItem("pedidos") || "[]");
     setPedidos(pedidosSalvos);
@@ -27,7 +33,13 @@ export default function App() {
   }, [pedidos]);
 
   function handleSalvarPedido() {
-    if (!cidadeSelecionada || !escolaSelecionada || !produtoSelecionado || !quantidade) {
+    if (
+      !cidadeSelecionada ||
+      !escolaSelecionada ||
+      !produtoSelecionado ||
+      !saborSelecionado ||
+      !quantidade
+    ) {
       alert("Preencha todos os campos!");
       return;
     }
@@ -37,12 +49,14 @@ export default function App() {
       cidade: cidadeSelecionada,
       escola: escolas.find((e) => e.id === parseInt(escolaSelecionada))?.nome || "",
       produto: produtoSelecionado,
+      sabor: saborSelecionado,
       quantidade: Number(quantidade),
     };
 
     setPedidos((prev) => [...prev, novaPedido]);
     setQuantidade("");
     setProdutoSelecionado("");
+    setSaborSelecionado("");
   }
 
   return (
@@ -60,6 +74,7 @@ export default function App() {
             setCidadeSelecionada(e.target.value);
             setEscolaSelecionada("");
             setProdutoSelecionado("");
+            setSaborSelecionado("");
           }}
         >
           <option value="">Selecione a cidade</option>
@@ -77,6 +92,7 @@ export default function App() {
           onChange={(e) => {
             setEscolaSelecionada(e.target.value);
             setProdutoSelecionado("");
+            setSaborSelecionado("");
           }}
           disabled={!cidadeSelecionada}
         >
@@ -92,13 +108,31 @@ export default function App() {
         <select
           className="w-full mb-4 p-3 border border-orangeMid rounded-xl"
           value={produtoSelecionado}
-          onChange={(e) => setProdutoSelecionado(e.target.value)}
+          onChange={(e) => {
+            setProdutoSelecionado(e.target.value);
+            setSaborSelecionado("");
+          }}
           disabled={!escolaSelecionada}
         >
           <option value="">Selecione o produto</option>
           {produtosFiltrados.map((p) => (
             <option key={p} value={p}>
               {p}
+            </option>
+          ))}
+        </select>
+
+        <label className="block mb-2 font-semibold">Sabor</label>
+        <select
+          className="w-full mb-4 p-3 border border-orangeMid rounded-xl"
+          value={saborSelecionado}
+          onChange={(e) => setSaborSelecionado(e.target.value)}
+          disabled={!produtoSelecionado}
+        >
+          <option value="">Selecione o sabor</option>
+          {saboresFiltrados.map((s) => (
+            <option key={s} value={s}>
+              {s}
             </option>
           ))}
         </select>
@@ -110,7 +144,7 @@ export default function App() {
           className="w-full mb-6 p-3 border border-orangeMid rounded-xl"
           value={quantidade}
           onChange={(e) => setQuantidade(e.target.value)}
-          disabled={!produtoSelecionado}
+          disabled={!saborSelecionado}
         />
 
         <button
@@ -126,7 +160,7 @@ export default function App() {
               Pedidos Cadastrados
             </h2>
             <div className="max-h-60 overflow-y-auto border border-orangeMid rounded-xl p-4">
-              {pedidos.map(({ id, cidade, escola, produto, quantidade }) => (
+              {pedidos.map(({ id, cidade, escola, produto, sabor, quantidade }) => (
                 <div
                   key={id}
                   className="mb-3 p-3 border-b border-orangeMid last:border-none"
@@ -136,6 +170,9 @@ export default function App() {
                   </p>
                   <p>
                     <strong>Produto:</strong> {produto}
+                  </p>
+                  <p>
+                    <strong>Sabor:</strong> {sabor}
                   </p>
                   <p>
                     <strong>Quantidade:</strong> {quantidade}
