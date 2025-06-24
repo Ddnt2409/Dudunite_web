@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
-import { cidades, escolas, produtosPorEscola, saboresPorProduto } from "./data";
+import {
+  cidades,
+  escolas,
+  produtosPorEscola,
+  saboresPorProduto,
+} from "./data";
 
 export default function App() {
   const [cidadeSelecionada, setCidadeSelecionada] = useState("");
@@ -7,21 +12,15 @@ export default function App() {
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [saborSelecionado, setSaborSelecionado] = useState("");
   const [quantidade, setQuantidade] = useState("");
+  const [itensTemp, setItensTemp] = useState([]);
   const [pedidos, setPedidos] = useState([]);
 
   const escolasFiltradas = cidades.includes(cidadeSelecionada)
     ? escolas.filter((e) => e.cidade === cidadeSelecionada)
     : [];
 
-  const produtosFiltrados =
-    produtosPorEscola[escolaSelecionada]
-      ? produtosPorEscola[escolaSelecionada]
-      : [];
-
-  const saboresFiltrados =
-    saboresPorProduto[produtoSelecionado]
-      ? saboresPorProduto[produtoSelecionado]
-      : [];
+  const produtosFiltrados = produtosPorEscola[escolaSelecionada] || [];
+  const saboresFiltrados = saboresPorProduto[produtoSelecionado] || [];
 
   useEffect(() => {
     const pedidosSalvos = JSON.parse(localStorage.getItem("pedidos") || "[]");
@@ -32,38 +31,52 @@ export default function App() {
     localStorage.setItem("pedidos", JSON.stringify(pedidos));
   }, [pedidos]);
 
-  function handleSalvarPedido() {
-    if (
-      !cidadeSelecionada ||
-      !escolaSelecionada ||
-      !produtoSelecionado ||
-      !saborSelecionado ||
-      !quantidade
-    ) {
-      alert("Preencha todos os campos!");
+  function adicionarItemAoPedido() {
+    if (!produtoSelecionado || !saborSelecionado || !quantidade) {
+      alert("Preencha produto, sabor e quantidade.");
       return;
     }
 
-    const novaPedido = {
-      id: Date.now(),
-      cidade: cidadeSelecionada,
-      escola: escolas.find((e) => e.id === parseInt(escolaSelecionada))?.nome || "",
+    const novoItem = {
       produto: produtoSelecionado,
       sabor: saborSelecionado,
       quantidade: Number(quantidade),
     };
 
-    setPedidos((prev) => [...prev, novaPedido]);
-    setQuantidade("");
+    setItensTemp((prev) => [...prev, novoItem]);
     setProdutoSelecionado("");
     setSaborSelecionado("");
+    setQuantidade("");
+  }
+
+  function salvarPedidoCompleto() {
+    if (!cidadeSelecionada || !escolaSelecionada || itensTemp.length === 0) {
+      alert("Selecione a escola e adicione pelo menos um item ao pedido.");
+      return;
+    }
+
+    const novaEntrada = {
+      id: Date.now(),
+      cidade: cidadeSelecionada,
+      escola:
+        escolas.find((e) => e.id === parseInt(escolaSelecionada))?.nome || "",
+      itens: itensTemp,
+    };
+
+    setPedidos((prev) => [...prev, novaEntrada]);
+    setItensTemp([]);
+    setProdutoSelecionado("");
+    setSaborSelecionado("");
+    setQuantidade("");
+    setCidadeSelecionada("");
+    setEscolaSelecionada("");
   }
 
   return (
     <main className="min-h-screen bg-orangeLight p-6">
-      <div className="max-w-md mx-auto bg-white rounded-3xl shadow-lg p-8">
+      <div className="max-w-xl mx-auto bg-white rounded-3xl shadow-lg p-8">
         <h1 className="text-3xl font-bold mb-6 text-orangeDark text-center">
-          Dudunitê - Lançamento de Pedidos
+          Dudunitê – Lançamento de Pedidos
         </h1>
 
         <label className="block mb-2 font-semibold">Cidade</label>
@@ -73,8 +86,6 @@ export default function App() {
           onChange={(e) => {
             setCidadeSelecionada(e.target.value);
             setEscolaSelecionada("");
-            setProdutoSelecionado("");
-            setSaborSelecionado("");
           }}
         >
           <option value="">Selecione a cidade</option>
@@ -89,11 +100,7 @@ export default function App() {
         <select
           className="w-full mb-4 p-3 border border-orangeMid rounded-xl"
           value={escolaSelecionada}
-          onChange={(e) => {
-            setEscolaSelecionada(e.target.value);
-            setProdutoSelecionado("");
-            setSaborSelecionado("");
-          }}
+          onChange={(e) => setEscolaSelecionada(e.target.value)}
           disabled={!cidadeSelecionada}
         >
           <option value="">Selecione a escola</option>
@@ -103,6 +110,8 @@ export default function App() {
             </option>
           ))}
         </select>
+
+        <hr className="my-4 border-orangeMid" />
 
         <label className="block mb-2 font-semibold">Produto</label>
         <select
@@ -141,48 +150,12 @@ export default function App() {
         <input
           type="number"
           min="1"
-          className="w-full mb-6 p-3 border border-orangeMid rounded-xl"
+          className="w-full mb-4 p-3 border border-orangeMid rounded-xl"
           value={quantidade}
           onChange={(e) => setQuantidade(e.target.value)}
           disabled={!saborSelecionado}
         />
 
         <button
-          onClick={handleSalvarPedido}
-          className="w-full bg-orangeMid hover:bg-orangeDark text-white font-bold py-3 rounded-xl transition-colors"
-        >
-          Salvar Pedido
-        </button>
-
-        {pedidos.length > 0 && (
-          <>
-            <h2 className="mt-8 mb-4 text-xl font-semibold text-orangeDark">
-              Pedidos Cadastrados
-            </h2>
-            <div className="max-h-60 overflow-y-auto border border-orangeMid rounded-xl p-4">
-              {pedidos.map(({ id, cidade, escola, produto, sabor, quantidade }) => (
-                <div
-                  key={id}
-                  className="mb-3 p-3 border-b border-orangeMid last:border-none"
-                >
-                  <p>
-                    <strong>Escola:</strong> {escola} ({cidade})
-                  </p>
-                  <p>
-                    <strong>Produto:</strong> {produto}
-                  </p>
-                  <p>
-                    <strong>Sabor:</strong> {sabor}
-                  </p>
-                  <p>
-                    <strong>Quantidade:</strong> {quantidade}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    </main>
-  );
-}
+          onClick={adicionarItemAoPedido}
+          className="w-full bg-orangeMid hover:bg-orangeDark text-white font-bold py-3 rounded-xl
