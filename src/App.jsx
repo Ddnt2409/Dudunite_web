@@ -16,9 +16,12 @@ const App = () => {
   };
 
   const produtos = {
-    Brownie: ['Chocolate', 'Doce de Leite', 'Morango'],
-    Pocket: ['Frango', 'Carne', 'Queijo'],
-    Escondidinho: ['Carne Seca', 'Frango', 'Vegetariano']
+    'BRW7x7': ['Chocolate', 'Doce de Leite', 'Morango'],
+    'BRW6x6': ['Chocolate', 'Doce de Leite'],
+    'PKT5x5': ['Frango', 'Carne', 'Queijo'],
+    'PKT6x6': ['Frango', 'Carne'],
+    'ESC': ['Carne Seca', 'Frango', 'Vegetariano'],
+    'DUDU': ['Branco', 'Preto']
   };
 
   const adicionarItem = () => {
@@ -31,33 +34,33 @@ const App = () => {
   };
 
   const salvarPedido = () => {
-    if (!cidade || !escola || itens.length === 0) return alert('Preencha todos os campos.');
+    if (!cidade || !escola || itens.length === 0) {
+      alert('Preencha todos os campos antes de salvar.');
+      return;
+    }
 
     const hoje = new Date();
     const cincoDiasAtras = new Date();
     cincoDiasAtras.setDate(hoje.getDate() - 5);
 
     const indice = pedidos.findIndex(
-      p =>
-        p.cidade === cidade &&
-        p.escola === escola &&
-        new Date(p.data) >= cincoDiasAtras
+      p => p.cidade === cidade && p.escola === escola && new Date(p.data) >= cincoDiasAtras
     );
 
     if (indice !== -1) {
-      const pedidosAtualizados = [...pedidos];
-      pedidosAtualizados[indice].itens.push(...itens);
-      setPedidos(pedidosAtualizados);
+      const atualizado = [...pedidos];
+      atualizado[indice].itens.push(...itens);
+      setPedidos(atualizado);
     } else {
       setPedidos([...pedidos, { cidade, escola, itens, data: hoje.toISOString() }]);
     }
 
-    setItens([]);
+    setCidade('');
+    setEscola('');
     setProduto('');
     setSabor('');
     setQuantidade(1);
-    setCidade('');
-    setEscola('');
+    setItens([]);
     alert('Pedido salvo com sucesso!');
   };
 
@@ -65,11 +68,9 @@ const App = () => {
     const doc = new jsPDF();
     let y = 10;
 
-    doc.setFontSize(16);
-    doc.text('Planejamento da Produção - Dudunitê', 10, y);
-    y += 10;
-
     const agrupado = {};
+    const totalPorCidade = {};
+    const totalGeral = {};
 
     pedidos.forEach(({ cidade, escola, itens }) => {
       if (!agrupado[cidade]) agrupado[cidade] = {};
@@ -79,78 +80,70 @@ const App = () => {
         if (!agrupado[cidade][escola][produto]) agrupado[cidade][escola][produto] = {};
         if (!agrupado[cidade][escola][produto][sabor]) agrupado[cidade][escola][produto][sabor] = 0;
         agrupado[cidade][escola][produto][sabor] += quantidade;
+
+        totalPorCidade[cidade] = totalPorCidade[cidade] || {};
+        totalPorCidade[cidade][produto] = (totalPorCidade[cidade][produto] || 0) + quantidade;
+        totalGeral[produto] = (totalGeral[produto] || 0) + quantidade;
       });
     });
 
-    const totalPorCidade = {};
-    const totalGeral = {};
+    doc.setFontSize(14);
+    doc.text('Planejamento da Produção - Dudunitê', 10, y);
+    y += 10;
 
-    const addLine = (text) => {
-      if (y > 280) {
+    const addLine = (text, indent = 0) => {
+      if (y > 270) {
         doc.addPage();
         y = 10;
       }
-      doc.text(text, 10, y);
+      doc.text('  '.repeat(indent) + text, 10, y);
       y += 7;
     };
 
-    Object.keys(agrupado).forEach(cidade => {
-      addLine(`Cidade: ${cidade}`);
-      totalPorCidade[cidade] = {};
+    Object.entries(agrupado).forEach(([cidade, escolas]) => {
+      addLine(`Cidade: ${cidade}`, 0);
 
-      Object.keys(agrupado[cidade]).forEach(escola => {
-        addLine(`  Escola: ${escola}`);
+      Object.entries(escolas).forEach(([escola, produtos]) => {
+        addLine(`Escola: ${escola}`, 1);
         let totalEscola = 0;
 
-        Object.keys(agrupado[cidade][escola]).forEach(produto => {
-          addLine(`    Produto: ${produto}`);
-          let totalProdutoEscola = 0;
+        Object.entries(produtos).forEach(([produto, sabores]) => {
+          const totalProduto = Object.values(sabores).reduce((a, b) => a + b, 0);
+          addLine(`${produto} - Total: ${totalProduto} un`, 2);
+          totalEscola += totalProduto;
 
-          Object.keys(agrupado[cidade][escola][produto]).forEach(sabor => {
-            const qtd = agrupado[cidade][escola][produto][sabor];
-            addLine(`      ${sabor}: ${qtd} un`);
-            totalProdutoEscola += qtd;
-
-            totalPorCidade[cidade][produto] = (totalPorCidade[cidade][produto] || 0) + qtd;
-            totalGeral[produto] = (totalGeral[produto] || 0) + qtd;
+          Object.entries(sabores).forEach(([sabor, qtd]) => {
+            addLine(`${sabor}: ${qtd} un`, 3);
           });
-
-          addLine(`    Total ${produto} na escola: ${totalProdutoEscola} un`);
-          totalEscola += totalProdutoEscola;
         });
 
-        addLine(`  Total geral da escola ${escola}: ${totalEscola} un`);
+        addLine(`Total da escola: ${totalEscola} un`, 1);
         addLine('');
       });
 
-      addLine(`Total da cidade ${cidade}:`);
+      addLine(`Total da cidade ${cidade}:`, 1);
       Object.entries(totalPorCidade[cidade]).forEach(([produto, qtd]) => {
-        addLine(`  ${produto}: ${qtd} un`);
+        addLine(`${produto}: ${qtd} un`, 2);
       });
+
       addLine('');
     });
 
-    addLine('Total geral de todos os produtos:');
+    addLine('TOTAL GERAL DE TODOS OS PRODUTOS:');
     Object.entries(totalGeral).forEach(([produto, qtd]) => {
-      addLine(`  ${produto}: ${qtd} un`);
+      addLine(`${produto}: ${qtd} un`, 1);
     });
 
     const agora = new Date();
     const nomePDF = `planejamento-producao-${agora.getDate()}-${agora.getMonth() + 1}-${agora.getFullYear()}-${agora.getHours()}h${agora.getMinutes()}.pdf`;
 
-    const pdfBlob = doc.output('blob');
-    const blobURL = URL.createObjectURL(pdfBlob);
-    const link = document.createElement('a');
-    link.href = blobURL;
-    link.download = nomePDF;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(blobURL);
+    doc.save(nomePDF);
   };
 
+  const totalItens = itens.reduce((soma, item) => soma + item.quantidade, 0);
+
   return (
-    <div className="max-w-2xl mx-auto p-4 font-sans">
+    <div className="max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Dudunitê - Lançamento de Pedidos</h1>
 
       <div className="grid grid-cols-2 gap-4">
@@ -197,13 +190,16 @@ const App = () => {
       </div>
 
       <div className="mt-4">
-        <h2 className="font-bold">Itens do Pedido:</h2>
-        {itens.length === 0 && <p className="text-sm text-gray-500">Nenhum item adicionado.</p>}
-        <ul className="list-disc pl-5">
-          {itens.map((item, i) => (
-            <li key={i}>{item.produto} - {item.sabor} - {item.quantidade} un</li>
-          ))}
-        </ul>
+        <h2 className="font-bold">Itens do Pedido (Total: {totalItens} un):</h2>
+        {itens.length === 0 ? (
+          <p className="text-sm text-gray-500">Nenhum item adicionado.</p>
+        ) : (
+          <ul className="list-disc pl-5">
+            {itens.map((item, i) => (
+              <li key={i}>{item.produto} - {item.sabor} - {item.quantidade} un</li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="mt-4 flex gap-4">
