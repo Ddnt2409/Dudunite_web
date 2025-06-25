@@ -82,6 +82,14 @@ const App = () => {
     const doc = new jsPDF();
     let y = 10;
 
+    const agora = new Date();
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const ano = agora.getFullYear();
+    const hora = String(agora.getHours()).padStart(2, '0');
+    const minuto = String(agora.getMinutes()).padStart(2, '0');
+    const nomePDF = `planejamento-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
+
     doc.setFont('courier', 'normal');
     doc.setFontSize(10);
     doc.text('Planejamento de Produção - Dudunitê', 10, y);
@@ -151,8 +159,9 @@ const App = () => {
       addLine(` ${produto.padEnd(10)}: ${qtd} un`);
     });
 
-    const agora = new Date();
-    const nomePDF = `planejamento-${agora.getDate()}-${agora.getMonth() + 1}-${agora.getFullYear()}.pdf`;
+    y += 10;
+    addLine(`📄 Gerado em ${dia}/${mes}/${ano} às ${hora}h${minuto}`);
+
     doc.save(nomePDF);
   };
 
