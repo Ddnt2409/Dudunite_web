@@ -16,12 +16,12 @@ const dados = {
 };
 
 const produtos = {
-'BRW7x7': ['Chocolate', 'Doce de Leite', 'Morango'],
-'BRW6x6': ['Chocolate', 'Doce de Leite'],
-'PKT5x5': ['Frango', 'Carne', 'Queijo'],
-'PKT6x6': ['Frango', 'Carne'],
-'ESC': ['Carne Seca', 'Frango', 'Vegetariano'],
-'DUDU': ['Branco', 'Preto']
+'BRW7x7': ['Ninho com nutella' , 'Ninho', 'Brig bco', 'Brig pto', 'Brig pto confete', 'Brig bco confete', 'Oreo' , 'Ovomaltine', 'Bem casado', 'Palha italiana', 'Cr maracujá'],
+'BRW6x6': ['Ninho com nutella' , 'Ninho', 'Brig bco', 'Brig pto', 'Brig pto confete', 'Brig bco confete', 'Oreo' , 'Ovomaltine', 'Bem casado', 'Palha italiana', 'Cr maracujá'],
+'PKT5x5': ['Ninho com nutella' , 'Ninho', 'Brig bco', 'Brig pto', 'Brig pto confete', 'Brig bco confete', 'Oreo' , 'Ovomaltine', 'Bem casado', 'Palha italiana', 'Cr maracujá'],
+'PKT6x6': ['Ninho com nutella' , 'Ninho', 'Brig bco', 'Brig pto', 'Brig pto confete', 'Brig bco confete', 'Oreo' , 'Ovomaltine', 'Bem casado', 'Palha italiana', 'Cr maracujá'],
+'ESC': ['Ninho com nutella' , 'Ninho', 'Brig bco', 'Brig pto', 'Brig pto confete', 'Brig bco confete', 'Oreo' , 'Ovomaltine', 'Bem casado', 'Palha italiana', 'Cr maracujá'],
+'DUDU': ['Ninho com nutella' ,'Oreo' , 'Ovomaltine', 'Palha italiana', 'Cr maracujá']
 };
 
 const adicionarItem = () => {
