@@ -1,14 +1,14 @@
-// Código completo atualizado com layout, cores, sabores, escolas e horário no PDF import React, { useState } from 'react'; import jsPDF from 'jspdf'; import logo from './logo-preta.png'; // Caminho da logomarca
+// App.jsx - Versão Dudunitê com layout real e dados atualizados import React, { useState } from 'react'; import jsPDF from 'jspdf'; import logo from './assets/logo-dudunite.png'; // imagem da logomarca real
 
 const App = () => { const [cidade, setCidade] = useState(''); const [escola, setEscola] = useState(''); const [produto, setProduto] = useState(''); const [sabor, setSabor] = useState(''); const [quantidade, setQuantidade] = useState(1); const [itens, setItens] = useState([]); const [pedidos, setPedidos] = useState([]);
 
-const dados = { 'Recife': [ 'Tio Valter', 'Vera Cruz', 'Pinheiros', 'BMQ', 'Dourado', 'Cfc', 'Madre de Deus', 'Saber viver', 'Anita Garibaldi' ], 'Caruaru': [ 'Interativo', 'Exato 1', 'Exato 2', 'Sesi', 'Motivo' ], 'Gravatá': [ 'Russas', 'Salesianas', 'Pequeno Príncipe', 'Ceu azul' ] };
+const dados = { "Recife": ["Tio Valter", "Vera Cruz", "Pinheiros", "BMQ", "Dourado", "CFC", "Madre de Deus", "Saber Viver", "Anita Garibaldi"], "Caruaru": ["Interativo", "Exato 1", "Exato 2", "SESI", "Motivo"], "Gravatá": ["Russas", "Salesianas", "Pequeno Príncipe", "Céu Azul"] };
 
-const sabores = [ 'Ninho com Nutella', 'Ninho', 'Brig Bco', 'Brig Pto', 'Brig Pto Confete', 'Brig Bco Confete', 'Oreo', 'Ovomaltine', 'Bem Casado', 'Palha Italiana', 'Cr Maracujá' ];
+const saboresPadrao = [ "Ninho com nutella", "Ninho", "Brig bco", "Brig pto", "Brig pto confete", "Brig bco confete", "Oreo", "Ovomaltine", "Bem casado", "Palha italiana", "Cr maracujá" ];
 
-const produtos = { 'BRW 7x7': sabores, 'BRW 6x6': sabores, 'PKT 5x5': sabores, 'PKT 6x6': sabores, 'Escondidinho': sabores, 'Dudu': sabores };
+const produtos = { "BRW 7x7": saboresPadrao, "BRW 6x6": saboresPadrao, "ESC": saboresPadrao, "PKT 5x5": saboresPadrao, "PKT 6x6": saboresPadrao, "DUDU": saboresPadrao };
 
-const adicionarItem = () => { if (produto && sabor && quantidade > 0) { setItens([...itens, { produto, sabor, quantidade: Number(quantidade) }]); setProduto(''); setSabor(''); setQuantidade(1); } };
+const adicionarItem = () => { if (produto && sabor && quantidade > 0) { setItens([...itens, { produto, sabor, quantidade: Number(quantidade) }]); setSabor(''); setQuantidade(1); } };
 
 const salvarPedido = () => { if (!cidade || !escola || itens.length === 0) { alert('Preencha todos os campos antes de salvar.'); return; }
 
@@ -38,11 +38,11 @@ alert('Pedido salvo com sucesso!');
 
 };
 
-const gerarPDF = () => { const doc = new jsPDF(); let y = 10; doc.addImage(logo, 'PNG', 10, y, 50, 15); y += 25;
+const gerarPDF = () => { const doc = new jsPDF(); let y = 10;
 
 doc.setFont('courier', 'normal');
 doc.setFontSize(10);
-doc.text('Planejamento da Produção - Dudunitê', 10, y);
+doc.text('Planejamento de Produção - Dudunitê', 10, y);
 y += 10;
 
 const agrupado = {};
@@ -81,16 +81,15 @@ Object.entries(agrupado).forEach(([cidade, escolas]) => {
 
     Object.entries(produtos).forEach(([produto, sabores]) => {
       const totalProduto = Object.values(sabores).reduce((a, b) => a + b, 0);
-      addLine(` ${produto} — Total: ${totalProduto} un`);
+      addLine(`\n ${produto} — Total: ${totalProduto} un`);
       totalEscola += totalProduto;
 
-      addLine(` Sabor                 | Quantidade`);
-      addLine(` ----------------------|-----------`);
+      addLine(` Sabor             | Quantidade`);
+      addLine(` ------------------|-----------`);
       Object.entries(sabores).forEach(([sabor, qtd]) => {
-        const linha = ` ${sabor.padEnd(22)}| ${String(qtd).padStart(3)} un`;
+        const linha = ` ${sabor.padEnd(18)}| ${String(qtd).padStart(3)} un`;
         addLine(linha);
       });
-
       addLine('');
     });
 
@@ -111,16 +110,18 @@ Object.entries(totalGeral).forEach(([produto, qtd]) => {
 });
 
 const agora = new Date();
-const nomePDF = `planejamento-${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}-${String(agora.getDate()).padStart(2, '0')}_${String(agora.getHours()).padStart(2, '0')}-${String(agora.getMinutes()).padStart(2, '0')}-${String(agora.getSeconds()).padStart(2, '0')}.pdf`;
+const nomePDF = `planejamento-${agora.getDate()}-${agora.getMonth() + 1}-${agora.getFullYear()}.pdf`;
 doc.save(nomePDF);
 
 };
 
 const totalItens = itens.reduce((soma, item) => soma + item.quantidade, 0);
 
-return ( <div className="max-w-3xl mx-auto p-4 bg-[#fcefe6] text-[#442c1c] rounded-xl shadow-md"> <img src="/logo-preta.png" alt="Logo" className="w-36 mb-4" /> <h1 className="text-2xl font-bold mb-4">Dudunitê - Lançamento de Pedidos</h1>
+return ( <div className="max-w-3xl mx-auto p-4 bg-[#fff5ec] min-h-screen"> <div className="text-center mb-6"> <img src={logo} alt="Dudunitê" className="w-48 mx-auto" /> </div>
 
-<div className="grid grid-cols-2 gap-4">
+<h1 className="text-xl font-bold mb-4 text-center text-[#8c3b1b]">Lançamento de Pedidos</h1>
+
+  <div className="grid grid-cols-2 gap-4">
     <div>
       <label>Cidade</label>
       <select className="w-full border p-1" value={cidade} onChange={e => { setCidade(e.target.value); setEscola(''); }}>
@@ -159,7 +160,7 @@ return ( <div className="max-w-3xl mx-auto p-4 bg-[#fcefe6] text-[#442c1c] round
     </div>
 
     <div className="flex items-end">
-      <button onClick={adicionarItem} className="bg-[#aa5b2c] text-white px-4 py-2 rounded">+ Adicionar</button>
+      <button onClick={adicionarItem} className="bg-[#a84d2a] text-white px-4 py-2 rounded">+ Adicionar</button>
     </div>
   </div>
 
