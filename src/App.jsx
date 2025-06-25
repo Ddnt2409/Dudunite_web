@@ -1,4 +1,4 @@
-// App.jsx - Versão Dudunitê com layout real e dados atualizados import React, { useState } from 'react'; import jsPDF from 'jspdf'; import logo from './assets/logo-dudunite.png'; // imagem da logomarca real
+// App.jsx - Versão Dudunitê com layout real e dados atualizados (sem logomarca) import React, { useState } from 'react'; import jsPDF from 'jspdf';
 
 const App = () => { const [cidade, setCidade] = useState(''); const [escola, setEscola] = useState(''); const [produto, setProduto] = useState(''); const [sabor, setSabor] = useState(''); const [quantidade, setQuantidade] = useState(1); const [itens, setItens] = useState([]); const [pedidos, setPedidos] = useState([]);
 
@@ -117,11 +117,9 @@ doc.save(nomePDF);
 
 const totalItens = itens.reduce((soma, item) => soma + item.quantidade, 0);
 
-return ( <div className="max-w-3xl mx-auto p-4 bg-[#fff5ec] min-h-screen"> <div className="text-center mb-6"> <img src={logo} alt="Dudunitê" className="w-48 mx-auto" /> </div>
+return ( <div className="max-w-3xl mx-auto p-4 bg-[#fff5ec] min-h-screen"> <h1 className="text-xl font-bold mb-4 text-center text-[#8c3b1b]">Lançamento de Pedidos - Dudunitê</h1>
 
-<h1 className="text-xl font-bold mb-4 text-center text-[#8c3b1b]">Lançamento de Pedidos</h1>
-
-  <div className="grid grid-cols-2 gap-4">
+<div className="grid grid-cols-2 gap-4">
     <div>
       <label>Cidade</label>
       <select className="w-full border p-1" value={cidade} onChange={e => { setCidade(e.target.value); setEscola(''); }}>
