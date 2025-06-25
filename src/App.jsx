@@ -63,7 +63,6 @@ const App = () => {
     setItens([]);
     alert('Pedido salvo com sucesso!');
   };
-
   const gerarPDF = () => {
     const doc = new jsPDF();
     let y = 10;
@@ -87,62 +86,60 @@ const App = () => {
       });
     });
 
-    const addLine = (text, indent = 0) => {
+    const addLine = (text) => {
       if (y > 270) {
         doc.addPage();
         y = 10;
       }
-      doc.text('  '.repeat(indent) + text, 10, y);
-      y += 7;
+      doc.text(text, 10, y);
+      y += 6;
     };
 
-    doc.setFontSize(14);
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(10);
+
     doc.text('Planejamento da Produção - Dudunitê', 10, y);
     y += 10;
 
     Object.entries(agrupado).forEach(([cidade, escolas]) => {
-      addLine(`Cidade: ${cidade}`, 0);
-
+      addLine(`Cidade: ${cidade}`);
       Object.entries(escolas).forEach(([escola, produtos]) => {
-        addLine(`Escola: ${escola}`, 1);
+        addLine(` Escola: ${escola}`);
         let totalEscola = 0;
 
         Object.entries(produtos).forEach(([produto, sabores]) => {
           const totalProduto = Object.values(sabores).reduce((a, b) => a + b, 0);
-          addLine(`${produto} — Total: ${totalProduto} un`, 2);
+          addLine(`\n ${produto} — Total: ${totalProduto} un`);
           totalEscola += totalProduto;
 
-          // Cabeçalho da tabela
-          addLine('Sabor           | Quantidade', 3);
-          addLine('----------------|-----------', 3);
-
+          addLine(` Sabor             | Quantidade`);
+          addLine(` ------------------|-----------`);
           Object.entries(sabores).forEach(([sabor, qtd]) => {
-            const linha = `${sabor.padEnd(16)}| ${qtd.toString().padStart(3)} un`;
-            addLine(linha, 3);
+            const linha = ` ${sabor.padEnd(18)}| ${String(qtd).padStart(3)} un`;
+            addLine(linha);
           });
 
-          addLine('', 3);
+          addLine('');
         });
 
-        addLine(`➡️ Total da escola: ${totalEscola} un`, 2);
-        addLine('');
+        addLine(`➡️ Total da escola: ${totalEscola} un\n`);
       });
 
-      addLine(`Resumo da cidade ${cidade}:`, 1);
+      addLine(` Total da cidade ${cidade}:`);
       Object.entries(totalPorCidade[cidade]).forEach(([produto, qtd]) => {
-        addLine(`${produto}: ${qtd} un`, 2);
+        addLine(` ${produto.padEnd(10)}: ${qtd} un`);
       });
 
-      addLine('');
+      addLine('\n');
     });
 
-    addLine('TOTAL GERAL DE TODOS OS PRODUTOS:', 0);
+    addLine(`TOTAL GERAL DE TODOS OS PRODUTOS:`);
     Object.entries(totalGeral).forEach(([produto, qtd]) => {
-      addLine(`${produto}: ${qtd} un`, 1);
+      addLine(` ${produto.padEnd(10)}: ${qtd} un`);
     });
 
     const agora = new Date();
-    const nomePDF = `planejamento-producao-${agora.getDate()}-${agora.getMonth() + 1}-${agora.getFullYear()}-${agora.getHours()}h${agora.getMinutes()}.pdf`;
+    const nomePDF = `planejamento-${agora.getDate()}-${agora.getMonth() + 1}-${agora.getFullYear()}.pdf`;
     doc.save(nomePDF);
   };
 
