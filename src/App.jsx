@@ -99,6 +99,12 @@ const App = () => {
     doc.setFont('courier', 'normal');
     doc.setFontSize(10);
 
+    // Adiciona data e hora atual no topo do PDF
+    const agora = new Date();
+    const dataHoraStr = agora.toLocaleString();
+    addLine(`Relatório gerado em: ${dataHoraStr}`);
+    addLine(''); // linha em branco
+
     doc.text('Planejamento da Produção - Dudunitê', 10, y);
     y += 10;
 
@@ -113,7 +119,6 @@ const App = () => {
           addLine(`\n ${produto} — Total: ${totalProduto} un`);
           totalEscola += totalProduto;
 
-          // ⚠️ sem linha em branco aqui!
           addLine(` Sabor             | Quantidade`);
           addLine(` ------------------|-----------`);
           Object.entries(sabores).forEach(([sabor, qtd]) => {
@@ -121,7 +126,7 @@ const App = () => {
             addLine(linha);
           });
 
-          addLine(''); // só uma linha ao final do produto
+          addLine(''); // linha em branco após produto
         });
 
         addLine(`➡️ Total da escola: ${totalEscola} un\n`);
@@ -140,8 +145,9 @@ const App = () => {
       addLine(` ${produto.padEnd(10)}: ${qtd} un`);
     });
 
-    const agora = new Date();
-    const nomePDF = `planejamento-${agora.getDate()}-${agora.getMonth() + 1}-${agora.getFullYear()}.pdf`;
+    // Nome do arquivo com data e hora formatada para arquivo
+    const pad2 = (n) => n.toString().padStart(2, '0');
+    const nomePDF = `planejamento-${agora.getFullYear()}-${pad2(agora.getMonth() + 1)}-${pad2(agora.getDate())}_${pad2(agora.getHours())}-${pad2(agora.getMinutes())}-${pad2(agora.getSeconds())}.pdf`;
     doc.save(nomePDF);
   };
 
