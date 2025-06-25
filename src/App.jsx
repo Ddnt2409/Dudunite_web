@@ -87,10 +87,6 @@ const App = () => {
       });
     });
 
-    doc.setFontSize(14);
-    doc.text('Planejamento da Produção - Dudunitê', 10, y);
-    y += 10;
-
     const addLine = (text, indent = 0) => {
       if (y > 270) {
         doc.addPage();
@@ -99,6 +95,10 @@ const App = () => {
       doc.text('  '.repeat(indent) + text, 10, y);
       y += 7;
     };
+
+    doc.setFontSize(14);
+    doc.text('Planejamento da Produção - Dudunitê', 10, y);
+    y += 10;
 
     Object.entries(agrupado).forEach(([cidade, escolas]) => {
       addLine(`Cidade: ${cidade}`, 0);
@@ -109,19 +109,26 @@ const App = () => {
 
         Object.entries(produtos).forEach(([produto, sabores]) => {
           const totalProduto = Object.values(sabores).reduce((a, b) => a + b, 0);
-          addLine(`${produto} - Total: ${totalProduto} un`, 2);
+          addLine(`${produto} — Total: ${totalProduto} un`, 2);
           totalEscola += totalProduto;
 
+          // Cabeçalho da tabela
+          addLine('Sabor           | Quantidade', 3);
+          addLine('----------------|-----------', 3);
+
           Object.entries(sabores).forEach(([sabor, qtd]) => {
-            addLine(`${sabor}: ${qtd} un`, 3);
+            const linha = `${sabor.padEnd(16)}| ${qtd.toString().padStart(3)} un`;
+            addLine(linha, 3);
           });
+
+          addLine('', 3);
         });
 
-        addLine(`Total da escola: ${totalEscola} un`, 1);
+        addLine(`➡️ Total da escola: ${totalEscola} un`, 2);
         addLine('');
       });
 
-      addLine(`Total da cidade ${cidade}:`, 1);
+      addLine(`Resumo da cidade ${cidade}:`, 1);
       Object.entries(totalPorCidade[cidade]).forEach(([produto, qtd]) => {
         addLine(`${produto}: ${qtd} un`, 2);
       });
@@ -129,14 +136,13 @@ const App = () => {
       addLine('');
     });
 
-    addLine('TOTAL GERAL DE TODOS OS PRODUTOS:');
+    addLine('TOTAL GERAL DE TODOS OS PRODUTOS:', 0);
     Object.entries(totalGeral).forEach(([produto, qtd]) => {
       addLine(`${produto}: ${qtd} un`, 1);
     });
 
     const agora = new Date();
     const nomePDF = `planejamento-producao-${agora.getDate()}-${agora.getMonth() + 1}-${agora.getFullYear()}-${agora.getHours()}h${agora.getMinutes()}.pdf`;
-
     doc.save(nomePDF);
   };
 
