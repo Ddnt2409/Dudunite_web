@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; import jsPDF from 'jspdf'; import logo from './logo-preta.png'; // Substitua pelo caminho da logomarca
+// Código completo atualizado com layout, cores, sabores, escolas e horário no PDF import React, { useState } from 'react'; import jsPDF from 'jspdf'; import logo from './logo-preta.png'; // Caminho da logomarca
 
 const App = () => { const [cidade, setCidade] = useState(''); const [escola, setEscola] = useState(''); const [produto, setProduto] = useState(''); const [sabor, setSabor] = useState(''); const [quantidade, setQuantidade] = useState(1); const [itens, setItens] = useState([]); const [pedidos, setPedidos] = useState([]);
 
