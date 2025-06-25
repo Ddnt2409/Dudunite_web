@@ -63,6 +63,7 @@ const App = () => {
     setItens([]);
     alert('Pedido salvo com sucesso!');
   };
+
   const gerarPDF = () => {
     const doc = new jsPDF();
     let y = 10;
@@ -119,7 +120,8 @@ const App = () => {
             addLine(linha);
           });
 
-          addLine('');
+          addLine('');  // Linha em branco antes de espaçamento extra
+          addLine('');  // Linha em branco extra para evitar sobreposição
         });
 
         addLine(`➡️ Total da escola: ${totalEscola} un\n`);
