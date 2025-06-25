@@ -1,12 +1,12 @@
-import React, { useState } from 'react'; import jsPDF from 'jspdf'; import logo from './logo-preta.png'; // ⚠️ Substitua pelo caminho correto da logomarca preta
+import React, { useState } from 'react'; import jsPDF from 'jspdf'; import logo from './logo-preta.png'; // Substitua pelo caminho da logomarca
 
 const App = () => { const [cidade, setCidade] = useState(''); const [escola, setEscola] = useState(''); const [produto, setProduto] = useState(''); const [sabor, setSabor] = useState(''); const [quantidade, setQuantidade] = useState(1); const [itens, setItens] = useState([]); const [pedidos, setPedidos] = useState([]);
 
-const dados = { 'Recife': ['Tio Valter', 'Vera Cruz', 'Pinheiros', 'BMQ', 'Dourado', 'Cfc', 'Madre de Deus', 'Saber viver', 'Anita Garibaldi'], 'Caruaru': ['Interativo', 'Exato 1', 'Exato 2', 'Sesi', 'Motivo'], 'Gravatá': ['Russas', 'Salesianas', 'Pequeno Príncipe', 'Ceu azul'] };
+const dados = { 'Recife': [ 'Tio Valter', 'Vera Cruz', 'Pinheiros', 'BMQ', 'Dourado', 'Cfc', 'Madre de Deus', 'Saber viver', 'Anita Garibaldi' ], 'Caruaru': [ 'Interativo', 'Exato 1', 'Exato 2', 'Sesi', 'Motivo' ], 'Gravatá': [ 'Russas', 'Salesianas', 'Pequeno Príncipe', 'Ceu azul' ] };
 
 const sabores = [ 'Ninho com Nutella', 'Ninho', 'Brig Bco', 'Brig Pto', 'Brig Pto Confete', 'Brig Bco Confete', 'Oreo', 'Ovomaltine', 'Bem Casado', 'Palha Italiana', 'Cr Maracujá' ];
 
-const produtos = { 'BRW7x7': sabores, 'BRW6x6': sabores, 'PKT5x5': sabores, 'PKT6x6': sabores, 'ESC': sabores, 'DUDU': sabores };
+const produtos = { 'BRW 7x7': sabores, 'BRW 6x6': sabores, 'PKT 5x5': sabores, 'PKT 6x6': sabores, 'Escondidinho': sabores, 'Dudu': sabores };
 
 const adicionarItem = () => { if (produto && sabor && quantidade > 0) { setItens([...itens, { produto, sabor, quantidade: Number(quantidade) }]); setProduto(''); setSabor(''); setQuantidade(1); } };
 
@@ -38,11 +38,12 @@ alert('Pedido salvo com sucesso!');
 
 };
 
-const gerarPDF = () => { const doc = new jsPDF(); let y = 10;
+const gerarPDF = () => { const doc = new jsPDF(); let y = 10; doc.addImage(logo, 'PNG', 10, y, 50, 15); y += 25;
 
-// Logomarca
-doc.addImage(logo, 'PNG', 10, y, 40, 15);
-y += 20;
+doc.setFont('courier', 'normal');
+doc.setFontSize(10);
+doc.text('Planejamento da Produção - Dudunitê', 10, y);
+y += 10;
 
 const agrupado = {};
 const totalPorCidade = {};
@@ -71,11 +72,6 @@ const addLine = (text) => {
   doc.text(text, 10, y);
   y += 6;
 };
-
-doc.setFont('courier', 'normal');
-doc.setFontSize(10);
-addLine('Planejamento da Produção - Dudunitê');
-y += 4;
 
 Object.entries(agrupado).forEach(([cidade, escolas]) => {
   addLine(`Cidade: ${cidade}`);
@@ -122,7 +118,7 @@ doc.save(nomePDF);
 
 const totalItens = itens.reduce((soma, item) => soma + item.quantidade, 0);
 
-return ( <div className="max-w-3xl mx-auto p-4"> <img src="/logo-preta.png" alt="Logo" className="w-32 mb-4" /> <h1 className="text-2xl font-bold mb-4">Dudunitê - Lançamento de Pedidos</h1>
+return ( <div className="max-w-3xl mx-auto p-4 bg-[#fcefe6] text-[#442c1c] rounded-xl shadow-md"> <img src="/logo-preta.png" alt="Logo" className="w-36 mb-4" /> <h1 className="text-2xl font-bold mb-4">Dudunitê - Lançamento de Pedidos</h1>
 
 <div className="grid grid-cols-2 gap-4">
     <div>
@@ -163,7 +159,7 @@ return ( <div className="max-w-3xl mx-auto p-4"> <img src="/logo-preta.png" alt=
     </div>
 
     <div className="flex items-end">
-      <button onClick={adicionarItem} className="bg-green-600 text-white px-4 py-2 rounded">+ Adicionar</button>
+      <button onClick={adicionarItem} className="bg-[#aa5b2c] text-white px-4 py-2 rounded">+ Adicionar</button>
     </div>
   </div>
 
