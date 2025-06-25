@@ -12,7 +12,8 @@ const [pedidos, setPedidos] = useState([]);
 
 const dados = {
 'Gravatá': ['Peq Principe', 'Ceu Azul', 'Salesianas', 'Kaduh', 'Bora Gastar', 'Russas', 'Degusty'],
-'Bezerros': ['Escola Municipal X', 'Escola Municipal Y']
+'Recife': ['Madre de Deus', 'Dourado', 'BMQ', 'Tio Valter', 'Anita G', 'Pinheiros', 'Vera Cruz', 'Saber Viver', 'CFC'],
+'Caruaru': ['Sesi', 'Motivo', 'Jesus', 'Interativo', 'Exato Sede', 'Exato Anexo'],
 };
 
 const produtos = {
