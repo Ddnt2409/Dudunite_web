@@ -11,7 +11,7 @@ const [itens, setItens] = useState([]);
 const [pedidos, setPedidos] = useState([]);
 
 const dados = {
-'Gravatá': ['Escola Estadual A', 'Escola Estadual B'],
+'Gravatá': ['Peq Principe', 'Ceu Azul', 'Salesianas', 'Kaduh', 'Bora Gastar', 'Russas', 'Degusty'],
 'Bezerros': ['Escola Municipal X', 'Escola Municipal Y']
 };
 
