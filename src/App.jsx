@@ -71,6 +71,11 @@ const App = () => {
       pedido.itens.forEach(item => {
         doc.text(`  - ${item.produto} | ${item.sabor} | ${item.quantidade} un`, 10, y);
         y += 6;
+
+        if (y >= 280) {
+          doc.addPage();
+          y = 20;
+        }
       });
       y += 4;
     });
