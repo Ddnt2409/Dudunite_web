@@ -113,6 +113,7 @@ const App = () => {
           addLine(`\n ${produto} — Total: ${totalProduto} un`);
           totalEscola += totalProduto;
 
+          // ⚠️ sem linha em branco aqui!
           addLine(` Sabor             | Quantidade`);
           addLine(` ------------------|-----------`);
           Object.entries(sabores).forEach(([sabor, qtd]) => {
@@ -120,8 +121,7 @@ const App = () => {
             addLine(linha);
           });
 
-          addLine('');  // Linha em branco antes de espaçamento extra
-          addLine('');  // Linha em branco extra para evitar sobreposição
+          addLine(''); // só uma linha ao final do produto
         });
 
         addLine(`➡️ Total da escola: ${totalEscola} un\n`);
