@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where, Timestamp, serverTimestamp } from "firebase/firestore";
 import db from './firebase';
 
 const App = () => {
@@ -11,6 +11,8 @@ const App = () => {
   const [quantidade, setQuantidade] = useState(1);
   const [itens, setItens] = useState([]);
   const [pedidos, setPedidos] = useState([]);
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
 
   const dados = {
     "Recife": ["Tio Valter", "Vera Cruz", "Pinheiros", "BMQ", "Dourado", "CFC", "Madre de Deus", "Saber Viver", "Anita Garibaldi"],
@@ -56,19 +58,17 @@ const App = () => {
     }
 
     const agora = new Date();
-
     const novoPedido = {
       cidade,
       escola,
       itens,
-      data: agora.toISOString(), // usado no PDF e no estado local
-      dataServidor: serverTimestamp() // salvo no Firestore com timestamp real
+      data: agora.toISOString(),
+      dataServidor: serverTimestamp()
     };
 
     try {
       await addDoc(collection(db, "pedidos"), novoPedido);
       setPedidos([...pedidos, novoPedido]);
-
       setCidade('');
       setEscola('');
       setProduto('');
@@ -82,10 +82,37 @@ const App = () => {
     }
   };
 
+  const buscarPedidosPorData = async () => {
+    if (!dataInicio || !dataFim) {
+      alert('Informe as duas datas.');
+      return;
+    }
+    const inicio = new Date(dataInicio);
+    const fim = new Date(dataFim);
+    fim.setHours(23, 59, 59, 999);
+
+    try {
+      const pedidosRef = collection(db, "pedidos");
+      const q = query(pedidosRef, where("dataServidor", ">=", Timestamp.fromDate(inicio)), where("dataServidor", "<=", Timestamp.fromDate(fim)));
+      const snapshot = await getDocs(q);
+
+      const resultados = snapshot.docs.map(doc => doc.data());
+      setPedidos(resultados);
+
+      if (resultados.length === 0) {
+        alert('Nenhum pedido encontrado no intervalo.');
+      } else {
+        alert(`✅ ${resultados.length} pedidos carregados.`);
+      }
+    } catch (error) {
+      console.error("Erro na consulta:", error);
+      alert('❌ Erro ao buscar pedidos.');
+    }
+  };
+
   const gerarPDF = () => {
     const doc = new jsPDF();
     let y = 10;
-
     const agora = new Date();
     const dia = String(agora.getDate()).padStart(2, '0');
     const mes = String(agora.getMonth() + 1).padStart(2, '0');
@@ -154,7 +181,6 @@ const App = () => {
       Object.entries(totalPorCidade[cidade]).forEach(([produto, qtd]) => {
         addLine(` ${produto.padEnd(10)}: ${qtd} un`);
       });
-
       addLine('\n');
     });
 
@@ -236,8 +262,22 @@ const App = () => {
         <button onClick={gerarPDF} disabled={pedidos.length === 0} className="bg-purple-600 text-white px-4 py-2 rounded">Gerar PDF Produção</button>
       </div>
 
+      <div className="mt-4 grid grid-cols-2 gap-4">
+        <div>
+          <label>De:</label>
+          <input type="date" className="w-full border p-1" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
+        </div>
+        <div>
+          <label>Até:</label>
+          <input type="date" className="w-full border p-1" value={dataFim} onChange={e => setDataFim(e.target.value)} />
+        </div>
+        <div className="col-span-2">
+          <button onClick={buscarPedidosPorData} className="bg-green-700 text-white w-full py-2 rounded">Buscar Pedidos</button>
+        </div>
+      </div>
+
       <div className="mt-6">
-        <h2 className="font-bold">Pedidos Salvos:</h2>
+        <h2 className="font-bold">Pedidos Filtrados:</h2>
         <ul className="text-sm text-gray-700">
           {pedidos.map((p, i) => (
             <li key={i}>📌 {p.cidade} - {p.escola} ({p.itens.length} itens)</li>
