@@ -55,13 +55,19 @@ const App = () => {
       return;
     }
 
+    const agora = new Date();
+
+    const novoPedido = {
+      cidade,
+      escola,
+      itens,
+      data: agora.toISOString(), // usado no PDF e no estado local
+      dataServidor: serverTimestamp() // salvo no Firestore com timestamp real
+    };
+
     try {
-      await addDoc(collection(db, "pedidos"), {
-        cidade,
-        escola,
-        itens,
-        data: serverTimestamp()
-      });
+      await addDoc(collection(db, "pedidos"), novoPedido);
+      setPedidos([...pedidos, novoPedido]);
 
       setCidade('');
       setEscola('');
