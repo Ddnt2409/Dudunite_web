@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
-import { db } from './firebase';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import db from './firebase';
 
 const App = () => {
   const [cidade, setCidade] = useState('');
@@ -55,41 +55,24 @@ const App = () => {
       return;
     }
 
-    const hoje = new Date();
-    const cincoDiasAtras = new Date();
-    cincoDiasAtras.setDate(hoje.getDate() - 5);
-
-    const indice = pedidos.findIndex(
-      p => p.cidade === cidade && p.escola === escola && new Date(p.data) >= cincoDiasAtras
-    );
-
-    let novosPedidos = [...pedidos];
-
-    if (indice !== -1) {
-      novosPedidos[indice].itens.push(...itens);
-    } else {
-      novosPedidos.push({ cidade, escola, itens, data: hoje.toISOString() });
-    }
-
-    setPedidos(novosPedidos);
-    setCidade('');
-    setEscola('');
-    setProduto('');
-    setSabor('');
-    setQuantidade(1);
-    setItens([]);
-
     try {
       await addDoc(collection(db, "pedidos"), {
         cidade,
         escola,
         itens,
-        data: Timestamp.fromDate(hoje)
+        data: serverTimestamp()
       });
-      alert('Pedido salvo com sucesso no Firebase!');
+
+      setCidade('');
+      setEscola('');
+      setProduto('');
+      setSabor('');
+      setQuantidade(1);
+      setItens([]);
+      alert('✅ Pedido salvo no Firestore!');
     } catch (error) {
-      console.error("Erro ao salvar no Firebase:", error);
-      alert('Erro ao salvar no Firebase.');
+      console.error("Erro ao salvar no Firestore:", error);
+      alert('❌ Falha ao salvar no Firestore. Verifique o console.');
     }
   };
 
