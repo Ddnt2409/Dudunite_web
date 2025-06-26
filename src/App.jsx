@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
+import { db } from './firebase';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 const App = () => {
   const [cidade, setCidade] = useState('');
@@ -47,7 +49,7 @@ const App = () => {
     }
   };
 
-  const salvarPedido = () => {
+  const salvarPedido = async () => {
     if (!cidade || !escola || itens.length === 0) {
       alert('Preencha todos os campos antes de salvar.');
       return;
@@ -61,21 +63,34 @@ const App = () => {
       p => p.cidade === cidade && p.escola === escola && new Date(p.data) >= cincoDiasAtras
     );
 
+    let novosPedidos = [...pedidos];
+
     if (indice !== -1) {
-      const atualizado = [...pedidos];
-      atualizado[indice].itens.push(...itens);
-      setPedidos(atualizado);
+      novosPedidos[indice].itens.push(...itens);
     } else {
-      setPedidos([...pedidos, { cidade, escola, itens, data: hoje.toISOString() }]);
+      novosPedidos.push({ cidade, escola, itens, data: hoje.toISOString() });
     }
 
+    setPedidos(novosPedidos);
     setCidade('');
     setEscola('');
     setProduto('');
     setSabor('');
     setQuantidade(1);
     setItens([]);
-    alert('Pedido salvo com sucesso!');
+
+    try {
+      await addDoc(collection(db, "pedidos"), {
+        cidade,
+        escola,
+        itens,
+        data: Timestamp.fromDate(hoje)
+      });
+      alert('Pedido salvo com sucesso no Firebase!');
+    } catch (error) {
+      console.error("Erro ao salvar no Firebase:", error);
+      alert('Erro ao salvar no Firebase.');
+    }
   };
 
   const gerarPDF = () => {
