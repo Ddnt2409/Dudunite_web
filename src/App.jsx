@@ -303,71 +303,7 @@ const gerarListaCompras = () => {
   const minuto = String(agora.getMinutes()).padStart(2, '0');
   const nomePDF = `lista-compras-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
 
-  doc.save(nomePDF);
-};
-  const gerarListaCompras = () => {
-  const totais = {};
-
-  pedidos.forEach(({ itens }) => {
-    itens.forEach(({ produto, quantidade }) => {
-      totais[produto] = (totais[produto] || 0) + quantidade;
-    });
-  });
-
-  const doc = new jsPDF();
-  let y = 10;
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(12);
-  doc.text('Lista de Compras - Dudunitê', 10, y);
-  y += 10;
-
-  Object.entries(totais).forEach(([produto, qtd]) => {
-    doc.text(`${produto}: ${qtd} un`, 10, y);
-    y += 8;
-  });
-
-  const agora = new Date();
-  const dia = String(agora.getDate()).padStart(2, '0');
-  const mes = String(agora.getMonth() + 1).padStart(2, '0');
-  const ano = agora.getFullYear();
-  const hora = String(agora.getHours()).padStart(2, '0');
-  const minuto = String(agora.getMinutes()).padStart(2, '0');
-  const nomePDF = `lista-compras-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
-
-  doc.save(nomePDF);
-};
-  const gerarListaCompras = () => {
-  const totais = {};
-
-  pedidos.forEach(({ itens }) => {
-    itens.forEach(({ produto, quantidade }) => {
-      totais[produto] = (totais[produto] || 0) + quantidade;
-    });
-  });
-
-  const doc = new jsPDF();
-  let y = 10;
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(12);
-  doc.text('Lista de Compras - Dudunitê', 10, y);
-  y += 10;
-
-  Object.entries(totais).forEach(([produto, qtd]) => {
-    doc.text(`${produto}: ${qtd} un`, 10, y);
-    y += 8;
-  });
-
-  const agora = new Date();
-  const dia = String(agora.getDate()).padStart(2, '0');
-  const mes = String(agora.getMonth() + 1).padStart(2, '0');
-  const ano = agora.getFullYear();
-  const hora = String(agora.getHours()).padStart(2, '0');
-  const minuto = String(agora.getMinutes()).padStart(2, '0');
-  const nomePDF = `lista-compras-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
-
-  doc.save(nomePDF);
+  doc.save(nomePDF)
 };
   return (
     <div className="max-w-3xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
