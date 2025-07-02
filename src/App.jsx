@@ -194,6 +194,117 @@ const App = () => {
 
   const totalItens = itens.reduce((soma, item) => soma + item.quantidade, 0);
 
+const gerarListaCompras = () => {
+  const doc = new jsPDF();
+  let y = 10;
+
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(10);
+  doc.text('Lista de Compras - Dudunitê', 10, y);
+  y += 10;
+
+  const insumos = {
+    margarina: 0,
+    ovos: 0,
+    massas: 0,
+    recheiosPretos: 0,
+    recheiosBrancos: 0,
+    dudus: 0
+  };
+
+  const embalagens = {
+    G650: 0,
+    G640: 0,
+    SQ5x5: 0,
+    SQ6x6: 0,
+    SQ30x5: 0,
+    SQ22x6: 0,
+    D135: 0,
+    EtiqBrw: 0,
+    EtiqDD: 0,
+    EtiqEsc: 0
+  };
+
+  pedidos.forEach(pedido => {
+    pedido.itens.forEach(({ produto, quantidade }) => {
+      const qtd = Number(quantidade);
+
+      if (produto === "BRW 7x7") {
+        insumos.margarina += 76 * (qtd / 12);
+        insumos.ovos += 190 * (qtd / 12);
+        insumos.massas += 2 * (qtd / 12);
+        embalagens.G650 += qtd;
+        embalagens.EtiqBrw += qtd;
+      }
+
+      if (produto === "BRW 6x6") {
+        insumos.margarina += 76 * (qtd / 17);
+        insumos.ovos += 190 * (qtd / 17);
+        insumos.massas += 2 * (qtd / 17);
+        embalagens.G640 += qtd;
+        embalagens.EtiqBrw += qtd;
+      }
+
+      if (produto === "PKT 5x5") {
+        insumos.margarina += 76 * (qtd / 20);
+        insumos.ovos += 190 * (qtd / 20);
+        insumos.massas += 2 * (qtd / 20);
+        embalagens.SQ5x5 += qtd;
+        embalagens.EtiqBrw += qtd;
+      }
+
+      if (produto === "PKT 6x6") {
+        insumos.margarina += 76 * (qtd / 15);
+        insumos.ovos += 190 * (qtd / 15);
+        insumos.massas += 2 * (qtd / 15);
+        embalagens.SQ6x6 += qtd;
+        embalagens.EtiqBrw += qtd;
+      }
+
+      if (produto === "ESC") {
+        insumos.margarina += 76 * (qtd / 26);
+        insumos.ovos += 190 * (qtd / 26);
+        insumos.massas += 2 * (qtd / 26);
+        embalagens.D135 += qtd;
+        embalagens.EtiqEsc += qtd;
+      }
+
+      if (produto === "DUDU") {
+        insumos.dudus += qtd;
+        embalagens.SQ30x5 += qtd * 2;
+        embalagens.SQ22x6 += qtd * 2;
+        embalagens.EtiqDD += qtd;
+      }
+    });
+  });
+
+  // RESUMO DE INSUMOS
+  doc.text('--- INSUMOS ---', 10, y); y += 8;
+  doc.text(`Margarina: ${insumos.margarina.toFixed(0)}g`, 10, y); y += 6;
+  doc.text(`Ovos: ${(insumos.ovos / 60).toFixed(0)} ovos (${insumos.ovos.toFixed(0)}g)`, 10, y); y += 6;
+  doc.text(`Massas (Finna 450g): ${(insumos.massas).toFixed(0)} un`, 10, y); y += 10;
+
+  // NOVA PÁGINA
+  doc.addPage();
+  y = 10;
+
+  // EMBALAGENS
+  doc.text('--- EMBALAGENS ---', 10, y); y += 8;
+  Object.entries(embalagens).forEach(([codigo, qtd]) => {
+    doc.text(`${codigo}: ${Math.ceil(qtd)} un`, 10, y);
+    y += 6;
+  });
+
+  const agora = new Date();
+  const dia = String(agora.getDate()).padStart(2, '0');
+  const mes = String(agora.getMonth() + 1).padStart(2, '0');
+  const ano = agora.getFullYear();
+  const hora = String(agora.getHours()).padStart(2, '0');
+  const minuto = String(agora.getMinutes()).padStart(2, '0');
+  const nomePDF = `lista-compras-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
+
+  doc.save(nomePDF);
+};
   return (
     <div className="max-w-3xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
       <h1 className="text-xl font-bold mb-4 text-center text-[#8c3b1b]">Lançamento de Pedidos - Dudunitê</h1>
