@@ -375,15 +375,7 @@ const gerarListaCompras = () => {
           </ul>
         )}
       </div>
-{/* 💥 BLOCO COM TODOS OS BOTÕES */}
 <div className="mt-4 flex gap-4 flex-wrap">
-  <button
-    onClick={salvarPedido}
-    className="bg-blue-600 text-white px-4 py-2 rounded"
-  >
-    Salvar Pedido
-  </button>
-
   <button
     onClick={gerarPDF}
     className="bg-purple-600 text-white px-4 py-2 rounded"
