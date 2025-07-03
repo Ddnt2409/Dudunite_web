@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
-import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  getDocs,
+  query,
+  where,
+  Timestamp
+} from "firebase/firestore";
 import db from './firebase';
 
 const App = () => {
+  // Estados principais
   const [cidade, setCidade] = useState('');
   const [escola, setEscola] = useState('');
   const [produto, setProduto] = useState('');
@@ -14,6 +23,7 @@ const App = () => {
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
 
+  // Dados fixos para seleção
   const dados = {
     "Recife": ["Tio Valter", "Vera Cruz", "Pinheiros", "BMQ", "Dourado", "CFC", "Madre de Deus", "Saber Viver", "Anita Garibaldi"],
     "Caruaru": ["Interativo", "Exato 1", "Exato 2", "SESI", "Motivo"],
@@ -35,32 +45,39 @@ const App = () => {
     "DUDU": saboresPadrao
   };
 
+  // Função para adicionar item ao pedido
   const adicionarItem = () => {
-    if (produto && sabor && quantidade > 0) {
-      setItens([...itens, { produto, sabor, quantidade: Number(quantidade) }]);
-      setSabor('');
-      setQuantidade(1);
-    }
-  };
-
-  const salvarPedido = async () => {
-    if (!cidade || !escola || itens.length === 0) {
-      alert('Preencha todos os campos antes de salvar.');
+    if (!produto || !sabor || quantidade < 1) {
+      alert('Preencha Produto, Sabor e Quantidade válidos.');
       return;
     }
+    setItens([...itens, { produto, sabor, quantidade: Number(quantidade) }]);
+    setSabor('');
+    setQuantidade(1);
+  };
 
-    const agora = new Date();
+  // Salvar pedido no Firestore
+  const salvarPedido = async () => {
+    if (!cidade || !escola) {
+      alert('Selecione Cidade e Escola.');
+      return;
+    }
+    if (itens.length === 0) {
+      alert('Adicione ao menos 1 item no pedido.');
+      return;
+    }
 
     const novoPedido = {
       cidade,
       escola,
       itens,
-      data: agora.toISOString(),
+      data: new Date().toISOString(),
       dataServidor: serverTimestamp()
     };
 
     try {
       await addDoc(collection(db, "pedidos"), novoPedido);
+      alert('✅ Pedido salvo no Firestore!');
       setPedidos([...pedidos, novoPedido]);
       setCidade('');
       setEscola('');
@@ -68,13 +85,13 @@ const App = () => {
       setSabor('');
       setQuantidade(1);
       setItens([]);
-      alert('✅ Pedido salvo no Firestore!');
     } catch (error) {
-      console.error("Erro ao salvar no Firestore:", error);
-      alert('❌ Falha ao salvar no Firestore. Verifique o console.');
+      console.error('Erro ao salvar pedido:', error);
+      alert('❌ Falha ao salvar no Firestore.');
     }
   };
 
+  // Carregar pedidos filtrados por data
   const carregarPedidos = async () => {
     try {
       const pedidosRef = collection(db, "pedidos");
@@ -94,6 +111,11 @@ const App = () => {
     }
   };
 
+  useEffect(() => {
+    carregarPedidos();
+  }, [dataInicio, dataFim]);
+
+  // Gerar PDF de Planejamento de Produção
   const gerarPDF = () => {
     const doc = new jsPDF();
     let y = 10;
@@ -230,6 +252,8 @@ const App = () => {
 
     doc.save(nomePDF);
   };
+
+  // Função para gerar Lista de Compras e Excel (CSV)
   const gerarListaCompras = () => {
     const doc = new jsPDF();
     let y = 10;
@@ -292,12 +316,12 @@ const App = () => {
 
         if (produto === "PKT 5x5") {
           embalagens.SQ5x5 += qtd;
-          embalagens.SQ5x5 += qtd; // etiqueta = embalagem
+          embalagens.EtiqBrw += qtd; // etiqueta = embalagem
         }
 
         if (produto === "PKT 6x6") {
           embalagens.SQ6x6 += qtd;
-          embalagens.SQ6x6 += qtd;
+          embalagens.EtiqBrw += qtd;
         }
 
         if (produto === "DUDU") {
@@ -321,7 +345,8 @@ const App = () => {
 
         // Recheio Branco
         if (saboresBrancos.includes(sabor)) {
-          if (produto === "BRW 7x7") insumos.recheiosBrancos += bacia(qtd, 25);
+          if (produto === "BRW 7x7
+              if (produto === "BRW 7x7") insumos.recheiosBrancos += bacia(qtd, 25);
           if (produto === "BRW 6x6") insumos.recheiosBrancos += bacia(qtd, 35);
           if (produto === "ESC")     insumos.recheiosBrancos += bacia(qtd, 26);
           if (produto === "PKT 5x5") insumos.recheiosBrancos += (qtd * 20) / 1350;
@@ -408,6 +433,11 @@ const App = () => {
     link.download = `lista-compras-${dia}-${mes}-${ano}-${hora}h${minuto}.csv`;
     link.click();
   };
+
+  // Total de itens no pedido
+  const totalItens = itens.reduce((acc, item) => acc + item.quantidade, 0);
+
+  // JSX do componente
   return (
     <div className="max-w-3xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
       <h1 className="text-xl font-bold mb-4 text-center text-[#8c3b1b]">
