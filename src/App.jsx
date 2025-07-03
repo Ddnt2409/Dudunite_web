@@ -193,16 +193,6 @@ const App = () => {
   };
 
   const totalItens = itens.reduce((soma, item) => soma + item.quantidade, 0);
-
-const gerarListaCompras = () => {
-  const doc = new jsPDF();
-  let y = 10;
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(10);
-  doc.text('Lista de Compras - Dudunitê', 10, y);
-  y += 10;
-
   const insumos = {
     margarina: 0,
     ovos: 0,
