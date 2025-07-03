@@ -375,17 +375,29 @@ const gerarListaCompras = () => {
           </ul>
         )}
       </div>
-        <div className="mt-4 flex gap-4 flex-wrap">
-  <p>👀 Aqui é pra aparecer o botão lista de compras</p>
+{/* 💥 BLOCO COM TODOS OS BOTÕES */}
+<div className="mt-4 flex gap-4 flex-wrap">
+  <button
+    onClick={salvarPedido}
+    className="bg-blue-600 text-white px-4 py-2 rounded"
+  >
+    Salvar Pedido
+  </button>
+
+  <button
+    onClick={gerarPDF}
+    className="bg-purple-600 text-white px-4 py-2 rounded"
+  >
+    Gerar PDF Produção
+  </button>
+
   <button
     onClick={gerarListaCompras}
-    // disabled={false} // pode tirar o disabled pra testar
     className="bg-green-700 text-white px-4 py-2 rounded"
   >
     🛒 Gerar Lista de Compras
   </button>
 </div>
-
       <div className="mt-6">
         <h2 className="font-bold">Pedidos Filtrados:</h2>
         <ul className="text-sm text-gray-700">
