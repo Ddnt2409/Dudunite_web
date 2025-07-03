@@ -376,13 +376,7 @@ const gerarListaCompras = () => {
         )}
       </div>
 <div className="mt-4 flex gap-4 flex-wrap">
-  <button
-    onClick={gerarPDF}
-    className="bg-purple-600 text-white px-4 py-2 rounded"
-  >
-    Gerar PDF Produção
-  </button>
-
+  <p>👀 Aqui é pra aparecer o botão lista de compras</p>
   <button
     onClick={gerarListaCompras}
     className="bg-green-700 text-white px-4 py-2 rounded"
