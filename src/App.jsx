@@ -358,25 +358,19 @@ const gerarListaCompras = () => {
           </button>
         </div>
       </div>
-
-      <div className="mt-4">
-        <h2 className="font-bold">
-          Itens do Pedido (Total: {totalItens} un):
-        </h2>
-        {itens.length === 0 ? (
-          <p className="text-sm text-gray-500">Nenhum item adicionado.</p>
-        ) : (
-          <ul className="list-disc pl-5">
-            {itens.map((item, i) => (
-              <li key={i}>
-                {item.produto} - {item.sabor} - {item.quantidade} un
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
 <div className="mt-4 flex gap-4 flex-wrap">
-  <p>👀 Aqui é pra aparecer o botão lista de compras</p>
+  <button
+    onClick={salvarPedido}
+    className="bg-blue-600 text-white px-4 py-2 rounded"
+  >
+    Salvar Pedido
+  </button>
+  <button
+    onClick={gerarPDF}
+    className="bg-purple-600 text-white px-4 py-2 rounded"
+  >
+    Gerar PDF Produção
+  </button>
   <button
     onClick={gerarListaCompras}
     className="bg-green-700 text-white px-4 py-2 rounded"
