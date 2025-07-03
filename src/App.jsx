@@ -187,6 +187,57 @@ const App = () => {
     });
 
     y += 10;
+    // ➕ RESUMO FINAL DE PRODUÇÃO
+addLine(`-----------------------------`);
+addLine(`📦 RESUMO FINAL DE PRODUÇÃO:`);
+
+const totalTabuleiros =
+  (totalGeral["BRW 7x7"] || 0) / 12 +
+  (totalGeral["BRW 6x6"] || 0) / 17 +
+  (totalGeral["PKT 5x5"] || 0) / 20 +
+  (totalGeral["PKT 6x6"] || 0) / 15 +
+  (totalGeral["ESC"] || 0) / 26;
+
+addLine(`🧾 Total de tabuleiros: ${Math.ceil(totalTabuleiros)} un`);
+
+const saboresBrancos = [
+  "Ninho com nutella", "Ninho", "Brig bco", "Brig bco confete",
+  "Oreo", "Ovomaltine", "Palha italiana"
+];
+const saboresPretos = [
+  "Brig pto", "Brig pto confete"
+];
+
+let baciasBranco = 0;
+let baciasPreto = 0;
+
+pedidos.forEach(pedido => {
+  pedido.itens.forEach(({ produto, sabor, quantidade }) => {
+    const qtd = Number(quantidade);
+
+    const bacia = (qtd, rendimento) => qtd / rendimento;
+
+    if (saboresBrancos.includes(sabor)) {
+      if (produto === "BRW 7x7") baciasBranco += bacia(qtd, 25);
+      if (produto === "BRW 6x6") baciasBranco += bacia(qtd, 35);
+      if (produto === "ESC")     baciasBranco += bacia(qtd, 26);
+      if (produto === "PKT 5x5") baciasBranco += (qtd * 20) / 1350;
+      if (produto === "PKT 6x6") baciasBranco += (qtd * 30) / 1350;
+    }
+
+    if (saboresPretos.includes(sabor)) {
+      if (produto === "BRW 7x7") baciasPreto += bacia(qtd, 25);
+      if (produto === "BRW 6x6") baciasPreto += bacia(qtd, 35);
+      if (produto === "ESC")     baciasPreto += bacia(qtd, 26);
+      if (produto === "PKT 5x5") baciasPreto += (qtd * 20) / 1350;
+      if (produto === "PKT 6x6") baciasPreto += (qtd * 30) / 1350;
+    }
+  });
+});
+
+addLine(`🥛 Bacias de recheio branco: ${Math.ceil(baciasBranco)} un`);
+addLine(`🍫 Bacias de recheio preto: ${Math.ceil(baciasPreto)} un`);
+addLine(`-----------------------------`);
     addLine(`📄 Gerado em ${dia}/${mes}/${ano} às ${hora}h${minuto}`);
 
     doc.save(nomePDF);
