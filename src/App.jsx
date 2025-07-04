@@ -610,6 +610,6 @@ return (
       </ul>
     </div>
   </div>
-);
-}
+   );
+  }
   export default App;
