@@ -598,6 +598,6 @@ return (
       </div>
     </div> {/* Fecha o wrapper principal */}
   );
-};
+}
 
 export default App;
