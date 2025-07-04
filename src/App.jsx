@@ -599,7 +599,7 @@ return (
       </button>
     </div>
 
-    <div className="mt-6">
+<div className="mt-6">
       <h2 className="font-bold">Pedidos Filtrados:</h2>
       <ul className="text-sm text-gray-700">
         {pedidos.map((p, i) => (
@@ -608,8 +608,7 @@ return (
           </li>
         ))}
       </ul>
-    </div>
-  </div>
-   );
-  }
-  export default App;
+    </div>  {/* só uma div fechada aqui */}
+  );
+};
+export default App;
