@@ -318,7 +318,6 @@ addLine(`-----------------------------`);
       }
     });
   });
-};
 
   const gerarListaCompras = () => {
   const doc = new jsPDF();
