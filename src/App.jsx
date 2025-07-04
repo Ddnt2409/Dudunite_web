@@ -318,26 +318,6 @@ addLine(`-----------------------------`);
       }
     });
   });
-
-  // RESUMO DE INSUMOS
-  doc.text('--- INSUMOS ---', 10, y); y += 8;
-  doc.text(`Margarina: ${insumos.margarina.toFixed(0)}g`, 10, y); y += 6;
-  doc.text(`Ovos: ${(insumos.ovos / 60).toFixed(0)} ovos (${insumos.ovos.toFixed(0)}g)`, 10, y); y += 6;
-  doc.text(`Massas (Finna 450g): ${(insumos.massas).toFixed(0)} un`, 10, y); y += 10;
-
-  // NOVA PÁGINA
-  doc.addPage();
-  y = 10;
-
-  // EMBALAGENS
-doc.text('--- EMBALAGENS ---', 10, y); 
-y += 8;
-Object.entries(embalagens).forEach(([codigo, qtd]) => {
-  doc.text(`${codigo}: ${Math.ceil(qtd)} un`, 10, y);
-  y += 6;
-});
-
-  doc.save(nomePDF);
 };
 
   const gerarListaCompras = () => {
