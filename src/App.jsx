@@ -597,8 +597,7 @@ return (
         </ul>
 </div>
 
-    </div>
-    {/* Fecha o wrapper principal */}
+</div>
   );
 }
 
