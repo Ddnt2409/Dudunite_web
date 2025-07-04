@@ -600,15 +600,19 @@ return (
     </div>
 
 <div className="mt-6">
-      <h2 className="font-bold">Pedidos Filtrados:</h2>
-      <ul className="text-sm text-gray-700">
-        {pedidos.map((p, i) => (
-          <li key={i}>
-            📌 {p.cidade} - {p.escola} ({p.itens.length} itens)
-          </li>
-        ))}
-      </ul>
-    </div>  {/* só uma div fechada aqui */}
-  );
+  <h2 className="font-bold">Pedidos Filtrados:</h2>
+  <ul className="text-sm text-gray-700">
+    {pedidos.map((p, i) => (
+      <li key={i}>
+        📌 {p.cidade} - {p.escola} ({p.itens.length} itens)
+      </li>
+    ))}
+  </ul>
+</div>
+
+</div> {/* Fecha a div principal! */}
+
+);
 };
+
 export default App;
