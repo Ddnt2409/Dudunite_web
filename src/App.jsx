@@ -504,115 +504,113 @@ const gerarListaCompras = () => {
   doc.save(nomePDF);
 };
 return (
-  <div className="max-w-3xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
-    <h1 className="text-xl font-bold mb-4 text-center text-[#8c3b1b]">Lançamento de Pedidos - Dudunitê</h1>
+    <div className="max-w-3xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
+      <h1 className="text-xl font-bold mb-4 text-center text-[#8c3b1b]">Lançamento de Pedidos - Dudunitê</h1>
 
-    <div className="grid grid-cols-2 gap-4">
-      <div>
-        <label>Cidade</label>
-        <select className="w-full border p-1" value={cidade} onChange={e => { setCidade(e.target.value); setEscola(''); }}>
-          <option value="">Selecione</option>
-          {Object.keys(dados).map(c => <option key={c}>{c}</option>)}
-        </select>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label>Cidade</label>
+          <select className="w-full border p-1" value={cidade} onChange={e => { setCidade(e.target.value); setEscola(''); }}>
+            <option value="">Selecione</option>
+            {Object.keys(dados).map(c => <option key={c}>{c}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label>Escola</label>
+          <select className="w-full border p-1" value={escola} onChange={e => setEscola(e.target.value)} disabled={!cidade}>
+            <option value="">Selecione</option>
+            {cidade && dados[cidade].map(e => <option key={e}>{e}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label>Produto</label>
+          <select className="w-full border p-1" value={produto} onChange={e => { setProduto(e.target.value); setSabor(''); }}>
+            <option value="">Selecione</option>
+            {Object.keys(produtos).map(p => <option key={p}>{p}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label>Sabor</label>
+          <select className="w-full border p-1" value={sabor} onChange={e => setSabor(e.target.value)} disabled={!produto}>
+            <option value="">Selecione</option>
+            {produto && produtos[produto].map(s => <option key={s}>{s}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label>Quantidade</label>
+          <input
+            type="number"
+            min="1"
+            className="w-full border p-1"
+            value={quantidade}
+            onChange={e => setQuantidade(e.target.value)}
+          />
+        </div>
+
+        <div className="flex items-end">
+          <button
+            onClick={adicionarItem}
+            className="bg-[#a84d2a] text-white px-4 py-2 rounded"
+          >
+            + Adicionar
+          </button>
+        </div>
       </div>
 
-      <div>
-        <label>Escola</label>
-        <select className="w-full border p-1" value={escola} onChange={e => setEscola(e.target.value)} disabled={!cidade}>
-          <option value="">Selecione</option>
-          {cidade && dados[cidade].map(e => <option key={e}>{e}</option>)}
-        </select>
+      <div className="mt-4">
+        <h2 className="font-bold">
+          Itens do Pedido (Total: {totalItens} un):
+        </h2>
+        {itens.length === 0 ? (
+          <p className="text-sm text-gray-500">Nenhum item adicionado.</p>
+        ) : (
+          <ul className="list-disc pl-5">
+            {itens.map((item, i) => (
+              <li key={i}>
+                {item.produto} - {item.sabor} - {item.quantidade} un
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
-      <div>
-        <label>Produto</label>
-        <select className="w-full border p-1" value={produto} onChange={e => { setProduto(e.target.value); setSabor(''); }}>
-          <option value="">Selecione</option>
-          {Object.keys(produtos).map(p => <option key={p}>{p}</option>)}
-        </select>
-      </div>
-
-      <div>
-        <label>Sabor</label>
-        <select className="w-full border p-1" value={sabor} onChange={e => setSabor(e.target.value)} disabled={!produto}>
-          <option value="">Selecione</option>
-          {produto && produtos[produto].map(s => <option key={s}>{s}</option>)}
-        </select>
-      </div>
-
-      <div>
-        <label>Quantidade</label>
-        <input
-          type="number"
-          min="1"
-          className="w-full border p-1"
-          value={quantidade}
-          onChange={e => setQuantidade(e.target.value)}
-        />
-      </div>
-
-      <div className="flex items-end">
+      <div className="mt-4 flex gap-4 flex-wrap">
         <button
-          onClick={adicionarItem}
-          className="bg-[#a84d2a] text-white px-4 py-2 rounded"
+          onClick={salvarPedido}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
         >
-          + Adicionar
+          Salvar Pedido
+        </button>
+        <button
+          onClick={gerarPDF}
+          className="bg-purple-600 text-white px-4 py-2 rounded"
+        >
+          Gerar PDF Produção
+        </button>
+        <button
+          onClick={gerarListaCompras}
+          className="bg-green-700 text-white px-4 py-2 rounded"
+        >
+          🛒 Gerar Lista de Compras
         </button>
       </div>
-    </div>
 
-    <div className="mt-4">
-      <h2 className="font-bold">
-        Itens do Pedido (Total: {totalItens} un):
-      </h2>
-      {itens.length === 0 ? (
-        <p className="text-sm text-gray-500">Nenhum item adicionado.</p>
-      ) : (
-        <ul className="list-disc pl-5">
-          {itens.map((item, i) => (
+      <div className="mt-6">
+        <h2 className="font-bold">Pedidos Filtrados:</h2>
+        <ul className="text-sm text-gray-700">
+          {pedidos.map((p, i) => (
             <li key={i}>
-              {item.produto} - {item.sabor} - {item.quantidade} un
+              📌 {p.cidade} - {p.escola} ({p.itens.length} itens)
             </li>
           ))}
         </ul>
-      )}
-    </div>
-
-    <div className="mt-4 flex gap-4 flex-wrap">
-      <button
-        onClick={salvarPedido}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Salvar Pedido
-      </button>
-      <button
-        onClick={gerarPDF}
-        className="bg-purple-600 text-white px-4 py-2 rounded"
-      >
-        Gerar PDF Produção
-      </button>
-      <button
-        onClick={gerarListaCompras}
-        className="bg-green-700 text-white px-4 py-2 rounded"
-      >
-        🛒 Gerar Lista de Compras
-      </button>
-    </div>
-
-<div className="mt-6">
-  <h2 className="font-bold">Pedidos Filtrados:</h2>
-  <ul className="text-sm text-gray-700">
-    {pedidos.map((p, i) => (
-      <li key={i}>
-        📌 {p.cidade} - {p.escola} ({p.itens.length} itens)
-      </li>
-    ))}
-  </ul>
-</div>
-
-</div> {/* Fecha a div principal! */}
-
-);
+      </div>
+    </div> {/* Fecha o wrapper principal */}
+  );
 };
 
 export default App;
