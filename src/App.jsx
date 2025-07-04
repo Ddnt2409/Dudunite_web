@@ -330,9 +330,17 @@ addLine(`-----------------------------`);
   y = 10;
 
   // EMBALAGENS
-  doc.text('--- EMBALAGENS ---', 10, y); y += 8;
-  Object.entries(embalagens).forEach(([codigo, qtd]) => {
-const gerarListaCompras = () => {
+doc.text('--- EMBALAGENS ---', 10, y); 
+y += 8;
+Object.entries(embalagens).forEach(([codigo, qtd]) => {
+  doc.text(`${codigo}: ${Math.ceil(qtd)} un`, 10, y);
+  y += 6;
+});
+
+  doc.save(nomePDF);
+};
+
+  const gerarListaCompras = () => {
   const doc = new jsPDF();
   let y = 10;
 
