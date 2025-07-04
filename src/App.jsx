@@ -83,7 +83,6 @@ const App = () => {
       alert('❌ Falha ao salvar no Firestore. Verifique o console.');
     }
   };
-
   const carregarPedidos = async () => {
     try {
       const pedidosRef = collection(db, "pedidos");
@@ -101,201 +100,176 @@ const App = () => {
     } catch (e) {
       console.error("Erro ao carregar pedidos:", e);
     }
-};
-
-export default App;
-
-const gerarPDF = () => {
-  const doc = new jsPDF();
-  let y = 10;
-
-  const agora = new Date();
-  const dia = String(agora.getDate()).padStart(2, '0');
-  const mes = String(agora.getMonth() + 1).padStart(2, '0');
-  const ano = agora.getFullYear();
-  const hora = String(agora.getHours()).padStart(2, '0');
-  const minuto = String(agora.getMinutes()).padStart(2, '0');
-  const nomePDF = `planejamento-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(10);
-  doc.text('Planejamento de Produção - Dudunitê', 10, y);
-  y += 10;
-
-  if (dataInicio && dataFim) {
-    doc.text(`📆 Período: ${dataInicio.split('-').reverse().join('/')} a ${dataFim.split('-').reverse().join('/')}`, 10, y);
-    y += 10;
-  }
-
-  const agrupado = {};
-  const totalPorCidade = {};
-  const totalGeral = {};
-
-  pedidos.forEach(({ cidade, escola, itens }) => {
-    if (!agrupado[cidade]) agrupado[cidade] = {};
-    if (!agrupado[cidade][escola]) agrupado[cidade][escola] = {};
-
-    itens.forEach(({ produto, sabor, quantidade }) => {
-      if (!agrupado[cidade][escola][produto]) agrupado[cidade][escola][produto] = {};
-      if (!agrupado[cidade][escola][produto][sabor]) agrupado[cidade][escola][produto][sabor] = 0;
-      agrupado[cidade][escola][produto][sabor] += quantidade;
-
-      totalPorCidade[cidade] = totalPorCidade[cidade] || {};
-      totalPorCidade[cidade][produto] = (totalPorCidade[cidade][produto] || 0) + quantidade;
-      totalGeral[produto] = (totalGeral[produto] || 0) + quantidade;
-    });
-  });
-
-  const addLine = (text) => {
-    if (y > 270) {
-      doc.addPage();
-      y = 10;
-    }
-    doc.text(text, 10, y);
-    y += 6;
   };
 
-  Object.entries(agrupado).forEach(([cidade, escolas]) => {
-    addLine(`Cidade: ${cidade}`);
-    Object.entries(escolas).forEach(([escola, produtos]) => {
-      addLine(` Escola: ${escola}`);
-      let totalEscola = 0;
+  const gerarPDF = () => {
+    const doc = new jsPDF();
+    let y = 10;
 
-      Object.entries(produtos).forEach(([produto, sabores]) => {
-        const totalProduto = Object.values(sabores).reduce((a, b) => a + b, 0);
-        addLine(`\n ${produto} — Total: ${totalProduto} un`);
-        totalEscola += totalProduto;
+    const agora = new Date();
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const ano = agora.getFullYear();
+    const hora = String(agora.getHours()).padStart(2, '0');
+    const minuto = String(agora.getMinutes()).padStart(2, '0');
+    const nomePDF = `planejamento-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
 
-        addLine(` Sabor             | Quantidade`);
-        addLine(` ------------------|-----------`);
-        Object.entries(sabores).forEach(([sabor, qtd]) => {
-          const linha = ` ${sabor.padEnd(18)}| ${String(qtd).padStart(3)} un`;
-          addLine(linha);
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(10);
+    doc.text('Planejamento de Produção - Dudunitê', 10, y);
+    y += 10;
+
+    if (dataInicio && dataFim) {
+      doc.text(`📆 Período: ${dataInicio.split('-').reverse().join('/')} a ${dataFim.split('-').reverse().join('/')}`, 10, y);
+      y += 10;
+    }
+
+    const agrupado = {};
+    const totalPorCidade = {};
+    const totalGeral = {};
+
+    pedidos.forEach(({ cidade, escola, itens }) => {
+      if (!agrupado[cidade]) agrupado[cidade] = {};
+      if (!agrupado[cidade][escola]) agrupado[cidade][escola] = {};
+
+      itens.forEach(({ produto, sabor, quantidade }) => {
+        if (!agrupado[cidade][escola][produto]) agrupado[cidade][escola][produto] = {};
+        if (!agrupado[cidade][escola][produto][sabor]) agrupado[cidade][escola][produto][sabor] = 0;
+        agrupado[cidade][escola][produto][sabor] += quantidade;
+
+        totalPorCidade[cidade] = totalPorCidade[cidade] || {};
+        totalPorCidade[cidade][produto] = (totalPorCidade[cidade][produto] || 0) + quantidade;
+        totalGeral[produto] = (totalGeral[produto] || 0) + quantidade;
+      });
+    });
+    const addLine = (text) => {
+      if (y > 270) {
+        doc.addPage();
+        y = 10;
+      }
+      doc.text(text, 10, y);
+      y += 6;
+    };
+
+    Object.entries(agrupado).forEach(([cidade, escolas]) => {
+      addLine(`Cidade: ${cidade}`);
+      Object.entries(escolas).forEach(([escola, produtos]) => {
+        addLine(` Escola: ${escola}`);
+        let totalEscola = 0;
+
+        Object.entries(produtos).forEach(([produto, sabores]) => {
+          const totalProduto = Object.values(sabores).reduce((a, b) => a + b, 0);
+          addLine(`\n ${produto} — Total: ${totalProduto} un`);
+          totalEscola += totalProduto;
+
+          addLine(` Sabor             | Quantidade`);
+          addLine(` ------------------|-----------`);
+          Object.entries(sabores).forEach(([sabor, qtd]) => {
+            const linha = ` ${sabor.padEnd(18)}| ${String(qtd).padStart(3)} un`;
+            addLine(linha);
+          });
+          addLine('');
         });
-        addLine('');
+
+        addLine(`➡️ Total da escola: ${totalEscola} un\n`);
       });
 
-      addLine(`➡️ Total da escola: ${totalEscola} un\n`);
-    });
+      addLine(` Total da cidade ${cidade}:`);
+      Object.entries(totalPorCidade[cidade]).forEach(([produto, qtd]) => {
+        addLine(` ${produto.padEnd(10)}: ${qtd} un`);
+      });
 
-    addLine(` Total da cidade ${cidade}:`);
-    Object.entries(totalPorCidade[cidade]).forEach(([produto, qtd]) => {
+      addLine('\n');
+    });
+    addLine(`TOTAL GERAL DE TODOS OS PRODUTOS:`);
+    Object.entries(totalGeral).forEach(([produto, qtd]) => {
       addLine(` ${produto.padEnd(10)}: ${qtd} un`);
     });
 
-    addLine('\n');
+    y += 10;
+    // ➕ RESUMO FINAL DE PRODUÇÃO
+addLine(`-----------------------------`);
+addLine(`📦 RESUMO FINAL DE PRODUÇÃO:`);
+
+const totalTabuleiros =
+  (totalGeral["BRW 7x7"] || 0) / 12 +
+  (totalGeral["BRW 6x6"] || 0) / 17 +
+  (totalGeral["PKT 5x5"] || 0) / 20 +
+  (totalGeral["PKT 6x6"] || 0) / 15 +
+  (totalGeral["ESC"] || 0) / 26;
+
+addLine(`🧾 Total de tabuleiros: ${Math.ceil(totalTabuleiros)} un`);
+
+const saboresBrancos = [
+  "Ninho com nutella", "Ninho", "Brig bco", "Brig bco confete",
+  "Oreo", "Ovomaltine", "Palha italiana"
+];
+const saboresPretos = [
+  "Brig pto", "Brig pto confete"
+];
+
+let baciasBranco = 0;
+let baciasPreto = 0;
+
+pedidos.forEach(pedido => {
+  pedido.itens.forEach(({ produto, sabor, quantidade }) => {
+    const qtd = Number(quantidade);
+
+    const bacia = (qtd, rendimento) => qtd / rendimento;
+
+    if (saboresBrancos.includes(sabor)) {
+      if (produto === "BRW 7x7") baciasBranco += bacia(qtd, 25);
+      if (produto === "BRW 6x6") baciasBranco += bacia(qtd, 35);
+      if (produto === "ESC")     baciasBranco += bacia(qtd, 26);
+      if (produto === "PKT 5x5") baciasBranco += (qtd * 20) / 1350;
+      if (produto === "PKT 6x6") baciasBranco += (qtd * 30) / 1350;
+    }
+
+    if (saboresPretos.includes(sabor)) {
+      if (produto === "BRW 7x7") baciasPreto += bacia(qtd, 25);
+      if (produto === "BRW 6x6") baciasPreto += bacia(qtd, 35);
+      if (produto === "ESC")     baciasPreto += bacia(qtd, 26);
+      if (produto === "PKT 5x5") baciasPreto += (qtd * 20) / 1350;
+      if (produto === "PKT 6x6") baciasPreto += (qtd * 30) / 1350;
+    }
   });
+});
 
-  addLine(`TOTAL GERAL DE TODOS OS PRODUTOS:`);
-  Object.entries(totalGeral).forEach(([produto, qtd]) => {
-    addLine(` ${produto.padEnd(10)}: ${qtd} un`);
-  });
+addLine(`🥛 Bacias de recheio branco: ${Math.ceil(baciasBranco)} un`);
+addLine(`🍫 Bacias de recheio preto: ${Math.ceil(baciasPreto)} un`);
+addLine(`-----------------------------`);
+    addLine(`📄 Gerado em ${dia}/${mes}/${ano} às ${hora}h${minuto}`);
 
-  y += 10;
+    doc.save(nomePDF);
+  };
 
-  addLine(`-----------------------------`);
-  addLine(`📦 RESUMO FINAL DE PRODUÇÃO:`);
-
-  const totalTabuleiros =
-    (totalGeral["BRW 7x7"] || 0) / 12 +
-    (totalGeral["BRW 6x6"] || 0) / 17 +
-    (totalGeral["PKT 5x5"] || 0) / 20 +
-    (totalGeral["PKT 6x6"] || 0) / 15 +
-    (totalGeral["ESC"] || 0) / 26;
-
-  addLine(`🧾 Total de tabuleiros: ${Math.ceil(totalTabuleiros)} un`);
-
-  const saboresBrancos = [
-    "Ninho com nutella", "Ninho", "Brig bco", "Brig bco confete",
-    "Oreo", "Ovomaltine", "Palha italiana"
-  ];
-  const saboresPretos = [
-    "Brig pto", "Brig pto confete"
-  ];
-
-  let baciasBranco = 0;
-  let baciasPreto = 0;
-
-  pedidos.forEach(pedido => {
-    pedido.itens.forEach(({ produto, sabor, quantidade }) => {
-      const qtd = Number(quantidade);
-
-      const bacia = (qtd, rendimento) => qtd / rendimento;
-
-      if (saboresBrancos.includes(sabor)) {
-        if (produto === "BRW 7x7") baciasBranco += bacia(qtd, 25);
-        if (produto === "BRW 6x6") baciasBranco += bacia(qtd, 35);
-        if (produto === "ESC")     baciasBranco += bacia(qtd, 26);
-        if (produto === "PKT 5x5") baciasBranco += (qtd * 20) / 1350;
-        if (produto === "PKT 6x6") baciasBranco += (qtd * 30) / 1350;
-      }
-
-      if (saboresPretos.includes(sabor)) {
-        if (produto === "BRW 7x7") baciasPreto += bacia(qtd, 25);
-        if (produto === "BRW 6x6") baciasPreto += bacia(qtd, 35);
-        if (produto === "ESC")     baciasPreto += bacia(qtd, 26);
-        if (produto === "PKT 5x5") baciasPreto += (qtd * 20) / 1350;
-        if (produto === "PKT 6x6") baciasPreto += (qtd * 30) / 1350;
-      }
-    });
-  });
-
-  addLine(`🥛 Bacias de recheio branco: ${Math.ceil(baciasBranco)} un`);
-  addLine(`🍫 Bacias de recheio preto: ${Math.ceil(baciasPreto)} un`);
-  addLine(`-----------------------------`);
-  addLine(`📄 Gerado em ${dia}/${mes}/${ano} às ${hora}h${minuto}`);
-
-  doc.save(nomePDF);
-};
-
-const gerarListaCompras = () => {
-  const doc = new jsPDF();
-  let y = 10;
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(10);
-  doc.text('Lista de Compras - Dudunitê', 10, y);
-  y += 10;
-
-  // Inicializa insumos e embalagens
+  const totalItens = itens.reduce((soma, item) => soma + item.quantidade, 0);
   const insumos = {
     margarina: 0,
     ovos: 0,
     massas: 0,
     recheiosPretos: 0,
     recheiosBrancos: 0,
-    nutella: 0,
     dudus: 0
   };
 
   const embalagens = {
-    G650: 0,   // Embalagem BRW 7x7
-    G640: 0,   // Embalagem BRW 6x6
-    SQ5x5: 0,  // Embalagem PKT 5x5
-    SQ6x6: 0,  // Embalagem PKT 6x6
-    SQ30x5: 0, // Embalagem DUDU 30x5 (2 sacos por dudu)
-    SQ22x6: 0, // Embalagem DUDU 22x6 (2 sacos por dudu)
-    D135: 0,   // Embalagem ESC
+    G650: 0,
+    G640: 0,
+    SQ5x5: 0,
+    SQ6x6: 0,
+    SQ30x5: 0,
+    SQ22x6: 0,
+    D135: 0,
     EtiqBrw: 0,
     EtiqDD: 0,
     EtiqEsc: 0
   };
 
-  // Sabores agrupados para recheios
-  const saboresBrancos = [
-    "Ninho com nutella", "Ninho", "Brig bco", "Brig bco confete",
-    "Oreo", "Ovomaltine", "Palha italiana"
-  ];
-
-  const saboresPretos = [
-    "Brig pto", "Brig pto confete"
-  ];
-
   pedidos.forEach(pedido => {
-    pedido.itens.forEach(({ produto, sabor, quantidade }) => {
+    pedido.itens.forEach(({ produto, quantidade }) => {
       const qtd = Number(quantidade);
 
-      // Massa e insumos por produto
       if (produto === "BRW 7x7") {
         insumos.margarina += 76 * (qtd / 12);
         insumos.ovos += 190 * (qtd / 12);
@@ -310,14 +284,6 @@ const gerarListaCompras = () => {
         insumos.massas += 2 * (qtd / 17);
         embalagens.G640 += qtd;
         embalagens.EtiqBrw += qtd;
-      }
-
-      if (produto === "ESC") {
-        insumos.margarina += 76 * (qtd / 26);
-        insumos.ovos += 190 * (qtd / 26);
-        insumos.massas += 2 * (qtd / 26);
-        embalagens.D135 += qtd;
-        embalagens.EtiqEsc += qtd;
       }
 
       if (produto === "PKT 5x5") {
@@ -336,6 +302,115 @@ const gerarListaCompras = () => {
         embalagens.EtiqBrw += qtd;
       }
 
+      if (produto === "ESC") {
+        insumos.margarina += 76 * (qtd / 26);
+        insumos.ovos += 190 * (qtd / 26);
+        insumos.massas += 2 * (qtd / 26);
+        embalagens.D135 += qtd;
+        embalagens.EtiqEsc += qtd;
+      }
+
+      if (produto === "DUDU") {
+        insumos.dudus += qtd;
+        embalagens.SQ30x5 += qtd * 2;
+        embalagens.SQ22x6 += qtd * 2;
+        embalagens.EtiqDD += qtd;
+      }
+    });
+  });
+
+  // RESUMO DE INSUMOS
+  doc.text('--- INSUMOS ---', 10, y); y += 8;
+  doc.text(`Margarina: ${insumos.margarina.toFixed(0)}g`, 10, y); y += 6;
+  doc.text(`Ovos: ${(insumos.ovos / 60).toFixed(0)} ovos (${insumos.ovos.toFixed(0)}g)`, 10, y); y += 6;
+  doc.text(`Massas (Finna 450g): ${(insumos.massas).toFixed(0)} un`, 10, y); y += 10;
+
+  // NOVA PÁGINA
+  doc.addPage();
+  y = 10;
+
+  // EMBALAGENS
+  doc.text('--- EMBALAGENS ---', 10, y); y += 8;
+  Object.entries(embalagens).forEach(([codigo, qtd]) => {
+const gerarListaCompras = () => {
+  const doc = new jsPDF();
+  let y = 10;
+
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(10);
+  doc.text('Lista de Compras - Dudunitê', 10, y);
+  y += 10;
+
+  const insumos = {
+    margarina: 0,
+    ovos: 0,
+    massas: 0,
+    recheiosPretos: 0,
+    recheiosBrancos: 0,
+    recheiosMistos: 0,
+    nutella: 0,
+    dudus: 0
+  };
+
+  const embalagens = {
+    G650: 0,
+    G640: 0,
+    SQ5x5: 0,
+    SQ6x6: 0,
+    SQ30x5: 0,
+    SQ22x6: 0,
+    D135: 0,
+    EtiqBrw: 0,
+    EtiqDD: 0,
+    EtiqEsc: 0
+  };
+
+  pedidos.forEach(pedido => {
+    pedido.itens.forEach(({ produto, sabor, quantidade }) => {
+      const qtd = Number(quantidade);
+
+      // Massa base (BRW, PKT, ESC)
+      if (produto === "BRW 7x7") {
+        insumos.margarina += 76 * (qtd / 12);
+        insumos.ovos += 190 * (qtd / 12);
+        insumos.massas += 2 * (qtd / 12);
+        embalagens.G650 += qtd;
+        embalagens.EtiqBrw += qtd;
+      }
+
+      if (produto === "BRW 6x6") {
+        insumos.margarina += 76 * (qtd / 17);
+        insumos.ovos += 190 * (qtd / 17);
+        insumos.massas += 2 * (qtd / 17);
+        embalagens.G640 += qtd;
+        embalagens.EtiqBrw += qtd;
+      }
+
+      if (produto === "PKT 5x5") {
+        insumos.margarina += 76 * (qtd / 20);
+        insumos.ovos += 190 * (qtd / 20);
+        insumos.massas += 2 * (qtd / 20);
+        embalagens.SQ5x5 += qtd;
+        embalagens.EtiqBrw += qtd;
+      }
+
+      if (produto === "PKT 6x6") {
+        insumos.margarina += 76 * (qtd / 15);
+        insumos.ovos += 190 * (qtd / 15);
+        insumos.massas += 2 * (qtd / 15);
+        embalagens.SQ6x6 += qtd;
+        embalagens.EtiqBrw += qtd;
+      }
+
+      if (produto === "ESC") {
+        insumos.margarina += 76 * (qtd / 26);
+        insumos.ovos += 190 * (qtd / 26);
+        insumos.massas += 2 * (qtd / 26);
+        embalagens.D135 += qtd;
+        embalagens.EtiqEsc += qtd;
+      }
+
+      // DUDU
       if (produto === "DUDU") {
         insumos.dudus += qtd;
         embalagens.SQ30x5 += qtd * 2;
@@ -343,114 +418,198 @@ const gerarListaCompras = () => {
         embalagens.EtiqDD += qtd;
       }
 
-      // Cálculo recheios (em bacias, considerando rendimento 1350g/bacia)
+      // Recheios
+      const bacia = (qtd, rendimento) => qtd / rendimento;
+
+      const saboresBrancos = [
+        "Ninho com nutella", "Ninho", "Brig bco", "Brig bco confete",
+        "Oreo", "Ovomaltine", "Palha italiana"
+      ];
+      const saboresPretos = [
+        "Brig pto", "Brig pto confete"
+      ];
+      const saboresMistos = [
+        "Bem casado"
+      ];
+
+      // Nutella (só "Ninho com nutella")
+      if (sabor === "Ninho com nutella") {
+        if (produto === "BRW 7x7") insumos.nutella += qtd / 60;
+        if (produto === "BRW 6x6") insumos.nutella += qtd / 85;
+        if (produto === "ESC")     insumos.nutella += qtd / 70;
+        if (produto === "DUDU")    insumos.nutella += qtd / 100;
+        // PKT ignora
+      }
+
+      // Recheio Branco
       if (saboresBrancos.includes(sabor)) {
-        if (produto === "BRW 7x7") insumos.recheiosBrancos += qtd / 25;
-        if (produto === "BRW 6x6") insumos.recheiosBrancos += qtd / 35;
-        if (produto === "ESC")     insumos.recheiosBrancos += qtd / 26;
+        if (produto === "BRW 7x7") insumos.recheiosBrancos += bacia(qtd, 25);
+        if (produto === "BRW 6x6") insumos.recheiosBrancos += bacia(qtd, 35);
+        if (produto === "ESC")     insumos.recheiosBrancos += bacia(qtd, 26);
         if (produto === "PKT 5x5") insumos.recheiosBrancos += (qtd * 20) / 1350;
-        if (produto === "PKT 6x6") insumos.recheiosBrancos += (qtd * 30) / 1350;
+        if (produto === "PKT 6x6") insumos.recheiosBrancos += (qtd * 25) / 1350;
       }
 
+      // Recheio Preto
       if (saboresPretos.includes(sabor)) {
-        if (produto === "BRW 7x7") insumos.recheiosPretos += qtd / 25;
-        if (produto === "BRW 6x6") insumos.recheiosPretos += qtd / 35;
-        if (produto === "ESC")     insumos.recheiosPretos += qtd / 26;
+        if (produto === "BRW 7x7") insumos.recheiosPretos += bacia(qtd, 25);
+        if (produto === "BRW 6x6") insumos.recheiosPretos += bacia(qtd, 35);
+        if (produto === "ESC")     insumos.recheiosPretos += bacia(qtd, 26);
         if (produto === "PKT 5x5") insumos.recheiosPretos += (qtd * 20) / 1350;
-        if (produto === "PKT 6x6") insumos.recheiosPretos += (qtd * 30) / 1350;
+        if (produto === "PKT 6x6") insumos.recheiosPretos += (qtd * 25) / 1350;
       }
 
-      // Nutella (contabiliza só sabores que contenham nutella)
-      if (sabor.toLowerCase().includes("nutella")) {
-        insumos.nutella += qtd;
+      // Recheio Misto (Bem Casado)
+      if (saboresMistos.includes(sabor)) {
+        if (produto === "BRW 7x7") insumos.recheiosMistos += bacia(qtd, 25);
+        if (produto === "BRW 6x6") insumos.recheiosMistos += bacia(qtd, 35);
+        if (produto === "ESC")     insumos.recheiosMistos += bacia(qtd, 26);
+        if (produto === "PKT 5x5") insumos.recheiosMistos += (qtd * 20) / 1350;
+        if (produto === "PKT 6x6") insumos.recheiosMistos += (qtd * 25) / 1350;
       }
     });
   });
 
-  // Arredondar valores para cima
-  for (let key in insumos) {
-    insumos[key] = Math.ceil(insumos[key]);
-  }
-  for (let key in embalagens) {
-    embalagens[key] = Math.ceil(embalagens[key]);
-  }
-
-  // Exibe no PDF
+  // RESUMO DE INSUMOS
   doc.text('--- INSUMOS ---', 10, y); y += 8;
-  doc.text(`Margarina (g): ${insumos.margarina}`, 10, y); y += 6;
-  doc.text(`Ovos (g): ${insumos.ovos}`, 10, y); y += 6;
-  doc.text(`Massas (unidades): ${insumos.massas}`, 10, y); y += 6;
-  doc.text(`Recheios Brancos (bacias): ${insumos.recheiosBrancos}`, 10, y); y += 6;
-  doc.text(`Recheios Pretos (bacias): ${insumos.recheiosPretos}`, 10, y); y += 6;
-  doc.text(`Nutella (potinhos): ${insumos.nutella}`, 10, y); y += 10;
+  doc.text(`Margarina: ${insumos.margarina.toFixed(0)}g`, 10, y); y += 6;
+  doc.text(`Ovos: ${(insumos.ovos / 60).toFixed(0)} ovos (${insumos.ovos.toFixed(0)}g)`, 10, y); y += 6;
+  doc.text(`Massas (Finna 450g): ${insumos.massas.toFixed(0)} un`, 10, y); y += 6;
 
+  doc.text(`Nutella (pote 650g): ${Math.ceil(insumos.nutella)} un`, 10, y); y += 6;
+
+  doc.text(`Bacias recheio branco: ${Math.ceil(insumos.recheiosBrancos)} un`, 10, y); y += 6;
+  doc.text(`Bacias recheio preto: ${Math.ceil(insumos.recheiosPretos)} un`, 10, y); y += 6;
+  doc.text(`Bacias recheio misto: ${Math.ceil(insumos.recheiosMistos)} un`, 10, y); y += 10;
+
+  // NOVA PÁGINA
+  doc.addPage();
+  y = 10;
+
+  // EMBALAGENS
   doc.text('--- EMBALAGENS ---', 10, y); y += 8;
-  doc.text(`BRW 7x7 (G650): ${embalagens.G650}`, 10, y); y += 6;
-  doc.text(`BRW 6x6 (G640): ${embalagens.G640}`, 10, y); y += 6;
-  doc.text(`PKT 5x5 (SQ5x5): ${embalagens.SQ5x5}`, 10, y); y += 6;
-  doc.text(`PKT 6x6 (SQ6x6): ${embalagens.SQ6x6}`, 10, y); y += 6;
-  doc.text(`DUDU 30x5 (SQ30x5): ${embalagens.SQ30x5}`, 10, y); y += 6;
-  doc.text(`DUDU 22x6 (SQ22x6): ${embalagens.SQ22x6}`, 10, y); y += 6;
-  doc.text(`ESC (D135): ${embalagens.D135}`, 10, y); y += 6;
+  Object.entries(embalagens).forEach(([codigo, qtd]) => {
+    doc.text(`${codigo}: ${Math.ceil(qtd)} un`, 10, y);
+    y += 6;
+  });
 
-  doc.text(`Etiquetas BRW (EtiqBrw): ${embalagens.EtiqBrw}`, 10, y); y += 6;
-  doc.text(`Etiquetas DUDU (EtiqDD): ${embalagens.EtiqDD}`, 10, y); y += 6;
-  doc.text(`Etiquetas ESC (EtiqEsc): ${embalagens.EtiqEsc}`, 10, y); y += 10;
+  const agora = new Date();
+  const dia = String(agora.getDate()).padStart(2, '0');
+  const mes = String(agora.getMonth() + 1).padStart(2, '0');
+  const ano = agora.getFullYear();
+  const hora = String(agora.getHours()).padStart(2, '0');
+  const minuto = String(agora.getMinutes()).padStart(2, '0');
+  const nomePDF = `lista-compras-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
 
-  doc.save('lista-de-compras.pdf');
+  doc.save(nomePDF);
 };
+return (
+  <div className="max-w-3xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
+    <h1 className="text-xl font-bold mb-4 text-center text-[#8c3b1b]">Lançamento de Pedidos - Dudunitê</h1>
 
-  return (
-  <div style={{ padding: 20, fontFamily: 'Courier New, monospace' }}>
-    <h2>Planejamento de Produção - Dudunitê</h2>
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <label>Cidade</label>
+        <select className="w-full border p-1" value={cidade} onChange={e => { setCidade(e.target.value); setEscola(''); }}>
+          <option value="">Selecione</option>
+          {Object.keys(dados).map(c => <option key={c}>{c}</option>)}
+        </select>
+      </div>
 
-    <div>
-      <label>
-        Data Início:{' '}
+      <div>
+        <label>Escola</label>
+        <select className="w-full border p-1" value={escola} onChange={e => setEscola(e.target.value)} disabled={!cidade}>
+          <option value="">Selecione</option>
+          {cidade && dados[cidade].map(e => <option key={e}>{e}</option>)}
+        </select>
+      </div>
+
+      <div>
+        <label>Produto</label>
+        <select className="w-full border p-1" value={produto} onChange={e => { setProduto(e.target.value); setSabor(''); }}>
+          <option value="">Selecione</option>
+          {Object.keys(produtos).map(p => <option key={p}>{p}</option>)}
+        </select>
+      </div>
+
+      <div>
+        <label>Sabor</label>
+        <select className="w-full border p-1" value={sabor} onChange={e => setSabor(e.target.value)} disabled={!produto}>
+          <option value="">Selecione</option>
+          {produto && produtos[produto].map(s => <option key={s}>{s}</option>)}
+        </select>
+      </div>
+
+      <div>
+        <label>Quantidade</label>
         <input
-          type="date"
-          value={dataInicio}
-          onChange={e => setDataInicio(e.target.value)}
+          type="number"
+          min="1"
+          className="w-full border p-1"
+          value={quantidade}
+          onChange={e => setQuantidade(e.target.value)}
         />
-      </label>
-      <label style={{ marginLeft: 20 }}>
-        Data Fim:{' '}
-        <input
-          type="date"
-          value={dataFim}
-          onChange={e => setDataFim(e.target.value)}
-        />
-      </label>
+      </div>
+
+      <div className="flex items-end">
+        <button
+          onClick={adicionarItem}
+          className="bg-[#a84d2a] text-white px-4 py-2 rounded"
+        >
+          + Adicionar
+        </button>
+      </div>
     </div>
 
-    <div style={{ marginTop: 20 }}>
-      <button onClick={gerarPDF} style={{ marginRight: 10 }}>
-        📄 Gerar PDF Planejamento
+    <div className="mt-4">
+      <h2 className="font-bold">
+        Itens do Pedido (Total: {totalItens} un):
+      </h2>
+      {itens.length === 0 ? (
+        <p className="text-sm text-gray-500">Nenhum item adicionado.</p>
+      ) : (
+        <ul className="list-disc pl-5">
+          {itens.map((item, i) => (
+            <li key={i}>
+              {item.produto} - {item.sabor} - {item.quantidade} un
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+    <div className="mt-4 flex gap-4 flex-wrap">
+      <button
+        onClick={salvarPedido}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Salvar Pedido
       </button>
-      <button onClick={gerarListaCompras}>
+      <button
+        onClick={gerarPDF}
+        className="bg-purple-600 text-white px-4 py-2 rounded"
+      >
+        Gerar PDF Produção
+      </button>
+      <button
+        onClick={gerarListaCompras}
+        className="bg-green-700 text-white px-4 py-2 rounded"
+      >
         🛒 Gerar Lista de Compras
       </button>
     </div>
 
-    <div style={{ marginTop: 30, maxHeight: 300, overflowY: 'auto', border: '1px solid #ccc', padding: 10 }}>
-      {pedidos.length === 0 ? (
-        <p>Nenhum pedido disponível.</p>
-      ) : (
-        pedidos.map((pedido, idx) => (
-          <div key={idx} style={{ marginBottom: 15 }}>
-            <strong>Cidade:</strong> {pedido.cidade} <br />
-            <strong>Escola:</strong> {pedido.escola} <br />
-            <strong>Itens:</strong>
-            <ul>
-              {pedido.itens.map((item, i) => (
-                <li key={i}>
-                  {item.produto} - {item.sabor} - {item.quantidade} un
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))
-      )}
+    <div className="mt-6">
+      <h2 className="font-bold">Pedidos Filtrados:</h2>
+      <ul className="text-sm text-gray-700">
+        {pedidos.map((p, i) => (
+          <li key={i}>
+            📌 {p.cidade} - {p.escola} ({p.itens.length} itens)
+          </li>
+        ))}
+      </ul>
     </div>
   </div>
 );
+};
+  export default App;
