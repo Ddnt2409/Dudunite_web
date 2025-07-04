@@ -595,9 +595,11 @@ return (
             </li>
           ))}
         </ul>
-      </div>
-    </div> {/* Fecha o wrapper principal */}
+</div>
+
+    </div>
+    {/* Fecha o wrapper principal */}
   );
-};
+}
 
 export default App;
