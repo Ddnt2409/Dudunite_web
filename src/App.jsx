@@ -528,10 +528,10 @@ const App = () => {
               </li>
 return (
   <div className="max-w-4xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
-    {/* Fn20 - Logomarca Dudunitê */}
+    {/* Logomarca Dudunitê */}
     <div className="text-center mb-4">
       <img
-        src="/LogomarcaDDnt2025Vazado.png"
+        src={logoPath}
         alt="Logomarca Dudunitê"
         className="mx-auto w-52"
       />
@@ -545,33 +545,65 @@ return (
     <div className="grid grid-cols-2 gap-4">
       <div>
         <label>Cidade</label>
-        <select className="w-full border p-1" value={cidade} onChange={e => { setCidade(e.target.value); setEscola(''); }}>
+        <select
+          className="w-full border p-1"
+          value={cidade}
+          onChange={e => {
+            setCidade(e.target.value);
+            setEscola('');
+          }}
+        >
           <option value="">Selecione</option>
-          {Object.keys(dados).map(c => <option key={c}>{c}</option>)}
+          {Object.keys(dados).map(c => (
+            <option key={c}>{c}</option>
+          ))}
         </select>
       </div>
 
       <div>
         <label>Escola</label>
-        <select className="w-full border p-1" value={escola} onChange={e => setEscola(e.target.value)} disabled={!cidade}>
+        <select
+          className="w-full border p-1"
+          value={escola}
+          onChange={e => setEscola(e.target.value)}
+          disabled={!cidade}
+        >
           <option value="">Selecione</option>
-          {cidade && dados[cidade].map(e => <option key={e}>{e}</option>)}
+          {cidade && dados[cidade].map(e => (
+            <option key={e}>{e}</option>
+          ))}
         </select>
       </div>
 
       <div>
         <label>Produto</label>
-        <select className="w-full border p-1" value={produto} onChange={e => { setProduto(e.target.value); setSabor(''); }}>
+        <select
+          className="w-full border p-1"
+          value={produto}
+          onChange={e => {
+            setProduto(e.target.value);
+            setSabor('');
+          }}
+        >
           <option value="">Selecione</option>
-          {Object.keys(produtos).map(p => <option key={p}>{p}</option>)}
+          {Object.keys(produtos).map(p => (
+            <option key={p}>{p}</option>
+          ))}
         </select>
       </div>
 
       <div>
         <label>Sabor</label>
-        <select className="w-full border p-1" value={sabor} onChange={e => setSabor(e.target.value)} disabled={!produto}>
+        <select
+          className="w-full border p-1"
+          value={sabor}
+          onChange={e => setSabor(e.target.value)}
+          disabled={!produto}
+        >
           <option value="">Selecione</option>
-          {produto && produtos[produto].map(s => <option key={s}>{s}</option>)}
+          {produto && produtos[produto].map(s => (
+            <option key={s}>{s}</option>
+          ))}
         </select>
       </div>
 
@@ -614,16 +646,6 @@ return (
       )}
     </div>
 
-    {/* Botão de salvar e gerar */}
-    <div className="mt-4 flex gap-3 flex-wrap">
-      <button
-        onClick={salvarPedido}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        💾 Salvar Pedido
-      </button>
-    </div>
-
     {/* Lista de pedidos salvos */}
     <div className="mt-6">
       <h2 className="font-bold text-[#8c3b1b]">📋 Pedidos filtrados:</h2>
@@ -637,12 +659,12 @@ return (
               <li key={i}>
                 📌 {p.cidade} - {p.escola} ({p.itens.length} itens)
               </li>
-          ))}
+            ))}
         </ul>
       )}
     </div>
 
-    {/* Filtro de datas - agora logo acima dos botões de geração */}
+    {/* Filtro de datas */}
     <div className="mt-6">
       <h2 className="font-bold mb-2 text-[#8c3b1b]">📅 Filtrar pedidos por data</h2>
       <div className="grid grid-cols-3 gap-2">
@@ -670,6 +692,13 @@ return (
     {/* Botões principais */}
     <div className="mt-4 flex gap-3 flex-wrap">
       <button
+        onClick={salvarPedido}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        💾 Salvar Pedido
+      </button>
+
+      <button
         onClick={gerarPDF}
         className="bg-purple-600 text-white px-4 py-2 rounded"
       >
@@ -682,9 +711,12 @@ return (
       >
         🛒 Lista de Compras
       </button>
+    </div>
 
+    {/* Botão Dados Mestres separado */}
+    <div className="mt-10">
       <button
-        className="bg-gray-700 text-white px-4 py-2 rounded"
+        className="bg-gray-700 text-white px-4 py-2 rounded w-full max-w-xs block mx-auto"
         onClick={() => alert("⚙️ Em breve: tela de Dados Mestres")}
       >
         ⚙️ Dados Mestres
@@ -692,5 +724,3 @@ return (
     </div>
   </div>
 );
-
-export default App;
