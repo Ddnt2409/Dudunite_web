@@ -526,55 +526,171 @@ const App = () => {
               <li key={i}>
                 {item.produto} - {item.sabor} - {item.quantidade} un
               </li>
-            ))}
-          </ul>
-        )}
+return (
+  <div className="max-w-4xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
+    {/* Fn20 - Logomarca Dudunitê */}
+    <div className="text-center mb-4">
+      <img
+        src="/LogomarcaDDnt2025Vazado.png"
+        alt="Logomarca Dudunitê"
+        className="mx-auto w-52"
+      />
+    </div>
+
+    <h1 className="text-xl font-bold mb-4 text-center text-[#8c3b1b]">
+      Lançamento de Pedidos - Dudunitê
+    </h1>
+
+    {/* Formulário principal */}
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <label>Cidade</label>
+        <select className="w-full border p-1" value={cidade} onChange={e => { setCidade(e.target.value); setEscola(''); }}>
+          <option value="">Selecione</option>
+          {Object.keys(dados).map(c => <option key={c}>{c}</option>)}
+        </select>
       </div>
 
-      {/* Botões principais */}
-      <div className="mt-4 flex gap-3 flex-wrap">
-        <button
-          onClick={salvarPedido}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          💾 Salvar Pedido
-        </button>
-
-        <button
-          onClick={gerarPDF}
-          className="bg-purple-600 text-white px-4 py-2 rounded"
-        >
-          📄 Gerar PDF Produção
-        </button>
-
-        <button
-          onClick={gerarListaCompras}
-          className="bg-green-700 text-white px-4 py-2 rounded"
-        >
-          🛒 Lista de Compras
-        </button>
+      <div>
+        <label>Escola</label>
+        <select className="w-full border p-1" value={escola} onChange={e => setEscola(e.target.value)} disabled={!cidade}>
+          <option value="">Selecione</option>
+          {cidade && dados[cidade].map(e => <option key={e}>{e}</option>)}
+        </select>
       </div>
 
-      {/* Filtro de datas */}
-      <FiltrosData />
+      <div>
+        <label>Produto</label>
+        <select className="w-full border p-1" value={produto} onChange={e => { setProduto(e.target.value); setSabor(''); }}>
+          <option value="">Selecione</option>
+          {Object.keys(produtos).map(p => <option key={p}>{p}</option>)}
+        </select>
+      </div>
 
-      {/* Lista de pedidos */}
-      <div className="mt-6">
-        <h2 className="font-bold text-[#8c3b1b]">📋 Pedidos filtrados:</h2>
-        {pedidos.length === 0 ? (
-          <p className="text-sm text-gray-500">Nenhum pedido encontrado.</p>
-        ) : (
-          <ul className="text-sm text-gray-800 mt-2">
-            {pedidos.map((p, i) => (
+      <div>
+        <label>Sabor</label>
+        <select className="w-full border p-1" value={sabor} onChange={e => setSabor(e.target.value)} disabled={!produto}>
+          <option value="">Selecione</option>
+          {produto && produtos[produto].map(s => <option key={s}>{s}</option>)}
+        </select>
+      </div>
+
+      <div>
+        <label>Quantidade</label>
+        <input
+          type="number"
+          min="1"
+          className="w-full border p-1"
+          value={quantidade}
+          onChange={e => setQuantidade(e.target.value)}
+        />
+      </div>
+
+      <div className="flex items-end">
+        <button
+          onClick={adicionarItem}
+          className="bg-[#a84d2a] text-white px-4 py-2 rounded w-full"
+        >
+          + Adicionar
+        </button>
+      </div>
+    </div>
+
+    {/* Lista de Itens */}
+    <div className="mt-4">
+      <h2 className="font-bold text-[#8c3b1b]">
+        Itens do Pedido (Total: {totalItens} un):
+      </h2>
+      {itens.length === 0 ? (
+        <p className="text-sm text-gray-500">Nenhum item adicionado.</p>
+      ) : (
+        <ul className="list-disc pl-5">
+          {itens.map((item, i) => (
+            <li key={i}>
+              {item.produto} - {item.sabor} - {item.quantidade} un
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+    {/* Botão de salvar e gerar */}
+    <div className="mt-4 flex gap-3 flex-wrap">
+      <button
+        onClick={salvarPedido}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        💾 Salvar Pedido
+      </button>
+    </div>
+
+    {/* Lista de pedidos salvos */}
+    <div className="mt-6">
+      <h2 className="font-bold text-[#8c3b1b]">📋 Pedidos filtrados:</h2>
+      {pedidos.length === 0 ? (
+        <p className="text-sm text-gray-500">Nenhum pedido encontrado.</p>
+      ) : (
+        <ul className="text-sm text-gray-800 mt-2">
+          {[...pedidos]
+            .sort((a, b) => a.escola.localeCompare(b.escola))
+            .map((p, i) => (
               <li key={i}>
                 📌 {p.cidade} - {p.escola} ({p.itens.length} itens)
               </li>
-            ))}
-          </ul>
-        )}
+          ))}
+        </ul>
+      )}
+    </div>
+
+    {/* Filtro de datas - agora logo acima dos botões de geração */}
+    <div className="mt-6">
+      <h2 className="font-bold mb-2 text-[#8c3b1b]">📅 Filtrar pedidos por data</h2>
+      <div className="grid grid-cols-3 gap-2">
+        <input
+          type="date"
+          className="border p-2"
+          value={dataInicio}
+          onChange={e => setDataInicio(e.target.value)}
+        />
+        <input
+          type="date"
+          className="border p-2"
+          value={dataFim}
+          onChange={e => setDataFim(e.target.value)}
+        />
+        <button
+          className="bg-[#a84d2a] text-white px-4 py-2 rounded"
+          onClick={carregarPedidos}
+        >
+          Filtrar
+        </button>
       </div>
     </div>
-  );
-}
+
+    {/* Botões principais */}
+    <div className="mt-4 flex gap-3 flex-wrap">
+      <button
+        onClick={gerarPDF}
+        className="bg-purple-600 text-white px-4 py-2 rounded"
+      >
+        📄 Gerar PDF Produção
+      </button>
+
+      <button
+        onClick={gerarListaCompras}
+        className="bg-green-700 text-white px-4 py-2 rounded"
+      >
+        🛒 Lista de Compras
+      </button>
+
+      <button
+        className="bg-gray-700 text-white px-4 py-2 rounded"
+        onClick={() => alert("⚙️ Em breve: tela de Dados Mestres")}
+      >
+        ⚙️ Dados Mestres
+      </button>
+    </div>
+  </div>
+);
 
 export default App;
