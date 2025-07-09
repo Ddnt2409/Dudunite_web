@@ -430,206 +430,168 @@ const filtrarPedidosPorData = () => {
 };
 // --- FIM BLOCO 6 ---
 
+// FN18 – Filtrar pedidos por data
+const [dataFiltro, setDataFiltro] = useState('');
+const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
+const [mostrarPedidos, setMostrarPedidos] = useState(false);
+
+const filtrarPorData = async () => {
+  if (!dataFiltro) return;
+  const dataSelecionada = new Date(dataFiltro);
+  const dia = dataSelecionada.getDate();
+  const mes = dataSelecionada.getMonth() + 1;
+  const ano = dataSelecionada.getFullYear();
+
+  const dataInicio = Timestamp.fromDate(new Date(`${ano}-${mes}-${dia} 00:00:00`));
+  const dataFim = Timestamp.fromDate(new Date(`${ano}-${mes}-${dia} 23:59:59`));
+
+  const q = query(
+    collection(db, 'pedidos'),
+    where('dataRegistro', '>=', dataInicio),
+    where('dataRegistro', '<=', dataFim)
+  );
+
+  const querySnapshot = await getDocs(q);
+  const lista = [];
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    lista.push({ id: doc.id, ...data });
+  });
+
+  setPedidosFiltrados(lista);
+  setMostrarPedidos(true);
+};
+
+// return (...)
 return (
-  <div className="max-w-4xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
-    {/* Logomarca Dudunitê */}
-    <div className="text-center mb-4">
-      <img
-        src={logoPath}
-        alt="Logomarca Dudunitê"
-        className="mx-auto w-52"
-      />
-    </div>
+  <div className="bg-[#FFF3E9] min-h-screen p-4 text-[#5C1D0E]">
+    <div className="max-w-xl mx-auto">
+      <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
 
-    <h1 className="text-xl font-bold mb-4 text-center text-[#8c3b1b]">
-      Lançamento de Pedidos - Dudunitê
-    </h1>
+      <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
 
-    {/* Formulário principal */}
-    <div className="grid grid-cols-2 gap-4">
-      <div>
-        <label>Cidade</label>
-        <select
-          className="w-full border p-1"
-          value={cidade}
-          onChange={e => {
-            setCidade(e.target.value);
-            setEscola('');
-          }}
-        >
-          <option value="">Selecione</option>
-          {Object.keys(dados).map(c => (
-            <option key={c}>{c}</option>
-          ))}
-        </select>
+      {/* Filtro por data - AGORA NO TOPO */}
+      <div className="mb-4">
+        <label className="font-semibold block mb-1 flex items-center gap-1">
+          <span role="img" aria-label="calendário">📅</span> Filtrar pedidos por data
+        </label>
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={dataFiltro}
+            onChange={(e) => setDataFiltro(e.target.value)}
+            className="flex-1 border rounded p-2"
+          />
+          <button onClick={filtrarPorData} className="bg-[#A54C25] text-white px-4 py-2 rounded">
+            Filtrar
+          </button>
+        </div>
       </div>
 
-      <div>
-        <label>Escola</label>
-        <select
-          className="w-full border p-1"
-          value={escola}
-          onChange={e => setEscola(e.target.value)}
-          disabled={!cidade}
-        >
-          <option value="">Selecione</option>
-          {cidade && dados[cidade].map(e => (
-            <option key={e}>{e}</option>
-          ))}
-        </select>
+      {/* Campos do Pedido */}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label>Cidade</label>
+          <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
+            <option>Selecione</option>
+            {/* Cidades */}
+          </select>
+        </div>
+        <div>
+          <label>Escola</label>
+          <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
+            <option>Selecione</option>
+            {/* Escolas */}
+          </select>
+        </div>
+        <div>
+          <label>Produto</label>
+          <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
+            <option>Selecione</option>
+            {/* Produtos */}
+          </select>
+        </div>
+        <div>
+          <label>Sabor</label>
+          <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
+            <option>Selecione</option>
+            {/* Sabores */}
+          </select>
+        </div>
       </div>
 
-      <div>
-        <label>Produto</label>
-        <select
-          className="w-full border p-1"
-          value={produto}
-          onChange={e => {
-            setProduto(e.target.value);
-            setSabor('');
-          }}
-        >
-          <option value="">Selecione</option>
-          {Object.keys(produtos).map(p => (
-            <option key={p}>{p}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label>Sabor</label>
-        <select
-          className="w-full border p-1"
-          value={sabor}
-          onChange={e => setSabor(e.target.value)}
-          disabled={!produto}
-        >
-          <option value="">Selecione</option>
-          {produto && produtos[produto].map(s => (
-            <option key={s}>{s}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label>Quantidade</label>
+      {/* Quantidade e Adicionar */}
+      <div className="flex items-center gap-2 mb-4">
         <input
           type="number"
-          min="1"
-          className="w-full border p-1"
           value={quantidade}
-          onChange={e => setQuantidade(e.target.value)}
+          onChange={(e) => setQuantidade(e.target.value)}
+          className="w-24 p-2 border rounded"
         />
-      </div>
-
-      <div className="flex items-end">
-        <button
-          onClick={adicionarItem}
-          className="bg-[#a84d2a] text-white px-4 py-2 rounded w-full"
-        >
+        <button onClick={adicionarItem} className="bg-[#A54C25] text-white px-4 py-2 rounded">
           + Adicionar
         </button>
       </div>
-    </div>
 
-    {/* Lista de Itens */}
-    <div className="mt-4">
-      <h2 className="font-bold text-[#8c3b1b]">
-        Itens do Pedido (Total: {totalItens} un):
-      </h2>
-      {itens.length === 0 ? (
-        <p className="text-sm text-gray-500">Nenhum item adicionado.</p>
-      ) : (
-        <ul className="list-disc pl-5">
-          {itens.map((item, i) => (
-            <li key={i}>
-              {item.produto} - {item.sabor} - {item.quantidade} un
-            </li>
-          ))}
+      {/* Itens adicionados */}
+      <div className="mb-4">
+        <strong>Itens do Pedido (Total: {itens.length} un):</strong>
+        <ul className="text-sm text-gray-600">
+          {itens.length === 0 ? (
+            <li>Nenhum item adicionado.</li>
+          ) : (
+            itens.map((item, index) => (
+              <li key={index}>
+                {item.produto} - {item.sabor} - {item.quantidade} un
+              </li>
+            ))
+          )}
         </ul>
-      )}
-    </div>
+      </div>
 
-    {/* Filtro de datas */}
-    <div className="mt-8">
-      <h2 className="font-bold mb-2 text-[#8c3b1b]">📅 Filtrar pedidos por data</h2>
-      <div className="grid grid-cols-3 gap-2">
-        <input
-          type="date"
-          className="border p-2"
-          value={dataInicio}
-          onChange={e => setDataInicio(e.target.value)}
-        />
-        <input
-          type="date"
-          className="border p-2"
-          value={dataFim}
-          onChange={e => setDataFim(e.target.value)}
-        />
-        <button
-          className="bg-[#a84d2a] text-white px-4 py-2 rounded"
-          onClick={carregarPedidos}
-        >
-          Filtrar
+      {/* Botões principais */}
+      <div className="flex flex-col gap-3 mb-6">
+        <button onClick={salvarPedido} className="bg-blue-600 text-white py-2 rounded flex items-center justify-center gap-2">
+          <span role="img" aria-label="disquete">💾</span> Salvar Pedido
+        </button>
+        <button onClick={gerarPDF} className="bg-purple-600 text-white py-2 rounded">
+          Gerar PDF Produção
+        </button>
+        <button onClick={gerarListaCompras} className="bg-green-700 text-white py-2 rounded">
+          Lista de Compras
         </button>
       </div>
-    </div>
 
-    {/* Botões principais */}
-    <div className="mt-6 flex gap-3 flex-wrap">
-      <button
-        onClick={salvarPedido}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        💾 Salvar Pedido
-      </button>
-
-      <button
-        onClick={gerarPDF}
-        className="bg-purple-600 text-white px-4 py-2 rounded"
-      >
-        📄 Gerar PDF Produção
-      </button>
-
-      <button
-        onClick={gerarListaCompras}
-        className="bg-green-700 text-white px-4 py-2 rounded"
-      >
-        🛒 Lista de Compras
-      </button>
-    </div>
-
-    {/* Lista de pedidos salvos */}
-    <div className="mt-8">
-      <h2 className="font-bold text-[#8c3b1b]">📋 Pedidos filtrados:</h2>
-      {pedidos.length === 0 ? (
-        <p className="text-sm text-gray-500">Nenhum pedido encontrado.</p>
-      ) : (
-        <ul className="text-sm text-gray-800 mt-2">
-          {[...pedidos]
-            .sort((a, b) => a.escola.localeCompare(b.escola))
-            .map((p, i) => (
-              <li key={i}>
-                📌 {p.cidade} - {p.escola} ({p.itens.length} itens)
-              </li>
-            ))}
-        </ul>
+      {/* Lista de pedidos filtrados */}
+      {mostrarPedidos && (
+        <div className="mb-6">
+          <h2 className="text-md font-bold flex items-center gap-1 mb-2">
+            📋 Pedidos filtrados:
+          </h2>
+          <ul className="text-sm">
+            {pedidosFiltrados.length === 0 ? (
+              <li>Nenhum pedido encontrado para essa data.</li>
+            ) : (
+              pedidosFiltrados.map((pedido, index) => (
+                <li key={index}>
+                  📌 {pedido.cidade} - {pedido.escola} ({pedido.itens.length} itens)
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
       )}
-    </div>
 
-    {/* Botão Dados Mestres separado */}
-    <div className="mt-10">
-      <button
-        className="bg-gray-700 text-white px-4 py-2 rounded w-full max-w-xs block mx-auto"
-        onClick={() => alert("⚙️ Em breve: tela de Dados Mestres")}
-      >
-        ⚙️ Dados Mestres
-      </button>
+      {/* Botão Dados Mestres – PERTO DO RODAPÉ */}
+      <div className="text-center mt-12 mb-4">
+        <button onClick={irParaDadosMestres} className="bg-gray-300 text-gray-800 px-6 py-2 rounded text-sm">
+          ⚙️ Dados Mestres
+        </button>
+      </div>
     </div>
   </div>
 );
 
-// Final do componente
-}; // fim do componente App
 
-export default App;    
+
