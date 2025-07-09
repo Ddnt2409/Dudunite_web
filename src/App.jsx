@@ -46,11 +46,6 @@ const App = () => {
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
 
-// Fn06 – useEffect: carregar pedidos automaticamente na abertura
-useEffect(() => {
-  carregarPedidos();
-}, []);
-
   // Fn07 – carregarPedidos: busca pedidos do Firestore (com ou sem filtro)
 // Fn07 – carregarPedidos: busca pedidos do Firestore (com ou sem filtro)
 const carregarPedidos = async () => {
