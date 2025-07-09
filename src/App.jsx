@@ -34,7 +34,6 @@ const produtos = {
 // --- FIM BLOCO 1 ---
 
 // --- BLOCO 2 ---
-// Fn04 + Fn05 – Abertura do componente e estados iniciais
 const App = () => {
   const [cidade, setCidade] = useState('');
   const [escola, setEscola] = useState('');
@@ -46,29 +45,26 @@ const App = () => {
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
 
-  // Fn07 – carregarPedidos: busca pedidos do Firestore (com ou sem filtro)
-// Fn07 – carregarPedidos: busca pedidos do Firestore (com ou sem filtro)
-const carregarPedidos = async () => {
-  try {
-    const pedidosRef = collection(db, "pedidos");
-    let q = pedidosRef;
+  const carregarPedidos = async () => {
+    try {
+      const pedidosRef = collection(db, "pedidos");
+      let q = pedidosRef;
 
-    if (dataInicio && dataFim) {
-      const inicio = Timestamp.fromDate(new Date(`${dataInicio}T00:00:00`));
-      const fim = Timestamp.fromDate(new Date(`${dataFim}T23:59:59`));
-      q = query(pedidosRef, where("dataServidor", ">=", inicio), where("dataServidor", "<=", fim));
+      if (dataInicio && dataFim) {
+        const inicio = Timestamp.fromDate(new Date(`${dataInicio}T00:00:00`));
+        const fim = Timestamp.fromDate(new Date(`${dataFim}T23:59:59`));
+        q = query(pedidosRef, where("dataServidor", ">=", inicio), where("dataServidor", "<=", fim));
+      }
+
+      const snapshot = await getDocs(q);
+      const lista = snapshot.docs.map(doc => doc.data());
+      setPedidos(lista);
+    } catch (e) {
+      console.error("Erro ao carregar pedidos:", e);
+      alert("❌ Erro ao carregar pedidos. Veja o console.");
     }
+  };
 
-    const snapshot = await getDocs(q);
-    const lista = snapshot.docs.map(doc => doc.data());
-    setPedidos(lista);
-  } catch (e) {
-    console.error("Erro ao carregar pedidos:", e);
-    alert("❌ Erro ao carregar pedidos. Veja o console.");
-  }
-};
-
-  // Fn08 – formatarData: converte ISO para DD/MM/YYYY
   const formatarData = (isoString) => {
     const data = new Date(isoString);
     return data.toLocaleDateString('pt-BR');
@@ -76,6 +72,94 @@ const carregarPedidos = async () => {
 // --- FIM BLOCO 2 ---
 
   // --- BLOCO 3 ---
+return (
+  <div className="bg-[#FFF3E9] min-h-screen p-4 text-[#5C1D0E]">
+    <div className="max-w-xl mx-auto">
+      <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
+      <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
+
+      {/* Filtro por período */}
+      <div className="mb-6">
+        <label className="font-semibold block mb-1">📆 Período:</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={dataInicio}
+            onChange={(e) => setDataInicio(e.target.value)}
+            className="p-2 border rounded"
+          />
+          <span>até</span>
+          <input
+            type="date"
+            value={dataFim}
+            onChange={(e) => setDataFim(e.target.value)}
+            className="p-2 border rounded"
+          />
+        </div>
+      </div>
+
+      {/* Campos do Pedido */}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label>Cidade</label>
+          <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
+            <option value="">Selecione</option>
+            {Object.keys(dados).map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Escola</label>
+          <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
+            <option value="">Selecione</option>
+            {dados[cidade]?.map((e) => (
+              <option key={e} value={e}>{e}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Produto</label>
+          <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
+            <option value="">Selecione</option>
+            {Object.keys(produtos).map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Sabor</label>
+          <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
+            <option value="">Selecione</option>
+            {produtos[produto]?.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+// --- FIM BLOCO 3 ---
+
+      // --- BLOCO 4 ---
+  // Carrega pedidos ao selecionar intervalo
+  useEffect(() => {
+    if (dataInicio && dataFim) {
+      carregarPedidos();
+    }
+  }, [dataInicio, dataFim]);
+
+  // Carrega todos os pedidos no carregamento inicial
+  useEffect(() => {
+    if (!dataInicio && !dataFim) {
+      carregarPedidos();
+    }
+  }, []);
+
+  const irParaDadosMestres = () => {
+    alert("⚙️ Em breve: Tela de Dados Mestres.");
+  };
+// --- FIM BLOCO 4 ---
+
+      // --- BLOCO 5 ---
 // Fn09 – adicionarItem: adiciona item ao pedido com validação
 const adicionarItem = () => {
   if (!produto || !sabor || !quantidade || quantidade <= 0) {
@@ -148,9 +232,9 @@ const embalagens = {
   EtiqDD: 0,
   EtiqEsc: 0
 };
-// --- FIM BLOCO 3 ---
+// --- FIM BLOCO 5 ---
 
-  // --- BLOCO 4 ---
+    // --- BLOCO 6 ---
 // Fn13 – gerarPDF: gera o planejamento de produção por cidade, escola, produto e sabor
 const gerarPDF = () => {
   const doc = new jsPDF();
@@ -241,11 +325,12 @@ const gerarPDF = () => {
   y += 10;
   addLine(`-----------------------------`);
   addLine(`📦 RESUMO FINAL DE PRODUÇÃO:`);
+
   // Continuação no próximo bloco...
 };
-// --- FIM BLOCO 4 ---
+// --- FIM BLOCO 6 ---
 
-  // --- BLOCO 5 ---
+    // --- BLOCO 7 ---
 // Continuação da Fn13 – gerarPDF
 
   const totalTabuleiros =
@@ -324,10 +409,10 @@ const gerarPDF = () => {
 
   doc.save(nomePDF);
 };
-// --- FIM BLOCO 5 ---
+// --- FIM BLOCO 7 ---
 
-// --- BLOCO 6 ---
-// Fn16 – gerarListaCompras: gera PDF com insumos e embalagens usando pedidos filtrados
+    // --- BLOCO 8 ---
+// Fn14 – gerarListaCompras: gera PDF com insumos e embalagens usando pedidos filtrados
 const gerarListaCompras = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
 
@@ -412,8 +497,10 @@ const gerarListaCompras = () => {
 
   doc.save(nomePDF);
 };
+// --- FIM BLOCO 8 ---
 
-// Fn17 – filtrarPedidosPorData
+    // --- BLOCO 9 ---
+// Fn15 – filtrarPedidosPorData
 const filtrarPedidosPorData = () => {
   if (!dataInicio || !dataFim) return pedidos;
   const inicio = new Date(dataInicio + 'T00:00:00');
@@ -423,9 +510,8 @@ const filtrarPedidosPorData = () => {
     return d >= inicio && d <= fim;
   });
 };
-// --- FIM BLOCO 6 ---
 
-// FN18 – Filtrar pedidos por data
+// Fn16 – Estados e função para filtro por data única
 const [dataFiltro, setDataFiltro] = useState('');
 const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
 const [mostrarPedidos, setMostrarPedidos] = useState(false);
@@ -457,13 +543,17 @@ const filtrarPorData = async () => {
   setPedidosFiltrados(lista);
   setMostrarPedidos(true);
 };
+// --- FIM BLOCO 9 ---
 
+      // --- BLOCO 10 ---
+// Fn17 – useEffect para carregar pedidos conforme o período
 useEffect(() => {
   if (dataInicio && dataFim) {
     carregarPedidos();
   }
 }, [dataInicio, dataFim]);
 
+// Fn18 – Renderização do componente
 return (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-[#5C1D0E]">
     <div className="max-w-xl mx-auto">
@@ -496,33 +586,41 @@ return (
           <label>Cidade</label>
           <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
             <option>Selecione</option>
-            {/* Cidades */}
+            {Object.keys(dados).map((c, idx) => (
+              <option key={idx} value={c}>{c}</option>
+            ))}
           </select>
         </div>
         <div>
           <label>Escola</label>
           <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
             <option>Selecione</option>
-            {/* Escolas */}
+            {(dados[cidade] || []).map((e, idx) => (
+              <option key={idx} value={e}>{e}</option>
+            ))}
           </select>
         </div>
         <div>
           <label>Produto</label>
           <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
             <option>Selecione</option>
-            {/* Produtos */}
+            {Object.keys(produtos).map((p, idx) => (
+              <option key={idx} value={p}>{p}</option>
+            ))}
           </select>
         </div>
         <div>
           <label>Sabor</label>
           <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
             <option>Selecione</option>
-            {/* Sabores */}
+            {(produtos[produto] || []).map((s, idx) => (
+              <option key={idx} value={s}>{s}</option>
+            ))}
           </select>
         </div>
       </div>
 
-      {/* Quantidade e Adicionar */}
+      {/* Quantidade e botão Adicionar */}
       <div className="flex items-center gap-2 mb-4">
         <input
           type="number"
@@ -553,18 +651,27 @@ return (
 
       {/* Botões principais */}
       <div className="flex flex-col gap-3 mb-6">
-        <button onClick={salvarPedido} className="bg-blue-600 text-white py-2 rounded flex items-center justify-center gap-2">
+        <button
+          onClick={salvarPedido}
+          className="bg-blue-600 text-white py-2 rounded flex items-center justify-center gap-2"
+        >
           💾 Salvar Pedido
         </button>
-        <button onClick={gerarPDF} className="bg-purple-600 text-white py-2 rounded">
-          Gerar PDF Produção
+        <button
+          onClick={gerarPDF}
+          className="bg-purple-600 text-white py-2 rounded"
+        >
+          📄 Gerar PDF Produção
         </button>
-        <button onClick={gerarListaCompras} className="bg-green-700 text-white py-2 rounded">
-          Lista de Compras
+        <button
+          onClick={gerarListaCompras}
+          className="bg-green-700 text-white py-2 rounded"
+        >
+          🛒 Lista de Compras
         </button>
       </div>
 
-      {/* Lista de pedidos filtrados */}
+      {/* Lista de pedidos do período */}
       {dataInicio && dataFim && pedidos.length > 0 && (
         <div className="mb-6">
           <h2 className="text-md font-bold flex items-center gap-1 mb-2">
@@ -580,12 +687,18 @@ return (
         </div>
       )}
 
-      {/* Botão Dados Mestres – PERTO DO RODAPÉ */}
+      {/* Botão Dados Mestres */}
       <div className="text-center mt-12 mb-4">
-        <button onClick={irParaDadosMestres} className="bg-gray-300 text-gray-800 px-6 py-2 rounded text-sm">
+        <button
+          onClick={() => window.location.href = "/dados-mestres"}
+          className="bg-gray-300 text-gray-800 px-6 py-2 rounded text-sm"
+        >
           ⚙️ Dados Mestres
         </button>
       </div>
     </div>
   </div>
 );
+// --- FIM BLOCO 11 ---
+
+      export default App;
