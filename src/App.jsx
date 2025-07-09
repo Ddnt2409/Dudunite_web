@@ -430,7 +430,6 @@ const filtrarPedidosPorData = () => {
 };
 // --- FIM BLOCO 6 ---
 
-// --- BLOCO 7 ---
 return (
   <div className="max-w-4xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
     {/* Logomarca Dudunitê */}
@@ -633,4 +632,4 @@ return (
 // Final do componente
 }; // fim do componente App
 
-export default App;
+export default App;    
