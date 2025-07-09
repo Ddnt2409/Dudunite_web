@@ -46,30 +46,32 @@ const App = () => {
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
 
-  // Fn06 – useEffect: carregar pedidos automaticamente na abertura
-  useEffect(() => {
-    carregarPedidos();
-  }, []);
+// Fn06 – useEffect: carregar pedidos automaticamente na abertura
+useEffect(() => {
+  carregarPedidos();
+}, []);
 
   // Fn07 – carregarPedidos: busca pedidos do Firestore (com ou sem filtro)
-  const carregarPedidos = async () => {
-    try {
-      let q = collection(db, "pedidos");
+// Fn07 – carregarPedidos: busca pedidos do Firestore (com ou sem filtro)
+const carregarPedidos = async () => {
+  try {
+    const pedidosRef = collection(db, "pedidos");
+    let q = pedidosRef;
 
-      if (dataInicio && dataFim) {
-        const inicio = Timestamp.fromDate(new Date(`${dataInicio}T00:00:00`));
-        const fim = Timestamp.fromDate(new Date(`${dataFim}T23:59:59`));
-        q = query(q, where("dataServidor", ">=", inicio), where("dataServidor", "<=", fim));
-      }
-
-      const snapshot = await getDocs(q);
-      const lista = snapshot.docs.map(doc => doc.data());
-      setPedidos(lista);
-    } catch (e) {
-      console.error("Erro ao carregar pedidos:", e);
-      alert("❌ Erro ao carregar pedidos. Veja o console.");
+    if (dataInicio && dataFim) {
+      const inicio = Timestamp.fromDate(new Date(`${dataInicio}T00:00:00`));
+      const fim = Timestamp.fromDate(new Date(`${dataFim}T23:59:59`));
+      q = query(pedidosRef, where("dataServidor", ">=", inicio), where("dataServidor", "<=", fim));
     }
-  };
+
+    const snapshot = await getDocs(q);
+    const lista = snapshot.docs.map(doc => doc.data());
+    setPedidos(lista);
+  } catch (e) {
+    console.error("Erro ao carregar pedidos:", e);
+    alert("❌ Erro ao carregar pedidos. Veja o console.");
+  }
+};
 
   // Fn08 – formatarData: converte ISO para DD/MM/YYYY
   const formatarData = (isoString) => {
