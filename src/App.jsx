@@ -463,29 +463,35 @@ const filtrarPorData = async () => {
   setMostrarPedidos(true);
 };
 
-// return (...)
+useEffect(() => {
+  if (dataInicio && dataFim) {
+    carregarPedidos();
+  }
+}, [dataInicio, dataFim]);
+
 return (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-[#5C1D0E]">
     <div className="max-w-xl mx-auto">
       <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
-
       <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
 
-      {/* Filtro por data - AGORA NO TOPO */}
-      <div className="mb-4">
-        <label className="font-semibold block mb-1 flex items-center gap-1">
-          <span role="img" aria-label="calendário">📅</span> Filtrar pedidos por data
-        </label>
+      {/* Filtro por período - TOPO */}
+      <div className="mb-6">
+        <label className="font-semibold block mb-1">📆 Período:</label>
         <div className="flex items-center gap-2">
           <input
             type="date"
-            value={dataFiltro}
-            onChange={(e) => setDataFiltro(e.target.value)}
-            className="flex-1 border rounded p-2"
+            value={dataInicio}
+            onChange={(e) => setDataInicio(e.target.value)}
+            className="p-2 border rounded"
           />
-          <button onClick={filtrarPorData} className="bg-[#A54C25] text-white px-4 py-2 rounded">
-            Filtrar
-          </button>
+          <span>até</span>
+          <input
+            type="date"
+            value={dataFim}
+            onChange={(e) => setDataFim(e.target.value)}
+            className="p-2 border rounded"
+          />
         </div>
       </div>
 
@@ -553,7 +559,7 @@ return (
       {/* Botões principais */}
       <div className="flex flex-col gap-3 mb-6">
         <button onClick={salvarPedido} className="bg-blue-600 text-white py-2 rounded flex items-center justify-center gap-2">
-          <span role="img" aria-label="disquete">💾</span> Salvar Pedido
+          💾 Salvar Pedido
         </button>
         <button onClick={gerarPDF} className="bg-purple-600 text-white py-2 rounded">
           Gerar PDF Produção
@@ -564,21 +570,17 @@ return (
       </div>
 
       {/* Lista de pedidos filtrados */}
-      {mostrarPedidos && (
+      {dataInicio && dataFim && pedidos.length > 0 && (
         <div className="mb-6">
           <h2 className="text-md font-bold flex items-center gap-1 mb-2">
-            📋 Pedidos filtrados:
+            📋 Pedidos do período:
           </h2>
           <ul className="text-sm">
-            {pedidosFiltrados.length === 0 ? (
-              <li>Nenhum pedido encontrado para essa data.</li>
-            ) : (
-              pedidosFiltrados.map((pedido, index) => (
-                <li key={index}>
-                  📌 {pedido.cidade} - {pedido.escola} ({pedido.itens.length} itens)
-                </li>
-              ))
-            )}
+            {pedidos.map((pedido, index) => (
+              <li key={index}>
+                📌 {pedido.cidade} - {pedido.escola} ({pedido.itens.length} itens)
+              </li>
+            ))}
           </ul>
         </div>
       )}
@@ -592,6 +594,3 @@ return (
     </div>
   </div>
 );
-
-
-
