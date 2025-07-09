@@ -429,7 +429,6 @@ const filtrarPedidosPorData = () => {
 // --- FIM BLOCO 6 ---
 
 // --- BLOCO 7 ---
-// Fn18 – return do componente
 return (
   <div className="max-w-4xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
     {/* Logomarca Dudunitê */}
@@ -550,26 +549,8 @@ return (
       )}
     </div>
 
-    {/* Lista de pedidos salvos */}
-    <div className="mt-6">
-      <h2 className="font-bold text-[#8c3b1b]">📋 Pedidos filtrados:</h2>
-      {pedidos.length === 0 ? (
-        <p className="text-sm text-gray-500">Nenhum pedido encontrado.</p>
-      ) : (
-        <ul className="text-sm text-gray-800 mt-2">
-          {[...pedidos]
-            .sort((a, b) => a.escola.localeCompare(b.escola))
-            .map((p, i) => (
-              <li key={i}>
-                📌 {p.cidade} - {p.escola} ({p.itens.length} itens)
-              </li>
-            ))}
-        </ul>
-      )}
-    </div>
-
     {/* Filtro de datas */}
-    <div className="mt-6">
+    <div className="mt-8">
       <h2 className="font-bold mb-2 text-[#8c3b1b]">📅 Filtrar pedidos por data</h2>
       <div className="grid grid-cols-3 gap-2">
         <input
@@ -594,7 +575,7 @@ return (
     </div>
 
     {/* Botões principais */}
-    <div className="mt-4 flex gap-3 flex-wrap">
+    <div className="mt-6 flex gap-3 flex-wrap">
       <button
         onClick={salvarPedido}
         className="bg-blue-600 text-white px-4 py-2 rounded"
@@ -617,6 +598,24 @@ return (
       </button>
     </div>
 
+    {/* Lista de pedidos salvos */}
+    <div className="mt-8">
+      <h2 className="font-bold text-[#8c3b1b]">📋 Pedidos filtrados:</h2>
+      {pedidos.length === 0 ? (
+        <p className="text-sm text-gray-500">Nenhum pedido encontrado.</p>
+      ) : (
+        <ul className="text-sm text-gray-800 mt-2">
+          {[...pedidos]
+            .sort((a, b) => a.escola.localeCompare(b.escola))
+            .map((p, i) => (
+              <li key={i}>
+                📌 {p.cidade} - {p.escola} ({p.itens.length} itens)
+              </li>
+            ))}
+        </ul>
+      )}
+    </div>
+
     {/* Botão Dados Mestres separado */}
     <div className="mt-10">
       <button
@@ -633,4 +632,3 @@ return (
 }; // fim do componente App
 
 export default App;
-// --- FIM BLOCO 7 ---
