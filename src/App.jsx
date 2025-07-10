@@ -555,150 +555,128 @@ useEffect(() => {
 
 // Fn18 – Renderização do componente
 return (
-  <div className="bg-[#FFF3E9] min-h-screen p-4 text-[#5C1D0E]">
-    <div className="max-w-xl mx-auto">
-      <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
-      <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
+  <div className="p-4 text-sm font-sans relative">
+    {/* ✅ Botão Dados Mestres no topo direito */}
+    <button
+      onClick={toggleDadosMestres}
+      className="absolute right-4 top-4 bg-zinc-800 text-white px-3 py-1 rounded hover:bg-zinc-700"
+    >
+      Dados Mestres
+    </button>
 
-      {/* Filtro por período - TOPO */}
-      <div className="mb-6">
-        <label className="font-semibold block mb-1">📆 Período:</label>
-        <div className="flex items-center gap-2">
-          <input
-            type="date"
-            value={dataInicio}
-            onChange={(e) => setDataInicio(e.target.value)}
-            className="p-2 border rounded"
-          />
-          <span>até</span>
-          <input
-            type="date"
-            value={dataFim}
-            onChange={(e) => setDataFim(e.target.value)}
-            className="p-2 border rounded"
-          />
-        </div>
-      </div>
+    <h1 className="text-xl font-bold mb-4 text-center text-[#a3492c]">Dudunitê – Sistema de Produção</h1>
 
-      {/* Campos do Pedido */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label>Cidade</label>
-          <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
-            <option>Selecione</option>
-            {Object.keys(dados).map((c, idx) => (
-              <option key={idx} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Escola</label>
-          <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
-            <option>Selecione</option>
-            {(dados[cidade] || []).map((e, idx) => (
-              <option key={idx} value={e}>{e}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Produto</label>
-          <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
-            <option>Selecione</option>
-            {Object.keys(produtos).map((p, idx) => (
-              <option key={idx} value={p}>{p}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Sabor</label>
-          <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
-            <option>Selecione</option>
-            {(produtos[produto] || []).map((s, idx) => (
-              <option key={idx} value={s}>{s}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+    {/* ✅ Filtro por Data - Antes dos botões */}
+    <div className="flex flex-col md:flex-row md:items-center gap-2 justify-center mb-6">
+      <select
+        value={filtroDia}
+        onChange={(e) => setFiltroDia(e.target.value)}
+        className="border rounded px-2 py-1"
+      >
+        <option value="">Dia</option>
+        {dias.map((dia) => (
+          <option key={dia} value={dia}>{dia}</option>
+        ))}
+      </select>
 
-      {/* Quantidade e botão Adicionar */}
-      <div className="flex items-center gap-2 mb-4">
-        <input
-          type="number"
-          value={quantidade}
-          onChange={(e) => setQuantidade(e.target.value)}
-          className="w-24 p-2 border rounded"
-        />
-        <button onClick={adicionarItem} className="bg-[#A54C25] text-white px-4 py-2 rounded">
-          + Adicionar
-        </button>
-      </div>
+      <select
+        value={filtroMes}
+        onChange={(e) => setFiltroMes(e.target.value)}
+        className="border rounded px-2 py-1"
+      >
+        <option value="">Mês</option>
+        {meses.map((mes) => (
+          <option key={mes} value={mes}>{mes}</option>
+        ))}
+      </select>
 
-      {/* Itens adicionados */}
-      <div className="mb-4">
-        <strong>Itens do Pedido (Total: {itens.length} un):</strong>
-        <ul className="text-sm text-gray-600">
-          {itens.length === 0 ? (
-            <li>Nenhum item adicionado.</li>
-          ) : (
-            itens.map((item, index) => (
-              <li key={index}>
-                {item.produto} - {item.sabor} - {item.quantidade} un
-              </li>
-            ))
-          )}
-        </ul>
-      </div>
-
-      {/* Botões principais */}
-      <div className="flex flex-col gap-3 mb-6">
-        <button
-          onClick={salvarPedido}
-          className="bg-blue-600 text-white py-2 rounded flex items-center justify-center gap-2"
-        >
-          💾 Salvar Pedido
-        </button>
-        <button
-          onClick={gerarPDF}
-          className="bg-purple-600 text-white py-2 rounded"
-        >
-          📄 Gerar PDF Produção
-        </button>
-        <button
-          onClick={gerarListaCompras}
-          className="bg-green-700 text-white py-2 rounded"
-        >
-          🛒 Lista de Compras
-        </button>
-      </div>
-
-      {/* Lista de pedidos do período */}
-      {dataInicio && dataFim && pedidos.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-md font-bold flex items-center gap-1 mb-2">
-            📋 Pedidos do período:
-          </h2>
-          <ul className="text-sm">
-            {pedidos.map((pedido, index) => (
-              <li key={index}>
-                📌 {pedido.cidade} - {pedido.escola} ({pedido.itens.length} itens)
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Botão Dados Mestres */}
-      <div className="text-center mt-12 mb-4">
-        <button
-          onClick={() => window.location.href = "/dados-mestres"}
-          className="bg-gray-300 text-gray-800 px-6 py-2 rounded text-sm"
-        >
-          ⚙️ Dados Mestres
-        </button>
-      </div>
+      <button
+        onClick={filtrarPedidosPorData}
+        className="bg-[#a3492c] text-white px-3 py-1 rounded hover:bg-[#802f16]"
+      >
+        Filtrar
+      </button>
     </div>
+
+    {/* ✅ Botões principais */}
+    <div className="flex flex-wrap justify-center gap-4 mb-6">
+      <button
+        onClick={gerarPlanejamento}
+        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+      >
+        📋 Planejamento de Produção
+      </button>
+      <button
+        onClick={gerarListaCompras}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        🧾 Gerar Lista de Compras
+      </button>
+    </div>
+
+    {/* ✅ Lista de pedidos filtrados */}
+    <h2 className="text-lg font-semibold mb-2 text-[#a3492c]">Pedidos Filtrados:</h2>
+    {pedidosFiltrados.length > 0 ? (
+      <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {pedidosFiltrados.map((pedido, index) => (
+          <li key={index} className="bg-white rounded-lg shadow p-3">
+            <p><strong>Escola:</strong> {pedido.escola}</p>
+            <p><strong>Produto:</strong> {pedido.produto}</p>
+            <p><strong>Quantidade:</strong> {pedido.quantidade}</p>
+            <p><strong>Sabor:</strong> {pedido.sabor}</p>
+            <p><strong>Data:</strong> {pedido.data}</p>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p className="text-gray-500">Nenhum pedido encontrado para os filtros selecionados.</p>
+    )}
+
+    {/* ✅ Área Dados Mestres */}
+    {mostrarDadosMestres && (
+      <div className="fixed bottom-4 right-4 bg-white border border-zinc-300 rounded p-4 shadow-lg z-50 max-w-[90vw] md:max-w-md">
+        <h2 className="text-lg font-semibold mb-2 text-[#a3492c]">Alterar Dados Mestres</h2>
+
+        <div className="mb-2">
+          <input
+            type="text"
+            placeholder="Nova Escola"
+            value={novaEscola}
+            onChange={(e) => setNovaEscola(e.target.value)}
+            className="border rounded px-2 py-1 w-full mb-1"
+          />
+          <button onClick={adicionarEscola} className="bg-zinc-800 text-white px-2 py-1 rounded text-xs">Adicionar Escola</button>
+        </div>
+
+        <div className="mb-2">
+          <input
+            type="text"
+            placeholder="Novo Produto"
+            value={novoProduto}
+            onChange={(e) => setNovoProduto(e.target.value)}
+            className="border rounded px-2 py-1 w-full mb-1"
+          />
+          <button onClick={adicionarProduto} className="bg-zinc-800 text-white px-2 py-1 rounded text-xs">Adicionar Produto</button>
+        </div>
+
+        <div className="mb-2">
+          <input
+            type="text"
+            placeholder="Novo Sabor"
+            value={novoSabor}
+            onChange={(e) => setNovoSabor(e.target.value)}
+            className="border rounded px-2 py-1 w-full mb-1"
+          />
+          <button onClick={adicionarSabor} className="bg-zinc-800 text-white px-2 py-1 rounded text-xs">Adicionar Sabor</button>
+        </div>
+
+        <button
+          onClick={toggleDadosMestres}
+          className="mt-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+        >
+          Fechar
+        </button>
+      </div>
+    )}
   </div>
 );
-// --- FIM BLOCO 11 ---
-
-      export default App;
