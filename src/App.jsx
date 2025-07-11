@@ -71,73 +71,73 @@ const App = () => {
   };
 // --- FIM BLOCO 2 ---
 
-  // --- BLOCO 3 ---
-return (
-  <div className="bg-[#FFF3E9] min-h-screen p-4 text-[#5C1D0E]">
-    <div className="max-w-xl mx-auto">
-      <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
-      <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
+// === INÍCIO BLOCO 3 ===
+<div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans relative text-[#5C1D0E]">
+  <div className="max-w-xl mx-auto">
+    <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
+    <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
 
-      {/* Filtro por período */}
-      <div className="mb-6">
-        <label className="font-semibold block mb-1">📆 Período:</label>
-        <div className="flex items-center gap-2">
-          <input
-            type="date"
-            value={dataInicio}
-            onChange={(e) => setDataInicio(e.target.value)}
-            className="p-2 border rounded"
-          />
-          <span>até</span>
-          <input
-            type="date"
-            value={dataFim}
-            onChange={(e) => setDataFim(e.target.value)}
-            className="p-2 border rounded"
-          />
-        </div>
+    {/* Filtro por período */}
+    <div className="mb-6">
+      <label className="font-semibold block mb-1">📆 Período:</label>
+      <div className="flex items-center gap-2">
+        <input
+          type="date"
+          value={dataInicio}
+          onChange={(e) => setDataInicio(e.target.value)}
+          className="p-2 border rounded"
+        />
+        <span>até</span>
+        <input
+          type="date"
+          value={dataFim}
+          onChange={(e) => setDataFim(e.target.value)}
+          className="p-2 border rounded"
+        />
       </div>
+    </div>
 
-      {/* Campos do Pedido */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label>Cidade</label>
-          <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
-            <option value="">Selecione</option>
-            {Object.keys(dados).map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Escola</label>
-          <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
-            <option value="">Selecione</option>
-            {dados[cidade]?.map((e) => (
-              <option key={e} value={e}>{e}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Produto</label>
-          <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
-            <option value="">Selecione</option>
-            {Object.keys(produtos).map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Sabor</label>
-          <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
-            <option value="">Selecione</option>
-            {produtos[produto]?.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        </div>
+    {/* Campos do Pedido */}
+    <div className="grid grid-cols-2 gap-4 mb-4">
+      <div>
+        <label>Cidade</label>
+        <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
+          <option value="">Selecione</option>
+          {Object.keys(dados).map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
       </div>
-// --- FIM BLOCO 3 ---
+      <div>
+        <label>Escola</label>
+        <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
+          <option value="">Selecione</option>
+          {dados[cidade]?.map((e) => (
+            <option key={e} value={e}>{e}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label>Produto</label>
+        <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
+          <option value="">Selecione</option>
+          {Object.keys(produtos).map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label>Sabor</label>
+        <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
+          <option value="">Selecione</option>
+          {produtos[produto]?.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+  </div>
+// === FIM BLOCO 3 ===
 
       // --- BLOCO 4 ---
 // Carrega pedidos ao selecionar intervalo
@@ -536,22 +536,13 @@ const filtrarPedidosPorData = () => {
 };
 // --- FIM BLOCO 9 ---
 
-
-// --- BLOCO 10 ---
-// Fn17 – useEffect para carregar pedidos conforme o período
-useEffect(() => {
-  if (dataInicio && dataFim) {
-    carregarPedidos();
-  }
-}, [dataInicio, dataFim]);
-
-// Fn18 – Renderização do componente
+// === INÍCIO BLOCO 10 ===
 return (
-  <div className="p-4 text-sm font-sans relative">
+  <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans relative text-[#5C1D0E]">
 
-    <h1 className="text-xl font-bold mb-4 text-center text-[#a3492c]">Dudunitê – Sistema de Produção</h1>
+    {/* Bloco 3 vai aqui dentro, colado no topo */}
 
-    {/* ✅ Filtro por Data - Posicionado corretamente */}
+    {/* Filtro por dia/mês */}
     <div className="flex flex-col md:flex-row md:items-center gap-2 justify-center mb-6">
       <select
         value={filtroDia}
@@ -583,7 +574,7 @@ return (
       </button>
     </div>
 
-    {/* ✅ Botões principais */}
+    {/* Botões PDF e Lista */}
     <div className="flex flex-wrap justify-center gap-4 mb-6">
       <button
         onClick={gerarPDF}
@@ -599,7 +590,7 @@ return (
       </button>
     </div>
 
-    {/* ✅ Lista de pedidos filtrados */}
+    {/* Lista de Pedidos Filtrados */}
     <h2 className="text-lg font-semibold mb-2 text-[#a3492c]">Pedidos Filtrados:</h2>
     {pedidosFiltrados.length > 0 ? (
       <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -617,7 +608,7 @@ return (
       <p className="text-gray-500">Nenhum pedido encontrado para os filtros selecionados.</p>
     )}
 
-    {/* ✅ Botão "⚙️ Dados Mestres" no final da tela */}
+    {/* Botão Dados Mestres */}
     <div className="flex justify-center mt-8">
       <button
         onClick={toggleDadosMestres}
@@ -627,7 +618,7 @@ return (
       </button>
     </div>
 
-    {/* ✅ Área Dados Mestres (se ativada) */}
+    {/* Dados Mestres */}
     {mostrarDadosMestres && (
       <div className="fixed bottom-4 right-4 bg-white border border-zinc-300 rounded p-4 shadow-lg z-50 max-w-[90vw] md:max-w-md">
         <h2 className="text-lg font-semibold mb-2 text-[#a3492c]">Alterar Dados Mestres</h2>
@@ -675,5 +666,6 @@ return (
     )}
   </div>
 );
+// === FIM BLOCO 10 ===
 
 export default App;
