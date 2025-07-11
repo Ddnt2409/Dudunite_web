@@ -499,53 +499,45 @@ const gerarListaCompras = () => {
 };
 // --- FIM BLOCO 8 ---
 
-    // --- BLOCO 9 ---
-// Fn15 – filtrarPedidosPorData
-const filtrarPedidosPorData = () => {
-  if (!dataInicio || !dataFim) return pedidos;
-  const inicio = new Date(dataInicio + 'T00:00:00');
-  const fim = new Date(dataFim + 'T23:59:59');
-  return pedidos.filter(p => {
-    const d = new Date(p.data);
-    return d >= inicio && d <= fim;
-  });
+// --- BLOCO 9 ---
+// Estados do filtro por dia/mês
+const [filtroDia, setFiltroDia] = useState('');
+const [filtroMes, setFiltroMes] = useState('');
+const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
+const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
+
+// Dias e Meses fixos (poderia vir dinamicamente depois)
+const dias = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
+const meses = [
+  "01", "02", "03", "04", "05", "06",
+  "07", "08", "09", "10", "11", "12"
+];
+
+// Toggle visual
+const toggleDadosMestres = () => {
+  setMostrarDadosMestres(!mostrarDadosMestres);
 };
 
-// Fn16 – Estados e função para filtro por data única
-const [dataFiltro, setDataFiltro] = useState('');
-const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
-const [mostrarPedidos, setMostrarPedidos] = useState(false);
+// Filtra pedidos por dia e mês selecionados
+const filtrarPedidosPorData = () => {
+  if (!filtroDia || !filtroMes) {
+    alert("Selecione dia e mês.");
+    return;
+  }
 
-const filtrarPorData = async () => {
-  if (!dataFiltro) return;
-  const dataSelecionada = new Date(dataFiltro);
-  const dia = dataSelecionada.getDate();
-  const mes = dataSelecionada.getMonth() + 1;
-  const ano = dataSelecionada.getFullYear();
-
-  const dataInicio = Timestamp.fromDate(new Date(`${ano}-${mes}-${dia} 00:00:00`));
-  const dataFim = Timestamp.fromDate(new Date(`${ano}-${mes}-${dia} 23:59:59`));
-
-  const q = query(
-    collection(db, 'pedidos'),
-    where('dataRegistro', '>=', dataInicio),
-    where('dataRegistro', '<=', dataFim)
-  );
-
-  const querySnapshot = await getDocs(q);
-  const lista = [];
-
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    lista.push({ id: doc.id, ...data });
+  const pedidosFiltrados = pedidos.filter((p) => {
+    const data = new Date(p.data);
+    const dia = String(data.getDate()).padStart(2, '0');
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    return dia === filtroDia && mes === filtroMes;
   });
 
-  setPedidosFiltrados(lista);
-  setMostrarPedidos(true);
+  setPedidosFiltrados(pedidosFiltrados);
 };
 // --- FIM BLOCO 9 ---
 
-      // --- BLOCO 10 ---
+
+// --- BLOCO 10 ---
 // Fn17 – useEffect para carregar pedidos conforme o período
 useEffect(() => {
   if (dataInicio && dataFim) {
@@ -556,17 +548,10 @@ useEffect(() => {
 // Fn18 – Renderização do componente
 return (
   <div className="p-4 text-sm font-sans relative">
-    {/* ✅ Botão Dados Mestres no topo direito */}
-    <button
-      onClick={toggleDadosMestres}
-      className="absolute right-4 top-4 bg-zinc-800 text-white px-3 py-1 rounded hover:bg-zinc-700"
-    >
-      Dados Mestres
-    </button>
 
     <h1 className="text-xl font-bold mb-4 text-center text-[#a3492c]">Dudunitê – Sistema de Produção</h1>
 
-    {/* ✅ Filtro por Data - Antes dos botões */}
+    {/* ✅ Filtro por Data - Posicionado corretamente */}
     <div className="flex flex-col md:flex-row md:items-center gap-2 justify-center mb-6">
       <select
         value={filtroDia}
@@ -601,7 +586,7 @@ return (
     {/* ✅ Botões principais */}
     <div className="flex flex-wrap justify-center gap-4 mb-6">
       <button
-        onClick={gerarPlanejamento}
+        onClick={gerarPDF}
         className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
       >
         📋 Planejamento de Produção
@@ -632,7 +617,17 @@ return (
       <p className="text-gray-500">Nenhum pedido encontrado para os filtros selecionados.</p>
     )}
 
-    {/* ✅ Área Dados Mestres */}
+    {/* ✅ Botão "⚙️ Dados Mestres" no final da tela */}
+    <div className="flex justify-center mt-8">
+      <button
+        onClick={toggleDadosMestres}
+        className="bg-zinc-800 text-white px-4 py-2 rounded hover:bg-zinc-700"
+      >
+        ⚙️ Dados Mestres
+      </button>
+    </div>
+
+    {/* ✅ Área Dados Mestres (se ativada) */}
     {mostrarDadosMestres && (
       <div className="fixed bottom-4 right-4 bg-white border border-zinc-300 rounded p-4 shadow-lg z-50 max-w-[90vw] md:max-w-md">
         <h2 className="text-lg font-semibold mb-2 text-[#a3492c]">Alterar Dados Mestres</h2>
@@ -680,6 +675,5 @@ return (
     )}
   </div>
 );
-      };
 
 export default App;
