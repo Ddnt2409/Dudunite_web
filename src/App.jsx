@@ -140,13 +140,13 @@ return (
 // --- FIM BLOCO 3 ---
 
       // --- BLOCO 4 ---
-  // Carrega pedidos ao selecionar intervalo
-  useEffect(() => {
-    if (dataInicio && dataFim) {
-      carregarPedidos();
-    }
-  }, [dataInicio, dataFim]);
-
+// Carrega pedidos ao selecionar intervalo
+useEffect(() => {
+  if (dataInicio && dataFim) {
+    carregarPedidos();
+  }
+}, [dataInicio, dataFim]);
+      
   // Carrega todos os pedidos no carregamento inicial
   useEffect(() => {
     if (!dataInicio && !dataFim) {
