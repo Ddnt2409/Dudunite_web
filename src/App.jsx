@@ -423,7 +423,7 @@ const toggleMostrarDadosMestres = () => {
 };
 
 // Bloco 10 – JSX final com interface completa + botão de Dados Mestres embutido
-
+console.log('App carregando...');
 return (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
     <div className="max-w-xl mx-auto">
