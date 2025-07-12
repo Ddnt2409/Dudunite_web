@@ -42,8 +42,6 @@ const produtos = {
 };
 
 // Bloco 2 – Estados e Funções Iniciais
-
-// Fn04 – Estados Gerais do App
 // Fn04 – Estados Gerais do App
 const App = () => {
   const [cidade, setCidade] = useState('');
@@ -62,6 +60,7 @@ const App = () => {
   const [novaEscola, setNovaEscola] = useState('');
   const [novoProduto, setNovoProduto] = useState('');
   const [novoSabor, setNovoSabor] = useState('');
+}
 
   // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
 
