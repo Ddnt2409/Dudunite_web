@@ -280,11 +280,6 @@ const gerarPDF = () => {
   y += 10;
   addLine(`-----------------------------`);
   addLine(`📦 RESUMO FINAL DE PRODUÇÃO:`);
-};
-
-// Bloco 7 – Geração do PDF (continuação)
-
-// Continuação da Fn14 – gerarPDF: imprime o resumo final de produção
 
   const resumoFinal = {};
 
@@ -300,7 +295,8 @@ const gerarPDF = () => {
   });
 
   doc.save(nomePDF);
-
+};
+  
 // Bloco 8 – Função de geração de lista de compras (PDF)
 
 // Fn15 – gerarListaCompras: gera PDF com insumos e embalagens
