@@ -573,3 +573,4 @@ return (
 export default App;
 //retirada ponto e vírgula//
 //acrescenta ponto e virgula//
+//acrescentado } má Fn04//
