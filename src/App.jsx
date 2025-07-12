@@ -60,7 +60,6 @@ const App = () => {
   const [novaEscola, setNovaEscola] = useState('');
   const [novoProduto, setNovoProduto] = useState('');
   const [novoSabor, setNovoSabor] = useState('');
-}
 
   // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
 
