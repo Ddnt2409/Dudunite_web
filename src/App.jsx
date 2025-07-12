@@ -63,27 +63,25 @@ const App = () => {
 
   // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
 
-// Fn05 – Carregar pedidos com ou sem filtro por data
-const carregarPedidos = async () => {
-  try {
-    const pedidosRef = collection(db, "pedidos");
-    let q = pedidosRef;
+// ✅ FN05 - Início
+const pedidosFiltrados = pedidos.filter((pedido) => {
+  if (!pedido.timestamp) return false; // segurança
 
-    if (dataInicio && dataFim) {
-      const inicio = Timestamp.fromDate(new Date(`${dataInicio}T00:00:00`));
-      const fim = Timestamp.fromDate(new Date(`${dataFim}T23:59:59`));
-      q = query(pedidosRef, where("dataServidor", ">=", inicio), where("dataServidor", "<=", fim));
-    }
+  const dataPedido = pedido.timestamp.toDate();
 
-    const snapshot = await getDocs(q);
-    const lista = snapshot.docs.map(doc => doc.data());
-    setPedidos(lista);
-  } catch (e) {
-    console.error("Erro ao carregar pedidos:", e);
-    alert("❌ Erro ao carregar pedidos. Veja o console.");
+  // Se não houver filtro, mostrar todos
+  if (!dataInicio && !dataFim) {
+    return true;
   }
-};
 
+  // Ajusta valores default para início e fim do filtro se um dos dois estiver vazio
+  const dataLimiteInicio = dataInicio ? new Date(dataInicio.setHours(0, 0, 0, 0)) : new Date(0); // epoch inicio
+  const dataLimiteFim = dataFim ? new Date(dataFim.setHours(23, 59, 59, 999)) : new Date(8640000000000000); // data máxima possível JS
+
+  return dataPedido >= dataLimiteInicio && dataPedido <= dataLimiteFim;
+});
+// ✅ FN05 - Fim
+  
 // Fn06 – Formata data ISO para DD/MM/AAAA
 const formatarData = (isoString) => {
   const data = new Date(isoString);
