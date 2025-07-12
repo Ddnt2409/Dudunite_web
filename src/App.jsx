@@ -570,6 +570,6 @@ return (
     </div>
   </div>
 );
-};
+}
 export default App;
-//forçar redeploy//
+//retirada ponto e vírgula//
