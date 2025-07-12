@@ -393,15 +393,17 @@ const gerarListaCompras = () => {
 
 // Fn16 – filtrarPedidosPorData: filtra os pedidos salvos pela data selecionada
 const filtrarPedidosPorData = () => {
-  return pedidosSalvos.filter((p) => {
-    const dataPedido = new Date(p.data.seconds * 1000);
+  return pedidos.filter((p) => {
+    const dataPedido = new Date(
+      p.data?.seconds ? p.data.seconds * 1000 : p.data
+    );
+
     return (
-      (!dataInicio || dataPedido >= new Date(dataInicio)) &&
-      (!dataFim || dataPedido <= new Date(dataFim))
+      (!dataInicio || dataPedido >= new Date(`${dataInicio}T00:00:00`)) &&
+      (!dataFim || dataPedido <= new Date(`${dataFim}T23:59:59`))
     );
   });
 };
-
 // Fn17 – salvarDadosMestres: grava dados manuais como cidade, escola, produto, sabor
 const salvarDadosMestres = async () => {
   const novoItem = {
