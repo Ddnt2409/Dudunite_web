@@ -301,7 +301,6 @@ const gerarPDF = () => {
   });
 
   doc.save(nomePDF);
-};
 
 // Bloco 8 – Função de geração de lista de compras (PDF)
 
