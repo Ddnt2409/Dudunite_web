@@ -1,3 +1,4 @@
+// Atualização forçada para novo deploy
 // --- BLOCO 1 ---
 // Fn01 – Importações Gerais
 import React, { useState, useEffect } from 'react';
