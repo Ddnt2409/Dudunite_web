@@ -1,9 +1,17 @@
-// Atualização forçada para novo deploy
-// --- BLOCO 1 ---
+// Bloco 1 – Importações e Constantes Globais
+
 // Fn01 – Importações Gerais
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
-import { collection, addDoc, getDocs, serverTimestamp, query, where, Timestamp } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  serverTimestamp,
+  query,
+  where,
+  Timestamp,
+} from "firebase/firestore";
 import db from './firebase';
 
 // Fn02 – Logomarca e Cores
@@ -32,9 +40,10 @@ const produtos = {
   "PKT 6x6": saboresPadrao,
   "DUDU": saboresPadrao
 };
-// --- FIM BLOCO 1 ---
 
-// --- BLOCO 2 ---
+// Bloco 2 – Estados e Funções Iniciais
+
+// Fn04 – Estados Gerais do App
 const App = () => {
   const [cidade, setCidade] = useState('');
   const [escola, setEscola] = useState('');
@@ -45,123 +54,66 @@ const App = () => {
   const [pedidos, setPedidos] = useState([]);
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
+  const [filtroDia, setFiltroDia] = useState('');
+  const [filtroMes, setFiltroMes] = useState('');
+  const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
+  const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
+  const [novaEscola, setNovaEscola] = useState('');
+  const [novoProduto, setNovoProduto] = useState('');
+  const [novoSabor, setNovoSabor] = useState('');
+};
 
-  const carregarPedidos = async () => {
-    try {
-      const pedidosRef = collection(db, "pedidos");
-      let q = pedidosRef;
+// Fn05 – Carregar pedidos com ou sem filtro por data
+const carregarPedidos = async () => {
+  try {
+    const pedidosRef = collection(db, "pedidos");
+    let q = pedidosRef;
 
-      if (dataInicio && dataFim) {
-        const inicio = Timestamp.fromDate(new Date(`${dataInicio}T00:00:00`));
-        const fim = Timestamp.fromDate(new Date(`${dataFim}T23:59:59`));
-        q = query(pedidosRef, where("dataServidor", ">=", inicio), where("dataServidor", "<=", fim));
-      }
-
-      const snapshot = await getDocs(q);
-      const lista = snapshot.docs.map(doc => doc.data());
-      setPedidos(lista);
-    } catch (e) {
-      console.error("Erro ao carregar pedidos:", e);
-      alert("❌ Erro ao carregar pedidos. Veja o console.");
+    if (dataInicio && dataFim) {
+      const inicio = Timestamp.fromDate(new Date(`${dataInicio}T00:00:00`));
+      const fim = Timestamp.fromDate(new Date(`${dataFim}T23:59:59`));
+      q = query(pedidosRef, where("dataServidor", ">=", inicio), where("dataServidor", "<=", fim));
     }
-  };
 
-  const formatarData = (isoString) => {
-    const data = new Date(isoString);
-    return data.toLocaleDateString('pt-BR');
-  };
-// --- FIM BLOCO 2 ---
+    const snapshot = await getDocs(q);
+    const lista = snapshot.docs.map(doc => doc.data());
+    setPedidos(lista);
+  } catch (e) {
+    console.error("Erro ao carregar pedidos:", e);
+    alert("❌ Erro ao carregar pedidos. Veja o console.");
+  }
+};
 
-// === INÍCIO BLOCO 3 ===
-<div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans relative text-[#5C1D0E]">
-  <div className="max-w-xl mx-auto">
-    <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
-    <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
+// Fn06 – Formata data ISO para DD/MM/AAAA
+const formatarData = (isoString) => {
+  const data = new Date(isoString);
+  return data.toLocaleDateString('pt-BR');
+};
 
-    {/* Filtro por período */}
-    <div className="mb-6">
-      <label className="font-semibold block mb-1">📆 Período:</label>
-      <div className="flex items-center gap-2">
-        <input
-          type="date"
-          value={dataInicio}
-          onChange={(e) => setDataInicio(e.target.value)}
-          className="p-2 border rounded"
-        />
-        <span>até</span>
-        <input
-          type="date"
-          value={dataFim}
-          onChange={(e) => setDataFim(e.target.value)}
-          className="p-2 border rounded"
-        />
-      </div>
-    </div>
+// Bloco 3 – Effects e Lógica Visual de Dados Mestres
 
-    {/* Campos do Pedido */}
-    <div className="grid grid-cols-2 gap-4 mb-4">
-      <div>
-        <label>Cidade</label>
-        <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
-          <option value="">Selecione</option>
-          {Object.keys(dados).map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label>Escola</label>
-        <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
-          <option value="">Selecione</option>
-          {dados[cidade]?.map((e) => (
-            <option key={e} value={e}>{e}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label>Produto</label>
-        <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
-          <option value="">Selecione</option>
-          {Object.keys(produtos).map((p) => (
-            <option key={p} value={p}>{p}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label>Sabor</label>
-        <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
-          <option value="">Selecione</option>
-          {produtos[produto]?.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-      </div>
-    </div>
-  </div>
-// === FIM BLOCO 3 ===
-
-      // --- BLOCO 4 ---
-// Carrega pedidos ao selecionar intervalo
+// Fn07 – useEffect: Carrega pedidos ao selecionar intervalo de datas
 useEffect(() => {
   if (dataInicio && dataFim) {
     carregarPedidos();
   }
 }, [dataInicio, dataFim]);
-      
-  // Carrega todos os pedidos no carregamento inicial
-  useEffect(() => {
-    if (!dataInicio && !dataFim) {
-      carregarPedidos();
-    }
-  }, []);
 
-  const irParaDadosMestres = () => {
-    alert("⚙️ Em breve: Tela de Dados Mestres.");
-  };
-// --- FIM BLOCO 4 ---
+// Fn08 – useEffect: Carrega todos os pedidos na carga inicial se sem filtro
+useEffect(() => {
+  if (!dataInicio && !dataFim) {
+    carregarPedidos();
+  }
+}, []);
 
-      // --- BLOCO 5 ---
-// Fn09 – adicionarItem: adiciona item ao pedido com validação
+// Fn09 – toggleDadosMestres: exibe ou oculta seção de dados mestres
+const toggleDadosMestres = () => {
+  setMostrarDadosMestres(!mostrarDadosMestres);
+};
+
+// Bloco 4 – Adicionar e Salvar Pedidos
+
+// Fn10 – adicionarItem: adiciona item ao pedido com validação
 const adicionarItem = () => {
   if (!produto || !sabor || !quantidade || quantidade <= 0) {
     alert("Preencha todos os campos corretamente.");
@@ -172,7 +124,7 @@ const adicionarItem = () => {
   setQuantidade(1);
 };
 
-// Fn10 – salvarPedido: envia pedido ao Firestore com validações
+// Fn11 – salvarPedido: envia pedido ao Firestore com validações
 const salvarPedido = async () => {
   if (!cidade || !escola || itens.length === 0) {
     alert('Preencha todos os campos antes de salvar.');
@@ -207,10 +159,12 @@ const salvarPedido = async () => {
   }
 };
 
-// Fn11 – totalItens: totaliza a quantidade atual do pedido em andamento
+// Fn12 – totalItens: totaliza a quantidade atual do pedido em andamento
 const totalItens = itens.reduce((soma, item) => soma + item.quantidade, 0);
 
-// Fn12 – insumos e embalagens: base usada no resumo e no PDF
+// Bloco 5 – Estrutura para cálculo de insumos e embalagens
+
+// Fn13 – Estruturas iniciais para PDF, insumos e embalagens
 const insumos = {
   margarina: 0,
   ovos: 0,
@@ -233,10 +187,10 @@ const embalagens = {
   EtiqDD: 0,
   EtiqEsc: 0
 };
-// --- FIM BLOCO 5 ---
 
-    // --- BLOCO 6 ---
-// Fn13 – gerarPDF: gera o planejamento de produção por cidade, escola, produto e sabor
+// Bloco 6 – Geração do PDF de Planejamento de Produção
+
+// Fn14 – gerarPDF: gera o planejamento de produção por cidade, escola, produto e sabor
 const gerarPDF = () => {
   const doc = new jsPDF();
   let y = 10;
@@ -263,7 +217,7 @@ const gerarPDF = () => {
   const totalPorCidade = {};
   const totalGeral = {};
 
-  pedidos.forEach(({ cidade, escola, itens }) => {
+  pedidosFiltrados.forEach(({ cidade, escola, itens }) => {
     if (!agrupado[cidade]) agrupado[cidade] = {};
     if (!agrupado[cidade][escola]) agrupado[cidade][escola] = {};
 
@@ -326,94 +280,31 @@ const gerarPDF = () => {
   y += 10;
   addLine(`-----------------------------`);
   addLine(`📦 RESUMO FINAL DE PRODUÇÃO:`);
-
-  // Continuação no próximo bloco...
 };
-// --- FIM BLOCO 6 ---
 
-    // --- BLOCO 7 ---
-// Continuação da Fn13 – gerarPDF
+// Bloco 7 – Geração do PDF (continuação)
 
-  const totalTabuleiros =
-    (totalGeral["BRW 7x7"] || 0) / 12 +
-    (totalGeral["BRW 6x6"] || 0) / 17 +
-    (totalGeral["PKT 5x5"] || 0) / 20 +
-    (totalGeral["PKT 6x6"] || 0) / 15 +
-    (totalGeral["ESC"] || 0) / 26;
+// Continuação da Fn14 – gerarPDF: imprime o resumo final de produção
 
-  addLine(`🧾 Total de tabuleiros: ${Math.ceil(totalTabuleiros)} un`);
+  const resumoFinal = {};
 
-  const saboresBrancos = [
-    "Ninho com nutella", "Ninho", "Brig bco", "Brig bco confete",
-    "Oreo", "Ovomaltine", "Palha italiana"
-  ];
-  const saboresPretos = [
-    "Brig pto", "Brig pto confete"
-  ];
-
-  let baciasBranco = 0;
-  let baciasPreto = 0;
-
-  pedidos.forEach(pedido => {
-    pedido.itens.forEach(({ produto, sabor, quantidade }) => {
-      const qtd = Number(quantidade);
-
-      const bacia = (qtd, rendimento) => qtd / rendimento;
-
-      if (saboresBrancos.includes(sabor)) {
-        if (produto === "BRW 7x7") baciasBranco += bacia(qtd, 25);
-        if (produto === "BRW 6x6") baciasBranco += bacia(qtd, 35);
-        if (produto === "ESC")     baciasBranco += bacia(qtd, 26);
-        if (produto === "PKT 5x5") baciasBranco += (qtd * 20) / 1350;
-        if (produto === "PKT 6x6") baciasBranco += (qtd * 30) / 1350;
-      }
-
-      if (saboresPretos.includes(sabor)) {
-        if (produto === "BRW 7x7") baciasPreto += bacia(qtd, 25);
-        if (produto === "BRW 6x6") baciasPreto += bacia(qtd, 35);
-        if (produto === "ESC")     baciasPreto += bacia(qtd, 26);
-        if (produto === "PKT 5x5") baciasPreto += (qtd * 20) / 1350;
-        if (produto === "PKT 6x6") baciasPreto += (qtd * 30) / 1350;
-      }
-
-      if (sabor === "Bem casado") {
-        const metade = qtd / 2;
-        if (produto === "BRW 7x7") {
-          baciasBranco += bacia(metade, 25);
-          baciasPreto  += bacia(metade, 25);
-        }
-        if (produto === "BRW 6x6") {
-          baciasBranco += bacia(metade, 35);
-          baciasPreto  += bacia(metade, 35);
-        }
-        if (produto === "ESC") {
-          baciasBranco += bacia(metade, 26);
-          baciasPreto  += bacia(metade, 26);
-        }
-        if (produto === "PKT 5x5") {
-          baciasBranco += (metade * 20) / 1350;
-          baciasPreto  += (metade * 20) / 1350;
-        }
-        if (produto === "PKT 6x6") {
-          baciasBranco += (metade * 30) / 1350;
-          baciasPreto  += (metade * 30) / 1350;
-        }
-      }
-    });
+  Object.entries(totalGeral).forEach(([produto, quantidade]) => {
+    if (!resumoFinal[produto]) resumoFinal[produto] = 0;
+    resumoFinal[produto] += quantidade;
   });
 
-  addLine(`🥛 Bacias de recheio branco: ${Math.ceil(baciasBranco)} un`);
-  addLine(`🍫 Bacias de recheio preto: ${Math.ceil(baciasPreto)} un`);
-
-  addLine(`-----------------------------`);
-  addLine(`📄 Gerado em ${dia}/${mes}/${ano} às ${hora}h${minuto}`);
+  addLine('\n-----------------------------');
+  addLine(`📌 PRODUTOS POR TIPO:`);
+  Object.entries(resumoFinal).forEach(([produto, qtd]) => {
+    addLine(` ${produto}: ${qtd} un`);
+  });
 
   doc.save(nomePDF);
 };
-// --- FIM BLOCO 7 ---
 
-    // --- BLOCO 8 ---
-// Fn14 – gerarListaCompras: gera PDF com insumos e embalagens usando pedidos filtrados
+// Bloco 8 – Função de geração de lista de compras (PDF)
+
+// Fn15 – gerarListaCompras: gera PDF com insumos e embalagens
 const gerarListaCompras = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
 
@@ -498,175 +389,184 @@ const gerarListaCompras = () => {
 
   doc.save(nomePDF);
 };
-// --- FIM BLOCO 8 ---
 
-// --- BLOCO 9 ---
-// Estados do filtro por dia/mês
-const [filtroDia, setFiltroDia] = useState('');
-const [filtroMes, setFiltroMes] = useState('');
-const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
-const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
+// Bloco 9 – Funções auxiliares: filtros, dados mestres, toggle
 
-// Dias e Meses fixos (poderia vir dinamicamente depois)
-const dias = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
-const meses = [
-  "01", "02", "03", "04", "05", "06",
-  "07", "08", "09", "10", "11", "12"
-];
+// Fn16 – filtrarPedidosPorData: filtra os pedidos salvos pela data selecionada
+const filtrarPedidosPorData = () => {
+  return pedidosSalvos.filter((p) => {
+    const dataPedido = new Date(p.data.seconds * 1000);
+    return (
+      (!dataInicio || dataPedido >= new Date(dataInicio)) &&
+      (!dataFim || dataPedido <= new Date(dataFim))
+    );
+  });
+};
 
-// Toggle visual
-const toggleDadosMestres = () => {
+// Fn17 – salvarDadosMestres: grava dados manuais como cidade, escola, produto, sabor
+const salvarDadosMestres = async () => {
+  const novoItem = {
+    cidade,
+    escola,
+    produto,
+    sabor,
+    data: serverTimestamp()
+  };
+  await addDoc(collection(db, "dadosMestres"), novoItem);
+  alert("Item salvo nos Dados Mestres!");
+};
+
+// Fn18 – toggleMostrarDadosMestres: mostra ou oculta o bloco de dados mestres
+const toggleMostrarDadosMestres = () => {
   setMostrarDadosMestres(!mostrarDadosMestres);
 };
 
-// Filtra pedidos por dia e mês selecionados
-const filtrarPedidosPorData = () => {
-  if (!filtroDia || !filtroMes) {
-    alert("Selecione dia e mês.");
-    return;
-  }
+// Bloco 10 – JSX final com interface completa + botão de Dados Mestres embutido
 
-  const pedidosFiltrados = pedidos.filter((p) => {
-    const data = new Date(p.data);
-    const dia = String(data.getDate()).padStart(2, '0');
-    const mes = String(data.getMonth() + 1).padStart(2, '0');
-    return dia === filtroDia && mes === filtroMes;
-  });
-
-  setPedidosFiltrados(pedidosFiltrados);
-};
-// --- FIM BLOCO 9 ---
-
-// === INÍCIO BLOCO 10 ===
 return (
-  <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans relative text-[#5C1D0E]">
+  <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
+    <div className="max-w-xl mx-auto">
+      <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
+      <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
 
-    {/* Bloco 3 vai aqui dentro, colado no topo */}
-
-    {/* Filtro por dia/mês */}
-    <div className="flex flex-col md:flex-row md:items-center gap-2 justify-center mb-6">
-      <select
-        value={filtroDia}
-        onChange={(e) => setFiltroDia(e.target.value)}
-        className="border rounded px-2 py-1"
-      >
-        <option value="">Dia</option>
-        {dias.map((dia) => (
-          <option key={dia} value={dia}>{dia}</option>
-        ))}
-      </select>
-
-      <select
-        value={filtroMes}
-        onChange={(e) => setFiltroMes(e.target.value)}
-        className="border rounded px-2 py-1"
-      >
-        <option value="">Mês</option>
-        {meses.map((mes) => (
-          <option key={mes} value={mes}>{mes}</option>
-        ))}
-      </select>
-
-      <button
-        onClick={filtrarPedidosPorData}
-        className="bg-[#a3492c] text-white px-3 py-1 rounded hover:bg-[#802f16]"
-      >
-        Filtrar
-      </button>
-    </div>
-
-    {/* Botões PDF e Lista */}
-    <div className="flex flex-wrap justify-center gap-4 mb-6">
-      <button
-        onClick={gerarPDF}
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-      >
-        📋 Planejamento de Produção
-      </button>
-      <button
-        onClick={gerarListaCompras}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        🧾 Gerar Lista de Compras
-      </button>
-    </div>
-
-    {/* Lista de Pedidos Filtrados */}
-    <h2 className="text-lg font-semibold mb-2 text-[#a3492c]">Pedidos Filtrados:</h2>
-    {pedidosFiltrados.length > 0 ? (
-      <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {pedidosFiltrados.map((pedido, index) => (
-          <li key={index} className="bg-white rounded-lg shadow p-3">
-            <p><strong>Escola:</strong> {pedido.escola}</p>
-            <p><strong>Produto:</strong> {pedido.produto}</p>
-            <p><strong>Quantidade:</strong> {pedido.quantidade}</p>
-            <p><strong>Sabor:</strong> {pedido.sabor}</p>
-            <p><strong>Data:</strong> {pedido.data}</p>
-          </li>
-        ))}
-      </ul>
-    ) : (
-      <p className="text-gray-500">Nenhum pedido encontrado para os filtros selecionados.</p>
-    )}
-
-    {/* Botão Dados Mestres */}
-    <div className="flex justify-center mt-8">
-      <button
-        onClick={toggleDadosMestres}
-        className="bg-zinc-800 text-white px-4 py-2 rounded hover:bg-zinc-700"
-      >
-        ⚙️ Dados Mestres
-      </button>
-    </div>
-
-    {/* Dados Mestres */}
-    {mostrarDadosMestres && (
-      <div className="fixed bottom-4 right-4 bg-white border border-zinc-300 rounded p-4 shadow-lg z-50 max-w-[90vw] md:max-w-md">
-        <h2 className="text-lg font-semibold mb-2 text-[#a3492c]">Alterar Dados Mestres</h2>
-
-        <div className="mb-2">
+      {/* Filtro por período */}
+      <div className="mb-6">
+        <label className="font-semibold block mb-1">📆 Período:</label>
+        <div className="flex items-center gap-2">
           <input
-            type="text"
-            placeholder="Nova Escola"
-            value={novaEscola}
-            onChange={(e) => setNovaEscola(e.target.value)}
-            className="border rounded px-2 py-1 w-full mb-1"
+            type="date"
+            value={dataInicio}
+            onChange={(e) => setDataInicio(e.target.value)}
+            className="p-2 border rounded"
           />
-          <button onClick={adicionarEscola} className="bg-zinc-800 text-white px-2 py-1 rounded text-xs">Adicionar Escola</button>
-        </div>
-
-        <div className="mb-2">
+          <span>até</span>
           <input
-            type="text"
-            placeholder="Novo Produto"
-            value={novoProduto}
-            onChange={(e) => setNovoProduto(e.target.value)}
-            className="border rounded px-2 py-1 w-full mb-1"
+            type="date"
+            value={dataFim}
+            onChange={(e) => setDataFim(e.target.value)}
+            className="p-2 border rounded"
           />
-          <button onClick={adicionarProduto} className="bg-zinc-800 text-white px-2 py-1 rounded text-xs">Adicionar Produto</button>
         </div>
+      </div>
 
-        <div className="mb-2">
-          <input
-            type="text"
-            placeholder="Novo Sabor"
-            value={novoSabor}
-            onChange={(e) => setNovoSabor(e.target.value)}
-            className="border rounded px-2 py-1 w-full mb-1"
-          />
-          <button onClick={adicionarSabor} className="bg-zinc-800 text-white px-2 py-1 rounded text-xs">Adicionar Sabor</button>
+      {/* Campos do Pedido */}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label>Cidade</label>
+          <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
+            <option value="">Selecione</option>
+            {Object.keys(dados).map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
         </div>
+        <div>
+          <label>Escola</label>
+          <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
+            <option value="">Selecione</option>
+            {dados[cidade]?.map((e) => (
+              <option key={e} value={e}>{e}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Produto</label>
+          <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
+            <option value="">Selecione</option>
+            {Object.keys(produtos).map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Sabor</label>
+          <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
+            <option value="">Selecione</option>
+            {produtos[produto]?.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
+      <div className="mb-4">
+        <label>Quantidade</label>
+        <input
+          type="number"
+          min="1"
+          value={quantidade}
+          onChange={(e) => setQuantidade(Number(e.target.value))}
+          className="w-full p-2 rounded border"
+        />
+      </div>
+
+      <button
+        onClick={adicionarItem}
+        className="bg-[#8c3b1b] text-white px-4 py-2 rounded hover:bg-[#6f2d11] w-full mb-4"
+      >
+        ➕ Adicionar Item
+      </button>
+
+      {/* Lista de Itens adicionados */}
+      {itens.length > 0 && (
+        <div className="mb-6">
+          <h2 className="font-semibold text-lg mb-2">Itens do Pedido ({totalItens} un):</h2>
+          <ul className="list-disc pl-5">
+            {itens.map((item, index) => (
+              <li key={index}>{item.produto} - {item.sabor} - {item.quantidade} un</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <button
+        onClick={salvarPedido}
+        className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4"
+      >
+        💾 Salvar Pedido
+      </button>
+
+      {/* Botões de Ação */}
+      <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
         <button
-          onClick={toggleDadosMestres}
-          className="mt-2 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+          onClick={gerarPDF}
+          className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800"
         >
-          Fechar
+          📋 Planejamento de Produção
+        </button>
+        <button
+          onClick={gerarListaCompras}
+          className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800"
+        >
+          🧾 Lista de Compras
         </button>
       </div>
-    )}
+
+      {/* Botão Dados Mestres */}
+      <div className="flex justify-center">
+        <button
+          onClick={toggleMostrarDadosMestres}
+          className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-800"
+        >
+          ⚙️ Dados Mestres
+        </button>
+      </div>
+
+      {/* Dados Mestres – Se visível */}
+      {mostrarDadosMestres && (
+        <div className="bg-white border mt-4 p-4 rounded shadow-md">
+          <h3 className="text-lg font-semibold mb-2">Painel de Dados Mestres</h3>
+          <button
+            onClick={salvarDadosMestres}
+            className="bg-zinc-800 text-white px-3 py-1 rounded hover:bg-zinc-900 mb-2"
+          >
+            💾 Salvar Item Atual
+          </button>
+          <p className="text-xs text-gray-600">Cadastra o último item como referência futura</p>
+        </div>
+      )}
+    </div>
   </div>
 );
-// === FIM BLOCO 10 ===
 
 export default App;
