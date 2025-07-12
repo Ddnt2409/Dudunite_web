@@ -570,6 +570,7 @@ return (
     </div>
   </div>
 );
-}
+};
 export default App;
 //retirada ponto e vírgula//
+//acrescenta ponto e virgula//
