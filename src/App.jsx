@@ -474,6 +474,89 @@ const toggleMostrarDadosMestres = () => {
   if (typeof fn05_filtrarPedidos !== 'function') {
     return <div style={{ padding: 20, color: 'red' }}>Erro: função FN05 não está carregada.</div>;
   }
+//FN 00 - FINAL //
+// ✅ FN19 – INICIO – Estrutura inicial de Dados Mestres
+// Essa função gerencia o painel com opção de escolher tipo de dado a editar
+const PainelDadosMestres = ({ tipoSelecionado, setTipoSelecionado, dadosEscolas, setDadosEscolas, dadosProdutos, setDadosProdutos }) => {
+  return (
+    <div className="mt-6 p-4 border rounded bg-white">
+      <h2 className="text-lg font-bold mb-4">🛠️ Dados Mestres</h2>
+      <div className="flex gap-4 mb-4">
+        <button onClick={() => setTipoSelecionado('escolas')} className="px-4 py-2 bg-blue-600 text-white rounded">Ponto de Venda</button>
+        <button onClick={() => setTipoSelecionado('produtos')} className="px-4 py-2 bg-green-600 text-white rounded">Produtos</button>
+      </div>
+
+      {tipoSelecionado === 'escolas' && <EditorEscolas dadosEscolas={dadosEscolas} setDadosEscolas={setDadosEscolas} />}
+      {tipoSelecionado === 'produtos' && <EditorProdutos dadosProdutos={dadosProdutos} setDadosProdutos={setDadosProdutos} />}
+    </div>
+  );
+};
+// ✅ FN19 – FIM
+
+// ✅ FN20 – INICIO – Editor de Escolas (CRUD)
+const EditorEscolas = ({ dadosEscolas, setDadosEscolas }) => {
+  return (
+    <div>
+      <h3 className="font-semibold mb-2">Pontos de Venda</h3>
+      {/* Em breve: listagem, edição e exclusão */}
+      <p className="text-sm text-gray-600">🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de escolas</p>
+    </div>
+  );
+};
+// ✅ FN20 – FIM
+
+// ✅ FN21 – INICIO – Editor de Produtos (CRUD)
+const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
+  return (
+    <div>
+      <h3 className="font-semibold mb-2">Produtos</h3>
+      {/* Em breve: listagem, edição, adição e exclusão de sabores */}
+      <p className="text-sm text-gray-600">🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de produtos e sabores</p>
+    </div>
+  );
+};
+// ✅ FN21 – FIM
+
+// ✅ FN22 – INICIO – useEffect de carga dos dados mestres (escolas e produtos)
+useEffect(() => {
+  const carregarDadosMestres = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "dadosMestres"));
+      const lista = snapshot.docs.map(doc => doc.data());
+      const escolasMapeadas = {};
+      const produtosMapeados = {};
+
+      lista.forEach(item => {
+        if (item.cidade && item.escola) {
+          if (!escolasMapeadas[item.cidade]) escolasMapeadas[item.cidade] = [];
+          if (!escolasMapeadas[item.cidade].includes(item.escola)) {
+            escolasMapeadas[item.cidade].push(item.escola);
+          }
+        }
+        if (item.produto && item.sabor) {
+          if (!produtosMapeados[item.produto]) produtosMapeados[item.produto] = [];
+          if (!produtosMapeados[item.produto].includes(item.sabor)) {
+            produtosMapeados[item.produto].push(item.sabor);
+          }
+        }
+      });
+
+      setDadosEscolas(escolasMapeadas);
+      setDadosProdutos(produtosMapeados);
+    } catch (error) {
+      console.error("Erro ao carregar dados mestres:", error);
+    }
+  };
+
+  carregarDadosMestres();
+}, []);
+// ✅ FN22 – FIM
+
+// ✅ FN23 – INICIO – Estados internos para painel de dados mestres
+const [tipoSelecionado, setTipoSelecionado] = useState('');
+const [dadosEscolas, setDadosEscolas] = useState({});
+const [dadosProdutos, setDadosProdutos] = useState({});
+// ✅ FN23 – FIM
 
   // 👇 abaixo disso, seu return normal//
 return (
