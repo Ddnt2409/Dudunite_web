@@ -327,10 +327,9 @@ const gerarPDF = () => {
   doc.save(nomePDF);
 };
 // ✅ FN14 – FIM
-
 // Bloco 9 – Funções auxiliares: filtros, dados mestres, toggle
-// ✅ FN15 – gerarListaCompras (sincronizada com FN14)
-const gerarListaCompras = () => {
+//FN15 - Início//
+  const gerarListaCompras = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
 
   const doc = new jsPDF();
@@ -338,13 +337,17 @@ const gerarListaCompras = () => {
 
   doc.setFont('courier', 'normal');
   doc.setFontSize(10);
-  doc.text('Lista de Compras - Dudunitê', 10, y); y += 10;
+  doc.text('Lista de Compras - Dudunitê', 10, y);
+  y += 10;
 
   const insumos = {
     margarina: 0,
     ovos: 0,
     massas: 0,
-    nutella: 0
+    nutella: 0,
+    leite: 0,
+    misturaLactea: 0,
+    leiteEmPo: 0
   };
 
   const embalagens = {
@@ -353,61 +356,41 @@ const gerarListaCompras = () => {
     EtiqBrw: 0, EtiqEsc: 0, EtiqDD: 0
   };
 
-  const rendimentoTab = {
-    "BRW 7x7": 12,
-    "BRW 6x6": 17,
-    "PKT 5x5": 20,
-    "PKT 6x6": 15,
-    "ESC": 26
-  };
-
   pedidosFiltrados.forEach(p => {
     p.itens.forEach(({ produto, sabor, quantidade }) => {
       const qtd = Number(quantidade);
 
-      // ⛔ Ignora insumos dos Dudus
+      const add = (m, o, f, emb, etiq) => {
+        insumos.margarina += 76 * (qtd / m);
+        insumos.ovos += 190 * (qtd / o);
+        insumos.massas += 2 * (qtd / f);
+        if (emb) embalagens[emb] += qtd;
+        if (etiq) embalagens[etiq] += qtd;
+      };
+
+      if (produto === "BRW 7x7") add(12, 12, 12, "G650", "EtiqBrw");
+      if (produto === "BRW 6x6") add(17, 17, 17, "G640", "EtiqBrw");
+      if (produto === "PKT 5x5") add(20, 20, 20, "SQ5x5", "EtiqBrw");
+      if (produto === "PKT 6x6") add(15, 15, 15, "SQ6x6", "EtiqBrw");
+      if (produto === "ESC")     add(26, 26, 26, "D135", "EtiqEsc");
+
       if (produto === "DUDU") {
-        embalagens.SQ30x5 += qtd * 2;
-        embalagens.SQ22x6 += qtd * 2;
+        embalagens.SQ30x5 += qtd;
+        embalagens.SQ22x6 += qtd;
         embalagens.EtiqDD += qtd;
-        return;
+
+        // ✅ Insumos dos dudus
+        insumos.leite += qtd / 10;            // 1 litro = 10 dudus
+        insumos.misturaLactea += qtd / 10;    // 1 un = 10 dudus
+        insumos.leiteEmPo += qtd / 20;        // 1 pacote = 20 dudus
       }
 
-      const tab = qtd / rendimentoTab[produto];
-
-      // Cada tabuleiro usa os mesmos insumos base
-      insumos.margarina += 76 * tab;
-      insumos.ovos += 190 * tab;
-      insumos.massas += 2 * tab;
-
-      // Embalagens por produto
-      if (produto === "BRW 7x7") {
-        embalagens.G650 += qtd;
-        embalagens.EtiqBrw += qtd;
-      }
-      if (produto === "BRW 6x6") {
-        embalagens.G640 += qtd;
-        embalagens.EtiqBrw += qtd;
-      }
-      if (produto === "PKT 5x5") {
-        embalagens.SQ5x5 += qtd;
-        embalagens.EtiqBrw += qtd;
-      }
-      if (produto === "PKT 6x6") {
-        embalagens.SQ6x6 += qtd;
-        embalagens.EtiqBrw += qtd;
-      }
-      if (produto === "ESC") {
-        embalagens.D135 += qtd;
-        embalagens.EtiqEsc += qtd;
-      }
-
-      // Nutella apenas em "Ninho com nutella"
+      // ✅ Nutella apenas se for ninho com nutella
       if (sabor === "Ninho com nutella") {
         if (produto === "BRW 7x7") insumos.nutella += qtd / 60;
         if (produto === "BRW 6x6") insumos.nutella += qtd / 85;
-        if (produto === "ESC") insumos.nutella += qtd / 70;
-        if (produto === "DUDU") insumos.nutella += qtd / 100;
+        if (produto === "ESC")     insumos.nutella += qtd / 70;
+        if (produto === "DUDU")    insumos.nutella += qtd / 100;
       }
     });
   });
@@ -417,7 +400,11 @@ const gerarListaCompras = () => {
   doc.text(`Margarina: ${insumos.margarina.toFixed(0)}g`, 10, y); y += 6;
   doc.text(`Ovos: ${(insumos.ovos / 60).toFixed(0)} un`, 10, y); y += 6;
   doc.text(`Massas (450g): ${insumos.massas.toFixed(0)} un`, 10, y); y += 6;
-  doc.text(`Nutella (650g): ${Math.ceil(insumos.nutella)} un`, 10, y); y += 10;
+  doc.text(`Nutella (650g): ${Math.ceil(insumos.nutella)} un`, 10, y); y += 6;
+
+  doc.text(`Leite (litros): ${insumos.leite.toFixed(1)} L`, 10, y); y += 6;
+  doc.text(`Mistura Láctea (395g): ${Math.ceil(insumos.misturaLactea)} un`, 10, y); y += 6;
+  doc.text(`Leite em Pó (200g): ${Math.ceil(insumos.leiteEmPo)} un`, 10, y); y += 10;
 
   // NOVA PÁGINA
   doc.addPage();
@@ -636,4 +623,4 @@ return (
 );
 };
 export default App;
-//substituida fn14, 15 e 16//
+//substituida fn15//
