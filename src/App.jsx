@@ -573,7 +573,7 @@ const [dadosEscolas, setDadosEscolas] = useState({});
 const [dadosProdutos, setDadosProdutos] = useState({});
 // === FIM FN23 ===
 // === INÍCIO RETURN – RT01: Estrutura geral e título ===
-          📋 Planejamento de Produção
+         {"📋"} Planejamento de Produção
         </button>
         <button onClick={gerarListaCompras} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
           🧾 Lista de Compras
