@@ -61,35 +61,36 @@ const App = () => {
   const [novoProduto, setNovoProduto] = useState('');
   const [novoSabor, setNovoSabor] = useState('');
 
-  // ✅ FN04b – carregarPedidos: busca pedidos e aplica filtro de forma robusta
+// ✅ FN04b – carregarPedidos: busca pedidos e aplica filtro com compatibilidade retroativa
 const carregarPedidos = async () => {
   try {
     const snapshot = await getDocs(collection(db, "pedidos"));
     const lista = snapshot.docs.map(doc => {
       const data = doc.data();
 
+      // 🛡️ Normaliza o campo 'timestamp'
       let timestamp = data.timestamp;
 
-      // Se não houver timestamp, tenta usar 'dataServidor' ou 'data'
-      if (!timestamp) {
-        if (data.dataServidor?.seconds) {
-          timestamp = new Timestamp(data.dataServidor.seconds, data.dataServidor.nanoseconds || 0);
-        } else if (data.data) {
-          try {
-            const dataDate = new Date(data.data);
-            if (!isNaN(dataDate.getTime())) {
-              timestamp = new Timestamp(Math.floor(dataDate.getTime() / 1000), 0);
-            }
-          } catch {
-            timestamp = null;
-          }
+      // Compatibilidade com pedidos antigos: usa 'dataServidor'
+      if (!timestamp && data.dataServidor?.seconds) {
+        timestamp = new Timestamp(
+          data.dataServidor.seconds,
+          data.dataServidor.nanoseconds || 0
+        );
+      }
+
+      // Compatibilidade com pedidos muito antigos: 'data' como string
+      if (!timestamp && typeof data.data === 'string') {
+        const d = new Date(data.data);
+        if (!isNaN(d.getTime())) {
+          timestamp = Timestamp.fromDate(d);
         }
       }
 
       return {
         id: doc.id,
         ...data,
-        timestamp // compatível com FN05
+        timestamp // ✅ sempre presente e compatível com .toDate()
       };
     });
 
@@ -102,24 +103,18 @@ const carregarPedidos = async () => {
     alert("Erro ao carregar pedidos do banco de dados.");
   }
 };
+// ✅ FN04b – FIM
   // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
 
-// ✅ FN05 - Início
+// ✅ FN05 – fn05_filtrarPedidos: filtra pedidos por data com segurança
 function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
   if (!Array.isArray(pedidos)) return [];
 
   const parseData = (data, isInicio) => {
     if (!data) return isInicio ? new Date(0) : new Date(8640000000000000);
-
     const parsed = new Date(data);
     if (isNaN(parsed)) return isInicio ? new Date(0) : new Date(8640000000000000);
-
-    if (isInicio) {
-      parsed.setHours(0, 0, 0, 0);
-    } else {
-      parsed.setHours(23, 59, 59, 999);
-    }
-
+    parsed.setHours(isInicio ? 0 : 23, isInicio ? 0 : 59, isInicio ? 0 : 59, isInicio ? 0 : 999);
     return parsed;
   };
 
@@ -127,13 +122,12 @@ function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
   const dataLimiteFim = parseData(dataFim, false);
 
   return pedidos.filter((pedido) => {
-    if (!pedido.timestamp) return false;
-
+    if (!pedido.timestamp || typeof pedido.timestamp.toDate !== 'function') return false;
     const dataPedido = pedido.timestamp.toDate();
     return dataPedido >= dataLimiteInicio && dataPedido <= dataLimiteFim;
   });
 }
-// ✅ FN05 - Fim
+// ✅ FN05 – FIM
   
 // Fn06 – Formata data ISO para DD/MM/AAAA
 const formatarData = (isoString) => {
@@ -263,7 +257,7 @@ const gerarPDF = () => {
     y += 10;
   }
 
-  // ✅ Reaplica o filtro no momento do clique
+  // 🔍 Filtro reaplicado no momento do clique
   const pedidosFiltradosAtualizados = fn05_filtrarPedidos(pedidos, dataInicio, dataFim);
 
   const agrupado = {};
@@ -349,9 +343,9 @@ const gerarPDF = () => {
 
   doc.save(nomePDF);
 };
-// Bloco 8 – Função de geração de lista de compras (PDF)
-
-// Fn15 – gerarListaCompras: gera PDF com insumos e embalagens
+// ✅ FN14 – FIM
+// Bloco 9 – Funções auxiliares: filtros, dados mestres, toggle
+// ✅ FN15 – gerarListaCompras: gera PDF com insumos e embalagens
 const gerarListaCompras = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
 
@@ -436,9 +430,7 @@ const gerarListaCompras = () => {
 
   doc.save(nomePDF);
 };
-
-// Bloco 9 – Funções auxiliares: filtros, dados mestres, toggle
-
+// ✅ FN15 – FIM
 // Fn16 – filtrarPedidosPorData: filtra os pedidos salvos pela data selecionada
 const filtrarPedidosPorData = () => {
   return pedidos.filter((p) => {
@@ -632,4 +624,4 @@ return (
 );
 };
 export default App;
-//apagado 3 linhas fn10//
+//substituida fn04b, fn05, fn14//
