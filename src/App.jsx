@@ -569,7 +569,4 @@ return (
 );
 };
 export default App;
-//retirada ponto e vírgula//
-//acrescenta ponto e virgula//
-//acrescentado } má Fn04//
-//acrescenta ponto e virgula//
+//forcar deploy correcao fn05//
