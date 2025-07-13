@@ -64,22 +64,26 @@ const App = () => {
   // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
 
 // ✅ FN05 - Início
-const pedidosFiltrados = pedidos.filter((pedido) => {
-  if (!pedido.timestamp) return false; // segurança
+function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
+  if (!Array.isArray(pedidos)) return [];
 
-  const dataPedido = pedido.timestamp.toDate();
+  return pedidos.filter((pedido) => {
+    if (!pedido.timestamp) return false;
 
-  // Se não houver filtro, mostrar todos
-  if (!dataInicio && !dataFim) {
-    return true;
-  }
+    const dataPedido = pedido.timestamp.toDate();
 
-  // Ajusta valores default para início e fim do filtro se um dos dois estiver vazio
-  const dataLimiteInicio = dataInicio ? new Date(dataInicio.setHours(0, 0, 0, 0)) : new Date(0); // epoch inicio
-  const dataLimiteFim = dataFim ? new Date(dataFim.setHours(23, 59, 59, 999)) : new Date(8640000000000000); // data máxima possível JS
+    // Se nenhum filtro definido, retorna todos
+    if (!dataInicio && !dataFim) {
+      return true;
+    }
 
-  return dataPedido >= dataLimiteInicio && dataPedido <= dataLimiteFim;
-});
+    // Define limites caso só um dos filtros esteja preenchido
+    const dataLimiteInicio = dataInicio ? new Date(dataInicio.setHours(0, 0, 0, 0)) : new Date(0);
+    const dataLimiteFim = dataFim ? new Date(dataFim.setHours(23, 59, 59, 999)) : new Date(8640000000000000);
+
+    return dataPedido >= dataLimiteInicio && dataPedido <= dataLimiteFim;
+  });
+}
 // ✅ FN05 - Fim
   
 // Fn06 – Formata data ISO para DD/MM/AAAA
