@@ -236,7 +236,7 @@ const embalagens = {
 };
 
 // Bloco 6 – Geração do PDF de Planejamento de Produção
-// ✅ FN14 – gerarPDF: gera o planejamento de produção com filtro aplicado no momento do clique
+// ✅ FN14 – gerarPDF: gera o planejamento de produção com resumo de tabuleiros e bacias de recheio
 const gerarPDF = () => {
   const doc = new jsPDF();
   let y = 10;
@@ -259,25 +259,64 @@ const gerarPDF = () => {
     y += 10;
   }
 
-  // 🔍 Usa agora FN16 para consistência com lista de compras
-  const pedidosFiltradosAtualizados = filtrarPedidosPorData();
+  const pedidosFiltradosAtualizados = fn05_filtrarPedidos(pedidos, dataInicio, dataFim);
 
   const agrupado = {};
   const totalPorCidade = {};
   const totalGeral = {};
+  const totalPorProduto = {};
+
+  const rendimentoTabuleiro = {
+    "BRW 7x7": 12,
+    "BRW 6x6": 17,
+    "PKT 5x5": 20,
+    "PKT 6x6": 15,
+    "ESC": 26,
+    "DUDU": 10
+  };
+
+  const saboresBrancos = [
+    "Ninho", "Brig bco", "Brig bco confete", "Palha italiana", "Cr maracujá"
+  ];
+
+  const saboresPretos = [
+    "Brig pto", "Brig pto confete", "Oreo", "Ovomaltine"
+  ];
+
+  let totalBranco = 0;
+  let totalPreto = 0;
+  const tabuleirosResumo = {};
 
   pedidosFiltradosAtualizados.forEach(({ cidade, escola, itens }) => {
     if (!agrupado[cidade]) agrupado[cidade] = {};
     if (!agrupado[cidade][escola]) agrupado[cidade][escola] = {};
 
     itens.forEach(({ produto, sabor, quantidade }) => {
+      const qtd = Number(quantidade);
+      const rendimento = rendimentoTabuleiro[produto] || 1;
+
       if (!agrupado[cidade][escola][produto]) agrupado[cidade][escola][produto] = {};
       if (!agrupado[cidade][escola][produto][sabor]) agrupado[cidade][escola][produto][sabor] = 0;
-      agrupado[cidade][escola][produto][sabor] += quantidade;
+      agrupado[cidade][escola][produto][sabor] += qtd;
 
       totalPorCidade[cidade] = totalPorCidade[cidade] || {};
-      totalPorCidade[cidade][produto] = (totalPorCidade[cidade][produto] || 0) + quantidade;
-      totalGeral[produto] = (totalGeral[produto] || 0) + quantidade;
+      totalPorCidade[cidade][produto] = (totalPorCidade[cidade][produto] || 0) + qtd;
+      totalGeral[produto] = (totalGeral[produto] || 0) + qtd;
+      totalPorProduto[produto] = (totalPorProduto[produto] || 0) + qtd;
+
+      // 👇 Contabiliza tabuleiros
+      tabuleirosResumo[produto] = tabuleirosResumo[produto] || 0;
+      tabuleirosResumo[produto] += qtd / rendimento;
+
+      // 👇 Cálculo de bacias de recheio
+      if (saboresBrancos.includes(sabor)) {
+        totalBranco += qtd / rendimento;
+      } else if (saboresPretos.includes(sabor)) {
+        totalPreto += qtd / rendimento;
+      } else if (sabor === "Bem casado") {
+        totalBranco += (qtd / rendimento) * 0.5;
+        totalPreto  += (qtd / rendimento) * 0.5;
+      }
     });
   });
 
@@ -290,6 +329,7 @@ const gerarPDF = () => {
     y += 6;
   };
 
+  // 🔽 Impressão detalhada por escola
   Object.entries(agrupado).forEach(([cidade, escolas]) => {
     addLine(`Cidade: ${cidade}`);
     Object.entries(escolas).forEach(([escola, produtos]) => {
@@ -321,6 +361,7 @@ const gerarPDF = () => {
     addLine('\n');
   });
 
+  // 🔽 Totais
   addLine(`TOTAL GERAL DE TODOS OS PRODUTOS:`);
   Object.entries(totalGeral).forEach(([produto, qtd]) => {
     addLine(` ${produto.padEnd(10)}: ${qtd} un`);
@@ -330,18 +371,24 @@ const gerarPDF = () => {
   addLine(`-----------------------------`);
   addLine(`📦 RESUMO FINAL DE PRODUÇÃO:`);
 
-  const resumoFinal = {};
-
-  Object.entries(totalGeral).forEach(([produto, quantidade]) => {
-    if (!resumoFinal[produto]) resumoFinal[produto] = 0;
-    resumoFinal[produto] += quantidade;
-  });
-
   addLine('\n-----------------------------');
   addLine(`📌 PRODUTOS POR TIPO:`);
-  Object.entries(resumoFinal).forEach(([produto, qtd]) => {
+  Object.entries(totalPorProduto).forEach(([produto, qtd]) => {
     addLine(` ${produto}: ${qtd} un`);
   });
+
+  // ✅ NOVO BLOCO: tabuleiros
+  addLine('\n-----------------------------');
+  addLine(`📐 TABULEIROS POR PRODUTO:`);
+  Object.entries(tabuleirosResumo).forEach(([produto, total]) => {
+    addLine(` ${produto}: ${Math.ceil(total)} tabuleiros`);
+  });
+
+  // ✅ NOVO BLOCO: bacias de recheio
+  addLine('\n-----------------------------');
+  addLine(`🫙 BACIAS DE RECHEIO:`);
+  addLine(` Brancos: ${Math.ceil(totalBranco)} bacias`);
+  addLine(` Pretos : ${Math.ceil(totalPreto)} bacias`);
 
   doc.save(nomePDF);
 };
@@ -629,4 +676,4 @@ return (
 );
 };
 export default App;
-//substituida fn05, 14 e fn16//
+//substituida fn14//
