@@ -72,14 +72,19 @@ function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
 
     const dataPedido = pedido.timestamp.toDate();
 
-    // Se nenhum filtro definido, retorna todos
+    // Se nenhum filtro de data foi definido, retorna todos os pedidos
     if (!dataInicio && !dataFim) {
       return true;
     }
 
-    // Define limites caso só um dos filtros esteja preenchido
-    const dataLimiteInicio = dataInicio ? new Date(dataInicio.setHours(0, 0, 0, 0)) : new Date(0);
-    const dataLimiteFim = dataFim ? new Date(dataFim.setHours(23, 59, 59, 999)) : new Date(8640000000000000);
+    // Define limites com segurança, mesmo que apenas um dos campos esteja preenchido
+    const dataLimiteInicio = dataInicio
+      ? new Date(new Date(dataInicio).setHours(0, 0, 0, 0))
+      : new Date(0); // menor data possível
+
+    const dataLimiteFim = dataFim
+      ? new Date(new Date(dataFim).setHours(23, 59, 59, 999))
+      : new Date(8640000000000000); // maior data possível no JS
 
     return dataPedido >= dataLimiteInicio && dataPedido <= dataLimiteFim;
   });
