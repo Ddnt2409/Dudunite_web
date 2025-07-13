@@ -572,24 +572,7 @@ const [tipoSelecionado, setTipoSelecionado] = useState('');
 const [dadosEscolas, setDadosEscolas] = useState({});
 const [dadosProdutos, setDadosProdutos] = useState({});
 // === FIM FN23 ===
-// === INÍCIO RETURN – RT01: Estrutura geral e título ===
-         {"📋 Planejamento de Produção"}
-        </button>
-        <button onClick={gerarListaCompras} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
-          🧾 Lista de Compras
-        </button>
-      </div>
 
-      <div className="flex justify-center">
-        <button onClick={toggleMostrarDadosMestres} className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-800">
-          ⚙️ Dados Mestres
-        </button>
-      </div>
-// === FIM RT05 ===
-
-// === INÍCIO RT06 – Painel de Dados Mestres (corrigido) ===
-return (
-  <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
 return (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
     <div className="max-w-xl mx-auto">
