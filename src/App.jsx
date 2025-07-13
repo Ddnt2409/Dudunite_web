@@ -107,7 +107,7 @@ const carregarPedidos = async () => {
 // ✅ FN04b – FIM (atualizada com filtro forte)
   // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
 
-// ✅ FN05 – fn05_filtrarPedidos: filtra pedidos por data com segurança
+// ✅ FN05 – corrigida: filtro com horas bem definidas
 function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
   if (!Array.isArray(pedidos)) return [];
 
@@ -115,6 +115,8 @@ function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
     if (!data) return isInicio ? new Date(0) : new Date(8640000000000000);
     const parsed = new Date(data);
     if (isNaN(parsed)) return isInicio ? new Date(0) : new Date(8640000000000000);
+
+    // ⏰ Ajuste explícito de hora para o início/fim do dia
     parsed.setHours(isInicio ? 0 : 23, isInicio ? 0 : 59, isInicio ? 0 : 59, isInicio ? 0 : 999);
     return parsed;
   };
@@ -129,7 +131,6 @@ function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
   });
 }
 // ✅ FN05 – FIM
-  
 // Fn06 – Formata data ISO para DD/MM/AAAA
 const formatarData = (isoString) => {
   const data = new Date(isoString);
@@ -432,16 +433,18 @@ const gerarListaCompras = () => {
   doc.save(nomePDF);
 };
 // ✅ FN15 – FIM
-// ✅ FN16 – filtrarPedidosPorData: filtra pedidos com base no timestamp correto
+// ✅ FN16 – corrigida: mesmo padrão de horário de FN05
 const filtrarPedidosPorData = () => {
+  const inicio = new Date(`${dataInicio}T00:00:00`);
+  const fim = new Date(`${dataFim}T23:59:59.999`);
+
   return pedidos.filter((p) => {
     if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
 
     const dataPedido = p.timestamp.toDate();
-
     return (
-      (!dataInicio || dataPedido >= new Date(`${dataInicio}T00:00:00`)) &&
-      (!dataFim || dataPedido <= new Date(`${dataFim}T23:59:59`))
+      (!dataInicio || dataPedido >= inicio) &&
+      (!dataFim || dataPedido <= fim)
     );
   });
 };
@@ -626,4 +629,4 @@ return (
 );
 };
 export default App;
-//substituida fn16//
+//substituida fn05 e fn16//
