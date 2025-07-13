@@ -61,6 +61,47 @@ const App = () => {
   const [novoProduto, setNovoProduto] = useState('');
   const [novoSabor, setNovoSabor] = useState('');
 
+  // ✅ FN04b – carregarPedidos: busca pedidos e aplica filtro de forma robusta
+const carregarPedidos = async () => {
+  try {
+    const snapshot = await getDocs(collection(db, "pedidos"));
+    const lista = snapshot.docs.map(doc => {
+      const data = doc.data();
+
+      let timestamp = data.timestamp;
+
+      // Se não houver timestamp, tenta usar 'dataServidor' ou 'data'
+      if (!timestamp) {
+        if (data.dataServidor?.seconds) {
+          timestamp = new Timestamp(data.dataServidor.seconds, data.dataServidor.nanoseconds || 0);
+        } else if (data.data) {
+          try {
+            const dataDate = new Date(data.data);
+            if (!isNaN(dataDate.getTime())) {
+              timestamp = new Timestamp(Math.floor(dataDate.getTime() / 1000), 0);
+            }
+          } catch {
+            timestamp = null;
+          }
+        }
+      }
+
+      return {
+        id: doc.id,
+        ...data,
+        timestamp // compatível com FN05
+      };
+    });
+
+    setPedidos(lista);
+
+    const filtrados = fn05_filtrarPedidos(lista, dataInicio, dataFim);
+    setPedidosFiltrados(filtrados);
+  } catch (err) {
+    console.error("Erro ao carregar pedidos:", err);
+    alert("Erro ao carregar pedidos do banco de dados.");
+  }
+};
   // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
 
 // ✅ FN05 - Início
