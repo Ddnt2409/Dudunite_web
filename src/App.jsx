@@ -67,25 +67,28 @@ const App = () => {
 function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
   if (!Array.isArray(pedidos)) return [];
 
+  const parseData = (data, isInicio) => {
+    if (!data) return isInicio ? new Date(0) : new Date(8640000000000000);
+
+    const parsed = new Date(data);
+    if (isNaN(parsed)) return isInicio ? new Date(0) : new Date(8640000000000000);
+
+    if (isInicio) {
+      parsed.setHours(0, 0, 0, 0);
+    } else {
+      parsed.setHours(23, 59, 59, 999);
+    }
+
+    return parsed;
+  };
+
+  const dataLimiteInicio = parseData(dataInicio, true);
+  const dataLimiteFim = parseData(dataFim, false);
+
   return pedidos.filter((pedido) => {
     if (!pedido.timestamp) return false;
 
     const dataPedido = pedido.timestamp.toDate();
-
-    // Se nenhum filtro de data foi definido, retorna todos os pedidos
-    if (!dataInicio && !dataFim) {
-      return true;
-    }
-
-    // Define limites com segurança, mesmo que apenas um dos campos esteja preenchido
-    const dataLimiteInicio = dataInicio
-      ? new Date(new Date(dataInicio).setHours(0, 0, 0, 0))
-      : new Date(0); // menor data possível
-
-    const dataLimiteFim = dataFim
-      ? new Date(new Date(dataFim).setHours(23, 59, 59, 999))
-      : new Date(8640000000000000); // maior data possível no JS
-
     return dataPedido >= dataLimiteInicio && dataPedido <= dataLimiteFim;
   });
 }
