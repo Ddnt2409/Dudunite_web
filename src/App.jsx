@@ -259,8 +259,8 @@ const gerarPDF = () => {
     y += 10;
   }
 
-  // 🔍 Filtro reaplicado no momento do clique
-  const pedidosFiltradosAtualizados = fn05_filtrarPedidos(pedidos, dataInicio, dataFim);
+  // 🔍 Usa agora FN16 para consistência com lista de compras
+  const pedidosFiltradosAtualizados = filtrarPedidosPorData();
 
   const agrupado = {};
   const totalPorCidade = {};
@@ -629,4 +629,4 @@ return (
 );
 };
 export default App;
-//substituida fn05 e fn16//
+//substituida fn05, 14 e fn16//
