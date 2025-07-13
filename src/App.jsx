@@ -456,62 +456,91 @@ const salvarDadosMestres = async () => {
   alert("Item salvo nos Dados Mestres!");
 };
 
-// Fn18 – toggleMostrarDadosMestres: mostra ou oculta o bloco de dados mestres
-const toggleMostrarDadosMestres = () => {
-  setMostrarDadosMestres(!mostrarDadosMestres);
-};
-  // ... seus useState, useEffect etc.
+// ✅ FN18 – INICIO – renderização do PainelDadosMestres com botão salvar item atual
+{mostrarDadosMestres && (
+  <>
+    <PainelDadosMestres
+      tipoSelecionado={tipoSelecionado}
+      setTipoSelecionado={setTipoSelecionado}
+      dadosEscolas={dadosEscolas}
+      setDadosEscolas={setDadosEscolas}
+      dadosProdutos={dadosProdutos}
+      setDadosProdutos={setDadosProdutos}
+    />
+    <div className="bg-white border mt-4 p-4 rounded shadow-md">
+      <button
+        onClick={salvarDadosMestres}
+        className="bg-zinc-800 text-white px-3 py-1 rounded hover:bg-zinc-900 mb-2"
+      >
+        💾 Salvar Item Atual
+      </button>
+      <p className="text-xs text-gray-600">Cadastra o último item como referência futura</p>
+    </div>
+  </>
+)}
+// ✅ FN18 – FIM
 
-  // ✅ FN00 - Tratamento de erro global (exibe erro no celular)
-  if (!Array.isArray(pedidos)) {
-    return <div style={{ padding: 20, color: 'red' }}>Erro: pedidos não é uma lista válida.</div>;
-  }
-
-  if (pedidos.length > 0 && !pedidos[0].timestamp) {
-    return <div style={{ padding: 20, color: 'red' }}>Erro: campo 'timestamp' ausente nos pedidos.</div>;
-  }
-
-  if (typeof fn05_filtrarPedidos !== 'function') {
-    return <div style={{ padding: 20, color: 'red' }}>Erro: função FN05 não está carregada.</div>;
-  }
-//FN 00 - FINAL //
-// ✅ FN19 – INICIO – Estrutura inicial de Dados Mestres
-// Essa função gerencia o painel com opção de escolher tipo de dado a editar
-const PainelDadosMestres = ({ tipoSelecionado, setTipoSelecionado, dadosEscolas, setDadosEscolas, dadosProdutos, setDadosProdutos }) => {
+// ✅ FN19 – INICIO – PainelDadosMestres
+const PainelDadosMestres = ({
+  tipoSelecionado,
+  setTipoSelecionado,
+  dadosEscolas,
+  setDadosEscolas,
+  dadosProdutos,
+  setDadosProdutos
+}) => {
   return (
     <div className="mt-6 p-4 border rounded bg-white">
       <h2 className="text-lg font-bold mb-4">🛠️ Dados Mestres</h2>
       <div className="flex gap-4 mb-4">
-        <button onClick={() => setTipoSelecionado('escolas')} className="px-4 py-2 bg-blue-600 text-white rounded">Ponto de Venda</button>
-        <button onClick={() => setTipoSelecionado('produtos')} className="px-4 py-2 bg-green-600 text-white rounded">Produtos</button>
+        <button
+          onClick={() => setTipoSelecionado('escolas')}
+          className="px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Ponto de Venda
+        </button>
+        <button
+          onClick={() => setTipoSelecionado('produtos')}
+          className="px-4 py-2 bg-green-600 text-white rounded"
+        >
+          Produtos
+        </button>
       </div>
 
-      {tipoSelecionado === 'escolas' && <EditorEscolas dadosEscolas={dadosEscolas} setDadosEscolas={setDadosEscolas} />}
-      {tipoSelecionado === 'produtos' && <EditorProdutos dadosProdutos={dadosProdutos} setDadosProdutos={setDadosProdutos} />}
+      {tipoSelecionado === 'escolas' && (
+        <EditorEscolas dadosEscolas={dadosEscolas} setDadosEscolas={setDadosEscolas} />
+      )}
+      {tipoSelecionado === 'produtos' && (
+        <EditorProdutos dadosProdutos={dadosProdutos} setDadosProdutos={setDadosProdutos} />
+      )}
     </div>
   );
 };
 // ✅ FN19 – FIM
 
-// ✅ FN20 – INICIO – Editor de Escolas (CRUD)
+// ✅ FN20 – INICIO – EditorEscolas
 const EditorEscolas = ({ dadosEscolas, setDadosEscolas }) => {
   return (
     <div>
       <h3 className="font-semibold mb-2">Pontos de Venda</h3>
       {/* Em breve: listagem, edição e exclusão */}
-      <p className="text-sm text-gray-600">🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de escolas</p>
+      <p className="text-sm text-gray-600">
+        🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de escolas
+      </p>
     </div>
   );
 };
 // ✅ FN20 – FIM
 
-// ✅ FN21 – INICIO – Editor de Produtos (CRUD)
+// ✅ FN21 – INICIO – EditorProdutos
 const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
   return (
     <div>
       <h3 className="font-semibold mb-2">Produtos</h3>
       {/* Em breve: listagem, edição, adição e exclusão de sabores */}
-      <p className="text-sm text-gray-600">🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de produtos e sabores</p>
+      <p className="text-sm text-gray-600">
+        🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de produtos e sabores
+      </p>
     </div>
   );
 };
@@ -523,6 +552,7 @@ useEffect(() => {
     try {
       const snapshot = await getDocs(collection(db, "dadosMestres"));
       const lista = snapshot.docs.map(doc => doc.data());
+
       const escolasMapeadas = {};
       const produtosMapeados = {};
 
@@ -533,6 +563,7 @@ useEffect(() => {
             escolasMapeadas[item.cidade].push(item.escola);
           }
         }
+
         if (item.produto && item.sabor) {
           if (!produtosMapeados[item.produto]) produtosMapeados[item.produto] = [];
           if (!produtosMapeados[item.produto].includes(item.sabor)) {
@@ -557,6 +588,19 @@ const [tipoSelecionado, setTipoSelecionado] = useState('');
 const [dadosEscolas, setDadosEscolas] = useState({});
 const [dadosProdutos, setDadosProdutos] = useState({});
 // ✅ FN23 – FIM
+  // ✅ FN00 - Tratamento de erro global (exibe erro no celular)
+  if (!Array.isArray(pedidos)) {
+    return <div style={{ padding: 20, color: 'red' }}>Erro: pedidos não é uma lista válida.</div>;
+  }
+
+  if (pedidos.length > 0 && !pedidos[0].timestamp) {
+    return <div style={{ padding: 20, color: 'red' }}>Erro: campo 'timestamp' ausente nos pedidos.</div>;
+  }
+
+  if (typeof fn05_filtrarPedidos !== 'function') {
+    return <div style={{ padding: 20, color: 'red' }}>Erro: função FN05 não está carregada.</div>;
+  }
+//FN 00 - FINAL //
 
   // 👇 abaixo disso, seu return normal//
 return (
