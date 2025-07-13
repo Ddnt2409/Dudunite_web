@@ -573,14 +573,32 @@ const [dadosEscolas, setDadosEscolas] = useState({});
 const [dadosProdutos, setDadosProdutos] = useState({});
 // === FIM FN23 ===
 // === INÍCIO RETURN – RT01: Estrutura geral e título ===
+          📋 Planejamento de Produção
+        </button>
+        <button onClick={gerarListaCompras} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
+          🧾 Lista de Compras
+        </button>
+      </div>
+
+      <div className="flex justify-center">
+        <button onClick={toggleMostrarDadosMestres} className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-800">
+          ⚙️ Dados Mestres
+        </button>
+      </div>
+// === FIM RT05 ===
+
+// === INÍCIO RT06 – Painel de Dados Mestres (corrigido) ===
+return (
+  <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
 return (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
     <div className="max-w-xl mx-auto">
       <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
       <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
-// === FIM RT01 ===
 
-// === INÍCIO RT02 – Filtro por período ===
+      {/* === FIM RT01 === */}
+
+      {/* === INÍCIO RT02 – Filtro por período === */}
       <div className="mb-6">
         <label className="font-semibold block mb-1">📆 Período:</label>
         <div className="flex items-center gap-2">
@@ -589,9 +607,9 @@ return (
           <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className="p-2 border rounded" />
         </div>
       </div>
-// === FIM RT02 ===
+      {/* === FIM RT02 === */}
 
-// === INÍCIO RT03 – Campos do pedido ===
+      {/* === INÍCIO RT03 – Campos do pedido === */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
           <label>Cidade</label>
@@ -639,9 +657,9 @@ return (
       <button onClick={adicionarItem} className="bg-[#8c3b1b] text-white px-4 py-2 rounded hover:bg-[#6f2d11] w-full mb-4">
         ➕ Adicionar Item
       </button>
-// === FIM RT03 ===
+      {/* === FIM RT03 === */}
 
-// === INÍCIO RT04 – Lista de Itens e botão Salvar Pedido ===
+      {/* === INÍCIO RT04 – Lista de Itens e botão Salvar Pedido === */}
       {itens.length > 0 && (
         <div className="mb-6">
           <h2 className="font-semibold text-lg mb-2">Itens do Pedido ({totalItens} un):</h2>
@@ -656,9 +674,9 @@ return (
       <button onClick={salvarPedido} className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4">
         💾 Salvar Pedido
       </button>
-// === FIM RT04 ===
+      {/* === FIM RT04 === */}
 
-// === INÍCIO RT05 – Ações adicionais ===
+      {/* === INÍCIO RT05 – Ações adicionais === */}
       <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
         <button onClick={gerarPDF} className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800">
           📋 Planejamento de Produção
@@ -673,9 +691,9 @@ return (
           ⚙️ Dados Mestres
         </button>
       </div>
-// === FIM RT05 ===
+      {/* === FIM RT05 === */}
 
-// === INÍCIO RT06 – Painel de Dados Mestres (corrigido) ===
+      {/* === INÍCIO RT06 – Painel de Dados Mestres (corrigido) */}
       {mostrarDadosMestres && (
         <div className="mt-6">
           <PainelDadosMestres
@@ -688,11 +706,9 @@ return (
           />
         </div>
       )}
-// === FIM RT06 ===
-
+      {/* === FIM RT06 === */}
     </div>
   </div>
 );
-// === FIM RETURN ===
 };
 export default App;
