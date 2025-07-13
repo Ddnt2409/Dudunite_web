@@ -694,6 +694,5 @@ return (
   </div>
 );
 // === FIM RETURN ===
-
+};
 export default App;
-// === FIM BLOCO CORRIGIDO ===
