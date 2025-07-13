@@ -240,8 +240,7 @@ const embalagens = {
 };
 
 // Bloco 6 – Geração do PDF de Planejamento de Produção
-
-// Fn14 – gerarPDF: gera o planejamento de produção por cidade, escola, produto e sabor
+// ✅ FN14 – gerarPDF: gera o planejamento de produção com filtro aplicado no momento do clique
 const gerarPDF = () => {
   const doc = new jsPDF();
   let y = 10;
@@ -264,11 +263,14 @@ const gerarPDF = () => {
     y += 10;
   }
 
+  // ✅ Reaplica o filtro no momento do clique
+  const pedidosFiltradosAtualizados = fn05_filtrarPedidos(pedidos, dataInicio, dataFim);
+
   const agrupado = {};
   const totalPorCidade = {};
   const totalGeral = {};
 
-  pedidosFiltrados.forEach(({ cidade, escola, itens }) => {
+  pedidosFiltradosAtualizados.forEach(({ cidade, escola, itens }) => {
     if (!agrupado[cidade]) agrupado[cidade] = {};
     if (!agrupado[cidade][escola]) agrupado[cidade][escola] = {};
 
@@ -347,7 +349,6 @@ const gerarPDF = () => {
 
   doc.save(nomePDF);
 };
-  
 // Bloco 8 – Função de geração de lista de compras (PDF)
 
 // Fn15 – gerarListaCompras: gera PDF com insumos e embalagens
