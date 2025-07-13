@@ -432,12 +432,12 @@ const gerarListaCompras = () => {
   doc.save(nomePDF);
 };
 // ✅ FN15 – FIM
-// Fn16 – filtrarPedidosPorData: filtra os pedidos salvos pela data selecionada
+// ✅ FN16 – filtrarPedidosPorData: filtra pedidos com base no timestamp correto
 const filtrarPedidosPorData = () => {
   return pedidos.filter((p) => {
-    const dataPedido = new Date(
-      p.data?.seconds ? p.data.seconds * 1000 : p.data
-    );
+    if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
+
+    const dataPedido = p.timestamp.toDate();
 
     return (
       (!dataInicio || dataPedido >= new Date(`${dataInicio}T00:00:00`)) &&
@@ -445,6 +445,7 @@ const filtrarPedidosPorData = () => {
     );
   });
 };
+// ✅ FN16 – FIM
 // Fn17 – salvarDadosMestres: grava dados manuais como cidade, escola, produto, sabor
 const salvarDadosMestres = async () => {
   const novoItem = {
@@ -625,4 +626,4 @@ return (
 );
 };
 export default App;
-//substituida fn04b, fn05, fn14//
+//substituida fn16//
