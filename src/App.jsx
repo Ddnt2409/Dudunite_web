@@ -573,6 +573,7 @@ const [dadosEscolas, setDadosEscolas] = useState({});
 const [dadosProdutos, setDadosProdutos] = useState({});
 const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
 // === FIM FN23 ===
+
 // === INÍCIO RETURN – RT01: Estrutura geral e título ===
 return (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
@@ -695,5 +696,6 @@ return (
   </div>
 );
 // === FIM RETURN ===
+
 export default App;
-//substituida fn15//
+// === FIM BLOCO CORRIGIDO ===
