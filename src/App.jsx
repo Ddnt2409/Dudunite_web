@@ -430,6 +430,23 @@ const toggleMostrarDadosMestres = () => {
 
 // Bloco 10 – JSX final com interface completa + botão de Dados Mestres embutido
 console.log('App carregando...');
+  const App = () => {
+  // ... seus useState, useEffect etc.
+
+  // ✅ FN00 - Tratamento de erro global (exibe erro no celular)
+  if (!Array.isArray(pedidos)) {
+    return <div style={{ padding: 20, color: 'red' }}>Erro: pedidos não é uma lista válida.</div>;
+  }
+
+  if (pedidos.length > 0 && !pedidos[0].timestamp) {
+    return <div style={{ padding: 20, color: 'red' }}>Erro: campo 'timestamp' ausente nos pedidos.</div>;
+  }
+
+  if (typeof fn05_filtrarPedidos !== 'function') {
+    return <div style={{ padding: 20, color: 'red' }}>Erro: função FN05 não está carregada.</div>;
+  }
+
+  // 👇 abaixo disso, seu return normal//
 return (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
     <div className="max-w-xl mx-auto">
