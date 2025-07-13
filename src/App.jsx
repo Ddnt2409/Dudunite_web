@@ -62,16 +62,16 @@ const App = () => {
   const [novoSabor, setNovoSabor] = useState('');
 
 // ✅ FN04b – carregarPedidos: busca pedidos e aplica filtro com compatibilidade retroativa
+// ✅ FN04b – carregarPedidos: valida timestamps e exclui pedidos malformados
 const carregarPedidos = async () => {
   try {
     const snapshot = await getDocs(collection(db, "pedidos"));
     const lista = snapshot.docs.map(doc => {
       const data = doc.data();
 
-      // 🛡️ Normaliza o campo 'timestamp'
       let timestamp = data.timestamp;
 
-      // Compatibilidade com pedidos antigos: usa 'dataServidor'
+      // Compatibilidade com pedidos antigos
       if (!timestamp && data.dataServidor?.seconds) {
         timestamp = new Timestamp(
           data.dataServidor.seconds,
@@ -79,10 +79,9 @@ const carregarPedidos = async () => {
         );
       }
 
-      // Compatibilidade com pedidos muito antigos: 'data' como string
       if (!timestamp && typeof data.data === 'string') {
         const d = new Date(data.data);
-        if (!isNaN(d.getTime())) {
+        if (!isNaN(d.getTime()) && d.getFullYear() > 2000 && d.getFullYear() < 2100) {
           timestamp = Timestamp.fromDate(d);
         }
       }
@@ -90,9 +89,11 @@ const carregarPedidos = async () => {
       return {
         id: doc.id,
         ...data,
-        timestamp // ✅ sempre presente e compatível com .toDate()
+        timestamp // pode ainda ser null se inválido
       };
-    });
+    })
+    // 🔍 EXCLUI explicitamente os pedidos sem timestamp válido
+    .filter(p => p.timestamp && typeof p.timestamp.toDate === 'function');
 
     setPedidos(lista);
 
@@ -103,7 +104,7 @@ const carregarPedidos = async () => {
     alert("Erro ao carregar pedidos do banco de dados.");
   }
 };
-// ✅ FN04b – FIM
+// ✅ FN04b – FIM (atualizada com filtro forte)
   // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
 
 // ✅ FN05 – fn05_filtrarPedidos: filtra pedidos por data com segurança
