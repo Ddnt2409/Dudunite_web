@@ -455,63 +455,78 @@ const salvarDadosMestres = async () => {
   await addDoc(collection(db, "dadosMestres"), novoItem);
   alert("Item salvo nos Dados Mestres!");
 };
-
-// === INÍCIO FN00 – Validação de estado pedidos (antes do return) ===
-if (!Array.isArray(pedidos)) {
-  return <div style={{ padding: 20, color: 'red' }}>Erro: pedidos não é uma lista válida.</div>;
-}
-
-if (pedidos.length > 0 && !pedidos[0].timestamp) {
-  return <div style={{ padding: 20, color: 'red' }}>Erro: campo 'timestamp' ausente nos pedidos.</div>;
-}
-
-if (typeof fn05_filtrarPedidos !== 'function') {
-  return <div style={{ padding: 20, color: 'red' }}>Erro: função FN05 não está carregada.</div>;
-}
-// === FIM FN00 ===
-
+//FN17 - FINAL//
 // === INÍCIO FN18 – toggleMostrarDadosMestres ===
 const toggleMostrarDadosMestres = () => {
-  setMostrarDadosMestres(!mostrarDadosMestres);
+  setMostrarDadosMestres((prev) => !prev);
 };
 // === FIM FN18 ===
 
 // === INÍCIO FN19 – PainelDadosMestres ===
-const PainelDadosMestres = ({ tipoSelecionado, setTipoSelecionado, dadosEscolas, setDadosEscolas, dadosProdutos, setDadosProdutos }) => {
+const PainelDadosMestres = ({
+  tipoSelecionado,
+  setTipoSelecionado,
+  dadosEscolas,
+  setDadosEscolas,
+  dadosProdutos,
+  setDadosProdutos,
+}) => {
   return (
     <div className="mt-6 p-4 border rounded bg-white">
       <h2 className="text-lg font-bold mb-4">🛠️ Dados Mestres</h2>
       <div className="flex gap-4 mb-4">
-        <button onClick={() => setTipoSelecionado('escolas')} className="px-4 py-2 bg-blue-600 text-white rounded">Ponto de Venda</button>
-        <button onClick={() => setTipoSelecionado('produtos')} className="px-4 py-2 bg-green-600 text-white rounded">Produtos</button>
+        <button
+          onClick={() => setTipoSelecionado('escolas')}
+          className="px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Ponto de Venda
+        </button>
+        <button
+          onClick={() => setTipoSelecionado('produtos')}
+          className="px-4 py-2 bg-green-600 text-white rounded"
+        >
+          Produtos
+        </button>
       </div>
 
-      {tipoSelecionado === 'escolas' && <EditorEscolas dadosEscolas={dadosEscolas} setDadosEscolas={setDadosEscolas} />}
-      {tipoSelecionado === 'produtos' && <EditorProdutos dadosProdutos={dadosProdutos} setDadosProdutos={setDadosProdutos} />}
+      {tipoSelecionado === 'escolas' && (
+        <EditorEscolas
+          dadosEscolas={dadosEscolas}
+          setDadosEscolas={setDadosEscolas}
+        />
+      )}
+      {tipoSelecionado === 'produtos' && (
+        <EditorProdutos
+          dadosProdutos={dadosProdutos}
+          setDadosProdutos={setDadosProdutos}
+        />
+      )}
     </div>
   );
 };
 // === FIM FN19 ===
 
-// === INÍCIO FN20 – EditorEscolas (CRUD em desenvolvimento) ===
+// === INÍCIO FN20 – EditorEscolas ===
 const EditorEscolas = ({ dadosEscolas, setDadosEscolas }) => {
   return (
     <div>
       <h3 className="font-semibold mb-2">Pontos de Venda</h3>
-      {/* Em breve: listagem, edição e exclusão */}
-      <p className="text-sm text-gray-600">🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de escolas</p>
+      <p className="text-sm text-gray-600">
+        🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de escolas
+      </p>
     </div>
   );
 };
 // === FIM FN20 ===
 
-// === INÍCIO FN21 – EditorProdutos (CRUD em desenvolvimento) ===
+// === INÍCIO FN21 – EditorProdutos ===
 const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
   return (
     <div>
       <h3 className="font-semibold mb-2">Produtos</h3>
-      {/* Em breve: listagem, edição, adição e exclusão de sabores */}
-      <p className="text-sm text-gray-600">🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de produtos e sabores</p>
+      <p className="text-sm text-gray-600">
+        🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de produtos e sabores
+      </p>
     </div>
   );
 };
@@ -522,11 +537,11 @@ useEffect(() => {
   const carregarDadosMestres = async () => {
     try {
       const snapshot = await getDocs(collection(db, "dadosMestres"));
-      const lista = snapshot.docs.map(doc => doc.data());
+      const lista = snapshot.docs.map((doc) => doc.data());
       const escolasMapeadas = {};
       const produtosMapeados = {};
 
-      lista.forEach(item => {
+      lista.forEach((item) => {
         if (item.cidade && item.escola) {
           if (!escolasMapeadas[item.cidade]) escolasMapeadas[item.cidade] = [];
           if (!escolasMapeadas[item.cidade].includes(item.escola)) {
@@ -556,35 +571,28 @@ useEffect(() => {
 const [tipoSelecionado, setTipoSelecionado] = useState('');
 const [dadosEscolas, setDadosEscolas] = useState({});
 const [dadosProdutos, setDadosProdutos] = useState({});
+const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
 // === FIM FN23 ===
-  // 👇 abaixo disso, seu return normal//
+// === INÍCIO RETURN – RT01: Estrutura geral e título ===
 return (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
     <div className="max-w-xl mx-auto">
       <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
       <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
+// === FIM RT01 ===
 
-      {/* Filtro por período */}
+// === INÍCIO RT02 – Filtro por período ===
       <div className="mb-6">
         <label className="font-semibold block mb-1">📆 Período:</label>
         <div className="flex items-center gap-2">
-          <input
-            type="date"
-            value={dataInicio}
-            onChange={(e) => setDataInicio(e.target.value)}
-            className="p-2 border rounded"
-          />
+          <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="p-2 border rounded" />
           <span>até</span>
-          <input
-            type="date"
-            value={dataFim}
-            onChange={(e) => setDataFim(e.target.value)}
-            className="p-2 border rounded"
-          />
+          <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className="p-2 border rounded" />
         </div>
       </div>
+// === FIM RT02 ===
 
-      {/* Campos do Pedido */}
+// === INÍCIO RT03 – Campos do pedido ===
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
           <label>Cidade</label>
@@ -626,23 +634,15 @@ return (
 
       <div className="mb-4">
         <label>Quantidade</label>
-        <input
-          type="number"
-          min="1"
-          value={quantidade}
-          onChange={(e) => setQuantidade(Number(e.target.value))}
-          className="w-full p-2 rounded border"
-        />
+        <input type="number" min="1" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} className="w-full p-2 rounded border" />
       </div>
 
-      <button
-        onClick={adicionarItem}
-        className="bg-[#8c3b1b] text-white px-4 py-2 rounded hover:bg-[#6f2d11] w-full mb-4"
-      >
+      <button onClick={adicionarItem} className="bg-[#8c3b1b] text-white px-4 py-2 rounded hover:bg-[#6f2d11] w-full mb-4">
         ➕ Adicionar Item
       </button>
+// === FIM RT03 ===
 
-      {/* Lista de Itens adicionados */}
+// === INÍCIO RT04 – Lista de Itens e botão Salvar Pedido ===
       {itens.length > 0 && (
         <div className="mb-6">
           <h2 className="font-semibold text-lg mb-2">Itens do Pedido ({totalItens} un):</h2>
@@ -654,55 +654,46 @@ return (
         </div>
       )}
 
-      <button
-        onClick={salvarPedido}
-        className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4"
-      >
+      <button onClick={salvarPedido} className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4">
         💾 Salvar Pedido
       </button>
+// === FIM RT04 ===
 
-      {/* Botões de Ação */}
+// === INÍCIO RT05 – Ações adicionais ===
       <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
-        <button
-          onClick={gerarPDF}
-          className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800"
-        >
+        <button onClick={gerarPDF} className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800">
           📋 Planejamento de Produção
         </button>
-        <button
-          onClick={gerarListaCompras}
-          className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800"
-        >
+        <button onClick={gerarListaCompras} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
           🧾 Lista de Compras
         </button>
       </div>
 
-      {/* Botão Dados Mestres */}
       <div className="flex justify-center">
-        <button
-          onClick={toggleMostrarDadosMestres}
-          className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-800"
-        >
+        <button onClick={toggleMostrarDadosMestres} className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-800">
           ⚙️ Dados Mestres
         </button>
       </div>
+// === FIM RT05 ===
 
-      {/* Dados Mestres – Se visível */}
+// === INÍCIO RT06 – Painel de Dados Mestres (corrigido) ===
       {mostrarDadosMestres && (
-        <div className="bg-white border mt-4 p-4 rounded shadow-md">
-          <h3 className="text-lg font-semibold mb-2">Painel de Dados Mestres</h3>
-          <button
-            onClick={salvarDadosMestres}
-            className="bg-zinc-800 text-white px-3 py-1 rounded hover:bg-zinc-900 mb-2"
-          >
-            💾 Salvar Item Atual
-          </button>
-          <p className="text-xs text-gray-600">Cadastra o último item como referência futura</p>
+        <div className="mt-6">
+          <PainelDadosMestres
+            tipoSelecionado={tipoSelecionado}
+            setTipoSelecionado={setTipoSelecionado}
+            dadosEscolas={dadosEscolas}
+            setDadosEscolas={setDadosEscolas}
+            dadosProdutos={dadosProdutos}
+            setDadosProdutos={setDadosProdutos}
+          />
         </div>
       )}
+// === FIM RT06 ===
+
     </div>
   </div>
 );
-};
+// === FIM RETURN ===
 export default App;
 //substituida fn15//
