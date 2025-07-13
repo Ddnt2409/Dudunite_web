@@ -427,10 +427,6 @@ const salvarDadosMestres = async () => {
 const toggleMostrarDadosMestres = () => {
   setMostrarDadosMestres(!mostrarDadosMestres);
 };
-
-// Bloco 10 – JSX final com interface completa + botão de Dados Mestres embutido
-console.log('App carregando...');
-  const App = () => {
   // ... seus useState, useEffect etc.
 
   // ✅ FN00 - Tratamento de erro global (exibe erro no celular)
@@ -594,4 +590,4 @@ return (
 );
 };
 export default App;
-//forcar deploy correcao fn05//
+//apagado 3 linhas fn10//
