@@ -571,7 +571,6 @@ useEffect(() => {
 const [tipoSelecionado, setTipoSelecionado] = useState('');
 const [dadosEscolas, setDadosEscolas] = useState({});
 const [dadosProdutos, setDadosProdutos] = useState({});
-const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
 // === FIM FN23 ===
 // === INÍCIO RETURN – RT01: Estrutura geral e título ===
 return (
