@@ -236,10 +236,85 @@ const embalagens = {
 };
 
 // Bloco 6 – Geração do PDF de Planejamento de Produção
-// ✅ FN14 – gerarPDF: gera o planejamento de produção com resumo de tabuleiros e bacias de recheio
+// ✅ FN14 – gerarPDF (Relatório de Produção Corrigido)
 const gerarPDF = () => {
+  const pedidosFiltrados = filtrarPedidosPorData();
+
   const doc = new jsPDF();
   let y = 10;
+
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(10);
+  doc.text('Relatório de Produção - Dudunitê', 10, y);
+  y += 10;
+
+  const rendimentoTab = {
+    "BRW 7x7": 12,
+    "BRW 6x6": 17,
+    "PKT 5x5": 20,
+    "PKT 6x6": 15,
+    "ESC": 26
+  };
+
+  const rendimentoBacia = {
+    "BRW 7x7": 25,
+    "BRW 6x6": 35,
+    "ESC": 26
+  };
+
+  const tabuleiros = {};
+  const bacias = { branco: 0, preto: 0 };
+
+  pedidosFiltrados.forEach(pedido => {
+    doc.text(`Escola: ${pedido.escola}`, 10, y); y += 6;
+    doc.text(`Cidade: ${pedido.cidade}`, 10, y); y += 6;
+    doc.text(`Data: ${formatarData(pedido.data)}`, 10, y); y += 6;
+    doc.text('Itens:', 10, y); y += 6;
+
+    pedido.itens.forEach(({ produto, sabor, quantidade }) => {
+      const qtd = Number(quantidade);
+      doc.text(`${produto} - ${sabor} - ${qtd} un`, 12, y); y += 6;
+
+      if (produto === "DUDU") return; // Ignora cálculos
+
+      const tab = qtd / rendimentoTab[produto];
+      if (!tabuleiros[produto]) tabuleiros[produto] = 0;
+      tabuleiros[produto] += tab;
+
+      if (rendimentoBacia[produto]) {
+        if (sabor === "Bem casado") {
+          const metade = qtd / 2;
+          bacias.branco += metade / rendimentoBacia[produto];
+          bacias.preto += metade / rendimentoBacia[produto];
+        } else if (sabor.includes("pto")) {
+          bacias.preto += qtd / rendimentoBacia[produto];
+        } else {
+          bacias.branco += qtd / rendimentoBacia[produto];
+        }
+      }
+    });
+
+    y += 4;
+    if (y >= 280) {
+      doc.addPage();
+      y = 10;
+    }
+  });
+
+  // RESUMO FINAL
+  doc.addPage();
+  y = 10;
+  doc.text('--- RESUMO DE PRODUÇÃO ---', 10, y); y += 8;
+
+  doc.text('TABULEIROS:', 10, y); y += 6;
+  Object.entries(tabuleiros).forEach(([produto, qtd]) => {
+    doc.text(`${produto}: ${qtd.toFixed(2)} tabuleiros`, 12, y); y += 6;
+  });
+
+  y += 4;
+  doc.text('RECHEIOS:', 10, y); y += 6;
+  doc.text(`Branco: ${bacias.branco.toFixed(2)} bacias`, 12, y); y += 6;
+  doc.text(`Preto: ${bacias.preto.toFixed(2)} bacias`, 12, y); y += 6;
 
   const agora = new Date();
   const dia = String(agora.getDate()).padStart(2, '0');
@@ -247,154 +322,14 @@ const gerarPDF = () => {
   const ano = agora.getFullYear();
   const hora = String(agora.getHours()).padStart(2, '0');
   const minuto = String(agora.getMinutes()).padStart(2, '0');
-  const nomePDF = `planejamento-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(10);
-  doc.text('Planejamento de Produção - Dudunitê', 10, y);
-  y += 10;
-
-  if (dataInicio && dataFim) {
-    doc.text(`📆 Período: ${dataInicio.split('-').reverse().join('/')} a ${dataFim.split('-').reverse().join('/')}`, 10, y);
-    y += 10;
-  }
-
-  const pedidosFiltradosAtualizados = fn05_filtrarPedidos(pedidos, dataInicio, dataFim);
-
-  const agrupado = {};
-  const totalPorCidade = {};
-  const totalGeral = {};
-  const totalPorProduto = {};
-
-  const rendimentoTabuleiro = {
-    "BRW 7x7": 12,
-    "BRW 6x6": 17,
-    "PKT 5x5": 20,
-    "PKT 6x6": 15,
-    "ESC": 26,
-    "DUDU": 10
-  };
-
-  const saboresBrancos = [
-    "Ninho", "Brig bco", "Brig bco confete", "Palha italiana", "Cr maracujá"
-  ];
-
-  const saboresPretos = [
-    "Brig pto", "Brig pto confete", "Oreo", "Ovomaltine"
-  ];
-
-  let totalBranco = 0;
-  let totalPreto = 0;
-  const tabuleirosResumo = {};
-
-  pedidosFiltradosAtualizados.forEach(({ cidade, escola, itens }) => {
-    if (!agrupado[cidade]) agrupado[cidade] = {};
-    if (!agrupado[cidade][escola]) agrupado[cidade][escola] = {};
-
-    itens.forEach(({ produto, sabor, quantidade }) => {
-      const qtd = Number(quantidade);
-      const rendimento = rendimentoTabuleiro[produto] || 1;
-
-      if (!agrupado[cidade][escola][produto]) agrupado[cidade][escola][produto] = {};
-      if (!agrupado[cidade][escola][produto][sabor]) agrupado[cidade][escola][produto][sabor] = 0;
-      agrupado[cidade][escola][produto][sabor] += qtd;
-
-      totalPorCidade[cidade] = totalPorCidade[cidade] || {};
-      totalPorCidade[cidade][produto] = (totalPorCidade[cidade][produto] || 0) + qtd;
-      totalGeral[produto] = (totalGeral[produto] || 0) + qtd;
-      totalPorProduto[produto] = (totalPorProduto[produto] || 0) + qtd;
-
-      // 👇 Contabiliza tabuleiros
-      tabuleirosResumo[produto] = tabuleirosResumo[produto] || 0;
-      tabuleirosResumo[produto] += qtd / rendimento;
-
-      // 👇 Cálculo de bacias de recheio
-      if (saboresBrancos.includes(sabor)) {
-        totalBranco += qtd / rendimento;
-      } else if (saboresPretos.includes(sabor)) {
-        totalPreto += qtd / rendimento;
-      } else if (sabor === "Bem casado") {
-        totalBranco += (qtd / rendimento) * 0.5;
-        totalPreto  += (qtd / rendimento) * 0.5;
-      }
-    });
-  });
-
-  const addLine = (text) => {
-    if (y > 270) {
-      doc.addPage();
-      y = 10;
-    }
-    doc.text(text, 10, y);
-    y += 6;
-  };
-
-  // 🔽 Impressão detalhada por escola
-  Object.entries(agrupado).forEach(([cidade, escolas]) => {
-    addLine(`Cidade: ${cidade}`);
-    Object.entries(escolas).forEach(([escola, produtos]) => {
-      addLine(` Escola: ${escola}`);
-      let totalEscola = 0;
-
-      Object.entries(produtos).forEach(([produto, sabores]) => {
-        const totalProduto = Object.values(sabores).reduce((a, b) => a + b, 0);
-        addLine(`\n ${produto} — Total: ${totalProduto} un`);
-        totalEscola += totalProduto;
-
-        addLine(` Sabor             | Quantidade`);
-        addLine(` ------------------|-----------`);
-        Object.entries(sabores).forEach(([sabor, qtd]) => {
-          const linha = ` ${sabor.padEnd(18)}| ${String(qtd).padStart(3)} un`;
-          addLine(linha);
-        });
-        addLine('');
-      });
-
-      addLine(`➡️ Total da escola: ${totalEscola} un\n`);
-    });
-
-    addLine(` Total da cidade ${cidade}:`);
-    Object.entries(totalPorCidade[cidade]).forEach(([produto, qtd]) => {
-      addLine(` ${produto.padEnd(10)}: ${qtd} un`);
-    });
-
-    addLine('\n');
-  });
-
-  // 🔽 Totais
-  addLine(`TOTAL GERAL DE TODOS OS PRODUTOS:`);
-  Object.entries(totalGeral).forEach(([produto, qtd]) => {
-    addLine(` ${produto.padEnd(10)}: ${qtd} un`);
-  });
-
-  y += 10;
-  addLine(`-----------------------------`);
-  addLine(`📦 RESUMO FINAL DE PRODUÇÃO:`);
-
-  addLine('\n-----------------------------');
-  addLine(`📌 PRODUTOS POR TIPO:`);
-  Object.entries(totalPorProduto).forEach(([produto, qtd]) => {
-    addLine(` ${produto}: ${qtd} un`);
-  });
-
-  // ✅ NOVO BLOCO: tabuleiros
-  addLine('\n-----------------------------');
-  addLine(`📐 TABULEIROS POR PRODUTO:`);
-  Object.entries(tabuleirosResumo).forEach(([produto, total]) => {
-    addLine(` ${produto}: ${Math.ceil(total)} tabuleiros`);
-  });
-
-  // ✅ NOVO BLOCO: bacias de recheio
-  addLine('\n-----------------------------');
-  addLine(`🫙 BACIAS DE RECHEIO:`);
-  addLine(` Brancos: ${Math.ceil(totalBranco)} bacias`);
-  addLine(` Pretos : ${Math.ceil(totalPreto)} bacias`);
+  const nomePDF = `producao-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
 
   doc.save(nomePDF);
 };
 // ✅ FN14 – FIM
+
 // Bloco 9 – Funções auxiliares: filtros, dados mestres, toggle
-// ✅ FN15 – gerarListaCompras: gera PDF com insumos, recheios e embalagens ajustados
+// ✅ FN15 – gerarListaCompras (sincronizada com FN14)
 const gerarListaCompras = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
 
@@ -403,17 +338,13 @@ const gerarListaCompras = () => {
 
   doc.setFont('courier', 'normal');
   doc.setFontSize(10);
-  doc.text('Lista de Compras - Dudunitê', 10, y);
-  y += 10;
+  doc.text('Lista de Compras - Dudunitê', 10, y); y += 10;
 
-  // Inicialização dos insumos e embalagens
   const insumos = {
     margarina: 0,
     ovos: 0,
     massas: 0,
-    recheiosBrancos: 0,
-    recheiosPretos: 0,
-    nutella: 0,
+    nutella: 0
   };
 
   const embalagens = {
@@ -422,11 +353,19 @@ const gerarListaCompras = () => {
     EtiqBrw: 0, EtiqEsc: 0, EtiqDD: 0
   };
 
-  pedidosFiltrados.forEach(pedido => {
-    pedido.itens.forEach(({ produto, sabor, quantidade }) => {
+  const rendimentoTab = {
+    "BRW 7x7": 12,
+    "BRW 6x6": 17,
+    "PKT 5x5": 20,
+    "PKT 6x6": 15,
+    "ESC": 26
+  };
+
+  pedidosFiltrados.forEach(p => {
+    p.itens.forEach(({ produto, sabor, quantidade }) => {
       const qtd = Number(quantidade);
 
-      // Dudus: só embalagem, sem insumos/recheios
+      // ⛔ Ignora insumos dos Dudus
       if (produto === "DUDU") {
         embalagens.SQ30x5 += qtd * 2;
         embalagens.SQ22x6 += qtd * 2;
@@ -434,57 +373,53 @@ const gerarListaCompras = () => {
         return;
       }
 
-      // Função para somar insumos básicos e embalagens
-      const addInsumosBasicos = (m, o, f, emb, etiq) => {
-        insumos.margarina += 76 * (qtd / m);
-        insumos.ovos += 190 * (qtd / o);
-        insumos.massas += 2 * (qtd / f);
-        if (emb) embalagens[emb] += qtd;
-        if (etiq) embalagens[etiq] += qtd;
-      };
+      const tab = qtd / rendimentoTab[produto];
 
-      // Cálculo padrão para tabuleiros e embalagens
-      if (produto === "BRW 7x7") addInsumosBasicos(12, 12, 12, "G650", "EtiqBrw");
-      else if (produto === "BRW 6x6") addInsumosBasicos(17, 17, 17, "G640", "EtiqBrw");
-      else if (produto === "PKT 5x5") addInsumosBasicos(20, 20, 20, "SQ5x5", "EtiqBrw");
-      else if (produto === "PKT 6x6") addInsumosBasicos(15, 15, 15, "SQ6x6", "EtiqBrw");
-      else if (produto === "ESC") addInsumosBasicos(26, 26, 26, "D135", "EtiqEsc");
+      // Cada tabuleiro usa os mesmos insumos base
+      insumos.margarina += 76 * tab;
+      insumos.ovos += 190 * tab;
+      insumos.massas += 2 * tab;
 
-      // Cálculo de recheios pretos e brancos
-      if (sabor === "Bem casado") {
-        // Metade branco, metade preto para "Bem casado"
-        insumos.recheiosBrancos += qtd / 35 / 2; // 35 unidades por bacia (exemplo)
-        insumos.recheiosPretos += qtd / 35 / 2;
-      } else if (
-        ["Brig bco", "Brig bco confete", "Ninho", "Ninho com nutella", "Cr maracujá", "Bem casado"].includes(sabor)
-      ) {
-        // Recheios brancos
-        insumos.recheiosBrancos += qtd / 35;
-      } else {
-        // Recheios pretos
-        insumos.recheiosPretos += qtd / 35;
+      // Embalagens por produto
+      if (produto === "BRW 7x7") {
+        embalagens.G650 += qtd;
+        embalagens.EtiqBrw += qtd;
+      }
+      if (produto === "BRW 6x6") {
+        embalagens.G640 += qtd;
+        embalagens.EtiqBrw += qtd;
+      }
+      if (produto === "PKT 5x5") {
+        embalagens.SQ5x5 += qtd;
+        embalagens.EtiqBrw += qtd;
+      }
+      if (produto === "PKT 6x6") {
+        embalagens.SQ6x6 += qtd;
+        embalagens.EtiqBrw += qtd;
+      }
+      if (produto === "ESC") {
+        embalagens.D135 += qtd;
+        embalagens.EtiqEsc += qtd;
       }
 
-      // Nutella em função do produto e sabor
+      // Nutella apenas em "Ninho com nutella"
       if (sabor === "Ninho com nutella") {
         if (produto === "BRW 7x7") insumos.nutella += qtd / 60;
-        else if (produto === "BRW 6x6") insumos.nutella += qtd / 85;
-        else if (produto === "ESC") insumos.nutella += qtd / 70;
-        else if (produto === "DUDU") insumos.nutella += qtd / 100;
+        if (produto === "BRW 6x6") insumos.nutella += qtd / 85;
+        if (produto === "ESC") insumos.nutella += qtd / 70;
+        if (produto === "DUDU") insumos.nutella += qtd / 100;
       }
     });
   });
 
-  // Imprime resumo dos insumos no PDF
+  // RESUMO DE INSUMOS
   doc.text('--- INSUMOS ---', 10, y); y += 8;
   doc.text(`Margarina: ${insumos.margarina.toFixed(0)}g`, 10, y); y += 6;
   doc.text(`Ovos: ${(insumos.ovos / 60).toFixed(0)} un`, 10, y); y += 6;
   doc.text(`Massas (450g): ${insumos.massas.toFixed(0)} un`, 10, y); y += 6;
-  doc.text(`Recheios brancos: ${insumos.recheiosBrancos.toFixed(2)} bacias`, 10, y); y += 6;
-  doc.text(`Recheios pretos: ${insumos.recheiosPretos.toFixed(2)} bacias`, 10, y); y += 6;
   doc.text(`Nutella (650g): ${Math.ceil(insumos.nutella)} un`, 10, y); y += 10;
 
-  // Nova página para embalagens
+  // NOVA PÁGINA
   doc.addPage();
   y = 10;
 
@@ -494,7 +429,6 @@ const gerarListaCompras = () => {
     y += 6;
   });
 
-  // Nome do arquivo com timestamp
   const agora = new Date();
   const dia = String(agora.getDate()).padStart(2, '0');
   const mes = String(agora.getMonth() + 1).padStart(2, '0');
@@ -506,6 +440,22 @@ const gerarListaCompras = () => {
   doc.save(nomePDF);
 };
 // ✅ FN15 – FIM
+// ✅ FN16 – filtrarPedidosPorData (compatível com FN14 e FN15)
+const filtrarPedidosPorData = () => {
+  const inicio = new Date(`${dataInicio}T00:00:00`);
+  const fim = new Date(`${dataFim}T23:59:59.999`);
+
+  return pedidos.filter((p) => {
+    if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
+
+    const dataPedido = p.timestamp.toDate();
+    return (
+      (!dataInicio || dataPedido >= inicio) &&
+      (!dataFim || dataPedido <= fim)
+    );
+  });
+};
+// ✅ FN16 – FIM
 // Fn17 – salvarDadosMestres: grava dados manuais como cidade, escola, produto, sabor
 const salvarDadosMestres = async () => {
   const novoItem = {
@@ -686,4 +636,4 @@ return (
 );
 };
 export default App;
-//substituida fn14//
+//substituida fn14, 15 e 16//
