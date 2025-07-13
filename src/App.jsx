@@ -394,7 +394,7 @@ const gerarPDF = () => {
 };
 // ✅ FN14 – FIM
 // Bloco 9 – Funções auxiliares: filtros, dados mestres, toggle
-// ✅ FN15 – gerarListaCompras: gera PDF com insumos e embalagens
+// ✅ FN15 – gerarListaCompras: gera PDF com insumos, recheios e embalagens ajustados
 const gerarListaCompras = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
 
@@ -406,11 +406,14 @@ const gerarListaCompras = () => {
   doc.text('Lista de Compras - Dudunitê', 10, y);
   y += 10;
 
+  // Inicialização dos insumos e embalagens
   const insumos = {
     margarina: 0,
     ovos: 0,
     massas: 0,
-    nutella: 0
+    recheiosBrancos: 0,
+    recheiosPretos: 0,
+    nutella: 0,
   };
 
   const embalagens = {
@@ -419,11 +422,20 @@ const gerarListaCompras = () => {
     EtiqBrw: 0, EtiqEsc: 0, EtiqDD: 0
   };
 
-  pedidosFiltrados.forEach(p => {
-    p.itens.forEach(({ produto, sabor, quantidade }) => {
+  pedidosFiltrados.forEach(pedido => {
+    pedido.itens.forEach(({ produto, sabor, quantidade }) => {
       const qtd = Number(quantidade);
 
-      const add = (m, o, f, emb, etiq) => {
+      // Dudus: só embalagem, sem insumos/recheios
+      if (produto === "DUDU") {
+        embalagens.SQ30x5 += qtd * 2;
+        embalagens.SQ22x6 += qtd * 2;
+        embalagens.EtiqDD += qtd;
+        return;
+      }
+
+      // Função para somar insumos básicos e embalagens
+      const addInsumosBasicos = (m, o, f, emb, etiq) => {
         insumos.margarina += 76 * (qtd / m);
         insumos.ovos += 190 * (qtd / o);
         insumos.massas += 2 * (qtd / f);
@@ -431,35 +443,48 @@ const gerarListaCompras = () => {
         if (etiq) embalagens[etiq] += qtd;
       };
 
-      if (produto === "BRW 7x7") add(12, 12, 12, "G650", "EtiqBrw");
-      if (produto === "BRW 6x6") add(17, 17, 17, "G640", "EtiqBrw");
-      if (produto === "PKT 5x5") add(20, 20, 20, "SQ5x5", "EtiqBrw");
-      if (produto === "PKT 6x6") add(15, 15, 15, "SQ6x6", "EtiqBrw");
-      if (produto === "ESC")     add(26, 26, 26, "D135", "EtiqEsc");
+      // Cálculo padrão para tabuleiros e embalagens
+      if (produto === "BRW 7x7") addInsumosBasicos(12, 12, 12, "G650", "EtiqBrw");
+      else if (produto === "BRW 6x6") addInsumosBasicos(17, 17, 17, "G640", "EtiqBrw");
+      else if (produto === "PKT 5x5") addInsumosBasicos(20, 20, 20, "SQ5x5", "EtiqBrw");
+      else if (produto === "PKT 6x6") addInsumosBasicos(15, 15, 15, "SQ6x6", "EtiqBrw");
+      else if (produto === "ESC") addInsumosBasicos(26, 26, 26, "D135", "EtiqEsc");
 
-      if (produto === "DUDU") {
-        embalagens.SQ30x5 += qtd * 2;
-        embalagens.SQ22x6 += qtd * 2;
-        embalagens.EtiqDD += qtd;
+      // Cálculo de recheios pretos e brancos
+      if (sabor === "Bem casado") {
+        // Metade branco, metade preto para "Bem casado"
+        insumos.recheiosBrancos += qtd / 35 / 2; // 35 unidades por bacia (exemplo)
+        insumos.recheiosPretos += qtd / 35 / 2;
+      } else if (
+        ["Brig bco", "Brig bco confete", "Ninho", "Ninho com nutella", "Cr maracujá", "Bem casado"].includes(sabor)
+      ) {
+        // Recheios brancos
+        insumos.recheiosBrancos += qtd / 35;
+      } else {
+        // Recheios pretos
+        insumos.recheiosPretos += qtd / 35;
       }
 
+      // Nutella em função do produto e sabor
       if (sabor === "Ninho com nutella") {
         if (produto === "BRW 7x7") insumos.nutella += qtd / 60;
-        if (produto === "BRW 6x6") insumos.nutella += qtd / 85;
-        if (produto === "ESC")     insumos.nutella += qtd / 70;
-        if (produto === "DUDU")    insumos.nutella += qtd / 100;
+        else if (produto === "BRW 6x6") insumos.nutella += qtd / 85;
+        else if (produto === "ESC") insumos.nutella += qtd / 70;
+        else if (produto === "DUDU") insumos.nutella += qtd / 100;
       }
     });
   });
 
-  // RESUMO DE INSUMOS
+  // Imprime resumo dos insumos no PDF
   doc.text('--- INSUMOS ---', 10, y); y += 8;
   doc.text(`Margarina: ${insumos.margarina.toFixed(0)}g`, 10, y); y += 6;
   doc.text(`Ovos: ${(insumos.ovos / 60).toFixed(0)} un`, 10, y); y += 6;
   doc.text(`Massas (450g): ${insumos.massas.toFixed(0)} un`, 10, y); y += 6;
+  doc.text(`Recheios brancos: ${insumos.recheiosBrancos.toFixed(2)} bacias`, 10, y); y += 6;
+  doc.text(`Recheios pretos: ${insumos.recheiosPretos.toFixed(2)} bacias`, 10, y); y += 6;
   doc.text(`Nutella (650g): ${Math.ceil(insumos.nutella)} un`, 10, y); y += 10;
 
-  // NOVA PÁGINA
+  // Nova página para embalagens
   doc.addPage();
   y = 10;
 
@@ -469,6 +494,7 @@ const gerarListaCompras = () => {
     y += 6;
   });
 
+  // Nome do arquivo com timestamp
   const agora = new Date();
   const dia = String(agora.getDate()).padStart(2, '0');
   const mes = String(agora.getMonth() + 1).padStart(2, '0');
@@ -480,22 +506,6 @@ const gerarListaCompras = () => {
   doc.save(nomePDF);
 };
 // ✅ FN15 – FIM
-// ✅ FN16 – corrigida: mesmo padrão de horário de FN05
-const filtrarPedidosPorData = () => {
-  const inicio = new Date(`${dataInicio}T00:00:00`);
-  const fim = new Date(`${dataFim}T23:59:59.999`);
-
-  return pedidos.filter((p) => {
-    if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
-
-    const dataPedido = p.timestamp.toDate();
-    return (
-      (!dataInicio || dataPedido >= inicio) &&
-      (!dataFim || dataPedido <= fim)
-    );
-  });
-};
-// ✅ FN16 – FIM
 // Fn17 – salvarDadosMestres: grava dados manuais como cidade, escola, produto, sabor
 const salvarDadosMestres = async () => {
   const novoItem = {
