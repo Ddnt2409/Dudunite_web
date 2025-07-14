@@ -19,7 +19,7 @@ const logoPath = "/LogomarcaDDnt2025Vazado.png";
 const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
 // FN02 - FINAL//
-// ✅ FN03 – gerarPDF (Planejamento de Produção) – VERSÃO AJUSTADA PARA ALERTA E VALIDAÇÃO
+// ✅ FN03 – gerarPDF (Planejamento de Produção) – AJUSTE PARA CELULAR E ERROS SILENCIOSOS
 const gerarPDF = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
 
@@ -57,41 +57,44 @@ const gerarPDF = () => {
   const bacias = { branco: 0, preto: 0 };
 
   pedidosFiltrados.forEach((pedido) => {
-    doc.text(`Escola: ${pedido.escola}`, 10, y); y += 6;
-    doc.text(`Cidade: ${pedido.cidade}`, 10, y); y += 6;
-    doc.text(`Data: ${formatarData(pedido.data)}`, 10, y); y += 6;
-    doc.text('Itens:', 10, y); y += 6;
+    try {
+      const dataFormatada = pedido.timestamp?.toDate?.()?.toLocaleDateString?.("pt-BR") || "Data inválida";
 
-    pedido.itens.forEach(({ produto, sabor, quantidade }) => {
-      const qtd = Number(quantidade);
-      doc.text(`${produto} - ${sabor} - ${qtd} un`, 12, y); y += 6;
+      doc.text(`Escola: ${pedido.escola || '---'}`, 10, y); y += 6;
+      doc.text(`Cidade: ${pedido.cidade || '---'}`, 10, y); y += 6;
+      doc.text(`Data: ${dataFormatada}`, 10, y); y += 6;
+      doc.text('Itens:', 10, y); y += 6;
 
-      const rend = rendimentoPorProduto[produto];
-      if (!rend) return;
+      pedido.itens.forEach(({ produto, sabor, quantidade }) => {
+        const qtd = Number(quantidade);
+        doc.text(`${produto} - ${sabor} - ${qtd} un`, 12, y); y += 6;
 
-      // Tabuleiros
-      if (!tabuleiros[produto]) tabuleiros[produto] = 0;
-      tabuleiros[produto] += qtd / rend.tabuleiro;
+        const rend = rendimentoPorProduto[produto];
+        if (!rend) return;
 
-      // Recheios
-      if (sabor === "Bem casado") {
-        bacias.branco += qtd / (rend.bacia.branco * 2);
-        bacias.preto  += qtd / (rend.bacia.preto * 2);
-      } else if (saboresBrancos.includes(sabor)) {
-        bacias.branco += qtd / rend.bacia.branco;
-      } else if (saboresPretos.includes(sabor)) {
-        bacias.preto += qtd / rend.bacia.preto;
+        if (!tabuleiros[produto]) tabuleiros[produto] = 0;
+        tabuleiros[produto] += qtd / rend.tabuleiro;
+
+        if (sabor === "Bem casado") {
+          bacias.branco += qtd / (rend.bacia.branco * 2);
+          bacias.preto += qtd / (rend.bacia.preto * 2);
+        } else if (saboresBrancos.includes(sabor)) {
+          bacias.branco += qtd / rend.bacia.branco;
+        } else if (saboresPretos.includes(sabor)) {
+          bacias.preto += qtd / rend.bacia.preto;
+        }
+      });
+
+      y += 4;
+      if (y >= 270) {
+        doc.addPage();
+        y = 10;
       }
-    });
-
-    y += 4;
-    if (y >= 270) {
-      doc.addPage();
-      y = 10;
+    } catch (erro) {
+      console.error('Erro ao processar pedido:', pedido, erro);
     }
   });
 
-  // NOVA PÁGINA – RESUMO FINAL
   doc.addPage(); y = 10;
   doc.text('--- RESUMO DE PRODUÇÃO ---', 10, y); y += 8;
 
@@ -113,7 +116,12 @@ const gerarPDF = () => {
   const minuto = String(agora.getMinutes()).padStart(2, '0');
   const nomePDF = `producao-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
 
-  doc.save(nomePDF);
+  try {
+    doc.save(nomePDF);
+  } catch (erro) {
+    alert('Erro ao tentar salvar o PDF. Experimente usar um navegador em modo desktop.');
+    console.error(erro);
+  }
 };
 // === FIM FN03 ===
 // Bloco 2 – Estados e Funções Iniciais
