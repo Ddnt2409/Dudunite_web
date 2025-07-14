@@ -1,5 +1,5 @@
 // Bloco 1 – Importações e Constantes Globais
-
+//forçando deploy
 // Fn01 – Importações Gerais
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
