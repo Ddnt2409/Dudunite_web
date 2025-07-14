@@ -19,7 +19,8 @@ const logoPath = "/LogomarcaDDnt2025Vazado.png";
 const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
 // FN02 - FINAL//
-// ✅ FN03 – gerarPDF (Planejamento de Produção) – AJUSTE PARA CELULAR E ERROS SILENCIOSOS
+
+// ✅ FN03 – gerarPDF (Planejamento de Produção) – AJUSTADA PARA ESCOPAMENTO CORRETO
 const gerarPDF = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
 
