@@ -599,6 +599,13 @@ useEffect(() => {
       const snapshot = await getDocs(collection(db, "dadosMestres"));
       const lista = snapshot.docs.map((doc) => doc.data());
 
+      // Exibe os primeiros dados como teste no celular
+      const exemplo = lista.slice(0, 3).map((item, i) => (
+        `${i + 1}) ${item.cidade || '-'} | ${item.escola || '-'} | ${item.produto || '-'} | ${item.sabor || '-'}`
+      )).join('\n');
+
+      alert("📦 Amostra de dados mestres:\n\n" + exemplo);
+
       const escolasMapeadas = {};
       const produtosMapeados = {};
 
@@ -620,8 +627,8 @@ useEffect(() => {
       setDadosEscolas(escolasMapeadas);
       setDadosProdutos(produtosMapeados);
     } catch (error) {
-      console.error("Erro ao carregar dados mestres:", error);
-      alert("Erro ao carregar os Dados Mestres.");
+      alert("❌ Erro ao carregar dados mestres");
+      console.error("Erro Firebase:", error);
     }
   };
 
