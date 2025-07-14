@@ -1,5 +1,3 @@
-//Código validado 13/07 11:32 com frontend sem funcionar apenas logomarca. Falta testes de botões//
-
 // Bloco 1 – Importações e Constantes Globais
 
 // Fn01 – Importações Gerais
@@ -20,29 +18,112 @@ import db from './firebase';
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
 const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
+// FN02 - FINAL//
+// ✅ FN03 – gerarPDF (Planejamento de Produção) – AJUSTE PARA CELULAR E ERROS SILENCIOSOS
+const gerarPDF = () => {
+  const pedidosFiltrados = filtrarPedidosPorData();
 
-// Fn03 – Dados Estáticos
-const dados = {
-  "Recife": ["Tio Valter", "Vera Cruz", "Pinheiros", "BMQ", "Dourado", "CFC", "Madre de Deus", "Saber Viver", "Anita Garibaldi"],
-  "Caruaru": ["Interativo", "Exato 1", "Exato 2", "SESI", "Motivo"],
-  "Gravatá": ["Russas", "Salesianas", "Pequeno Príncipe", "Céu Azul"]
+  if (!pedidosFiltrados.length) {
+    alert('Nenhum pedido encontrado para o período selecionado.');
+    return;
+  }
+
+  const doc = new jsPDF();
+  let y = 10;
+
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(10);
+  doc.text('Planejamento de Produção - Dudunitê', 10, y);
+  y += 10;
+
+  const rendimentoPorProduto = {
+    "BRW 7x7": { tabuleiro: 12, bacia: { branco: 25, preto: 25 } },
+    "BRW 6x6": { tabuleiro: 17, bacia: { branco: 35, preto: 35 } },
+    "PKT 5x5": { tabuleiro: 20, bacia: { branco: 650 / 20, preto: 650 / 20 } },
+    "PKT 6x6": { tabuleiro: 15, bacia: { branco: 650 / 30, preto: 650 / 30 } },
+    "ESC":     { tabuleiro: 26, bacia: { branco: 26, preto: 26 } },
+    "DUDU":    { tabuleiro: 100, bacia: { branco: 100, preto: 100 } }
+  };
+
+  const saboresBrancos = [
+    "Ninho", "Ninho com nutella", "Brigadeiro branco", "Oreo",
+    "Ovomaltine", "Paçoca", "Brigadeiro branco c confete", "Beijinho"
+  ];
+  const saboresPretos = [
+    "Brigadeiro preto", "Brigadeiro c confete", "Palha italiana", "Prestigio"
+  ];
+
+  const tabuleiros = {};
+  const bacias = { branco: 0, preto: 0 };
+
+  pedidosFiltrados.forEach((pedido) => {
+    try {
+      const dataFormatada = pedido.timestamp?.toDate?.()?.toLocaleDateString?.("pt-BR") || "Data inválida";
+
+      doc.text(`Escola: ${pedido.escola || '---'}`, 10, y); y += 6;
+      doc.text(`Cidade: ${pedido.cidade || '---'}`, 10, y); y += 6;
+      doc.text(`Data: ${dataFormatada}`, 10, y); y += 6;
+      doc.text('Itens:', 10, y); y += 6;
+
+      pedido.itens.forEach(({ produto, sabor, quantidade }) => {
+        const qtd = Number(quantidade);
+        doc.text(`${produto} - ${sabor} - ${qtd} un`, 12, y); y += 6;
+
+        const rend = rendimentoPorProduto[produto];
+        if (!rend) return;
+
+        if (!tabuleiros[produto]) tabuleiros[produto] = 0;
+        tabuleiros[produto] += qtd / rend.tabuleiro;
+
+        if (sabor === "Bem casado") {
+          bacias.branco += qtd / (rend.bacia.branco * 2);
+          bacias.preto += qtd / (rend.bacia.preto * 2);
+        } else if (saboresBrancos.includes(sabor)) {
+          bacias.branco += qtd / rend.bacia.branco;
+        } else if (saboresPretos.includes(sabor)) {
+          bacias.preto += qtd / rend.bacia.preto;
+        }
+      });
+
+      y += 4;
+      if (y >= 270) {
+        doc.addPage();
+        y = 10;
+      }
+    } catch (erro) {
+      console.error('Erro ao processar pedido:', pedido, erro);
+    }
+  });
+
+  doc.addPage(); y = 10;
+  doc.text('--- RESUMO DE PRODUÇÃO ---', 10, y); y += 8;
+
+  doc.text('TABULEIROS:', 10, y); y += 6;
+  Object.entries(tabuleiros).forEach(([produto, qtd]) => {
+    doc.text(`${produto}: ${qtd.toFixed(2)} tabuleiros`, 12, y); y += 6;
+  });
+
+  y += 4;
+  doc.text('RECHEIOS:', 10, y); y += 6;
+  doc.text(`Branco: ${bacias.branco.toFixed(2)} bacias`, 12, y); y += 6;
+  doc.text(`Preto: ${bacias.preto.toFixed(2)} bacias`, 12, y); y += 6;
+
+  const agora = new Date();
+  const dia = String(agora.getDate()).padStart(2, '0');
+  const mes = String(agora.getMonth() + 1).padStart(2, '0');
+  const ano = agora.getFullYear();
+  const hora = String(agora.getHours()).padStart(2, '0');
+  const minuto = String(agora.getMinutes()).padStart(2, '0');
+  const nomePDF = `producao-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
+
+  try {
+    doc.save(nomePDF);
+  } catch (erro) {
+    alert('Erro ao tentar salvar o PDF. Experimente usar um navegador em modo desktop.');
+    console.error(erro);
+  }
 };
-
-const saboresPadrao = [
-  "Ninho com nutella", "Ninho", "Brig bco", "Brig pto",
-  "Brig pto confete", "Brig bco confete", "Oreo", "Ovomaltine",
-  "Bem casado", "Palha italiana", "Cr maracujá"
-];
-
-const produtos = {
-  "BRW 7x7": saboresPadrao,
-  "BRW 6x6": saboresPadrao,
-  "ESC": saboresPadrao,
-  "PKT 5x5": saboresPadrao,
-  "PKT 6x6": saboresPadrao,
-  "DUDU": saboresPadrao
-};
-
+// === FIM FN03 ===
 // Bloco 2 – Estados e Funções Iniciais
 // Fn04 – Estados Gerais do App
 const App = () => {
@@ -238,121 +319,10 @@ const embalagens = {
 };
 
 // Bloco 6 – Geração do PDF de Planejamento de Produção
-// ✅ FN14 – gerarPDF: gera o planejamento de produção com filtro aplicado no momento do clique
-const gerarPDF = () => {
-  const doc = new jsPDF();
-  let y = 10;
-
-  const agora = new Date();
-  const dia = String(agora.getDate()).padStart(2, '0');
-  const mes = String(agora.getMonth() + 1).padStart(2, '0');
-  const ano = agora.getFullYear();
-  const hora = String(agora.getHours()).padStart(2, '0');
-  const minuto = String(agora.getMinutes()).padStart(2, '0');
-  const nomePDF = `planejamento-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(10);
-  doc.text('Planejamento de Produção - Dudunitê', 10, y);
-  y += 10;
-
-  if (dataInicio && dataFim) {
-    doc.text(`📆 Período: ${dataInicio.split('-').reverse().join('/')} a ${dataFim.split('-').reverse().join('/')}`, 10, y);
-    y += 10;
-  }
-
-  // 🔍 Usa agora FN16 para consistência com lista de compras
-  const pedidosFiltradosAtualizados = filtrarPedidosPorData();
-
-  const agrupado = {};
-  const totalPorCidade = {};
-  const totalGeral = {};
-
-  pedidosFiltradosAtualizados.forEach(({ cidade, escola, itens }) => {
-    if (!agrupado[cidade]) agrupado[cidade] = {};
-    if (!agrupado[cidade][escola]) agrupado[cidade][escola] = {};
-
-    itens.forEach(({ produto, sabor, quantidade }) => {
-      if (!agrupado[cidade][escola][produto]) agrupado[cidade][escola][produto] = {};
-      if (!agrupado[cidade][escola][produto][sabor]) agrupado[cidade][escola][produto][sabor] = 0;
-      agrupado[cidade][escola][produto][sabor] += quantidade;
-
-      totalPorCidade[cidade] = totalPorCidade[cidade] || {};
-      totalPorCidade[cidade][produto] = (totalPorCidade[cidade][produto] || 0) + quantidade;
-      totalGeral[produto] = (totalGeral[produto] || 0) + quantidade;
-    });
-  });
-
-  const addLine = (text) => {
-    if (y > 270) {
-      doc.addPage();
-      y = 10;
-    }
-    doc.text(text, 10, y);
-    y += 6;
-  };
-
-  Object.entries(agrupado).forEach(([cidade, escolas]) => {
-    addLine(`Cidade: ${cidade}`);
-    Object.entries(escolas).forEach(([escola, produtos]) => {
-      addLine(` Escola: ${escola}`);
-      let totalEscola = 0;
-
-      Object.entries(produtos).forEach(([produto, sabores]) => {
-        const totalProduto = Object.values(sabores).reduce((a, b) => a + b, 0);
-        addLine(`\n ${produto} — Total: ${totalProduto} un`);
-        totalEscola += totalProduto;
-
-        addLine(` Sabor             | Quantidade`);
-        addLine(` ------------------|-----------`);
-        Object.entries(sabores).forEach(([sabor, qtd]) => {
-          const linha = ` ${sabor.padEnd(18)}| ${String(qtd).padStart(3)} un`;
-          addLine(linha);
-        });
-        addLine('');
-      });
-
-      addLine(`➡️ Total da escola: ${totalEscola} un\n`);
-    });
-
-    addLine(` Total da cidade ${cidade}:`);
-    Object.entries(totalPorCidade[cidade]).forEach(([produto, qtd]) => {
-      addLine(` ${produto.padEnd(10)}: ${qtd} un`);
-    });
-
-    addLine('\n');
-  });
-
-  addLine(`TOTAL GERAL DE TODOS OS PRODUTOS:`);
-  Object.entries(totalGeral).forEach(([produto, qtd]) => {
-    addLine(` ${produto.padEnd(10)}: ${qtd} un`);
-  });
-
-  y += 10;
-  addLine(`-----------------------------`);
-  addLine(`📦 RESUMO FINAL DE PRODUÇÃO:`);
-
-  const resumoFinal = {};
-
-  Object.entries(totalGeral).forEach(([produto, quantidade]) => {
-    if (!resumoFinal[produto]) resumoFinal[produto] = 0;
-    resumoFinal[produto] += quantidade;
-  });
-
-  addLine('\n-----------------------------');
-  addLine(`📌 PRODUTOS POR TIPO:`);
-  Object.entries(resumoFinal).forEach(([produto, qtd]) => {
-    addLine(` ${produto}: ${qtd} un`);
-  });
-
-  doc.save(nomePDF);
-};
-// ✅ FN14 – FIM
 // Bloco 9 – Funções auxiliares: filtros, dados mestres, toggle
-// ✅ FN15 – gerarListaCompras: gera PDF com insumos e embalagens
+// === INÍCIO FN15 – gerarListaCompras (com recheios) ===
 const gerarListaCompras = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
-
   const doc = new jsPDF();
   let y = 10;
 
@@ -365,7 +335,14 @@ const gerarListaCompras = () => {
     margarina: 0,
     ovos: 0,
     massas: 0,
-    nutella: 0
+    nutella: 0,
+    leite: 0,
+    misturaLactea: 0,
+    leiteEmPo: 0,
+    leiteCondensado: 0,
+    cremeDeLeite: 0,
+    glucose: 0,
+    nescau: 0
   };
 
   const embalagens = {
@@ -374,10 +351,24 @@ const gerarListaCompras = () => {
     EtiqBrw: 0, EtiqEsc: 0, EtiqDD: 0
   };
 
+  const saboresRecheioBranco = [
+    "Ninho", "Ninho com nutella", "Brigadeiro branco", "Oreo", "Ovomaltine",
+    "Paçoca", "Brigadeiro branco c confete", "Beijinho"
+  ];
+  const saboresRecheioPreto = [
+    "Brigadeiro preto", "Brigadeiro c confete", "Palha italiana", "Prestigio"
+  ];
+
+  const alertaExtras = new Set();
+
+  let baciasBranco = 0;
+  let baciasPreto = 0;
+
   pedidosFiltrados.forEach(p => {
     p.itens.forEach(({ produto, sabor, quantidade }) => {
       const qtd = Number(quantidade);
 
+      // === Produção base ===
       const add = (m, o, f, emb, etiq) => {
         insumos.margarina += 76 * (qtd / m);
         insumos.ovos += 190 * (qtd / o);
@@ -393,36 +384,89 @@ const gerarListaCompras = () => {
       if (produto === "ESC")     add(26, 26, 26, "D135", "EtiqEsc");
 
       if (produto === "DUDU") {
-        embalagens.SQ30x5 += qtd * 2;
-        embalagens.SQ22x6 += qtd * 2;
+        embalagens.SQ30x5 += qtd;
+        embalagens.SQ22x6 += qtd;
         embalagens.EtiqDD += qtd;
+        insumos.leite += qtd / 10;
+        insumos.misturaLactea += qtd / 10;
+        insumos.leiteEmPo += qtd / 20;
       }
 
+      // === Nutella ===
       if (sabor === "Ninho com nutella") {
         if (produto === "BRW 7x7") insumos.nutella += qtd / 60;
         if (produto === "BRW 6x6") insumos.nutella += qtd / 85;
         if (produto === "ESC")     insumos.nutella += qtd / 70;
         if (produto === "DUDU")    insumos.nutella += qtd / 100;
       }
+
+      // === Recheios ===
+      let unidadesPorBacia = 1;
+      if (produto === "BRW 7x7") unidadesPorBacia = 25;
+      if (produto === "BRW 6x6") unidadesPorBacia = 35;
+      if (produto === "ESC")     unidadesPorBacia = 26;
+      if (produto === "PKT 5x5") unidadesPorBacia = 650 / 20;
+      if (produto === "PKT 6x6") unidadesPorBacia = 650 / 30;
+      if (produto === "DUDU")    unidadesPorBacia = 1e6; // ignorar
+
+      const bacias = qtd / unidadesPorBacia;
+
+      if (saboresRecheioBranco.includes(sabor)) {
+        baciasBranco += bacias;
+      } else if (saboresRecheioPreto.includes(sabor)) {
+        baciasPreto += bacias;
+      } else if (sabor === "Bem casado") {
+        baciasBranco += bacias / 2;
+        baciasPreto += bacias / 2;
+      }
+
+      // === Ingredientes adicionais ===
+      const saborLower = sabor.toLowerCase();
+      if (saborLower.includes("confete")) alertaExtras.add("coloreti");
+      if (saborLower.includes("beijinho") || saborLower.includes("prestigio")) alertaExtras.add("coco ralado");
+      if (saborLower.includes("palha")) alertaExtras.add("biscoito maizena");
     });
   });
 
-  // RESUMO DE INSUMOS
+  // === Insumos de recheios ===
+  const baciasTotais = Math.ceil(baciasBranco + baciasPreto);
+  insumos.leiteCondensado += Math.ceil((baciasTotais * 4));
+  insumos.cremeDeLeite += Math.ceil((baciasTotais * 650));
+  insumos.glucose += Math.ceil((baciasTotais / 6) * 500);
+  insumos.nescau += Math.ceil(baciasPreto * 361);
+
+  // === Página 1 – Insumos ===
   doc.text('--- INSUMOS ---', 10, y); y += 8;
   doc.text(`Margarina: ${insumos.margarina.toFixed(0)}g`, 10, y); y += 6;
   doc.text(`Ovos: ${(insumos.ovos / 60).toFixed(0)} un`, 10, y); y += 6;
   doc.text(`Massas (450g): ${insumos.massas.toFixed(0)} un`, 10, y); y += 6;
-  doc.text(`Nutella (650g): ${Math.ceil(insumos.nutella)} un`, 10, y); y += 10;
+  doc.text(`Nutella (650g): ${Math.ceil(insumos.nutella)} un`, 10, y); y += 6;
 
-  // NOVA PÁGINA
-  doc.addPage();
-  y = 10;
+  doc.text(`Leite (L): ${insumos.leite.toFixed(1)} L`, 10, y); y += 6;
+  doc.text(`Mistura Láctea: ${Math.ceil(insumos.misturaLactea)} un`, 10, y); y += 6;
+  doc.text(`Leite em Pó: ${Math.ceil(insumos.leiteEmPo)} un`, 10, y); y += 6;
 
+  doc.text(`Leite Condensado: ${insumos.leiteCondensado} un`, 10, y); y += 6;
+  doc.text(`Creme de Leite: ${insumos.cremeDeLeite} g`, 10, y); y += 6;
+  doc.text(`Glucose: ${insumos.glucose} g`, 10, y); y += 6;
+  doc.text(`Nescau: ${insumos.nescau} g`, 10, y); y += 10;
+
+  doc.addPage(); y = 10;
   doc.text('--- EMBALAGENS ---', 10, y); y += 8;
   Object.entries(embalagens).forEach(([codigo, qtd]) => {
     doc.text(`${codigo}: ${Math.ceil(qtd)} un`, 10, y);
     y += 6;
   });
+
+  // === Mensagem extra ===
+  if (alertaExtras.size > 0) {
+    y += 10;
+    doc.text('⚠️ Itens adicionais necessários:', 10, y); y += 6;
+    alertaExtras.forEach(item => {
+      doc.text(`- ${item}`, 10, y);
+      y += 6;
+    });
+  }
 
   const agora = new Date();
   const dia = String(agora.getDate()).padStart(2, '0');
@@ -434,23 +478,33 @@ const gerarListaCompras = () => {
 
   doc.save(nomePDF);
 };
-// ✅ FN15 – FIM
-// ✅ FN16 – corrigida: mesmo padrão de horário de FN05
+// === FIM FN15 ===
+// ✅ FN16 – filtrarPedidosPorData (VERSÃO AJUSTADA PARA PEGAR TODOS OS PEDIDOS QUANDO DATAS VAZIAS)
 const filtrarPedidosPorData = () => {
-  const inicio = new Date(`${dataInicio}T00:00:00`);
-  const fim = new Date(`${dataFim}T23:59:59.999`);
+  let inicio = new Date(0); // início muito antigo
+  let fim = new Date(8640000000000000); // fim muito distante
+
+  if (dataInicio) {
+    const dInicio = new Date(`${dataInicio}T00:00:00`);
+    if (!isNaN(dInicio.getTime())) {
+      inicio = dInicio;
+    }
+  }
+
+  if (dataFim) {
+    const dFim = new Date(`${dataFim}T23:59:59.999`);
+    if (!isNaN(dFim.getTime())) {
+      fim = dFim;
+    }
+  }
 
   return pedidos.filter((p) => {
     if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
-
     const dataPedido = p.timestamp.toDate();
-    return (
-      (!dataInicio || dataPedido >= inicio) &&
-      (!dataFim || dataPedido <= fim)
-    );
+    return dataPedido >= inicio && dataPedido <= fim;
   });
 };
-// ✅ FN16 – FIM
+// === FIM FN16 ===
 // Fn17 – salvarDadosMestres: grava dados manuais como cidade, escola, produto, sabor
 const salvarDadosMestres = async () => {
   const novoItem = {
@@ -463,112 +517,185 @@ const salvarDadosMestres = async () => {
   await addDoc(collection(db, "dadosMestres"), novoItem);
   alert("Item salvo nos Dados Mestres!");
 };
-
-// Fn18 – toggleMostrarDadosMestres: mostra ou oculta o bloco de dados mestres
+//FN17 - FINAL//
+// === INÍCIO FN18 – toggleMostrarDadosMestres ===
 const toggleMostrarDadosMestres = () => {
-  setMostrarDadosMestres(!mostrarDadosMestres);
+  setMostrarDadosMestres((prev) => !prev);
 };
-  // ... seus useState, useEffect etc.
+// === FIM FN18 ===
 
-  // ✅ FN00 - Tratamento de erro global (exibe erro no celular)
-  if (!Array.isArray(pedidos)) {
-    return <div style={{ padding: 20, color: 'red' }}>Erro: pedidos não é uma lista válida.</div>;
-  }
+// === INÍCIO FN19 – PainelDadosMestres ===
+const PainelDadosMestres = ({
+  tipoSelecionado,
+  setTipoSelecionado,
+  dadosEscolas,
+  setDadosEscolas,
+  dadosProdutos,
+  setDadosProdutos,
+}) => {
+  return (
+    <div className="mt-6 p-4 border rounded bg-white">
+      <h2 className="text-lg font-bold mb-4">🛠️ Dados Mestres</h2>
+      <div className="flex gap-4 mb-4">
+        <button
+          onClick={() => setTipoSelecionado('escolas')}
+          className="px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Ponto de Venda
+        </button>
+        <button
+          onClick={() => setTipoSelecionado('produtos')}
+          className="px-4 py-2 bg-green-600 text-white rounded"
+        >
+          Produtos
+        </button>
+      </div>
 
-  if (pedidos.length > 0 && !pedidos[0].timestamp) {
-    return <div style={{ padding: 20, color: 'red' }}>Erro: campo 'timestamp' ausente nos pedidos.</div>;
-  }
+      {tipoSelecionado === 'escolas' && (
+        <EditorEscolas
+          dadosEscolas={dadosEscolas}
+          setDadosEscolas={setDadosEscolas}
+        />
+      )}
+      {tipoSelecionado === 'produtos' && (
+        <EditorProdutos
+          dadosProdutos={dadosProdutos}
+          setDadosProdutos={setDadosProdutos}
+        />
+      )}
+    </div>
+  );
+};
+// === FIM FN19 ===
 
-  if (typeof fn05_filtrarPedidos !== 'function') {
-    return <div style={{ padding: 20, color: 'red' }}>Erro: função FN05 não está carregada.</div>;
-  }
+// === INÍCIO FN20 – EditorEscolas ===
+const EditorEscolas = ({ dadosEscolas, setDadosEscolas }) => {
+  return (
+    <div>
+      <h3 className="font-semibold mb-2">Pontos de Venda</h3>
+      <p className="text-sm text-gray-600">
+        🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de escolas
+      </p>
+    </div>
+  );
+};
+// === FIM FN20 ===
 
-  // 👇 abaixo disso, seu return normal//
+// === INÍCIO FN21 – EditorProdutos ===
+const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
+  return (
+    <div>
+      <h3 className="font-semibold mb-2">Produtos</h3>
+      <p className="text-sm text-gray-600">
+        🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de produtos e sabores
+      </p>
+    </div>
+  );
+};
+// === FIM FN21 ===
+
+// === INÍCIO FN22 – useEffect carga dos dados mestres ===
+useEffect(() => {
+  const carregarDadosMestres = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "dadosMestres"));
+      const lista = snapshot.docs.map((doc) => doc.data());
+      const escolasMapeadas = {};
+      const produtosMapeados = {};
+
+      lista.forEach((item) => {
+        if (item.cidade && item.escola) {
+          if (!escolasMapeadas[item.cidade]) escolasMapeadas[item.cidade] = [];
+          if (!escolasMapeadas[item.cidade].includes(item.escola)) {
+            escolasMapeadas[item.cidade].push(item.escola);
+          }
+        }
+        if (item.produto && item.sabor) {
+          if (!produtosMapeados[item.produto]) produtosMapeados[item.produto] = [];
+          if (!produtosMapeados[item.produto].includes(item.sabor)) {
+            produtosMapeados[item.produto].push(item.sabor);
+          }
+        }
+      });
+
+      setDadosEscolas(escolasMapeadas);
+      setDadosProdutos(produtosMapeados);
+    } catch (error) {
+      console.error("Erro ao carregar dados mestres:", error);
+    }
+  };
+
+  carregarDadosMestres();
+}, []);
+// === FIM FN22 ===
+
+// === INÍCIO FN23 ===
+const [tipoSelecionado, setTipoSelecionado] = useState('');
+const [dadosEscolas, setDadosEscolas] = useState({});
+const [dadosProdutos, setDadosProdutos] = useState({});
+// === FIM FN23 ===
+
 return (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
     <div className="max-w-xl mx-auto">
       <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
       <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
 
-      {/* Filtro por período */}
+      {/* === FIM RT01 === */}
+
+      {/* === INÍCIO RT02 – Filtro por período === */}
       <div className="mb-6">
         <label className="font-semibold block mb-1">📆 Período:</label>
         <div className="flex items-center gap-2">
-          <input
-            type="date"
-            value={dataInicio}
-            onChange={(e) => setDataInicio(e.target.value)}
-            className="p-2 border rounded"
-          />
+          <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="p-2 border rounded" />
           <span>até</span>
-          <input
-            type="date"
-            value={dataFim}
-            onChange={(e) => setDataFim(e.target.value)}
-            className="p-2 border rounded"
-          />
+          <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className="p-2 border rounded" />
         </div>
       </div>
+      {/* === FIM RT02 === */}
 
-      {/* Campos do Pedido */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label>Cidade</label>
-          <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
-            <option value="">Selecione</option>
-            {Object.keys(dados).map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Escola</label>
-          <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
-            <option value="">Selecione</option>
-            {dados[cidade]?.map((e) => (
-              <option key={e} value={e}>{e}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Produto</label>
-          <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
-            <option value="">Selecione</option>
-            {Object.keys(produtos).map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Sabor</label>
-          <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
-            <option value="">Selecione</option>
-            {produtos[produto]?.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+{/* === INÍCIO RT03 – Campos do pedido === */}
+<div className="grid grid-cols-2 gap-4 mb-4">
+  <div>
+    <label>Cidade</label>
+    <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
+      <option value="">Selecione</option>
+      {Object.keys(dadosEscolas).map((c) => (
+        <option key={c} value={c}>{c}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label>Escola</label>
+    <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
+      <option value="">Selecione</option>
+      {dadosEscolas[cidade]?.map((e) => (
+        <option key={e} value={e}>{e}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label>Produto</label>
+    <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
+      <option value="">Selecione</option>
+      {Object.keys(dadosProdutos).map((p) => (
+        <option key={p} value={p}>{p}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label>Sabor</label>
+    <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
+      <option value="">Selecione</option>
+      {dadosProdutos[produto]?.map((s) => (
+        <option key={s} value={s}>{s}</option>
+      ))}
+    </select>
+  </div>
+</div>
+{/* === FIM RT03 === */}
 
-      <div className="mb-4">
-        <label>Quantidade</label>
-        <input
-          type="number"
-          min="1"
-          value={quantidade}
-          onChange={(e) => setQuantidade(Number(e.target.value))}
-          className="w-full p-2 rounded border"
-        />
-      </div>
-
-      <button
-        onClick={adicionarItem}
-        className="bg-[#8c3b1b] text-white px-4 py-2 rounded hover:bg-[#6f2d11] w-full mb-4"
-      >
-        ➕ Adicionar Item
-      </button>
-
-      {/* Lista de Itens adicionados */}
+      {/* === INÍCIO RT04 – Lista de Itens e botão Salvar Pedido === */}
       {itens.length > 0 && (
         <div className="mb-6">
           <h2 className="font-semibold text-lg mb-2">Itens do Pedido ({totalItens} un):</h2>
@@ -580,55 +707,44 @@ return (
         </div>
       )}
 
-      <button
-        onClick={salvarPedido}
-        className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4"
-      >
+      <button onClick={salvarPedido} className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4">
         💾 Salvar Pedido
       </button>
+      {/* === FIM RT04 === */}
 
-      {/* Botões de Ação */}
+      {/* === INÍCIO RT05 – Ações adicionais === */}
       <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
-        <button
-          onClick={gerarPDF}
-          className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800"
-        >
+        <button onClick={gerarPDF} className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800">
           📋 Planejamento de Produção
         </button>
-        <button
-          onClick={gerarListaCompras}
-          className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800"
-        >
+        <button onClick={gerarListaCompras} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
           🧾 Lista de Compras
         </button>
       </div>
 
-      {/* Botão Dados Mestres */}
       <div className="flex justify-center">
-        <button
-          onClick={toggleMostrarDadosMestres}
-          className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-800"
-        >
+        <button onClick={toggleMostrarDadosMestres} className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-800">
           ⚙️ Dados Mestres
         </button>
       </div>
+      {/* === FIM RT05 === */}
 
-      {/* Dados Mestres – Se visível */}
+      {/* === INÍCIO RT06 – Painel de Dados Mestres (corrigido) */}
       {mostrarDadosMestres && (
-        <div className="bg-white border mt-4 p-4 rounded shadow-md">
-          <h3 className="text-lg font-semibold mb-2">Painel de Dados Mestres</h3>
-          <button
-            onClick={salvarDadosMestres}
-            className="bg-zinc-800 text-white px-3 py-1 rounded hover:bg-zinc-900 mb-2"
-          >
-            💾 Salvar Item Atual
-          </button>
-          <p className="text-xs text-gray-600">Cadastra o último item como referência futura</p>
+        <div className="mt-6">
+          <PainelDadosMestres
+            tipoSelecionado={tipoSelecionado}
+            setTipoSelecionado={setTipoSelecionado}
+            dadosEscolas={dadosEscolas}
+            setDadosEscolas={setDadosEscolas}
+            dadosProdutos={dadosProdutos}
+            setDadosProdutos={setDadosProdutos}
+          />
         </div>
       )}
+      {/* === FIM RT06 === */}
     </div>
   </div>
 );
 };
 export default App;
-//substituida fn05, 14 e fn16//
