@@ -592,22 +592,26 @@ const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
 };
 // === FIM FN21 ===
 
-// === INÍCIO FN22 – useEffect carga dos dados mestres ===
+// === INÍCIO FN22 – useEffect: Carrega listas de cidade/escola e produto/sabor para os selects ===
 useEffect(() => {
-  const carregarDadosMestres = async () => {
+  const carregarListasSelects = async () => {
     try {
       const snapshot = await getDocs(collection(db, "dadosMestres"));
       const lista = snapshot.docs.map((doc) => doc.data());
+
       const escolasMapeadas = {};
       const produtosMapeados = {};
 
       lista.forEach((item) => {
+        // Mapear cidade e escola
         if (item.cidade && item.escola) {
           if (!escolasMapeadas[item.cidade]) escolasMapeadas[item.cidade] = [];
           if (!escolasMapeadas[item.cidade].includes(item.escola)) {
             escolasMapeadas[item.cidade].push(item.escola);
           }
         }
+
+        // Mapear produto e sabor
         if (item.produto && item.sabor) {
           if (!produtosMapeados[item.produto]) produtosMapeados[item.produto] = [];
           if (!produtosMapeados[item.produto].includes(item.sabor)) {
@@ -623,7 +627,7 @@ useEffect(() => {
     }
   };
 
-  carregarDadosMestres();
+  carregarListasSelects();
 }, []);
 // === FIM FN22 ===
 
