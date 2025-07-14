@@ -37,7 +37,7 @@ const gerarPDF = () => {
     "PKT 5x5": { tabuleiro: 20, bacia: { branco: 650 / 20, preto: 650 / 20 } },
     "PKT 6x6": { tabuleiro: 15, bacia: { branco: 650 / 30, preto: 650 / 30 } },
     "ESC":     { tabuleiro: 26, bacia: { branco: 26, preto: 26 } },
-    "DUDU":    { tabuleiro: 100, bacia: { branco: 100, preto: 100 } } // Reservado
+    "DUDU":    { tabuleiro: 100, bacia: { branco: 100, preto: 100 } }
   };
 
   const saboresBrancos = [
@@ -64,11 +64,9 @@ const gerarPDF = () => {
       const rend = rendimentoPorProduto[produto];
       if (!rend) return;
 
-      // Tabuleiros
       if (!tabuleiros[produto]) tabuleiros[produto] = 0;
       tabuleiros[produto] += qtd / rend.tabuleiro;
 
-      // Recheios
       if (sabor === "Bem casado") {
         bacias.branco += qtd / (rend.bacia.branco * 2);
         bacias.preto  += qtd / (rend.bacia.preto * 2);
@@ -86,7 +84,6 @@ const gerarPDF = () => {
     }
   });
 
-  // NOVA PÁGINA – RESUMO FINAL
   doc.addPage(); y = 10;
   doc.text('--- RESUMO DE PRODUÇÃO ---', 10, y); y += 8;
 
@@ -111,7 +108,6 @@ const gerarPDF = () => {
   doc.save(nomePDF);
 };
 // ✅ FIM FN03 – versão oficial unificada
-// === FIM FN03 ===
 
 // Bloco 2 – Estados e Funções Iniciais
 // Fn04 – Estados Gerais do App
@@ -469,7 +465,8 @@ const gerarListaCompras = () => {
 };
 // === FIM FN15 ===
 // ✅ FN16 – filtrarPedidosPorData (compatível com FN14 e FN15)
-const filtrarPedidosPorData = () => {
+// ✅ FN16 – filtrarPedidosPorData (compatível com FN14 e FN15)
+function filtrarPedidosPorData() {
   const inicio = new Date(`${dataInicio}T00:00:00`);
   const fim = new Date(`${dataFim}T23:59:59.999`);
 
@@ -482,7 +479,7 @@ const filtrarPedidosPorData = () => {
       (!dataFim || dataPedido <= fim)
     );
   });
-};
+}
 // ✅ FN16 – FIM
 // Fn17 – salvarDadosMestres: grava dados manuais como cidade, escola, produto, sabor
 const salvarDadosMestres = async () => {
@@ -633,55 +630,46 @@ return (
       </div>
       {/* === FIM RT02 === */}
 
-      {/* === INÍCIO RT03 – Campos do pedido === */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label>Cidade</label>
-          <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
-            <option value="">Selecione</option>
-            {Object.keys(dados).map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Escola</label>
-          <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
-            <option value="">Selecione</option>
-            {dados[cidade]?.map((e) => (
-              <option key={e} value={e}>{e}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Produto</label>
-          <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
-            <option value="">Selecione</option>
-            {Object.keys(produtos).map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Sabor</label>
-          <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
-            <option value="">Selecione</option>
-            {produtos[produto]?.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <label>Quantidade</label>
-        <input type="number" min="1" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} className="w-full p-2 rounded border" />
-      </div>
-
-      <button onClick={adicionarItem} className="bg-[#8c3b1b] text-white px-4 py-2 rounded hover:bg-[#6f2d11] w-full mb-4">
-        ➕ Adicionar Item
-      </button>
-      {/* === FIM RT03 === */}
+{/* === INÍCIO RT03 – Campos do pedido === */}
+<div className="grid grid-cols-2 gap-4 mb-4">
+  <div>
+    <label>Cidade</label>
+    <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
+      <option value="">Selecione</option>
+      {Object.keys(dadosEscolas).map((c) => (
+        <option key={c} value={c}>{c}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label>Escola</label>
+    <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
+      <option value="">Selecione</option>
+      {dadosEscolas[cidade]?.map((e) => (
+        <option key={e} value={e}>{e}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label>Produto</label>
+    <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
+      <option value="">Selecione</option>
+      {Object.keys(dadosProdutos).map((p) => (
+        <option key={p} value={p}>{p}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label>Sabor</label>
+    <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
+      <option value="">Selecione</option>
+      {dadosProdutos[produto]?.map((s) => (
+        <option key={s} value={s}>{s}</option>
+      ))}
+    </select>
+  </div>
+</div>
+{/* === FIM RT03 === */}
 
       {/* === INÍCIO RT04 – Lista de Itens e botão Salvar Pedido === */}
       {itens.length > 0 && (
