@@ -372,8 +372,7 @@ const gerarListaCompras = () => {
 
   doc.save(nomePDF);
 };
-// === FIM FN15 ===
-  // === INÍCIO FN15a – gerarPlanejamentoProducao (Planejamento de Produção) ===
+// === INÍCIO FN15a – gerarPlanejamentoProducao (corrigida) ===
 const gerarPlanejamentoProducao = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
 
@@ -396,7 +395,7 @@ const gerarPlanejamentoProducao = () => {
     "PKT 5x5": { tabuleiro: 20, bacia: { branco: 650 / 20, preto: 650 / 20 } },
     "PKT 6x6": { tabuleiro: 15, bacia: { branco: 650 / 30, preto: 650 / 30 } },
     "ESC":     { tabuleiro: 26, bacia: { branco: 26, preto: 26 } },
-    "DUDU":    { tabuleiro: 100, bacia: { branco: 100, preto: 100 } }
+    "DUDU":    null // Ignora DUDU no cálculo
   };
 
   const saboresBrancos = [
@@ -424,7 +423,7 @@ const gerarPlanejamentoProducao = () => {
         doc.text(`${produto} - ${sabor} - ${qtd} un`, 12, y); y += 6;
 
         const rend = rendimentoPorProduto[produto];
-        if (!rend) return;
+        if (!rend) return; // Ignora produtos sem planejamento (ex: DUDU)
 
         if (!tabuleiros[produto]) tabuleiros[produto] = 0;
         tabuleiros[produto] += qtd / rend.tabuleiro;
@@ -724,6 +723,12 @@ return (
     className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800"
   >
     🧾 Lista de Compras
+  </button>
+  <button
+    onClick={toggleDadosMestres}
+    className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
+  >
+    ⚙️ Dados Mestres
   </button>
 </div>
 {/* === FIM RT05 === */}
