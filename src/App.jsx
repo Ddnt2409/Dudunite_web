@@ -18,11 +18,11 @@ import db from './firebase';
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
 const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
+// FN02 - FINAL//
 
-// === INÍCIO FN03 – gerarPDF (Planejamento de Produção) ===
+// ✅ FN03 – gerarPDF (Planejamento de Produção) – VERSÃO PADRÃO OFICIAL DO PROJETO
 const gerarPDF = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
-
   const doc = new jsPDF();
   let y = 10;
 
@@ -31,8 +31,14 @@ const gerarPDF = () => {
   doc.text('Planejamento de Produção - Dudunitê', 10, y);
   y += 10;
 
-  const tabuleiros = {};
-  const bacias = { branco: 0, preto: 0 };
+  const rendimentoPorProduto = {
+    "BRW 7x7": { tabuleiro: 12, bacia: { branco: 25, preto: 25 } },
+    "BRW 6x6": { tabuleiro: 17, bacia: { branco: 35, preto: 35 } },
+    "PKT 5x5": { tabuleiro: 20, bacia: { branco: 650 / 20, preto: 650 / 20 } },
+    "PKT 6x6": { tabuleiro: 15, bacia: { branco: 650 / 30, preto: 650 / 30 } },
+    "ESC":     { tabuleiro: 26, bacia: { branco: 26, preto: 26 } },
+    "DUDU":    { tabuleiro: 100, bacia: { branco: 100, preto: 100 } } // Reservado
+  };
 
   const saboresBrancos = [
     "Ninho", "Ninho com nutella", "Brigadeiro branco", "Oreo",
@@ -42,52 +48,57 @@ const gerarPDF = () => {
     "Brigadeiro preto", "Brigadeiro c confete", "Palha italiana", "Prestigio"
   ];
 
-  const rendimentoPorProduto = {
-    "BRW 7x7": { bacia: { branco: 25, preto: 25 }, tabuleiro: 12 },
-    "BRW 6x6": { bacia: { branco: 35, preto: 35 }, tabuleiro: 17 },
-    "PKT 5x5": { bacia: { branco: 1 / 20, preto: 1 / 20 }, tabuleiro: 20 },
-    "PKT 6x6": { bacia: { branco: 1 / 30, preto: 1 / 30 }, tabuleiro: 15 },
-    "ESC":     { bacia: { branco: 26, preto: 26 }, tabuleiro: 26 },
-    "DUDU":    { bacia: { branco: 100, preto: 100 }, tabuleiro: 100 } // DUDU não aparece no relatório, mas incluído por padrão
-  };
+  const tabuleiros = {};
+  const bacias = { branco: 0, preto: 0 };
 
-  pedidosFiltrados.forEach(p => {
-    p.itens.forEach(({ produto, sabor, quantidade }) => {
+  pedidosFiltrados.forEach((pedido) => {
+    doc.text(`Escola: ${pedido.escola}`, 10, y); y += 6;
+    doc.text(`Cidade: ${pedido.cidade}`, 10, y); y += 6;
+    doc.text(`Data: ${formatarData(pedido.data)}`, 10, y); y += 6;
+    doc.text('Itens:', 10, y); y += 6;
+
+    pedido.itens.forEach(({ produto, sabor, quantidade }) => {
       const qtd = Number(quantidade);
+      doc.text(`${produto} - ${sabor} - ${qtd} un`, 12, y); y += 6;
+
       const rend = rendimentoPorProduto[produto];
       if (!rend) return;
 
-      // Soma tabuleiros
+      // Tabuleiros
       if (!tabuleiros[produto]) tabuleiros[produto] = 0;
       tabuleiros[produto] += qtd / rend.tabuleiro;
 
-      // Cálculo de bacias por tipo de sabor
+      // Recheios
       if (sabor === "Bem casado") {
         bacias.branco += qtd / (rend.bacia.branco * 2);
-        bacias.preto += qtd / (rend.bacia.preto * 2);
+        bacias.preto  += qtd / (rend.bacia.preto * 2);
       } else if (saboresBrancos.includes(sabor)) {
         bacias.branco += qtd / rend.bacia.branco;
       } else if (saboresPretos.includes(sabor)) {
         bacias.preto += qtd / rend.bacia.preto;
       }
     });
+
+    y += 4;
+    if (y >= 270) {
+      doc.addPage();
+      y = 10;
+    }
   });
 
-  // TABULEIROS
-  doc.text('--- TABULEIROS ---', 10, y); y += 8;
-  Object.entries(tabuleiros).forEach(([produto, valor]) => {
-    doc.text(`${produto}: ${valor.toFixed(2)} tabuleiros`, 10, y);
-    y += 6;
+  // NOVA PÁGINA – RESUMO FINAL
+  doc.addPage(); y = 10;
+  doc.text('--- RESUMO DE PRODUÇÃO ---', 10, y); y += 8;
+
+  doc.text('TABULEIROS:', 10, y); y += 6;
+  Object.entries(tabuleiros).forEach(([produto, qtd]) => {
+    doc.text(`${produto}: ${qtd.toFixed(2)} tabuleiros`, 12, y); y += 6;
   });
 
-  // NOVA PÁGINA
-  doc.addPage();
-  y = 10;
-
-  // BACIAS DE RECHEIO
-  doc.text('--- RECHEIOS ---', 10, y); y += 8;
-  doc.text(`Branco: ${bacias.branco.toFixed(2)} bacias`, 10, y); y += 6;
-  doc.text(`Preto: ${bacias.preto.toFixed(2)} bacias`, 10, y); y += 6;
+  y += 4;
+  doc.text('RECHEIOS:', 10, y); y += 6;
+  doc.text(`Branco: ${bacias.branco.toFixed(2)} bacias`, 12, y); y += 6;
+  doc.text(`Preto: ${bacias.preto.toFixed(2)} bacias`, 12, y); y += 6;
 
   const agora = new Date();
   const dia = String(agora.getDate()).padStart(2, '0');
@@ -99,6 +110,7 @@ const gerarPDF = () => {
 
   doc.save(nomePDF);
 };
+// ✅ FIM FN03 – versão oficial unificada
 // === FIM FN03 ===
 
 // Bloco 2 – Estados e Funções Iniciais
@@ -296,97 +308,6 @@ const embalagens = {
 };
 
 // Bloco 6 – Geração do PDF de Planejamento de Produção
-// ✅ FN14 – gerarPDF (Relatório de Produção Corrigido)
-const gerarPDF = () => {
-  const pedidosFiltrados = filtrarPedidosPorData();
-
-  const doc = new jsPDF();
-  let y = 10;
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(10);
-  doc.text('Relatório de Produção - Dudunitê', 10, y);
-  y += 10;
-
-  const rendimentoTab = {
-    "BRW 7x7": 12,
-    "BRW 6x6": 17,
-    "PKT 5x5": 20,
-    "PKT 6x6": 15,
-    "ESC": 26
-  };
-
-  const rendimentoBacia = {
-    "BRW 7x7": 25,
-    "BRW 6x6": 35,
-    "ESC": 26
-  };
-
-  const tabuleiros = {};
-  const bacias = { branco: 0, preto: 0 };
-
-  pedidosFiltrados.forEach(pedido => {
-    doc.text(`Escola: ${pedido.escola}`, 10, y); y += 6;
-    doc.text(`Cidade: ${pedido.cidade}`, 10, y); y += 6;
-    doc.text(`Data: ${formatarData(pedido.data)}`, 10, y); y += 6;
-    doc.text('Itens:', 10, y); y += 6;
-
-    pedido.itens.forEach(({ produto, sabor, quantidade }) => {
-      const qtd = Number(quantidade);
-      doc.text(`${produto} - ${sabor} - ${qtd} un`, 12, y); y += 6;
-
-      if (produto === "DUDU") return; // Ignora cálculos
-
-      const tab = qtd / rendimentoTab[produto];
-      if (!tabuleiros[produto]) tabuleiros[produto] = 0;
-      tabuleiros[produto] += tab;
-
-      if (rendimentoBacia[produto]) {
-        if (sabor === "Bem casado") {
-          const metade = qtd / 2;
-          bacias.branco += metade / rendimentoBacia[produto];
-          bacias.preto += metade / rendimentoBacia[produto];
-        } else if (sabor.includes("pto")) {
-          bacias.preto += qtd / rendimentoBacia[produto];
-        } else {
-          bacias.branco += qtd / rendimentoBacia[produto];
-        }
-      }
-    });
-
-    y += 4;
-    if (y >= 280) {
-      doc.addPage();
-      y = 10;
-    }
-  });
-
-  // RESUMO FINAL
-  doc.addPage();
-  y = 10;
-  doc.text('--- RESUMO DE PRODUÇÃO ---', 10, y); y += 8;
-
-  doc.text('TABULEIROS:', 10, y); y += 6;
-  Object.entries(tabuleiros).forEach(([produto, qtd]) => {
-    doc.text(`${produto}: ${qtd.toFixed(2)} tabuleiros`, 12, y); y += 6;
-  });
-
-  y += 4;
-  doc.text('RECHEIOS:', 10, y); y += 6;
-  doc.text(`Branco: ${bacias.branco.toFixed(2)} bacias`, 12, y); y += 6;
-  doc.text(`Preto: ${bacias.preto.toFixed(2)} bacias`, 12, y); y += 6;
-
-  const agora = new Date();
-  const dia = String(agora.getDate()).padStart(2, '0');
-  const mes = String(agora.getMonth() + 1).padStart(2, '0');
-  const ano = agora.getFullYear();
-  const hora = String(agora.getHours()).padStart(2, '0');
-  const minuto = String(agora.getMinutes()).padStart(2, '0');
-  const nomePDF = `producao-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
-
-  doc.save(nomePDF);
-};
-// ✅ FN14 – FIM
 // Bloco 9 – Funções auxiliares: filtros, dados mestres, toggle
 // === INÍCIO FN15 – gerarListaCompras (com recheios) ===
 const gerarListaCompras = () => {
