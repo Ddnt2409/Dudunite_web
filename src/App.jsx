@@ -592,9 +592,9 @@ const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
 };
 // === FIM FN21 ===
 
-// === INÍCIO FN22 – useEffect: Carrega listas de cidade/escola e produto/sabor para os selects ===
+// === INÍCIO FN22 ===
 useEffect(() => {
-  const carregarListasSelects = async () => {
+  const carregarDadosMestres = async () => {
     try {
       const snapshot = await getDocs(collection(db, "dadosMestres"));
       const lista = snapshot.docs.map((doc) => doc.data());
@@ -603,15 +603,12 @@ useEffect(() => {
       const produtosMapeados = {};
 
       lista.forEach((item) => {
-        // Mapear cidade e escola
         if (item.cidade && item.escola) {
           if (!escolasMapeadas[item.cidade]) escolasMapeadas[item.cidade] = [];
           if (!escolasMapeadas[item.cidade].includes(item.escola)) {
             escolasMapeadas[item.cidade].push(item.escola);
           }
         }
-
-        // Mapear produto e sabor
         if (item.produto && item.sabor) {
           if (!produtosMapeados[item.produto]) produtosMapeados[item.produto] = [];
           if (!produtosMapeados[item.produto].includes(item.sabor)) {
@@ -624,10 +621,11 @@ useEffect(() => {
       setDadosProdutos(produtosMapeados);
     } catch (error) {
       console.error("Erro ao carregar dados mestres:", error);
+      alert("Erro ao carregar os Dados Mestres.");
     }
   };
 
-  carregarListasSelects();
+  carregarDadosMestres();
 }, []);
 // === FIM FN22 ===
 
