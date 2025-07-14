@@ -19,6 +19,35 @@ const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
 // FN02 - FINAL//
 // Bloco 2 – Estados e Funções Iniciais
+// === INÍCIO FN03 – carregarDadosFixosIniciais ===
+const carregarDadosFixosIniciais = () => {
+  const escolasFixas = {
+    Gravatá: ["CEI", "Saber Viver", "MAP", "Montessori", "Iris", "GGE"],
+    Bezerros: ["Unicesumar", "MAP Bezerros", "Escola Bezerros"],
+    Caruaru: ["Caruaru 1", "Caruaru 2"]
+  };
+
+  const produtosFixos = {
+    "BRW 7x7": ["Brigadeiro preto", "Brigadeiro c confete", "Ninho", "Ninho com nutella", "Beijinho", "Palha italiana", "Prestigio", "Oreo", "Paçoca", "Ovomaltine", "Bem casado"],
+    "BRW 6x6": ["Brigadeiro branco", "Brigadeiro branco c confete", "Brigadeiro preto", "Palha italiana", "Ninho", "Bem casado"],
+    "ESC": ["Brigadeiro branco", "Ninho com nutella", "Brigadeiro preto"],
+    "PKT 5x5": ["Oreo", "Beijinho", "Brigadeiro preto"],
+    "PKT 6x6": ["Prestigio", "Paçoca", "Brigadeiro branco"],
+    "DUDU": ["Ninho com nutella", "Brigadeiro preto", "Beijinho"]
+  };
+
+  setDadosEscolas(escolasFixas);
+  setDadosProdutos(produtosFixos);
+};
+// === FIM FN03 ===
+
+// === INÍCIO FN03b – useEffect para carregar dados fixos iniciais ===
+useEffect(() => {
+  carregarDadosFixosIniciais();
+}, []);
+// === FIM FN03b ===
+
+// Fn04 – Estados Gerais do App
 // Fn04 – Estados Gerais do App
 const App = () => {
   const [cidade, setCidade] = useState('');
