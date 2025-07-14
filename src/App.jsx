@@ -592,35 +592,35 @@ const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
 };
 // === FIM FN21 ===
 
-// === INÍCIO FN22 ===
+// === INÍCIO FN22 (versão com filtro de dados válidos) ===
 useEffect(() => {
   const carregarDadosMestres = async () => {
     try {
       const snapshot = await getDocs(collection(db, "dadosMestres"));
-      const lista = snapshot.docs.map((doc) => doc.data());
+      const lista = snapshot.docs
+        .map((doc) => doc.data())
+        .filter((item) =>
+          item.cidade && item.escola && item.produto && item.sabor
+        );
 
-      // Exibe os primeiros dados como teste no celular
+      // Exibe amostra validada
       const exemplo = lista.slice(0, 3).map((item, i) => (
-        `${i + 1}) ${item.cidade || '-'} | ${item.escola || '-'} | ${item.produto || '-'} | ${item.sabor || '-'}`
+        `${i + 1}) ${item.cidade} | ${item.escola} | ${item.produto} | ${item.sabor}`
       )).join('\n');
-
-      alert("📦 Amostra de dados mestres:\n\n" + exemplo);
+      alert("📦 Dados mestres válidos:\n\n" + exemplo);
 
       const escolasMapeadas = {};
       const produtosMapeados = {};
 
       lista.forEach((item) => {
-        if (item.cidade && item.escola) {
-          if (!escolasMapeadas[item.cidade]) escolasMapeadas[item.cidade] = [];
-          if (!escolasMapeadas[item.cidade].includes(item.escola)) {
-            escolasMapeadas[item.cidade].push(item.escola);
-          }
+        if (!escolasMapeadas[item.cidade]) escolasMapeadas[item.cidade] = [];
+        if (!escolasMapeadas[item.cidade].includes(item.escola)) {
+          escolasMapeadas[item.cidade].push(item.escola);
         }
-        if (item.produto && item.sabor) {
-          if (!produtosMapeados[item.produto]) produtosMapeados[item.produto] = [];
-          if (!produtosMapeados[item.produto].includes(item.sabor)) {
-            produtosMapeados[item.produto].push(item.sabor);
-          }
+
+        if (!produtosMapeados[item.produto]) produtosMapeados[item.produto] = [];
+        if (!produtosMapeados[item.produto].includes(item.sabor)) {
+          produtosMapeados[item.produto].push(item.sabor);
         }
       });
 
