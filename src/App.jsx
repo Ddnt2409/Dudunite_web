@@ -1,5 +1,4 @@
 // Bloco 1 – Importações e Constantes Globais
-//forçando deploy
 // Fn01 – Importações Gerais
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
@@ -19,112 +18,6 @@ const logoPath = "/LogomarcaDDnt2025Vazado.png";
 const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
 // FN02 - FINAL//
-
-// ✅ FN03 – gerarPDF (Planejamento de Produção) – AJUSTE PARA CELULAR E ERROS SILENCIOSOS
-const gerarPDF = () => {
-  const pedidosFiltrados = filtrarPedidosPorData();
-
-  if (!pedidosFiltrados.length) {
-    alert('Nenhum pedido encontrado para o período selecionado.');
-    return;
-  }
-
-  const doc = new jsPDF();
-  let y = 10;
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(10);
-  doc.text('Planejamento de Produção - Dudunitê', 10, y);
-  y += 10;
-
-  const rendimentoPorProduto = {
-    "BRW 7x7": { tabuleiro: 12, bacia: { branco: 25, preto: 25 } },
-    "BRW 6x6": { tabuleiro: 17, bacia: { branco: 35, preto: 35 } },
-    "PKT 5x5": { tabuleiro: 20, bacia: { branco: 650 / 20, preto: 650 / 20 } },
-    "PKT 6x6": { tabuleiro: 15, bacia: { branco: 650 / 30, preto: 650 / 30 } },
-    "ESC":     { tabuleiro: 26, bacia: { branco: 26, preto: 26 } },
-    "DUDU":    { tabuleiro: 100, bacia: { branco: 100, preto: 100 } }
-  };
-
-  const saboresBrancos = [
-    "Ninho", "Ninho com nutella", "Brigadeiro branco", "Oreo",
-    "Ovomaltine", "Paçoca", "Brigadeiro branco c confete", "Beijinho"
-  ];
-  const saboresPretos = [
-    "Brigadeiro preto", "Brigadeiro c confete", "Palha italiana", "Prestigio"
-  ];
-
-  const tabuleiros = {};
-  const bacias = { branco: 0, preto: 0 };
-
-  pedidosFiltrados.forEach((pedido) => {
-    try {
-      const dataFormatada = pedido.timestamp?.toDate?.()?.toLocaleDateString?.("pt-BR") || "Data inválida";
-
-      doc.text(`Escola: ${pedido.escola || '---'}`, 10, y); y += 6;
-      doc.text(`Cidade: ${pedido.cidade || '---'}`, 10, y); y += 6;
-      doc.text(`Data: ${dataFormatada}`, 10, y); y += 6;
-      doc.text('Itens:', 10, y); y += 6;
-
-      pedido.itens.forEach(({ produto, sabor, quantidade }) => {
-        const qtd = Number(quantidade);
-        doc.text(`${produto} - ${sabor} - ${qtd} un`, 12, y); y += 6;
-
-        const rend = rendimentoPorProduto[produto];
-        if (!rend) return;
-
-        if (!tabuleiros[produto]) tabuleiros[produto] = 0;
-        tabuleiros[produto] += qtd / rend.tabuleiro;
-
-        if (sabor === "Bem casado") {
-          bacias.branco += qtd / (rend.bacia.branco * 2);
-          bacias.preto += qtd / (rend.bacia.preto * 2);
-        } else if (saboresBrancos.includes(sabor)) {
-          bacias.branco += qtd / rend.bacia.branco;
-        } else if (saboresPretos.includes(sabor)) {
-          bacias.preto += qtd / rend.bacia.preto;
-        }
-      });
-
-      y += 4;
-      if (y >= 270) {
-        doc.addPage();
-        y = 10;
-      }
-    } catch (erro) {
-      console.error('Erro ao processar pedido:', pedido, erro);
-    }
-  });
-
-  doc.addPage(); y = 10;
-  doc.text('--- RESUMO DE PRODUÇÃO ---', 10, y); y += 8;
-
-  doc.text('TABULEIROS:', 10, y); y += 6;
-  Object.entries(tabuleiros).forEach(([produto, qtd]) => {
-    doc.text(`${produto}: ${qtd.toFixed(2)} tabuleiros`, 12, y); y += 6;
-  });
-
-  y += 4;
-  doc.text('RECHEIOS:', 10, y); y += 6;
-  doc.text(`Branco: ${bacias.branco.toFixed(2)} bacias`, 12, y); y += 6;
-  doc.text(`Preto: ${bacias.preto.toFixed(2)} bacias`, 12, y); y += 6;
-
-  const agora = new Date();
-  const dia = String(agora.getDate()).padStart(2, '0');
-  const mes = String(agora.getMonth() + 1).padStart(2, '0');
-  const ano = agora.getFullYear();
-  const hora = String(agora.getHours()).padStart(2, '0');
-  const minuto = String(agora.getMinutes()).padStart(2, '0');
-  const nomePDF = `producao-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
-
-  try {
-    doc.save(nomePDF);
-  } catch (erro) {
-    alert('Erro ao tentar salvar o PDF. Experimente usar um navegador em modo desktop.');
-    console.error(erro);
-  }
-};
-// === FIM FN03 ===
 // Bloco 2 – Estados e Funções Iniciais
 // Fn04 – Estados Gerais do App
 const App = () => {
@@ -480,6 +373,111 @@ const gerarListaCompras = () => {
   doc.save(nomePDF);
 };
 // === FIM FN15 ===
+  // === INÍCIO FN15a – gerarPlanejamentoProducao (Planejamento de Produção) ===
+const gerarPlanejamentoProducao = () => {
+  const pedidosFiltrados = filtrarPedidosPorData();
+
+  if (!pedidosFiltrados.length) {
+    alert('Nenhum pedido encontrado para o período selecionado.');
+    return;
+  }
+
+  const doc = new jsPDF();
+  let y = 10;
+
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(10);
+  doc.text('Planejamento de Produção - Dudunitê', 10, y);
+  y += 10;
+
+  const rendimentoPorProduto = {
+    "BRW 7x7": { tabuleiro: 12, bacia: { branco: 25, preto: 25 } },
+    "BRW 6x6": { tabuleiro: 17, bacia: { branco: 35, preto: 35 } },
+    "PKT 5x5": { tabuleiro: 20, bacia: { branco: 650 / 20, preto: 650 / 20 } },
+    "PKT 6x6": { tabuleiro: 15, bacia: { branco: 650 / 30, preto: 650 / 30 } },
+    "ESC":     { tabuleiro: 26, bacia: { branco: 26, preto: 26 } },
+    "DUDU":    { tabuleiro: 100, bacia: { branco: 100, preto: 100 } }
+  };
+
+  const saboresBrancos = [
+    "Ninho", "Ninho com nutella", "Brigadeiro branco", "Oreo",
+    "Ovomaltine", "Paçoca", "Brigadeiro branco c confete", "Beijinho"
+  ];
+  const saboresPretos = [
+    "Brigadeiro preto", "Brigadeiro c confete", "Palha italiana", "Prestigio"
+  ];
+
+  const tabuleiros = {};
+  const bacias = { branco: 0, preto: 0 };
+
+  pedidosFiltrados.forEach((pedido) => {
+    try {
+      const dataFormatada = pedido.timestamp?.toDate?.()?.toLocaleDateString?.("pt-BR") || "Data inválida";
+
+      doc.text(`Escola: ${pedido.escola || '---'}`, 10, y); y += 6;
+      doc.text(`Cidade: ${pedido.cidade || '---'}`, 10, y); y += 6;
+      doc.text(`Data: ${dataFormatada}`, 10, y); y += 6;
+      doc.text('Itens:', 10, y); y += 6;
+
+      pedido.itens.forEach(({ produto, sabor, quantidade }) => {
+        const qtd = Number(quantidade);
+        doc.text(`${produto} - ${sabor} - ${qtd} un`, 12, y); y += 6;
+
+        const rend = rendimentoPorProduto[produto];
+        if (!rend) return;
+
+        if (!tabuleiros[produto]) tabuleiros[produto] = 0;
+        tabuleiros[produto] += qtd / rend.tabuleiro;
+
+        if (sabor === "Bem casado") {
+          bacias.branco += qtd / (rend.bacia.branco * 2);
+          bacias.preto += qtd / (rend.bacia.preto * 2);
+        } else if (saboresBrancos.includes(sabor)) {
+          bacias.branco += qtd / rend.bacia.branco;
+        } else if (saboresPretos.includes(sabor)) {
+          bacias.preto += qtd / rend.bacia.preto;
+        }
+      });
+
+      y += 4;
+      if (y >= 270) {
+        doc.addPage();
+        y = 10;
+      }
+    } catch (erro) {
+      console.error('Erro ao processar pedido:', pedido, erro);
+    }
+  });
+
+  doc.addPage(); y = 10;
+  doc.text('--- RESUMO DE PRODUÇÃO ---', 10, y); y += 8;
+
+  doc.text('TABULEIROS:', 10, y); y += 6;
+  Object.entries(tabuleiros).forEach(([produto, qtd]) => {
+    doc.text(`${produto}: ${qtd.toFixed(2)} tabuleiros`, 12, y); y += 6;
+  });
+
+  y += 4;
+  doc.text('RECHEIOS:', 10, y); y += 6;
+  doc.text(`Branco: ${bacias.branco.toFixed(2)} bacias`, 12, y); y += 6;
+  doc.text(`Preto: ${bacias.preto.toFixed(2)} bacias`, 12, y); y += 6;
+
+  const agora = new Date();
+  const dia = String(agora.getDate()).padStart(2, '0');
+  const mes = String(agora.getMonth() + 1).padStart(2, '0');
+  const ano = agora.getFullYear();
+  const hora = String(agora.getHours()).padStart(2, '0');
+  const minuto = String(agora.getMinutes()).padStart(2, '0');
+  const nomePDF = `producao-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
+
+  try {
+    doc.save(nomePDF);
+  } catch (erro) {
+    alert('Erro ao tentar salvar o PDF. Experimente usar um navegador em modo desktop.');
+    console.error(erro);
+  }
+};
+// === FIM FN15a ===
 // ✅ FN16 – filtrarPedidosPorData (VERSÃO AJUSTADA PARA PEGAR TODOS OS PEDIDOS QUANDO DATAS VAZIAS)
 const filtrarPedidosPorData = () => {
   let inicio = new Date(0); // início muito antigo
@@ -713,22 +711,22 @@ return (
       </button>
       {/* === FIM RT04 === */}
 
-      {/* === INÍCIO RT05 – Ações adicionais === */}
-      <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
-        <button onClick={gerarPDF} className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800">
-          📋 Planejamento de Produção
-        </button>
-        <button onClick={gerarListaCompras} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
-          🧾 Lista de Compras
-        </button>
-      </div>
-
-      <div className="flex justify-center">
-        <button onClick={toggleMostrarDadosMestres} className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-800">
-          ⚙️ Dados Mestres
-        </button>
-      </div>
-      {/* === FIM RT05 === */}
+{/* === INÍCIO RT05 – Ações adicionais === */}
+<div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
+  <button
+    onClick={gerarPlanejamentoProducao}
+    className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800"
+  >
+    📋 Planejamento de Produção
+  </button>
+  <button
+    onClick={gerarListaCompras}
+    className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800"
+  >
+    🧾 Lista de Compras
+  </button>
+</div>
+{/* === FIM RT05 === */}
 
       {/* === INÍCIO RT06 – Painel de Dados Mestres (corrigido) */}
       {mostrarDadosMestres && (
