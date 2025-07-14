@@ -19,10 +19,15 @@ const logoPath = "/LogomarcaDDnt2025Vazado.png";
 const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
 // FN02 - FINAL//
-
-// ✅ FN03 – gerarPDF (Planejamento de Produção) – VERSÃO PADRÃO OFICIAL DO PROJETO
+// ✅ FN03 – gerarPDF (Planejamento de Produção) – VERSÃO AJUSTADA PARA ALERTA E VALIDAÇÃO
 const gerarPDF = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
+
+  if (!pedidosFiltrados.length) {
+    alert('Nenhum pedido encontrado para o período selecionado.');
+    return;
+  }
+
   const doc = new jsPDF();
   let y = 10;
 
@@ -64,9 +69,11 @@ const gerarPDF = () => {
       const rend = rendimentoPorProduto[produto];
       if (!rend) return;
 
+      // Tabuleiros
       if (!tabuleiros[produto]) tabuleiros[produto] = 0;
       tabuleiros[produto] += qtd / rend.tabuleiro;
 
+      // Recheios
       if (sabor === "Bem casado") {
         bacias.branco += qtd / (rend.bacia.branco * 2);
         bacias.preto  += qtd / (rend.bacia.preto * 2);
@@ -84,6 +91,7 @@ const gerarPDF = () => {
     }
   });
 
+  // NOVA PÁGINA – RESUMO FINAL
   doc.addPage(); y = 10;
   doc.text('--- RESUMO DE PRODUÇÃO ---', 10, y); y += 8;
 
@@ -107,8 +115,7 @@ const gerarPDF = () => {
 
   doc.save(nomePDF);
 };
-// ✅ FIM FN03 – versão oficial unificada
-
+// === FIM FN03 ===
 // Bloco 2 – Estados e Funções Iniciais
 // Fn04 – Estados Gerais do App
 const App = () => {
@@ -464,23 +471,32 @@ const gerarListaCompras = () => {
   doc.save(nomePDF);
 };
 // === FIM FN15 ===
-// ✅ FN16 – filtrarPedidosPorData (compatível com FN14 e FN15)
-// ✅ FN16 – filtrarPedidosPorData (compatível com FN14 e FN15)
-function filtrarPedidosPorData() {
-  const inicio = new Date(`${dataInicio}T00:00:00`);
-  const fim = new Date(`${dataFim}T23:59:59.999`);
+// ✅ FN16 – filtrarPedidosPorData (VERSÃO AJUSTADA PARA PEGAR TODOS OS PEDIDOS QUANDO DATAS VAZIAS)
+const filtrarPedidosPorData = () => {
+  let inicio = new Date(0); // início muito antigo
+  let fim = new Date(8640000000000000); // fim muito distante
+
+  if (dataInicio) {
+    const dInicio = new Date(`${dataInicio}T00:00:00`);
+    if (!isNaN(dInicio.getTime())) {
+      inicio = dInicio;
+    }
+  }
+
+  if (dataFim) {
+    const dFim = new Date(`${dataFim}T23:59:59.999`);
+    if (!isNaN(dFim.getTime())) {
+      fim = dFim;
+    }
+  }
 
   return pedidos.filter((p) => {
     if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
-
     const dataPedido = p.timestamp.toDate();
-    return (
-      (!dataInicio || dataPedido >= inicio) &&
-      (!dataFim || dataPedido <= fim)
-    );
+    return dataPedido >= inicio && dataPedido <= fim;
   });
-}
-// ✅ FN16 – FIM
+};
+// === FIM FN16 ===
 // Fn17 – salvarDadosMestres: grava dados manuais como cidade, escola, produto, sabor
 const salvarDadosMestres = async () => {
   const novoItem = {
