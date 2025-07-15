@@ -629,11 +629,51 @@ const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
   );
 };
 // === FIM FN21 ===
-// === INÍCIO FN0a – estados dados mestres e seleção ===
-const [tipoSelecionado, setTipoSelecionado] = useState('');
-const [dadosEscolas, setDadosEscolas] = useState({});
-const [dadosProdutos, setDadosProdutos] = useState({});
-// === FIM FN0a ===
+// === INÍCIO FN00a – carregarDadosMestresViaPedidos (desativada por decisão de escopo) ===
+/*
+useEffect(() => {
+  const reconstruirDadosMestres = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "pedidos"));
+      const lista = snapshot.docs.map(doc => doc.data());
+
+      const escolasMapeadas = {};
+      const produtosMapeados = {};
+
+      lista.forEach((pedido) => {
+        const cidade = pedido.cidade;
+        const escola = pedido.escola;
+
+        if (cidade && escola) {
+          if (!escolasMapeadas[cidade]) escolasMapeadas[cidade] = [];
+          if (!escolasMapeadas[cidade].includes(escola)) {
+            escolasMapeadas[cidade].push(escola);
+          }
+        }
+
+        if (Array.isArray(pedido.itens)) {
+          pedido.itens.forEach(({ produto, sabor }) => {
+            if (produto && sabor) {
+              if (!produtosMapeados[produto]) produtosMapeados[produto] = [];
+              if (!produtosMapeados[produto].includes(sabor)) {
+                produtosMapeados[produto].push(sabor);
+              }
+            }
+          });
+        }
+      });
+
+      setDadosEscolas(prev => ({ ...prev, ...escolasMapeadas }));
+      setDadosProdutos(prev => ({ ...prev, ...produtosMapeados }));
+    } catch (err) {
+      console.error("Erro ao reconstruir dados mestres via pedidos:", err);
+    }
+  };
+
+  reconstruirDadosMestres();
+}, []);
+*/
+// === FIM FN00a ===
 // === INÍCIO FN00 – carregarDadosMestresIniciais (comentada) ===
 /*
 const carregarDadosMestresIniciais = () => {
