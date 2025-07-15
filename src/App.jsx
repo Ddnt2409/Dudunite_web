@@ -16,6 +16,43 @@ const logoPath = "/LogomarcaDDnt2025Vazado.png";
 const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
 
+// === INÍCIO FN03 – Dados Fixos de Escolas e Produtos ===
+const escolasFixas = {
+  "RECIFE": [
+    "Tio Valter", "Vera Cruz", "Pinheiros", "Dourado",
+    "BMQ", "CFC", "Madre de Deus", "Saber Viver"
+  ],
+  "CARUARU": [
+    "Interativo", "Exato Sede", "Exato Anexo", "Sesi", "Motivo", "Jesus Salvador"
+  ],
+  "GRAVATÁ": [
+    "Pequeno Príncipe", "Salesianas", "Céu Azul", "Russas",
+    "Bora Gastar", "Kaduh", "Society Show", "Degusty"
+  ]
+};
+
+const produtosFixos = {
+  "BRW 7x7": [
+    "Brigadeiro preto", "Brigadeiro c confete", "Ninho", "Ninho com nutella",
+    "Beijinho", "Palha italiana", "Prestigio", "Oreo", "Paçoca",
+    "Ovomaltine", "Bem casado"
+  ],
+  "BRW 6x6": [
+    "Brigadeiro branco", "Brigadeiro branco c confete", "Brigadeiro preto",
+    "Palha italiana", "Ninho", "Bem casado"
+  ],
+  "ESC": ["Brigadeiro branco", "Ninho com nutella", "Brigadeiro preto"],
+  "PKT 5x5": ["Oreo", "Beijinho", "Brigadeiro preto"],
+  "PKT 6x6": ["Prestigio", "Paçoca", "Brigadeiro branco"],
+  "DUDU": ["Ninho com nutella", "Brigadeiro preto", "Beijinho"]
+};
+// === FIM FN03 ===
+// === INÍCIO FN03b – Carrega dados fixos no início do app ===
+useEffect(() => {
+  setDadosEscolas(escolasFixas);
+  setDadosProdutos(produtosFixos);
+}, []);
+// === FIM FN03b ===
 // FN04 – Componente principal
 const App = () => {
   const [cidade, setCidade] = useState('');
@@ -35,46 +72,6 @@ const App = () => {
   const [dadosEscolas, setDadosEscolas] = useState({});
   const [dadosProdutos, setDadosProdutos] = useState({});
   const [tipoSelecionado, setTipoSelecionado] = useState('');
-
-// === FN03 – carregarDadosFixosIniciais ===
-useEffect(() => {
-  const carregarDadosFixosIniciais = () => {
-    const escolasPorCidade = {
-      "RECIFE": [
-        "Tio Valter", "Vera Cruz", "Pinheiros", "Dourado",
-        "BMQ", "CFC", "Madre de Deus", "Saber Viver"
-      ],
-      "CARUARU": [
-        "Interativo", "Exato Sede", "Exato Anexo", "Sesi", "Motivo", "Jesus Salvador"
-      ],
-      "GRAVATÁ": [
-        "Pequeno Príncipe", "Salesianas", "Céu Azul", "Russas",
-        "Bora Gastar", "Kaduh", "Society Show", "Degusty"
-      ]
-    };
-
-    const produtosComSabores = {
-      "BRW 7x7": [
-        "Brigadeiro preto", "Brigadeiro c confete", "Ninho", "Ninho com nutella",
-        "Beijinho", "Palha italiana", "Prestigio", "Oreo", "Paçoca",
-        "Ovomaltine", "Bem casado"
-      ],
-      "BRW 6x6": [
-        "Brigadeiro branco", "Brigadeiro branco c confete", "Brigadeiro preto",
-        "Palha italiana", "Ninho", "Bem casado"
-      ],
-      "ESC": ["Brigadeiro branco", "Ninho com nutella", "Brigadeiro preto"],
-      "PKT 5x5": ["Oreo", "Beijinho", "Brigadeiro preto"],
-      "PKT 6x6": ["Prestigio", "Paçoca", "Brigadeiro branco"],
-      "DUDU": ["Ninho com nutella", "Brigadeiro preto", "Beijinho"]
-    };
-
-    setDadosEscolas(escolasPorCidade);
-    setDadosProdutos(produtosComSabores);
-  };
-
-  carregarDadosFixosIniciais();
-}, []);
 
 // === FN04b – carregarPedidos com validações e filtro retroativo ===
 const carregarPedidos = async () => {
