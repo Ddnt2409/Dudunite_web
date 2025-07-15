@@ -159,12 +159,11 @@ useEffect(() => {
   }
 }, []);
 
-// Fn09 – toggleDadosMestres: exibe ou oculta seção de dados mestres
+// === INÍCIO FN09 – toggleDadosMestres (corrigida) ===
 const toggleDadosMestres = () => {
-  setMostrarDadosMestres(!mostrarDadosMestres);
+  setMostrarDadosMestres(prev => !prev);
 };
-
-// Bloco 4 – Adicionar e Salvar Pedidos
+// === FIM FN09 ===
 
 // Fn10 – adicionarItem: adiciona item ao pedido com validação
 const adicionarItem = () => {
