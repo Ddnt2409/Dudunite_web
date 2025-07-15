@@ -112,28 +112,27 @@ const carregarPedidos = async () => {
     alert("Erro ao carregar pedidos do banco de dados.");
   }
 };
-  // FN05 – Filtrar Pedidos por Período
-  const fn05_filtrarPedidos = (lista, dataInicio, dataFim) => {
-    let inicio = new Date(0);
-    let fim = new Date(8640000000000000); // Data futura bem distante
+const fn05_filtrarPedidos = (lista, dataInicio, dataFim) => {
+  let inicio = new Date(0); // 01/01/1970
+  let fim = new Date(8640000000000000); // data máxima possível no JS (ano 275760)
 
-    if (dataInicio) {
-      const dInicio = new Date(`${dataInicio}T00:00:00`);
-      if (!isNaN(dInicio.getTime())) inicio = dInicio;
-    }
+  if (dataInicio) {
+    const dInicio = new Date(`${dataInicio}T00:00:00`);
+    if (!isNaN(dInicio.getTime())) inicio = dInicio;
+  }
 
-    if (dataFim) {
-      const dFim = new Date(`${dataFim}T23:59:59.999`);
-      if (!isNaN(dFim.getTime())) fim = dFim;
-    }
+  if (dataFim) {
+    const dFim = new Date(`${dataFim}T23:59:59.999`);
+    if (!isNaN(dFim.getTime())) fim = dFim;
+  }
 
-    return lista.filter((p) => {
-      if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
-      const dataPedido = p.timestamp.toDate();
-      return dataPedido >= inicio && dataPedido <= fim;
-    });
-  };
+  return lista.filter((p) => {
+    if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
 
+    const dataPedido = p.timestamp.toDate(); // Transforma timestamp Firebase em Date JS
+    return dataPedido >= inicio && dataPedido <= fim;
+  });
+};
 // FN06 – Adicionar Item ao Pedido
 const fn06_adicionarItem = () => {
   if (!produto || !sabor || !quantidade || isNaN(quantidade)) {
