@@ -546,8 +546,8 @@ const salvarDadosMestres = async () => {
 };
 //FN17 - FINAL//
 // === INÍCIO FN18 – toggleMostrarDadosMestres ===
-const toggleMostrarDadosMestres = () => {
-  setMostrarDadosMestres((prev) => !prev);
+const toggleDadosMestres = () => {
+  setMostrarDadosMestres(prev => !prev);
 };
 // === FIM FN18 ===
 
@@ -624,8 +624,8 @@ const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
 const [tipoSelecionado, setTipoSelecionado] = useState('');
 const [dadosEscolas, setDadosEscolas] = useState({});
 const [dadosProdutos, setDadosProdutos] = useState({});
+const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
 // === FIM FN0a ===
-
 
 // === INÍCIO FN00 – carregarDadosMestresIniciais (função auxiliar) ===
 const carregarDadosMestresIniciais = () => {
