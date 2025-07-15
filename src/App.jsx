@@ -73,43 +73,41 @@ const App = () => {
     setDadosProdutos(produtosFixos);
   }, []);
 
-  // FN04 – Carregar Pedidos do Firestore
-  const carregarPedidos = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "pedidos"));
-      const lista = snapshot.docs.map(doc => {
-        const data = doc.data();
-        let timestamp = data.timestamp;
+// FN04 – Carregar Pedidos do Firestore com fallback para dataServidor (versão consolidada)
+const carregarPedidos = async () => {
+  try {
+    const snapshot = await getDocs(collection(db, "pedidos"));
+    const lista = snapshot.docs.map(doc => {
+      const data = doc.data();
+      let timestamp = data.timestamp;
 
-        if (!timestamp && data.dataServidor?.seconds) {
-          timestamp = new Timestamp(
-            data.dataServidor.seconds,
-            data.dataServidor.nanoseconds || 0
-          );
+      // Fallbacks
+      if (!timestamp && data.dataServidor?.seconds) {
+        timestamp = new Timestamp(data.dataServidor.seconds, data.dataServidor.nanoseconds || 0);
+      }
+
+      if (!timestamp && typeof data.data === 'string') {
+        const d = new Date(data.data);
+        if (!isNaN(d.getTime()) && d.getFullYear() > 2000 && d.getFullYear() < 2100) {
+          timestamp = Timestamp.fromDate(d);
         }
+      }
 
-        if (!timestamp && typeof data.data === 'string') {
-          const d = new Date(data.data);
-          if (!isNaN(d.getTime()) && d.getFullYear() > 2000 && d.getFullYear() < 2100) {
-            timestamp = Timestamp.fromDate(d);
-          }
-        }
+      return {
+        id: doc.id,
+        ...data,
+        timestamp
+      };
+    }).filter(p => p.timestamp && typeof p.timestamp.toDate === 'function');
 
-        return {
-          id: doc.id,
-          ...data,
-          timestamp
-        };
-      }).filter(p => p.timestamp && typeof p.timestamp.toDate === 'function');
-
-      setPedidos(lista);
-      const filtrados = fn05_filtrarPedidos(lista, dataInicio, dataFim);
-      setPedidosFiltrados(filtrados);
-    } catch (err) {
-      console.error("Erro ao carregar pedidos:", err);
-      alert("Erro ao carregar pedidos do banco de dados.");
-    }
-  };
+    setPedidos(lista);
+    const filtrados = fn05_filtrarPedidos(lista, dataInicio, dataFim);
+    setPedidosFiltrados(filtrados);
+  } catch (err) {
+    console.error("Erro ao carregar pedidos:", err);
+    alert("Erro ao carregar pedidos do banco de dados.");
+  }
+};
 
   // FN05 – Filtrar Pedidos por Período
   const fn05_filtrarPedidos = (lista, dataInicio, dataFim) => {
