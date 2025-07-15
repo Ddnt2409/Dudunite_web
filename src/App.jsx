@@ -19,35 +19,73 @@ const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
 // FN02 - FINAL//
 // Bloco 2 – Estados e Funções Iniciais
-// === INÍCIO FN03 – carregarDadosFixosIniciais ===
-const carregarDadosFixosIniciais = () => {
-  const escolasFixas = {
-    Gravatá: ["CEI", "Saber Viver", "MAP", "Montessori", "Iris", "GGE"],
-    Bezerros: ["Unicesumar", "MAP Bezerros", "Escola Bezerros"],
-    Caruaru: ["Caruaru 1", "Caruaru 2"]
+// === INÍCIO FN00 – carregarDadosMestresIniciais ===
+const carregarDadosMestresIniciais = () => {
+  const escolasPorCidade = {
+    "RECIFE": [
+      "Tio Valter",
+      "Vera Cruz",
+      "Pinheiros",
+      "Dourado",
+      "BMQ",
+      "CFC",
+      "Madre de Deus",
+      "Saber Viver"
+    ],
+    "CARUARU": [
+      "Interativo",
+      "Exato Sede",
+      "Exato Anexo",
+      "Sesi",
+      "Motivo",
+      "Jesus Salvador"
+    ],
+    "GRAVATÁ": [
+      "Pequeno Príncipe",
+      "Salesianas",
+      "Céu Azul",
+      "Russas",
+      "Bora Gastar",
+      "Kaduh",
+      "Society Show",
+      "Degusty"
+    ]
   };
 
-  const produtosFixos = {
-    "BRW 7x7": ["Brigadeiro preto", "Brigadeiro c confete", "Ninho", "Ninho com nutella", "Beijinho", "Palha italiana", "Prestigio", "Oreo", "Paçoca", "Ovomaltine", "Bem casado"],
-    "BRW 6x6": ["Brigadeiro branco", "Brigadeiro branco c confete", "Brigadeiro preto", "Palha italiana", "Ninho", "Bem casado"],
+  const produtosComSabores = {
+    "BRW 7x7": [
+      "Brigadeiro preto", "Brigadeiro c confete", "Ninho", "Ninho com nutella",
+      "Beijinho", "Palha italiana", "Prestigio", "Oreo", "Paçoca",
+      "Ovomaltine", "Bem casado"
+    ],
+    "BRW 6x6": [
+      "Brigadeiro branco", "Brigadeiro branco c confete", "Brigadeiro preto",
+      "Palha italiana", "Ninho", "Bem casado"
+    ],
     "ESC": ["Brigadeiro branco", "Ninho com nutella", "Brigadeiro preto"],
     "PKT 5x5": ["Oreo", "Beijinho", "Brigadeiro preto"],
     "PKT 6x6": ["Prestigio", "Paçoca", "Brigadeiro branco"],
     "DUDU": ["Ninho com nutella", "Brigadeiro preto", "Beijinho"]
   };
 
-  setDadosEscolas(escolasFixas);
-  setDadosProdutos(produtosFixos);
+  setDadosEscolas(escolasPorCidade);
+  setDadosProdutos(produtosComSabores);
+};
+// === FIM FN00 ===
+
+
+// === INÍCIO FN03 – carregarDadosFixosIniciais ===
+const carregarDadosFixosIniciais = () => {
+  carregarDadosMestresIniciais(); // ✅ Usa a FN00
 };
 // === FIM FN03 ===
+
 
 // === INÍCIO FN03b – useEffect para carregar dados fixos iniciais ===
 useEffect(() => {
   carregarDadosFixosIniciais();
 }, []);
 // === FIM FN03b ===
-
-// Fn04 – Estados Gerais do App
 // Fn04 – Estados Gerais do App
 const App = () => {
   const [cidade, setCidade] = useState('');
@@ -674,27 +712,6 @@ useEffect(() => {
 }, []);
 */
 // === FIM FN00a ===
-// === INÍCIO FN00 – carregarDadosMestresIniciais (comentada) ===
-/*
-const carregarDadosMestresIniciais = () => {
-  const escolasPorCidade = {
-    "São Paulo": ["Escola A", "Escola B"],
-    "Rio de Janeiro": ["Escola C", "Escola D"],
-    "Belo Horizonte": ["Escola E"]
-  };
-  const produtosComSabores = {
-    "BRW 7x7": ["Ninho", "Ninho com nutella", "Brigadeiro branco", "Oreo"],
-    "BRW 6x6": ["Ovomaltine", "Paçoca", "Beijinho"],
-    "PKT 5x5": ["Brigadeiro preto", "Palha italiana"],
-    "PKT 6x6": ["Prestigio"],
-    "ESC": ["Ninho", "Brigadeiro branco"],
-  };
-
-  setDadosEscolas(escolasPorCidade);
-  setDadosProdutos(produtosComSabores);
-};
-*/
-// === FIM FN00 ===
 
 // === INÍCIO FN22 e FN22a – Dados Mestres via Firestore (comentadas) ===
 /*
