@@ -143,7 +143,21 @@ const fn05_filtrarPedidos = (lista, dataInicio, dataFim) => {
     return dataPedido >= inicio && dataPedido <= fim;
   });
 };
-// FN06 – VAGA TEMPORÁRIA 
+// FN06 – Adicionar Item ao Pedido
+const fn06_adicionarItem = () => {
+  if (!produto || !sabor || quantidade < 1) {
+    alert("Preencha produto, sabor e uma quantidade válida.");
+    return;
+  }
+
+  const novoItem = { produto, sabor, quantidade };
+  setItens([...itens, novoItem]);
+
+  // Limpa os campos para novo item
+  setProduto('');
+  setSabor('');
+  setQuantidade(1);
+};
   // FN07 – Salvar Pedido no Firestore
   const fn07_salvarPedido = async () => {
     if (!cidade || !escola || itens.length === 0) {
@@ -474,10 +488,8 @@ const fn09_gerarListaCompras = () => {
     setMostrarDadosMestres(!mostrarDadosMestres);
   };
 
-  // FN15 – Calcular Total de Itens do Pedido Atual
-  const fn15_totalItens = itens.reduce(
-    (acc, item) => acc + Number(item.quantidade || 0), 0
-  );
+// FN15 – Calcular Total de Itens do Pedido
+const fn15_totalItens = itens.reduce((total, item) => total + Number(item.quantidade), 0);
 // FN16 – Reconstruir Dados Mestres a partir dos Pedidos (desativado por padrão)
   const fn16_reconstruirDadosMestresViaPedidos = async () => {
     try {
@@ -641,82 +653,102 @@ const fn09_gerarListaCompras = () => {
           </div>
         </div>
 
-        {/* === RT03 – Campos do Pedido === */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label>Cidade</label>
-            <select
-              value={cidade}
-              onChange={(e) => setCidade(e.target.value)}
-              className="w-full p-2 rounded border"
-            >
-              <option value="">Selecione</option>
-              {Object.keys(dadosEscolas).map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label>Escola</label>
-            <select
-              value={escola}
-              onChange={(e) => setEscola(e.target.value)}
-              className="w-full p-2 rounded border"
-            >
-              <option value="">Selecione</option>
-              {dadosEscolas[cidade]?.map((e) => (
-                <option key={e} value={e}>{e}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label>Produto</label>
-            <select
-              value={produto}
-              onChange={(e) => setProduto(e.target.value)}
-              className="w-full p-2 rounded border"
-            >
-              <option value="">Selecione</option>
-              {Object.keys(dadosProdutos).map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label>Sabor</label>
-            <select
-              value={sabor}
-              onChange={(e) => setSabor(e.target.value)}
-              className="w-full p-2 rounded border"
-            >
-              <option value="">Selecione</option>
-              {dadosProdutos[produto]?.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+{/* === RT03 – Campos do Pedido === */}
+<div className="grid grid-cols-2 gap-4 mb-4">
+  <div>
+    <label>Cidade</label>
+    <select
+      value={cidade}
+      onChange={(e) => setCidade(e.target.value)}
+      className="w-full p-2 rounded border"
+    >
+      <option value="">Selecione</option>
+      {Object.keys(dadosEscolas).map((c) => (
+        <option key={c} value={c}>{c}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label>Escola</label>
+    <select
+      value={escola}
+      onChange={(e) => setEscola(e.target.value)}
+      className="w-full p-2 rounded border"
+    >
+      <option value="">Selecione</option>
+      {dadosEscolas[cidade]?.map((e) => (
+        <option key={e} value={e}>{e}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label>Produto</label>
+    <select
+      value={produto}
+      onChange={(e) => setProduto(e.target.value)}
+      className="w-full p-2 rounded border"
+    >
+      <option value="">Selecione</option>
+      {Object.keys(dadosProdutos).map((p) => (
+        <option key={p} value={p}>{p}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label>Sabor</label>
+    <select
+      value={sabor}
+      onChange={(e) => setSabor(e.target.value)}
+      className="w-full p-2 rounded border"
+    >
+      <option value="">Selecione</option>
+      {dadosProdutos[produto]?.map((s) => (
+        <option key={s} value={s}>{s}</option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label>Quantidade</label>
+    <input
+      type="number"
+      min="1"
+      value={quantidade}
+      onChange={(e) => setQuantidade(Number(e.target.value))}
+      className="w-full p-2 rounded border"
+    />
+  </div>
+  <div className="flex items-end">
+    <button
+      onClick={fn06_adicionarItem}
+      className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 w-full"
+    >
+      ➕ Adicionar Item
+    </button>
+  </div>
+</div>
+{/* === Final da RT03 === */}
 
-        {/* === RT04 – Lista de Itens e botão Salvar Pedido === */}
-        {itens.length > 0 && (
-          <div className="mb-6">
-            <h2 className="font-semibold text-lg mb-2">Itens do Pedido ({fn15_totalItens} un):</h2>
-            <ul className="list-disc pl-5">
-              {itens.map((item, index) => (
-                <li key={index}>
-                  {item.produto} - {item.sabor} - {item.quantidade} un
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+{/* === RT04 – Lista de Itens e botão Salvar Pedido === */}
+{itens.length > 0 && (
+  <div className="mb-6">
+    <h2 className="font-semibold text-lg mb-2">Itens do Pedido ({fn15_totalItens} un):</h2>
+    <ul className="list-disc pl-5">
+      {itens.map((item, index) => (
+        <li key={index}>
+          {item.produto} - {item.sabor} - {item.quantidade} un
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
 
-        <button
-          onClick={fn07_salvarPedido}
-          className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4"
-        >
-          💾 Salvar Pedido
-        </button>
+<button
+  onClick={fn07_salvarPedido}
+  className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4"
+>
+  💾 Salvar Pedido
+</button>
+{/* === Final da RT04 === */}
 
         {/* === RT05 – Ações adicionais === */}
         <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
