@@ -620,50 +620,7 @@ const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
   );
 };
 // === FIM FN21 ===
-// === INÍCIO FN22a – carregarDadosMestresViaPedidos ===
-useEffect(() => {
-  const reconstruirDadosMestres = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "pedidos"));
-      const lista = snapshot.docs.map(doc => doc.data());
-
-      const escolasMapeadas = {};
-      const produtosMapeados = {};
-
-      lista.forEach((pedido) => {
-        const cidade = pedido.cidade;
-        const escola = pedido.escola;
-
-        if (cidade && escola) {
-          if (!escolasMapeadas[cidade]) escolasMapeadas[cidade] = [];
-          if (!escolasMapeadas[cidade].includes(escola)) {
-            escolasMapeadas[cidade].push(escola);
-          }
-        }
-
-        if (Array.isArray(pedido.itens)) {
-          pedido.itens.forEach(({ produto, sabor }) => {
-            if (produto && sabor) {
-              if (!produtosMapeados[produto]) produtosMapeados[produto] = [];
-              if (!produtosMapeados[produto].includes(sabor)) {
-                produtosMapeados[produto].push(sabor);
-              }
-            }
-          });
-        }
-      });
-
-      setDadosEscolas(escolasMapeadas);
-      setDadosProdutos(produtosMapeados);
-    } catch (err) {
-      console.error("Erro ao reconstruir dados mestres via pedidos:", err);
-    }
-  };
-
-  reconstruirDadosMestres();
-}, []);
-// === FIM FN22a ===
-// === INÍCIO FN22 (versão com filtro de dados válidos) ===
+// === INÍCIO FN22 – carregarDadosMestres (requer dados válidos no Firebase) ===
 useEffect(() => {
   const carregarDadosMestres = async () => {
     try {
@@ -674,7 +631,11 @@ useEffect(() => {
           item.cidade && item.escola && item.produto && item.sabor
         );
 
-      // Exibe amostra validada
+      if (lista.length === 0) {
+        console.warn("⚠️ Nenhum dado válido encontrado na coleção dadosMestres.");
+        return;
+      }
+
       const exemplo = lista.slice(0, 3).map((item, i) => (
         `${i + 1}) ${item.cidade} | ${item.escola} | ${item.produto} | ${item.sabor}`
       )).join('\n');
@@ -706,6 +667,52 @@ useEffect(() => {
   carregarDadosMestres();
 }, []);
 // === FIM FN22 ===
+
+// === INÍCIO FN22a – carregarDadosMestresViaPedidos (fallback quando FN22 não preenche) ===
+useEffect(() => {
+  if (Object.keys(dadosEscolas).length > 0 && Object.keys(dadosProdutos).length > 0) return;
+
+  const reconstruirDadosMestres = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "pedidos"));
+      const lista = snapshot.docs.map((doc) => doc.data());
+
+      const escolasMapeadas = {};
+      const produtosMapeados = {};
+
+      lista.forEach((pedido) => {
+        const cidade = pedido.cidade;
+        const escola = pedido.escola;
+
+        if (cidade && escola) {
+          if (!escolasMapeadas[cidade]) escolasMapeadas[cidade] = [];
+          if (!escolasMapeadas[cidade].includes(escola)) {
+            escolasMapeadas[cidade].push(escola);
+          }
+        }
+
+        if (Array.isArray(pedido.itens)) {
+          pedido.itens.forEach(({ produto, sabor }) => {
+            if (produto && sabor) {
+              if (!produtosMapeados[produto]) produtosMapeados[produto] = [];
+              if (!produtosMapeados[produto].includes(sabor)) {
+                produtosMapeados[produto].push(sabor);
+              }
+            }
+          });
+        }
+      });
+
+      if (Object.keys(dadosEscolas).length === 0) setDadosEscolas(escolasMapeadas);
+      if (Object.keys(dadosProdutos).length === 0) setDadosProdutos(produtosMapeados);
+    } catch (err) {
+      console.error("Erro ao reconstruir dados mestres via pedidos:", err);
+    }
+  };
+
+  reconstruirDadosMestres();
+}, []);
+// === FIM FN22a ===
 
 // === INÍCIO FN23 ===
 const [tipoSelecionado, setTipoSelecionado] = useState('');
