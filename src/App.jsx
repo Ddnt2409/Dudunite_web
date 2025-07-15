@@ -20,7 +20,7 @@ const corFundo = "#fff5ec";     // Terracota claro
 // FN02 - FINAL//
 // Bloco 2 – Estados e Funções Iniciais
 
-// === INÍCIO FN03 (DENTRO DO APP) – carregarDadosFixosIniciais ===
+// === INÍCIO FN03 – carregarDadosFixosIniciais (dentro do App) ===
 useEffect(() => {
   const carregarDadosFixosIniciais = () => {
     const escolasPorCidade = {
@@ -76,6 +76,7 @@ useEffect(() => {
 
   carregarDadosFixosIniciais();
 }, []);
+// === FIM FN03 ===
 // === FIM FN03 ===
 // Fn04 – Estados Gerais do App
 const App = () => {
