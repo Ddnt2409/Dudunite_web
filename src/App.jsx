@@ -159,12 +159,11 @@ useEffect(() => {
   }
 }, []);
 
-// === INÍCIO FN09 – toggleDadosMestres (corrigida) ===
+// === INÍCIO FN09 – toggleDadosMestres ===
 const toggleDadosMestres = () => {
   setMostrarDadosMestres(prev => !prev);
 };
 // === FIM FN09 ===
-
 // Fn10 – adicionarItem: adiciona item ao pedido com validação
 const adicionarItem = () => {
   if (!produto || !sabor || !quantidade || quantidade <= 0) {
@@ -544,10 +543,21 @@ const salvarDadosMestres = async () => {
   alert("Item salvo nos Dados Mestres!");
 };
 //FN17 - FINAL//
-// === INÍCIO FN18 – toggleMostrarDadosMestres ===
-const toggleDadosMestres = () => {
-  setMostrarDadosMestres(prev => !prev);
-};
+// === INÍCIO FN18 – Botão Dados Mestres ===
+<Button
+  onClick={toggleDadosMestres}
+  sx={{ 
+    border: '2px solid #1565C0',
+    borderRadius: '8px',
+    color: '#1565C0',
+    '&:hover': {
+      backgroundColor: '#1565C0',
+      color: 'white'
+    }
+  }}
+>
+  Dados Mestres
+</Button>
 // === FIM FN18 ===
 
 // === INÍCIO FN19 – PainelDadosMestres ===
