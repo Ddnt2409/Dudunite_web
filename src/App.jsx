@@ -269,58 +269,105 @@ const fn08_gerarPlanejamentoProducao = () => {
   }
 };
 
-  // FN09 – Gerar Lista de Compras (PDF)
-  const fn09_gerarListaCompras = () => {
-    const pedidosFiltrados = fn05_filtrarPedidos(pedidos, dataInicio, dataFim);
+// FN09 – Gerar Lista de Compras (PDF)
+const fn09_gerarListaCompras = () => {
+  if (!pedidos.length) {
+    alert("Nenhum pedido carregado.");
+    return;
+  }
 
-    if (!pedidosFiltrados.length) {
-      alert('Nenhum pedido encontrado para o período selecionado.');
-      return;
-    }
+  const pedidosFiltrados = fn05_filtrarPedidos(pedidos, dataInicio, dataFim);
 
-    const insumos = {};
+  if (!pedidosFiltrados.length) {
+    alert("Nenhum pedido encontrado para o período selecionado.");
+    return;
+  }
 
-    pedidosFiltrados.forEach(pedido => {
-      pedido.itens.forEach(({ produto, sabor, quantidade }) => {
-        const chave = `${produto} - ${sabor}`;
-        if (!insumos[chave]) insumos[chave] = 0;
-        insumos[chave] += Number(quantidade);
-      });
-    });
+  const doc = new jsPDF();
+  let y = 10;
 
-    const doc = new jsPDF();
-    let y = 10;
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(10);
+  doc.text('Lista de Compras - Dudunitê', 10, y);
+  y += 10;
 
-    doc.setFont('courier', 'normal');
-    doc.setFontSize(10);
-    doc.text('🧾 Lista de Compras - Dudunitê', 10, y);
-    y += 10;
-
-    Object.entries(insumos).forEach(([nome, qtd]) => {
-      doc.text(`${nome}: ${qtd} un`, 10, y);
-      y += 6;
-      if (y >= 270) {
-        doc.addPage();
-        y = 10;
-      }
-    });
-
-    const agora = new Date();
-    const dia = String(agora.getDate()).padStart(2, '0');
-    const mes = String(agora.getMonth() + 1).padStart(2, '0');
-    const ano = agora.getFullYear();
-    const hora = String(agora.getHours()).padStart(2, '0');
-    const minuto = String(agora.getMinutes()).padStart(2, '0');
-    const nomePDF = `compras-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
-
-    try {
-      doc.save(nomePDF);
-    } catch (erro) {
-      alert('Erro ao tentar salvar o PDF. Experimente usar um navegador em modo desktop.');
-      console.error(erro);
-    }
+  const insumos = {
+    margarina: 0,
+    ovos: 0,
+    massas: 0,
+    recheiosBrancos: 0,
+    recheiosPretos: 0
   };
 
+  const rendimentoPorProduto = {
+    "BRW 7x7": 12,
+    "BRW 6x6": 17,
+    "PKT 5x5": 20,
+    "PKT 6x6": 15,
+    "ESC": 26
+  };
+
+  const rendimentoRecheio = {
+    "BRW 7x7": { branco: 25, preto: 25 },
+    "BRW 6x6": { branco: 35, preto: 35 },
+    "PKT 5x5": { branco: 650 / 20, preto: 650 / 20 },
+    "PKT 6x6": { branco: 650 / 30, preto: 650 / 30 },
+    "ESC": { branco: 26, preto: 26 }
+  };
+
+  const saboresBrancos = [
+    "Ninho", "Ninho com nutella", "Brigadeiro branco", "Oreo",
+    "Ovomaltine", "Paçoca", "Brigadeiro branco c confete", "Beijinho"
+  ];
+  const saboresPretos = [
+    "Brigadeiro preto", "Brigadeiro c confete", "Palha italiana", "Prestigio"
+  ];
+
+  pedidosFiltrados.forEach((pedido) => {
+    pedido.itens.forEach(({ produto, sabor, quantidade }) => {
+      const qtd = Number(quantidade);
+      const rendimento = rendimentoPorProduto[produto];
+
+      if (rendimento) {
+        const tabuleiros = qtd / rendimento;
+        insumos.margarina += tabuleiros * 76;
+        insumos.ovos += tabuleiros * 190;
+        insumos.massas += tabuleiros * 900;
+      }
+
+      const recheio = rendimentoRecheio[produto];
+      if (recheio) {
+        if (sabor === "Bem casado") {
+          insumos.recheiosBrancos += qtd / (recheio.branco * 2);
+          insumos.recheiosPretos += qtd / (recheio.preto * 2);
+        } else if (saboresBrancos.includes(sabor)) {
+          insumos.recheiosBrancos += qtd / recheio.branco;
+        } else if (saboresPretos.includes(sabor)) {
+          insumos.recheiosPretos += qtd / recheio.preto;
+        }
+      }
+    });
+  });
+
+  doc.text('Insumos Básicos:', 10, y); y += 8;
+  doc.text(`Margarina: ${insumos.margarina.toFixed(0)} g`, 12, y); y += 6;
+  doc.text(`Ovos: ${Math.ceil(insumos.ovos / 60)} ovos (aprox. ${insumos.ovos.toFixed(0)} g)`, 12, y); y += 6;
+  doc.text(`Massas (900g cada): ${Math.ceil(insumos.massas / 900)} massas`, 12, y); y += 8;
+
+  doc.text('Recheios:', 10, y); y += 6;
+  doc.text(`Bacias Branco: ${insumos.recheiosBrancos.toFixed(2)}`, 12, y); y += 6;
+  doc.text(`Bacias Preto: ${insumos.recheiosPretos.toFixed(2)}`, 12, y); y += 6;
+
+  const agora = new Date();
+  const nomePDF = `lista-compras-${agora.toLocaleString("pt-BR").replace(/[^\d]/g, "-")}.pdf`;
+
+  try {
+    doc.save(nomePDF);
+  } catch (erro) {
+    alert('Erro ao tentar salvar o PDF.');
+    console.error(erro);
+  }
+};
   // FN10 – Salvar Dados Mestres no Firestore
   const fn10_salvarDadosMestres = async () => {
     if (!cidade || !escola || !produto || !sabor) {
