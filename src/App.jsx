@@ -633,7 +633,6 @@ const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
 const [tipoSelecionado, setTipoSelecionado] = useState('');
 const [dadosEscolas, setDadosEscolas] = useState({});
 const [dadosProdutos, setDadosProdutos] = useState({});
-const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
 // === FIM FN0a ===
 
 // === INÍCIO FN00 – carregarDadosMestresIniciais (função auxiliar) ===
