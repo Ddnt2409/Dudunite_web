@@ -73,7 +73,7 @@ const App = () => {
     setDadosProdutos(produtosFixos);
   }, []);
 
-// FN04 – Carregar Pedidos do Firestore com fallback para dataServidor (versão consolidada)
+// FN04 – Carregar Pedidos do Firestore
 const carregarPedidos = async () => {
   try {
     const snapshot = await getDocs(collection(db, "pedidos"));
@@ -81,11 +81,15 @@ const carregarPedidos = async () => {
       const data = doc.data();
       let timestamp = data.timestamp;
 
-      // Fallbacks
+      // Fallback: tenta converter dataServidor (caso timestamp esteja ausente)
       if (!timestamp && data.dataServidor?.seconds) {
-        timestamp = new Timestamp(data.dataServidor.seconds, data.dataServidor.nanoseconds || 0);
+        timestamp = new Timestamp(
+          data.dataServidor.seconds,
+          data.dataServidor.nanoseconds || 0
+        );
       }
 
+      // Fallback: converte string "data" (em casos mais antigos)
       if (!timestamp && typeof data.data === 'string') {
         const d = new Date(data.data);
         if (!isNaN(d.getTime()) && d.getFullYear() > 2000 && d.getFullYear() < 2100) {
@@ -96,7 +100,7 @@ const carregarPedidos = async () => {
       return {
         id: doc.id,
         ...data,
-        timestamp
+        timestamp, // ✅ Mantido como Timestamp do Firebase
       };
     }).filter(p => p.timestamp && typeof p.timestamp.toDate === 'function');
 
@@ -108,7 +112,6 @@ const carregarPedidos = async () => {
     alert("Erro ao carregar pedidos do banco de dados.");
   }
 };
-
   // FN05 – Filtrar Pedidos por Período
   const fn05_filtrarPedidos = (lista, dataInicio, dataFim) => {
     let inicio = new Date(0);
