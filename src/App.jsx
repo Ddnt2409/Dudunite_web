@@ -654,10 +654,7 @@ return (
     </div>
   </div>
 );
+};
 
-// === BLOCO 5 – Fim ===
 export default App;
-  
-  
-  
-  
+  // === BLOCO 5 – Fim ===
