@@ -134,23 +134,31 @@ const App = () => {
   };
 
   // FN06 – Adicionar Item ao Pedido
-  const fn06_adicionarItemAoPedido = () => {
-    if (!produto || !sabor || !quantidade || quantidade < 1) {
-      alert("Informe produto, sabor e quantidade válida.");
-      return;
+// FN06 – Carregar pedidos com fallback para dataServidor (oficial)
+const carregarPedidos = async () => {
+  const querySnapshot = await getDocs(collection(db, "pedidos"));
+  const lista = [];
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    let timestamp = data.timestamp;
+
+    // Fallback para dataServidor se timestamp estiver ausente
+    if (!timestamp && data.dataServidor?.seconds) {
+      timestamp = new Timestamp(data.dataServidor.seconds, data.dataServidor.nanoseconds || 0);
     }
 
-    const novoItem = {
-      produto,
-      sabor,
-      quantidade: Number(quantidade),
-    };
+    if (!timestamp) return;
 
-    setItens(prev => [...prev, novoItem]);
-    setProduto('');
-    setSabor('');
-    setQuantidade(1);
-  };
+    lista.push({
+      id: doc.id,
+      ...data,
+      timestamp: timestamp.toDate(),
+    });
+  });
+
+  setPedidos(lista);
+};
 
   // FN07 – Salvar Pedido no Firestore
   const fn07_salvarPedido = async () => {
