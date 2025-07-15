@@ -16,7 +16,7 @@ const logoPath = "/LogomarcaDDnt2025Vazado.png";
 const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
 
-// === INÍCIO FN03 – Dados Fixos de Escolas e Produtos ===
+// === INÍCIO FN03 – Dados fixos de escolas e produtos ===
 const escolasFixas = {
   "RECIFE": [
     "Tio Valter", "Vera Cruz", "Pinheiros", "Dourado",
@@ -46,13 +46,12 @@ const produtosFixos = {
   "PKT 6x6": ["Prestigio", "Paçoca", "Brigadeiro branco"],
   "DUDU": ["Ninho com nutella", "Brigadeiro preto", "Beijinho"]
 };
-// === FIM FN03 ===
-// === INÍCIO FN03b – Carrega dados fixos no início do app ===
+
 useEffect(() => {
   setDadosEscolas(escolasFixas);
   setDadosProdutos(produtosFixos);
 }, []);
-// === FIM FN03b ===
+// === FIM FN03 ===
 // FN04 – Componente principal
 const App = () => {
   const [cidade, setCidade] = useState('');
