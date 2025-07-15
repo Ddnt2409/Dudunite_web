@@ -620,56 +620,14 @@ const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
   );
 };
 // === FIM FN21 ===
-// === INÍCIO FN22 – carregarDadosMestres (requer dados válidos no Firebase) ===
-useEffect(() => {
-  const carregarDadosMestres = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "dadosMestres"));
-      const lista = snapshot.docs
-        .map((doc) => doc.data())
-        .filter((item) =>
-          item.cidade && item.escola && item.produto && item.sabor
-        );
+// === INÍCIO FN0a – estados dados mestres e seleção ===
+const [tipoSelecionado, setTipoSelecionado] = useState('');
+const [dadosEscolas, setDadosEscolas] = useState({});
+const [dadosProdutos, setDadosProdutos] = useState({});
+// === FIM FN0a ===
 
-      if (lista.length === 0) {
-        console.warn("⚠️ Nenhum dado válido encontrado na coleção dadosMestres.");
-        return;
-      }
 
-      const exemplo = lista.slice(0, 3).map((item, i) => (
-        `${i + 1}) ${item.cidade} | ${item.escola} | ${item.produto} | ${item.sabor}`
-      )).join('\n');
-      alert("📦 Dados mestres válidos:\n\n" + exemplo);
-
-      const escolasMapeadas = {};
-      const produtosMapeados = {};
-
-      lista.forEach((item) => {
-        if (!escolasMapeadas[item.cidade]) escolasMapeadas[item.cidade] = [];
-        if (!escolasMapeadas[item.cidade].includes(item.escola)) {
-          escolasMapeadas[item.cidade].push(item.escola);
-        }
-
-        if (!produtosMapeados[item.produto]) produtosMapeados[item.produto] = [];
-        if (!produtosMapeados[item.produto].includes(item.sabor)) {
-          produtosMapeados[item.produto].push(item.sabor);
-        }
-      });
-
-      setDadosEscolas(escolasMapeadas);
-      setDadosProdutos(produtosMapeados);
-    } catch (error) {
-      alert("❌ Erro ao carregar dados mestres");
-      console.error("Erro Firebase:", error);
-    }
-  };
-
-  carregarDadosMestres();
-}, []);
-// === FIM FN22 ===
-
-// === INÍCIO FN22a – carregarDadosMestresViaPedidos (fallback quando FN22 não preenche) ===
-// === INÍCIO FN00 – carregarDadosMestresIniciais ===
+// === INÍCIO FN00 – carregarDadosMestresIniciais (função auxiliar) ===
 const carregarDadosMestresIniciais = () => {
   const escolasPorCidade = {
     "São Paulo": ["Escola A", "Escola B"],
@@ -690,7 +648,53 @@ const carregarDadosMestresIniciais = () => {
 // === FIM FN00 ===
 
 
-// === INÍCIO FN22a – carregarDadosMestresViaPedidos ===
+// === INÍCIO FN22 – carregarDadosMestres (hook principal) ===
+useEffect(() => {
+  const carregarDadosMestres = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "dadosMestres"));
+      const lista = snapshot.docs
+        .map((doc) => doc.data())
+        .filter((item) =>
+          item.cidade && item.escola && item.produto && item.sabor
+        );
+
+      if (lista.length === 0) {
+        console.warn("⚠️ Nenhum dado válido encontrado na coleção dadosMestres.");
+        carregarDadosMestresIniciais();
+        return;
+      }
+
+      const escolasMapeadas = {};
+      const produtosMapeados = {};
+
+      lista.forEach((item) => {
+        if (!escolasMapeadas[item.cidade]) escolasMapeadas[item.cidade] = [];
+        if (!escolasMapeadas[item.cidade].includes(item.escola)) {
+          escolasMapeadas[item.cidade].push(item.escola);
+        }
+
+        if (!produtosMapeados[item.produto]) produtosMapeados[item.produto] = [];
+        if (!produtosMapeados[item.produto].includes(item.sabor)) {
+          produtosMapeados[item.produto].push(item.sabor);
+        }
+      });
+
+      setDadosEscolas(prev => ({ ...prev, ...escolasMapeadas }));
+      setDadosProdutos(prev => ({ ...prev, ...produtosMapeados }));
+    } catch (error) {
+      alert("❌ Erro ao carregar dados mestres");
+      console.error("Erro Firebase:", error);
+      carregarDadosMestresIniciais();
+    }
+  };
+
+  carregarDadosMestres();
+}, []);
+// === FIM FN22 ===
+
+
+// === INÍCIO FN22a – carregarDadosMestresViaPedidos (hook fallback extra) ===
 useEffect(() => {
   const reconstruirDadosMestres = async () => {
     try {
@@ -734,50 +738,6 @@ useEffect(() => {
 }, []);
 // === FIM FN22a ===
 
-
-// === INÍCIO FN22 – carregarDadosMestres (com filtro de dados válidos) ===
-useEffect(() => {
-  const carregarDadosMestres = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "dadosMestres"));
-      const lista = snapshot.docs
-        .map((doc) => doc.data())
-        .filter((item) =>
-          item.cidade && item.escola && item.produto && item.sabor
-        );
-
-      const escolasMapeadas = {};
-      const produtosMapeados = {};
-
-      lista.forEach((item) => {
-        if (!escolasMapeadas[item.cidade]) escolasMapeadas[item.cidade] = [];
-        if (!escolasMapeadas[item.cidade].includes(item.escola)) {
-          escolasMapeadas[item.cidade].push(item.escola);
-        }
-
-        if (!produtosMapeados[item.produto]) produtosMapeados[item.produto] = [];
-        if (!produtosMapeados[item.produto].includes(item.sabor)) {
-          produtosMapeados[item.produto].push(item.sabor);
-        }
-      });
-
-      setDadosEscolas(prev => ({ ...prev, ...escolasMapeadas }));
-      setDadosProdutos(prev => ({ ...prev, ...produtosMapeados }));
-    } catch (error) {
-      alert("❌ Erro ao carregar dados mestres");
-      console.error("Erro Firebase:", error);
-    }
-  };
-
-  carregarDadosMestres();
-}, []);
-// === FIM FN22 ===
-
-// === INÍCIO FN23 ===
-const [tipoSelecionado, setTipoSelecionado] = useState('');
-const [dadosEscolas, setDadosEscolas] = useState({});
-const [dadosProdutos, setDadosProdutos] = useState({});
-// === FIM FN23 ===
 
 return (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
