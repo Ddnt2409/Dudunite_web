@@ -164,110 +164,110 @@ const fn05_filtrarPedidos = (lista, dataInicio, dataFim) => {
     }
   };
 
-  // FN08 – Gerar Planejamento de Produção (PDF)
-  const fn08_gerarPlanejamentoProducao = () => {
-    const pedidosFiltrados = fn05_filtrarPedidos(pedidos, dataInicio, dataFim);
+// FN08 – Gerar Planejamento de Produção (PDF)
+const fn08_gerarPlanejamentoProducao = () => {
+  if (!pedidos.length) {
+    alert("Nenhum pedido carregado.");
+    return;
+  }
 
-    if (!pedidosFiltrados.length) {
-      alert('Nenhum pedido encontrado para o período selecionado.');
-      return;
-    }
+  const pedidosFiltrados = fn05_filtrarPedidos(pedidos, dataInicio, dataFim);
 
-    const doc = new jsPDF();
-    let y = 10;
+  if (!pedidosFiltrados.length) {
+    alert("Nenhum pedido encontrado para o período selecionado.");
+    return;
+  }
 
-    doc.setFont('courier', 'normal');
-    doc.setFontSize(10);
-    doc.text('Planejamento de Produção - Dudunitê', 10, y);
-    y += 10;
+  const doc = new jsPDF();
+  let y = 10;
 
-    const rendimentoPorProduto = {
-      "BRW 7x7": { tabuleiro: 12, bacia: { branco: 25, preto: 25 } },
-      "BRW 6x6": { tabuleiro: 17, bacia: { branco: 35, preto: 35 } },
-      "PKT 5x5": { tabuleiro: 20, bacia: { branco: 650 / 20, preto: 650 / 20 } },
-      "PKT 6x6": { tabuleiro: 15, bacia: { branco: 650 / 30, preto: 650 / 30 } },
-      "ESC":     { tabuleiro: 26, bacia: { branco: 26, preto: 26 } },
-      "DUDU":    null // Ignorado nos cálculos
-    };
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(10);
+  doc.text('Planejamento de Produção - Dudunitê', 10, y);
+  y += 10;
 
-    const saboresBrancos = [
-      "Ninho", "Ninho com nutella", "Brigadeiro branco", "Oreo",
-      "Ovomaltine", "Paçoca", "Brigadeiro branco c confete", "Beijinho"
-    ];
-    const saboresPretos = [
-      "Brigadeiro preto", "Brigadeiro c confete", "Palha italiana", "Prestigio"
-    ];
-
-    const tabuleiros = {};
-    const bacias = { branco: 0, preto: 0 };
-
-    pedidosFiltrados.forEach((pedido) => {
-      try {
-        const dataFormatada = pedido.timestamp?.toDate?.()?.toLocaleDateString?.("pt-BR") || "Data inválida";
-
-        doc.text(`Escola: ${pedido.escola || '---'}`, 10, y); y += 6;
-        doc.text(`Cidade: ${pedido.cidade || '---'}`, 10, y); y += 6;
-        doc.text(`Data: ${dataFormatada}`, 10, y); y += 6;
-        doc.text('Itens:', 10, y); y += 6;
-
-        pedido.itens.forEach(({ produto, sabor, quantidade }) => {
-          const qtd = Number(quantidade);
-          doc.text(`${produto} - ${sabor} - ${qtd} un`, 12, y); y += 6;
-
-          const rend = rendimentoPorProduto[produto];
-          if (!rend) return;
-
-          if (!tabuleiros[produto]) tabuleiros[produto] = 0;
-          tabuleiros[produto] += qtd / rend.tabuleiro;
-
-          if (sabor === "Bem casado") {
-            bacias.branco += qtd / (rend.bacia.branco * 2);
-            bacias.preto += qtd / (rend.bacia.preto * 2);
-          } else if (saboresBrancos.includes(sabor)) {
-            bacias.branco += qtd / rend.bacia.branco;
-          } else if (saboresPretos.includes(sabor)) {
-            bacias.preto += qtd / rend.bacia.preto;
-          }
-        });
-
-        y += 4;
-        if (y >= 270) {
-          doc.addPage();
-          y = 10;
-        }
-      } catch (erro) {
-        console.error('Erro ao processar pedido:', pedido, erro);
-      }
-    });
-
-    doc.addPage(); y = 10;
-    doc.text('--- RESUMO DE PRODUÇÃO ---', 10, y); y += 8;
-
-    doc.text('TABULEIROS:', 10, y); y += 6;
-    Object.entries(tabuleiros).forEach(([produto, qtd]) => {
-      doc.text(`${produto}: ${qtd.toFixed(2)} tabuleiros`, 12, y); y += 6;
-    });
-
-    y += 4;
-    doc.text('RECHEIOS:', 10, y); y += 6;
-    doc.text(`Branco: ${bacias.branco.toFixed(2)} bacias`, 12, y); y += 6;
-    doc.text(`Preto: ${bacias.preto.toFixed(2)} bacias`, 12, y); y += 6;
-
-    const agora = new Date();
-    const dia = String(agora.getDate()).padStart(2, '0');
-    const mes = String(agora.getMonth() + 1).padStart(2, '0');
-    const ano = agora.getFullYear();
-    const hora = String(agora.getHours()).padStart(2, '0');
-    const minuto = String(agora.getMinutes()).padStart(2, '0');
-    const nomePDF = `producao-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
-
-    try {
-      doc.save(nomePDF);
-    } catch (erro) {
-      alert('Erro ao tentar salvar o PDF. Experimente usar um navegador em modo desktop.');
-      console.error(erro);
-    }
+  const rendimentoPorProduto = {
+    "BRW 7x7": { tabuleiro: 12, bacia: { branco: 25, preto: 25 } },
+    "BRW 6x6": { tabuleiro: 17, bacia: { branco: 35, preto: 35 } },
+    "PKT 5x5": { tabuleiro: 20, bacia: { branco: 650 / 20, preto: 650 / 20 } },
+    "PKT 6x6": { tabuleiro: 15, bacia: { branco: 650 / 30, preto: 650 / 30 } },
+    "ESC":     { tabuleiro: 26, bacia: { branco: 26, preto: 26 } },
+    "DUDU":    null
   };
+
+  const saboresBrancos = [
+    "Ninho", "Ninho com nutella", "Brigadeiro branco", "Oreo",
+    "Ovomaltine", "Paçoca", "Brigadeiro branco c confete", "Beijinho"
+  ];
+  const saboresPretos = [
+    "Brigadeiro preto", "Brigadeiro c confete", "Palha italiana", "Prestigio"
+  ];
+
+  const tabuleiros = {};
+  const bacias = { branco: 0, preto: 0 };
+
+  pedidosFiltrados.forEach((pedido) => {
+    try {
+      const dataFormatada = pedido.timestamp?.toDate?.()?.toLocaleDateString?.("pt-BR") || "Data inválida";
+
+      doc.text(`Escola: ${pedido.escola || '---'}`, 10, y); y += 6;
+      doc.text(`Cidade: ${pedido.cidade || '---'}`, 10, y); y += 6;
+      doc.text(`Data: ${dataFormatada}`, 10, y); y += 6;
+      doc.text('Itens:', 10, y); y += 6;
+
+      pedido.itens.forEach(({ produto, sabor, quantidade }) => {
+        const qtd = Number(quantidade);
+        doc.text(`${produto} - ${sabor} - ${qtd} un`, 12, y); y += 6;
+
+        const rend = rendimentoPorProduto[produto];
+        if (!rend) return;
+
+        if (!tabuleiros[produto]) tabuleiros[produto] = 0;
+        tabuleiros[produto] += qtd / rend.tabuleiro;
+
+        if (sabor === "Bem casado") {
+          bacias.branco += qtd / (rend.bacia.branco * 2);
+          bacias.preto += qtd / (rend.bacia.preto * 2);
+        } else if (saboresBrancos.includes(sabor)) {
+          bacias.branco += qtd / rend.bacia.branco;
+        } else if (saboresPretos.includes(sabor)) {
+          bacias.preto += qtd / rend.bacia.preto;
+        }
+      });
+
+      y += 4;
+      if (y >= 270) {
+        doc.addPage();
+        y = 10;
+      }
+    } catch (erro) {
+      console.error('Erro ao processar pedido:', pedido, erro);
+    }
+  });
+
+  doc.addPage(); y = 10;
+  doc.text('--- RESUMO DE PRODUÇÃO ---', 10, y); y += 8;
+
+  doc.text('TABULEIROS:', 10, y); y += 6;
+  Object.entries(tabuleiros).forEach(([produto, qtd]) => {
+    doc.text(`${produto}: ${qtd.toFixed(2)} tabuleiros`, 12, y); y += 6;
+  });
+
+  y += 4;
+  doc.text('RECHEIOS:', 10, y); y += 6;
+  doc.text(`Branco: ${bacias.branco.toFixed(2)} bacias`, 12, y); y += 6;
+  doc.text(`Preto: ${bacias.preto.toFixed(2)} bacias`, 12, y); y += 6;
+
+  const agora = new Date();
+  const nomePDF = `producao-${agora.toLocaleString("pt-BR").replace(/[^\d]/g, "-")}.pdf`;
+
+  try {
+    doc.save(nomePDF);
+  } catch (erro) {
+    alert('Erro ao tentar salvar o PDF. Use um navegador compatível.');
+    console.error(erro);
+  }
+};
 
   // FN09 – Gerar Lista de Compras (PDF)
   const fn09_gerarListaCompras = () => {
