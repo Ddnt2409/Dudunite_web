@@ -77,11 +77,21 @@ const App = () => {
 const fn04_carregarPedidos = async () => {
   try {
     const snapshot = await getDocs(collection(db, "pedidos"));
+
+    const totalDocs = snapshot.docs.length;
+    alert(`Total de documentos encontrados na coleção: ${totalDocs}`);
+
+    if (totalDocs === 0) {
+      alert("Nenhum pedido carregado.");
+      setPedidos([]);
+      setPedidosFiltrados([]);
+      return;
+    }
+
     const lista = snapshot.docs.map(doc => {
       const data = doc.data();
       let timestamp = data.timestamp;
 
-      // Fallback 1 – Usa dataServidor caso timestamp esteja ausente
       if (!timestamp && data.dataServidor?.seconds) {
         timestamp = new Timestamp(
           data.dataServidor.seconds,
@@ -89,7 +99,6 @@ const fn04_carregarPedidos = async () => {
         );
       }
 
-      // Fallback 2 – Usa string de data antiga
       if (!timestamp && typeof data.data === 'string') {
         const d = new Date(data.data);
         if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
@@ -105,7 +114,6 @@ const fn04_carregarPedidos = async () => {
     }).filter(p => p.timestamp && typeof p.timestamp.toDate === 'function');
 
     setPedidos(lista);
-
     const filtrados = fn05_filtrarPedidos(lista, dataInicio, dataFim);
     setPedidosFiltrados(filtrados);
   } catch (err) {
@@ -113,7 +121,6 @@ const fn04_carregarPedidos = async () => {
     alert("Erro ao carregar pedidos do banco de dados.");
   }
 };
-
   // FN05 – inicio
 const fn05_filtrarPedidos = (lista, dataInicio, dataFim) => {
   let inicio = new Date(0); // 01/01/1970
