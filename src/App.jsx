@@ -73,15 +73,15 @@ const App = () => {
     setDadosProdutos(produtosFixos);
   }, []);
 
-// FN04 – Carregar Pedidos do Firestore
-const carregarPedidos = async () => {
+// // FN04 – Carregar Pedidos do Firestore (com fallback de dataServidor e validação de Timestamp)
+const fn04_carregarPedidos = async () => {
   try {
     const snapshot = await getDocs(collection(db, "pedidos"));
     const lista = snapshot.docs.map(doc => {
       const data = doc.data();
       let timestamp = data.timestamp;
 
-      // Fallback: tenta converter dataServidor (caso timestamp esteja ausente)
+      // Fallback 1 – Usa dataServidor caso timestamp esteja ausente
       if (!timestamp && data.dataServidor?.seconds) {
         timestamp = new Timestamp(
           data.dataServidor.seconds,
@@ -89,10 +89,10 @@ const carregarPedidos = async () => {
         );
       }
 
-      // Fallback: converte string "data" (em casos mais antigos)
+      // Fallback 2 – Usa string de data antiga
       if (!timestamp && typeof data.data === 'string') {
         const d = new Date(data.data);
-        if (!isNaN(d.getTime()) && d.getFullYear() > 2000 && d.getFullYear() < 2100) {
+        if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
           timestamp = Timestamp.fromDate(d);
         }
       }
@@ -100,11 +100,12 @@ const carregarPedidos = async () => {
       return {
         id: doc.id,
         ...data,
-        timestamp, // ✅ Mantido como Timestamp do Firebase
+        timestamp,
       };
     }).filter(p => p.timestamp && typeof p.timestamp.toDate === 'function');
 
     setPedidos(lista);
+
     const filtrados = fn05_filtrarPedidos(lista, dataInicio, dataFim);
     setPedidosFiltrados(filtrados);
   } catch (err) {
@@ -112,6 +113,8 @@ const carregarPedidos = async () => {
     alert("Erro ao carregar pedidos do banco de dados.");
   }
 };
+
+  // FN05 – inicio
 const fn05_filtrarPedidos = (lista, dataInicio, dataFim) => {
   let inicio = new Date(0); // 01/01/1970
   let fim = new Date(8640000000000000); // data máxima possível no JS (ano 275760)
