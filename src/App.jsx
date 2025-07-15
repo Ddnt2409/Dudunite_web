@@ -133,22 +133,7 @@ const fn05_filtrarPedidos = (lista, dataInicio, dataFim) => {
     return dataPedido >= inicio && dataPedido <= fim;
   });
 };
-// FN06 – Adicionar Item ao Pedido
-const fn06_adicionarItem = () => {
-  if (!produto || !sabor || !quantidade || isNaN(quantidade)) {
-    alert("Preencha produto, sabor e quantidade válida.");
-    return;
-  }
-
-  const novoItem = { produto, sabor, quantidade: Number(quantidade) };
-  setItens([...itens, novoItem]);
-
-  // Limpa apenas campos de produto e sabor após adicionar
-  setProduto('');
-  setSabor('');
-  setQuantidade(1);
-};
-
+// FN06 – VAGA TEMPORÁRIA 
   // FN07 – Salvar Pedido no Firestore
   const fn07_salvarPedido = async () => {
     if (!cidade || !escola || itens.length === 0) {
