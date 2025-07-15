@@ -634,8 +634,8 @@ const [tipoSelecionado, setTipoSelecionado] = useState('');
 const [dadosEscolas, setDadosEscolas] = useState({});
 const [dadosProdutos, setDadosProdutos] = useState({});
 // === FIM FN0a ===
-
-// === INÍCIO FN00 – carregarDadosMestresIniciais (função auxiliar) ===
+// === INÍCIO FN00 – carregarDadosMestresIniciais (comentada) ===
+/*
 const carregarDadosMestresIniciais = () => {
   const escolasPorCidade = {
     "São Paulo": ["Escola A", "Escola B"],
@@ -653,10 +653,11 @@ const carregarDadosMestresIniciais = () => {
   setDadosEscolas(escolasPorCidade);
   setDadosProdutos(produtosComSabores);
 };
+*/
 // === FIM FN00 ===
 
-
-// === INÍCIO FN22 – carregarDadosMestres (hook principal) ===
+// === INÍCIO FN22 e FN22a – Dados Mestres via Firestore (comentadas) ===
+/*
 useEffect(() => {
   const carregarDadosMestres = async () => {
     try {
@@ -699,10 +700,7 @@ useEffect(() => {
 
   carregarDadosMestres();
 }, []);
-// === FIM FN22 ===
 
-
-// === INÍCIO FN22a – carregarDadosMestresViaPedidos (hook fallback extra) ===
 useEffect(() => {
   const reconstruirDadosMestres = async () => {
     try {
@@ -744,8 +742,8 @@ useEffect(() => {
 
   reconstruirDadosMestres();
 }, []);
-// === FIM FN22a ===
-
+*/
+// === FIM FN22 e FN22a ===
 
 return (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
