@@ -1,4 +1,5 @@
 // === BLOCO 1 – Início dorcar deploy===
+// Forçando rebuild
 // FN01 – Importações Gerais
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
