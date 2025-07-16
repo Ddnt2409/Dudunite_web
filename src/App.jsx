@@ -115,7 +115,9 @@ if (dataInicio && dataFim) {
 const pedidosFiltrados = pedidosSnapshot.docs.map(doc => doc.data());
 setPedidos(pedidosFiltrados);
 
-} catch (error) { console.error("Erro ao filtrar pedidos para lista de compras:", error); } };
+} catch (error) { console.error("Erro ao filtrar pedidos para lista de compras:", error); 
+} 
+};
 
 // FN06 – Adicionar Item ao Pedido
 const fn06_adicionarItem = () => {
