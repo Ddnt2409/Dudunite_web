@@ -1,5 +1,4 @@
-// === BLOCO 1 – Início dorcar deploy===
-// Forçando rebuild
+// === BLOCO 1
 // FN01 – Importações Gerais
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
@@ -830,6 +829,129 @@ return (
       </button>
 
       {/* === RT05 – Ações adicionais === */}
+// === INÍCIO DO RT99 – Bloco final da interface ===
+return (
+  <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
+    <div className="max-w-xl mx-auto">
+      <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
+      <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
+
+      {/* === RT02 – Filtro por período === */}
+      <div className="mb-6">
+        <label className="font-semibold block mb-1">📆 Período:</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={dataInicio}
+            onChange={(e) => setDataInicio(e.target.value)}
+            className="p-2 border rounded"
+          />
+          <span>até</span>
+          <input
+            type="date"
+            value={dataFim}
+            onChange={(e) => setDataFim(e.target.value)}
+            className="p-2 border rounded"
+          />
+        </div>
+      </div>
+
+      {/* === RT03 – Campos do Pedido === */}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label>Cidade</label>
+          <select
+            value={cidade}
+            onChange={(e) => setCidade(e.target.value)}
+            className="w-full p-2 rounded border"
+          >
+            <option value="">Selecione</option>
+            {Object.keys(dadosEscolas).map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Escola</label>
+          <select
+            value={escola}
+            onChange={(e) => setEscola(e.target.value)}
+            className="w-full p-2 rounded border"
+          >
+            <option value="">Selecione</option>
+            {dadosEscolas[cidade]?.map((e) => (
+              <option key={e} value={e}>{e}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Produto</label>
+          <select
+            value={produto}
+            onChange={(e) => setProduto(e.target.value)}
+            className="w-full p-2 rounded border"
+          >
+            <option value="">Selecione</option>
+            {Object.keys(dadosProdutos).map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Sabor</label>
+          <select
+            value={sabor}
+            onChange={(e) => setSabor(e.target.value)}
+            className="w-full p-2 rounded border"
+          >
+            <option value="">Selecione</option>
+            {dadosProdutos[produto]?.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Quantidade</label>
+          <input
+            type="number"
+            min="1"
+            value={quantidade}
+            onChange={(e) => setQuantidade(Number(e.target.value))}
+            className="w-full p-2 rounded border"
+          />
+        </div>
+        <div className="flex items-end">
+          <button
+            onClick={fn06_adicionarItem}
+            className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 w-full"
+          >
+            ➕ Adicionar Item
+          </button>
+        </div>
+      </div>
+
+      {/* === RT04 – Lista de Itens e botão Salvar Pedido === */}
+      {itens.length > 0 && (
+        <div className="mb-6">
+          <h2 className="font-semibold text-lg mb-2">Itens do Pedido ({fn15_totalItens} un):</h2>
+          <ul className="list-disc pl-5">
+            {itens.map((item, index) => (
+              <li key={index}>
+                {item.produto} - {item.sabor} - {item.quantidade} un
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <button
+        onClick={fn07_salvarPedido}
+        className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4"
+      >
+        💾 Salvar Pedido
+      </button>
+
+      {/* === RT05 – Ações adicionais === */}
       <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
         <button
           onClick={fn08_gerarPlanejamentoProducao}
@@ -856,22 +978,22 @@ return (
           ⚙️ Dados Mestres
         </button>
       </div>
+    </div>
 
-</div>
-{/* === RT06 – Painel de Dados Mestres === */}
-      {mostrarDadosMestres && (
-        <PainelDadosMestres
-          tipoSelecionado={tipoSelecionado}
-          setTipoSelecionado={setTipoSelecionado}
-          dadosEscolas={dadosEscolas}
-          setDadosEscolas={setDadosEscolas}
-          dadosProdutos={dadosProdutos}
-          setDadosProdutos={setDadosProdutos}
-        />
-      )}
-    </div>) {/* Fecha o container principal do return */}
-  );
-  // === FIM DO RETURN ===
+    {/* === RT06 – Painel de Dados Mestres === */}
+    {mostrarDadosMestres && (
+      <PainelDadosMestres
+        tipoSelecionado={tipoSelecionado}
+        setTipoSelecionado={setTipoSelecionado}
+        dadosEscolas={dadosEscolas}
+        setDadosEscolas={setDadosEscolas}
+        dadosProdutos={dadosProdutos}
+        setDadosProdutos={setDadosProdutos}
+      />
+    )}
+  </div>
+);
+// === FIM DO RT99 ===
 };
 
 export default App;
