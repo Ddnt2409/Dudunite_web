@@ -73,49 +73,39 @@ const App = () => {
     setDadosProdutos(produtosFixos);
   }, []);
 
-// === BLOCO FN04 – Filtrar Pedidos para Planejamento === const filtrarPedidosPlanejamento = async () => { try { let pedidosSnapshot;
+// === FN04 – Gerar Planejamento de Produção === const gerarPlanejamento = async () => { try { let pedidosSnapshot; if (!dataInicio && !dataFim) { pedidosSnapshot = await getDocs(collection(db, 'pedidos')); } else { const inicio = new Date(${dataInicio}T00:00:00); const fim = new Date(${dataFim}T23:59:59);
 
-if (dataInicio && dataFim) {
-  const inicio = new Date(`${dataInicio}T00:00:00`);
-  const fim = new Date(`${dataFim}T23:59:59`);
-
-  pedidosSnapshot = await getDocs(
+pedidosSnapshot = await getDocs(
     query(
       collection(db, 'pedidos'),
-      where('data', ">=", Timestamp.fromDate(inicio)),
-      where('data', "<=", Timestamp.fromDate(fim))
+      where('data', '>=', inicio.toISOString()),
+      where('data', '<=', fim.toISOString())
     )
   );
-} else {
-  pedidosSnapshot = await getDocs(collection(db, 'pedidos'));
 }
 
-const pedidosFiltrados = pedidosSnapshot.docs.map(doc => doc.data());
-setPedidos(pedidosFiltrados);
+const pedidosFiltrados = pedidosSnapshot.docs.map((doc) => doc.data());
+setPedidosFiltrados(pedidosFiltrados);
 
-} catch (error) { console.error("Erro ao filtrar pedidos para planejamento:", error); } };
+} catch (error) { console.error("Erro ao carregar pedidos:", error); alert("Erro ao carregar pedidos."); } };
 
-// === BLOCO FN05 – Filtrar Pedidos para Lista de Compras === const filtrarPedidosCompras = async () => { try { let pedidosSnapshot;
+// === FN05 – Gerar Lista de Compras === const gerarListaCompras = async () => { try { let pedidosSnapshot; if (!dataInicio && !dataFim) { pedidosSnapshot = await getDocs(collection(db, 'pedidos')); } else { const inicio = new Date(${dataInicio}T00:00:00); const fim = new Date(${dataFim}T23:59:59);
 
-if (dataInicio && dataFim) {
-  const inicio = new Date(`${dataInicio}T00:00:00`);
-  const fim = new Date(`${dataFim}T23:59:59`);
-
-  pedidosSnapshot = await getDocs(
+pedidosSnapshot = await getDocs(
     query(
       collection(db, 'pedidos'),
-      where('data', ">=", Timestamp.fromDate(inicio)),
-      where('data', "<=", Timestamp.fromDate(fim))
+      where('data', '>=', inicio.toISOString()),
+      where('data', '<=', fim.toISOString())
     )
   );
-} else {
-  pedidosSnapshot = await getDocs(collection(db, 'pedidos'));
 }
 
-const pedidosFiltrados = pedidosSnapshot.docs.map(doc => doc.data());
-setPedidos(pedidosFiltrados);
+const pedidosFiltrados = pedidosSnapshot.docs.map((doc) => doc.data());
 
-} catch (error) { console.error("Erro ao filtrar pedidos para lista de compras:", error); 
+const insumos = calcularInsumosTotais(pedidosFiltrados);
+gerarPDFCompras(insumos);
+
+} catch (error) { console.error("Erro ao gerar lista de compras:", error); alert("Erro ao gerar lista de compras."); 
 } 
 };
 
