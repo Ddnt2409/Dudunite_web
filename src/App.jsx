@@ -868,8 +868,9 @@ return (
           setDadosProdutos={setDadosProdutos}
         />
       )}
-    </div>
+    </div> {/* Fecha o container principal do return */}
   );
   // === FIM DO RETURN ===
 };
+
 export default App;
