@@ -73,42 +73,121 @@ const App = () => {
     setDadosProdutos(produtosFixos);
   }, []);
 
-// === FN04 – Gerar Planejamento de Produção === const gerarPlanejamento = async () => { try { let pedidosSnapshot; if (!dataInicio && !dataFim) { pedidosSnapshot = await getDocs(collection(db, 'pedidos')); } else { const inicio = new Date(${dataInicio}T00:00:00); const fim = new Date(${dataFim}T23:59:59);
+// === FN04 – Gerar Planejamento de Produção ===
+const gerarPlanejamento = async () => {
+  try {
+    let pedidosSnapshot;
 
-pedidosSnapshot = await getDocs(
-    query(
-      collection(db, 'pedidos'),
-      where('data', '>=', inicio.toISOString()),
-      where('data', '<=', fim.toISOString())
-    )
-  );
-}
+    if (!dataInicio && !dataFim) {
+      pedidosSnapshot = await getDocs(collection(db, 'pedidos'));
+    } else {
+      const inicio = new Date(`${dataInicio}T00:00:00`);
+      const fim = new Date(`${dataFim}T23:59:59`);
 
-const pedidosFiltrados = pedidosSnapshot.docs.map((doc) => doc.data());
-setPedidosFiltrados(pedidosFiltrados);
+      pedidosSnapshot = await getDocs(
+        query(
+          collection(db, 'pedidos'),
+          where('data', '>=', inicio.toISOString()),
+          where('data', '<=', fim.toISOString())
+        )
+      );
+    }
 
-} catch (error) { console.error("Erro ao carregar pedidos:", error); alert("Erro ao carregar pedidos."); } };
-
-// === FN05 – Gerar Lista de Compras === const gerarListaCompras = async () => { try { let pedidosSnapshot; if (!dataInicio && !dataFim) { pedidosSnapshot = await getDocs(collection(db, 'pedidos')); } else { const inicio = new Date(${dataInicio}T00:00:00); const fim = new Date(${dataFim}T23:59:59);
-
-pedidosSnapshot = await getDocs(
-    query(
-      collection(db, 'pedidos'),
-      where('data', '>=', inicio.toISOString()),
-      where('data', '<=', fim.toISOString())
-    )
-  );
-}
-
-const pedidosFiltrados = pedidosSnapshot.docs.map((doc) => doc.data());
-
-const insumos = calcularInsumosTotais(pedidosFiltrados);
-gerarPDFCompras(insumos);
-
-} catch (error) { console.error("Erro ao gerar lista de compras:", error); alert("Erro ao gerar lista de compras."); 
-} 
+    const pedidosFiltrados = pedidosSnapshot.docs.map(doc => doc.data());
+    setPedidosFiltrados(pedidosFiltrados);
+  } catch (error) {
+    console.error("Erro ao carregar pedidos:", error);
+    alert("Erro ao carregar pedidos.");
+  }
 };
 
+// === FN05 – Gerar Lista de Compras ===
+const gerarListaCompras = () => {
+  const doc = new jsPDF();
+  let y = 10;
+
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(10);
+  doc.text('Lista de Compras - Dudunitê', 10, y);
+  y += 10;
+
+  const insumos = {
+    margarina: 0,
+    ovos: 0,
+    massas: 0,
+    recheiosPretos: 0,
+    recheiosBrancos: 0,
+    glucose: 0,
+  };
+
+  pedidosFiltrados.forEach(pedido => {
+    pedido.itens.forEach(item => {
+      const tipo = item.produto;
+      const qtd = parseInt(item.quantidade);
+
+      // Massa base
+      if (tipo === 'BRW 7x7') insumos.massas += Math.ceil(qtd / 12) * 2;
+      if (tipo === 'BRW 6x6') insumos.massas += Math.ceil(qtd / 17) * 2;
+      if (tipo === 'PKT 5x5') insumos.massas += Math.ceil(qtd / 20) * 2;
+      if (tipo === 'PKT 6x6') insumos.massas += Math.ceil(qtd / 15) * 2;
+      if (tipo === 'Esc') insumos.massas += Math.ceil(qtd / 26) * 2;
+
+      // Margarina e ovos (por tabuleiro)
+      const tabuleiros =
+        tipo === 'BRW 7x7' ? Math.ceil(qtd / 12) :
+        tipo === 'BRW 6x6' ? Math.ceil(qtd / 17) :
+        tipo === 'PKT 5x5' ? Math.ceil(qtd / 20) :
+        tipo === 'PKT 6x6' ? Math.ceil(qtd / 15) :
+        tipo === 'Esc' ? Math.ceil(qtd / 26) : 0;
+
+      insumos.margarina += tabuleiros * 76;
+      insumos.ovos += tabuleiros * 190;
+
+      // Recheio
+      const sabor = item.sabor.toLowerCase();
+      const isBranco = sabor.includes('ninho') || sabor.includes('bco') || sabor.includes('maracujá') || sabor.includes('bem casado');
+      const isPreto = sabor.includes('brig') || sabor.includes('oreo') || sabor.includes('ovomaltine') || sabor.includes('palha');
+
+      if (tipo.includes('BRW')) {
+        const rendimento = tipo === 'BRW 7x7' ? 25 : 35;
+        if (isPreto) insumos.recheiosPretos += qtd / rendimento;
+        if (isBranco) insumos.recheiosBrancos += qtd / rendimento;
+      }
+
+      if (tipo.includes('PKT')) {
+        const porUnidade = tipo === 'PKT 5x5' ? 20 : 30;
+        const porBacia = 4 * 395 + 650;
+        const totalGramas = qtd * porUnidade;
+        if (isPreto) insumos.recheiosPretos += totalGramas / porBacia;
+        if (isBranco) insumos.recheiosBrancos += totalGramas / porBacia;
+      }
+
+      if (tipo === 'Esc') {
+        if (isPreto) insumos.recheiosPretos += qtd / 26;
+        if (isBranco) insumos.recheiosBrancos += qtd / 26;
+      }
+    });
+  });
+
+  // Glucose (a cada 6 bacias)
+  const totalBacias = insumos.recheiosPretos + insumos.recheiosBrancos;
+  insumos.glucose = totalBacias >= 6 ? Math.ceil(totalBacias / 6) * 500 : 0;
+
+  // Impressão no PDF
+  Object.entries(insumos).forEach(([nome, valor]) => {
+    const unidade = nome === 'ovos' ? ` (${Math.ceil(valor / 60)} bandejas)` :
+                     nome === 'massas' ? ` (${Math.ceil(valor / 2)} pacotes)` : '';
+    doc.text(`${nome}: ${Math.ceil(valor)}${unidade}`, 10, y);
+    y += 8;
+  });
+
+  const dataHora = new Date().toLocaleString("pt-BR");
+  y += 10;
+  doc.setFontSize(8);
+  doc.text(`Gerado em: ${dataHora}`, 10, y);
+
+  doc.save(`Lista_Compras_Dudunite_${Date.now()}.pdf`);
+};
 // FN06 – Adicionar Item ao Pedido
 const fn06_adicionarItem = () => {
   if (!produto || !sabor || quantidade < 1) {
