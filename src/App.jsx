@@ -538,30 +538,29 @@ const Fn11_PainelDadosMestres = ({
     </div>
   );
 };
-  // FN12 – Editor de Escolas
-  const fn12_EditorEscolas = ({ dadosEscolas, setDadosEscolas }) => {
-    return (
-      <div>
-        <h3 className="font-semibold mb-2">Pontos de Venda</h3>
-        <p className="text-sm text-gray-600">
-          🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de escolas
-        </p>
-      </div>
-    );
-  };
+// FN12 – Editor de Escolas
+const Fn12_EditorEscolas = ({ dadosEscolas, setDadosEscolas }) => {
+  return (
+    <div>
+      <h3 className="font-semibold mb-2">Pontos de Venda</h3>
+      <p className="text-sm text-gray-600">
+        🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de escolas
+      </p>
+    </div>
+  );
+};
 
-  // FN13 – Editor de Produtos
-  const fn13_EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
-    return (
-      <div>
-        <h3 className="font-semibold mb-2">Produtos</h3>
-        <p className="text-sm text-gray-600">
-          🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de produtos e sabores
-        </p>
-      </div>
-    );
-  };
-
+// FN13 – Editor de Produtos
+const Fn13_EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
+  return (
+    <div>
+      <h3 className="font-semibold mb-2">Produtos</h3>
+      <p className="text-sm text-gray-600">
+        🔧 Área em desenvolvimento: incluir edição, inativação e exclusão de produtos e sabores
+      </p>
+    </div>
+  );
+};
   // FN14 – Alternar Painel de Dados Mestres
   const fn14_toggleDadosMestres = () => {
     setMostrarDadosMestres(!mostrarDadosMestres);
@@ -825,15 +824,14 @@ return (
 </div>
     
 {/* === RT06 - Dados Mestres === */}
-{/* Esse painel era opcional e ainda não estava ativado no Porto Seguro 002 */}
-{/* <Fn11_PainelDadosMestres
+<Fn11_PainelDadosMestres
   tipoSelecionado={tipoSelecionado}
   setTipoSelecionado={setTipoSelecionado}
   dadosEscolas={dadosEscolas}
   setDadosEscolas={setDadosEscolas}
   dadosProdutos={dadosProdutos}
   setDadosProdutos={setDadosProdutos}
-/> */}
+/>
 
     </div> {/* Fecha .max-w-xl */}
 </div> {/* Fecha .bg */}
