@@ -158,42 +158,50 @@ const fn06_adicionarItem = () => {
   setSabor('');
   setQuantidade(1);
 };
-// === FN07 – salvarPedido ===
+// === INÍCIO FN07 – Salvar Pedido ===
 const fn07_salvarPedido = async () => {
-  if (!cidade || !escola || !produto || !sabor || quantidade <= 0) {
-    alert("Preencha todos os campos e adicione pelo menos 1 item.");
-    return;
-  }
-
   try {
-    const dataAtual = new Date();
-    const itemAtual = {
-      produto,
-      sabor,
-      quantidade: Number(quantidade)
-    };
+    if (
+      cidade.trim() === "" ||
+      escola.trim() === "" ||
+      itens.length === 0
+    ) {
+      alert("Preencha todos os campos e adicione pelo menos 1 item.");
+      return;
+    }
+
+    const colecaoRef = collection(db, "pedidos");
+
+    const dataHoje = new Date();
+    const dataFormatada = new Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "full",
+      timeStyle: "short",
+      timeZone: "America/Recife"
+    }).format(dataHoje);
 
     const novoPedido = {
       cidade,
       escola,
-      produto,
-      data: dataAtual.toISOString(),
-      dataServidor: dataAtual.toLocaleString("pt-BR", {
-        timeZone: "America/Recife",
-      }),
-      itens: [itemAtual],
+      data: dataHoje.toISOString(),
+      dataServidor: dataFormatada,
+      itens
     };
 
-    await addDoc(collection(db, "pedidos"), novoPedido);
+    await addDoc(colecaoRef, novoPedido);
 
     alert("Pedido salvo com sucesso!");
     setItens([]);
+    setCidade("");
+    setEscola("");
+    setProduto("");
+    setSabor("");
     setQuantidade(1);
   } catch (erro) {
     console.error("Erro ao salvar pedido:", erro);
     alert("Erro ao salvar pedido. Tente novamente.");
   }
 };
+// === FIM FN07 – Salvar Pedido ===
 // FN08 – Gerar Planejamento de Produção (PDF)
 const fn08_gerarPlanejamentoProducao = () => {
   if (!pedidos.length) {
