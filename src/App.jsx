@@ -733,62 +733,61 @@ return (
         </div>
       </div>
 
-      {/* === RT03 - Campos do Pedido === */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label>Cidade</label>
-          <select
-            value={cidade}
-            onChange={(e) => setCidade(e.target.value)}
-            className="w-full p-2 rounded border"
-          >
-            <option value="">Selecione</option>
-            {Object.keys(dadosEscolas).map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
+{/* === RT03 - Campos do Pedido === */}
+<div className="grid grid-cols-2 gap-4 mb-4">
+  <div>
+    <label>Cidade</label>
+    <select
+      value={cidade}
+      onChange={(e) => setCidade(e.target.value)}
+      className="w-full p-2 rounded border"
+    >
+      <option value="">Selecione</option>
+      {Object.keys(dadosEscolas).map((c) => (
+        <option key={c} value={c}>{c}</option>
+      ))}
+    </select>
+  </div>
 
-        <div>
-          <label>Escola</label>
-          <select
-            value={escola}
-            onChange={(e) => setEscola(e.target.value)}
-            className="w-full p-2 rounded border"
-          >
-            <option value="">Selecione</option>
-            {dadosEscolas[cidade]?.map((e) => (
-              <option key={e} value={e}>{e}</option>
-            ))}
-          </select>
-        </div>
+  <div>
+    <label>Escola</label>
+    <select
+      value={escola}
+      onChange={(e) => setEscola(e.target.value)}
+      className="w-full p-2 rounded border"
+    >
+      <option value="">Selecione</option>
+      {dadosEscolas[cidade]?.map((e) => (
+        <option key={e} value={e}>{e}</option>
+      ))}
+    </select>
+  </div>
 
-        <div>
-          <label>Produto</label>
-          <select
-            value={produto}
-            onChange={(e) => setProduto(e.target.value)}
-            className="w-full p-2 rounded border"
-          >
-            <option value="">Selecione</option>
-            {Object.keys(sabores).map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-        </div>
+  <div>
+    <label>Produto</label>
+    <select
+      value={produto}
+      onChange={(e) => setProduto(e.target.value)}
+      className="w-full p-2 rounded border"
+    >
+      <option value="">Selecione</option>
+      {Object.keys(dadosProdutos).map((p) => (
+        <option key={p} value={p}>{p}</option>
+      ))}
+    </select>
+  </div>
 
-        <div>
-          <label>Quantidade</label>
-          <input
-            type="number"
-            value={quantidade}
-            onChange={(e) => setQuantidade(e.target.value)}
-            className="w-full p-2 rounded border"
-          />
-        </div>
-      </div>
-
-      {/* === RT04 - Lista de Sabores === */}
+  <div>
+    <label>Quantidade</label>
+    <input
+      type="number"
+      value={quantidade}
+      onChange={(e) => setQuantidade(e.target.value)}
+      className="w-full p-2 rounded border"
+    />
+  </div>
+</div>
+      
 {/* === RT04 - Lista de Sabores === */}
 <div className="mb-4">
   <label>Sabor</label>
