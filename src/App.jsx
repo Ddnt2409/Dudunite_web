@@ -858,7 +858,7 @@ return (
 
       {/* === RT06 – Painel de Dados Mestres (opcional) === */}
       {mostrarDadosMestres && (
-        <fn11_PainelDadosMestres
+        <PainelDadosMestres
           tipoSelecionado={tipoSelecionado}
           setTipoSelecionado={setTipoSelecionado}
           dadosEscolas={dadosEscolas}
