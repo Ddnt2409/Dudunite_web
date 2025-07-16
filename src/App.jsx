@@ -706,285 +706,168 @@ const fn15_totalItens = itens.reduce((total, item) => total + Number(item.quanti
     });
     return agrupado;
   };
-  
-  return (
-    <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
-      <div className="max-w-xl mx-auto">
-        <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
-        <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
-
-        {/* === RT02 – Filtro por período === */}
-        <div className="mb-6">
-          <label className="font-semibold block mb-1">📆 Período:</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="date"
-              value={dataInicio}
-              onChange={(e) => setDataInicio(e.target.value)}
-              className="p-2 border rounded"
-            />
-            <span>até</span>
-            <input
-              type="date"
-              value={dataFim}
-              onChange={(e) => setDataFim(e.target.value)}
-              className="p-2 border rounded"
-            />
-          </div>
-        </div>
-
-{/* === RT03 – Campos do Pedido === */}
-<div className="grid grid-cols-2 gap-4 mb-4">
-  <div>
-    <label>Cidade</label>
-    <select
-      value={cidade}
-      onChange={(e) => setCidade(e.target.value)}
-      className="w-full p-2 rounded border"
-    >
-      <option value="">Selecione</option>
-      {Object.keys(dadosEscolas).map((c) => (
-        <option key={c} value={c}>{c}</option>
-      ))}
-    </select>
-  </div>
-  <div>
-    <label>Escola</label>
-    <select
-      value={escola}
-      onChange={(e) => setEscola(e.target.value)}
-      className="w-full p-2 rounded border"
-    >
-      <option value="">Selecione</option>
-      {dadosEscolas[cidade]?.map((e) => (
-        <option key={e} value={e}>{e}</option>
-      ))}
-    </select>
-  </div>
-  <div>
-    <label>Produto</label>
-    <select
-      value={produto}
-      onChange={(e) => setProduto(e.target.value)}
-      className="w-full p-2 rounded border"
-    >
-      <option value="">Selecione</option>
-      {Object.keys(dadosProdutos).map((p) => (
-        <option key={p} value={p}>{p}</option>
-      ))}
-    </select>
-  </div>
-  <div>
-    <label>Sabor</label>
-    <select
-      value={sabor}
-      onChange={(e) => setSabor(e.target.value)}
-      className="w-full p-2 rounded border"
-    >
-      <option value="">Selecione</option>
-      {dadosProdutos[produto]?.map((s) => (
-        <option key={s} value={s}>{s}</option>
-      ))}
-    </select>
-  </div>
-  <div>
-    <label>Quantidade</label>
-    <input
-      type="number"
-      min="1"
-      value={quantidade}
-      onChange={(e) => setQuantidade(Number(e.target.value))}
-      className="w-full p-2 rounded border"
-    />
-  </div>
-  <div className="flex items-end">
-    <button
-      onClick={fn06_adicionarItem}
-      className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 w-full"
-    >
-      ➕ Adicionar Item
-    </button>
-  </div>
-</div>
-{/* === Final da RT03 === */}
-
-{/* === RT04 – Lista de Itens e botão Salvar Pedido === */}
-{itens.length > 0 && (
-  <div className="mb-6">
-    <h2 className="font-semibold text-lg mb-2">Itens do Pedido ({fn15_totalItens} un):</h2>
-    <ul className="list-disc pl-5">
-      {itens.map((item, index) => (
-        <li key={index}>
-          {item.produto} - {item.sabor} - {item.quantidade} un
-        </li>
-      ))}
-    </ul>
-  </div>
-)}
-
-<button
-  onClick={fn07_salvarPedido}
-  className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4"
->
-  💾 Salvar Pedido
-</button>
-{/* === Final da RT04 === */}
-
-        {/* === RT05 – Ações adicionais === */}
-        <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
-          <button
-            onClick={fn08_gerarPlanejamentoProducao}
-            className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800"
-          >// === INÍCIO DO RETURN ===
+  // === INÍCIO DO RETURN ===
 return (
-  <div className="max-w-4xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
+  <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
+    <div className="max-w-xl mx-auto">
+      <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
+      <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
 
-    {/* === RT01 – Cabeçalho === */}
-    <div className="text-center mb-6">
-      <img src={logoPath} alt="Logomarca" className="mx-auto h-20" />
-      <h1 className="text-2xl font-bold text-[#8c3b1b] mt-2">Dudunitê – Sistema de Pedidos</h1>
-    </div>
-    {/* === FIM RT01 === */}
+      {/* === RT02 – Filtro por período === */}
+      <div className="mb-6">
+        <label className="font-semibold block mb-1">📆 Período:</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={dataInicio}
+            onChange={(e) => setDataInicio(e.target.value)}
+            className="p-2 border rounded"
+          />
+          <span>até</span>
+          <input
+            type="date"
+            value={dataFim}
+            onChange={(e) => setDataFim(e.target.value)}
+            className="p-2 border rounded"
+          />
+        </div>
+      </div>
 
-    {/* === RT02 – Formulário de Pedidos === */}
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-      <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="p-2 rounded">
-        <option value="">Cidade</option>
-        {Object.keys(dados).map((cidade) => (
-          <option key={cidade} value={cidade}>{cidade}</option>
-        ))}
-      </select>
+      {/* === RT03 – Campos do Pedido === */}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label>Cidade</label>
+          <select
+            value={cidade}
+            onChange={(e) => setCidade(e.target.value)}
+            className="w-full p-2 rounded border"
+          >
+            <option value="">Selecione</option>
+            {Object.keys(dadosEscolas).map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Escola</label>
+          <select
+            value={escola}
+            onChange={(e) => setEscola(e.target.value)}
+            className="w-full p-2 rounded border"
+          >
+            <option value="">Selecione</option>
+            {dadosEscolas[cidade]?.map((e) => (
+              <option key={e} value={e}>{e}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Produto</label>
+          <select
+            value={produto}
+            onChange={(e) => setProduto(e.target.value)}
+            className="w-full p-2 rounded border"
+          >
+            <option value="">Selecione</option>
+            {Object.keys(dadosProdutos).map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Sabor</label>
+          <select
+            value={sabor}
+            onChange={(e) => setSabor(e.target.value)}
+            className="w-full p-2 rounded border"
+          >
+            <option value="">Selecione</option>
+            {dadosProdutos[produto]?.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Quantidade</label>
+          <input
+            type="number"
+            min="1"
+            value={quantidade}
+            onChange={(e) => setQuantidade(Number(e.target.value))}
+            className="w-full p-2 rounded border"
+          />
+        </div>
+        <div className="flex items-end">
+          <button
+            onClick={fn06_adicionarItem}
+            className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 w-full"
+          >
+            ➕ Adicionar Item
+          </button>
+        </div>
+      </div>
 
-      <select value={escola} onChange={(e) => setEscola(e.target.value)} className="p-2 rounded">
-        <option value="">Escola</option>
-        {dados[cidade]?.map((escola) => (
-          <option key={escola} value={escola}>{escola}</option>
-        ))}
-      </select>
-
-      <select value={produto} onChange={(e) => setProduto(e.target.value)} className="p-2 rounded">
-        <option value="">Produto</option>
-        {produtos.map((produto) => (
-          <option key={produto} value={produto}>{produto}</option>
-        ))}
-      </select>
-
-      <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="p-2 rounded">
-        <option value="">Sabor</option>
-        {saboresFiltrados.map((sabor) => (
-          <option key={sabor} value={sabor}>{sabor}</option>
-        ))}
-      </select>
-
-      <input
-        type="number"
-        min="1"
-        value={quantidade}
-        onChange={(e) => setQuantidade(Number(e.target.value))}
-        className="p-2 rounded"
-        placeholder="Qtd"
-      />
+      {/* === RT04 – Lista de Itens e botão Salvar Pedido === */}
+      {itens.length > 0 && (
+        <div className="mb-6">
+          <h2 className="font-semibold text-lg mb-2">Itens do Pedido ({fn15_totalItens} un):</h2>
+          <ul className="list-disc pl-5">
+            {itens.map((item, index) => (
+              <li key={index}>
+                {item.produto} - {item.sabor} - {item.quantidade} un
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <button
-        onClick={adicionarItem}
-        className="bg-[#8c3b1b] text-white px-4 py-2 rounded"
-      >
-        ➕ Adicionar
-      </button>
-    </div>
-    {/* === FIM RT02 === */}
-
-    {/* === RT03 – Lista de Itens === */}
-    <ul className="mb-6">
-      {itens.map((item, index) => (
-        <li key={index} className="mb-1 text-sm">
-          {item.cidade} - {item.escola} - {item.produto} - {item.sabor} - {item.quantidade} und
-        </li>
-      ))}
-    </ul>
-    {/* === FIM RT03 === */}
-
-    {/* === RT04 – Botões Ação Pedidos === */}
-    <div className="flex flex-wrap gap-3 mb-8">
-      <button
-        onClick={salvarPedido}
-        className="bg-green-600 text-white px-4 py-2 rounded"
+        onClick={fn07_salvarPedido}
+        className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4"
       >
         💾 Salvar Pedido
       </button>
 
-      <button
-        onClick={gerarPlanejamento}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        📋 Gerar Planejamento
-      </button>
+      {/* === RT05 – Ações adicionais === */}
+      <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
+        <button
+          onClick={fn08_gerarPlanejamentoProducao}
+          className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800"
+        >
+          📦 Planejamento de Produção
+        </button>
+        <button
+          onClick={fn09_gerarListaCompras}
+          className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
+        >
+          🛒 Lista de Compras
+        </button>
+        <button
+          onClick={carregarPedidos}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          🔄 Recarregar Pedidos
+        </button>
+        <button
+          onClick={fn14_toggleDadosMestres}
+          className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+        >
+          ⚙️ Dados Mestres
+        </button>
+      </div>
 
-      <button
-        onClick={gerarListaCompras}
-        className="bg-yellow-600 text-white px-4 py-2 rounded"
-      >
-        🛒 Lista de Compras
-      </button>
+      {/* === RT06 – Painel de Dados Mestres (opcional) === */}
+      {mostrarDadosMestres && (
+        <fn11_PainelDadosMestres
+          tipoSelecionado={tipoSelecionado}
+          setTipoSelecionado={setTipoSelecionado}
+          dadosEscolas={dadosEscolas}
+          setDadosEscolas={setDadosEscolas}
+          dadosProdutos={dadosProdutos}
+          setDadosProdutos={setDadosProdutos}
+        />
+      )}
     </div>
-    {/* === FIM RT04 === */}
-
-    {/* === RT05 – Filtros de Data === */}
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-      <input
-        type="date"
-        value={dataInicio}
-        onChange={(e) => setDataInicio(e.target.value)}
-        className="p-2 rounded"
-      />
-      <input
-        type="date"
-        value={dataFim}
-        onChange={(e) => setDataFim(e.target.value)}
-        className="p-2 rounded"
-      />
-      <button
-        onClick={filtrarPorData}
-        className="bg-[#8c3b1b] text-white px-4 py-2 rounded"
-      >
-        🔍 Filtrar
-      </button>
-    </div>
-    {/* === FIM RT05 === */}
-
-    {/* === RT06 – Tabela de Pedidos Filtrados === */}
-    <table className="w-full text-sm border mt-6">
-      <thead>
-        <tr className="bg-[#8c3b1b] text-white">
-          <th className="p-2 border">Data</th>
-          <th className="p-2 border">Cidade</th>
-          <th className="p-2 border">Escola</th>
-          <th className="p-2 border">Produto</th>
-          <th className="p-2 border">Sabor</th>
-          <th className="p-2 border">Qtd</th>
-        </tr>
-      </thead>
-      <tbody>
-        {pedidosFiltrados.map((pedido, index) => (
-          <tr key={index}>
-            <td className="border p-1">{formatarDataHora(pedido.timestamp)}</td>
-            <td className="border p-1">{pedido.cidade}</td>
-            <td className="border p-1">{pedido.escola}</td>
-            <td className="border p-1">{pedido.produto}</td>
-            <td className="border p-1">{pedido.sabor}</td>
-            <td className="border p-1">{pedido.quantidade}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-    {/* === FIM RT06 === */}
-
-    {/* === RT07 – Rodapé === */}
-    <div className="text-center text-xs text-gray-500 mt-8 mb-4">
-      Sistema desenvolvido para Dudunitê 🍫 – Todos os direitos reservados.
-    </div>
-    {/* === FIM RT07 === */}
-
   </div>
 );
 // === FIM DO RETURN ===
