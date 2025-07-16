@@ -1,4 +1,4 @@
-// === BLOCO 1
+// === BLOCO 1 forçar deploy
 // FN01 – Importações Gerais
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
