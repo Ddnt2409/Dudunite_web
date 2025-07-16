@@ -143,7 +143,7 @@ const gerarListaCompras = () => {
       insumos.margarina += tabuleiros * 76;
       insumos.ovos += tabuleiros * 190;
 
-// === INÍCIO FN04 – Carregar Pedidos com Filtro por Data ===
+// === INÍCIO FN04a – Carregar Pedidos com Filtro por Data ===
 const carregarPedidos = async () => {
   try {
     const snapshot = await getDocs(collection(db, "pedidos"));
@@ -186,7 +186,7 @@ const carregarPedidos = async () => {
   }
 };
 // === FIM FN04 – Carregar Pedidos com Filtro por Data ===
-// === INÍCIO FN05 – Função Auxiliar para Filtrar por Período ===
+// === INÍCIO FN05a – Função Auxiliar para Filtrar por Período ===
 const fn05_filtrarPedidos = (lista, dataInicio, dataFim) => {
   let inicio = new Date(0); // 01/01/1970 – padrão caso dataInicio esteja vazia
   let fim = new Date(8640000000000000); // Máximo possível no JS
@@ -496,48 +496,48 @@ const fn09_gerarListaCompras = () => {
     }
   };
 
-  // FN11 – Painel Dados Mestres
-  const fn11_PainelDadosMestres = ({
-    tipoSelecionado,
-    setTipoSelecionado,
-    dadosEscolas,
-    setDadosEscolas,
-    dadosProdutos,
-    setDadosProdutos,
-  }) => {
-    return (
-      <div className="mt-6 p-4 border rounded bg-white">
-        <h2 className="text-lg font-bold mb-4">🛠️ Dados Mestres</h2>
-        <div className="flex gap-4 mb-4">
-          <button
-            onClick={() => setTipoSelecionado('escolas')}
-            className="px-4 py-2 bg-blue-600 text-white rounded"
-          >
-            Ponto de Venda
-          </button>
-          <button
-            onClick={() => setTipoSelecionado('produtos')}
-            className="px-4 py-2 bg-green-600 text-white rounded"
-          >
-            Produtos
-          </button>
-        </div>
-
-        {tipoSelecionado === 'escolas' && (
-          <fn12_EditorEscolas
-            dadosEscolas={dadosEscolas}
-            setDadosEscolas={setDadosEscolas}
-          />
-        )}
-        {tipoSelecionado === 'produtos' && (
-          <fn13_EditorProdutos
-            dadosProdutos={dadosProdutos}
-            setDadosProdutos={setDadosProdutos}
-          />
-        )}
+// FN11 – Painel Dados Mestres
+const fn11_PainelDadosMestres = ({
+  tipoSelecionado,
+  setTipoSelecionado,
+  dadosEscolas,
+  setDadosEscolas,
+  dadosProdutos,
+  setDadosProdutos,
+}) => {
+  return (
+    <div className="mt-6 p-4 border rounded bg-white">
+      <h2 className="text-lg font-bold mb-4">🛠️ Dados Mestres</h2>
+      <div className="flex gap-4 mb-4">
+        <button
+          onClick={() => setTipoSelecionado('escolas')}
+          className="px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Ponto de Venda
+        </button>
+        <button
+          onClick={() => setTipoSelecionado('produtos')}
+          className="px-4 py-2 bg-green-600 text-white rounded"
+        >
+          Produtos
+        </button>
       </div>
-    );
-  };
+
+      {tipoSelecionado === 'escolas' && (
+        <FN12_EditorEscolas
+          dadosEscolas={dadosEscolas}
+          setDadosEscolas={setDadosEscolas}
+        />
+      )}
+      {tipoSelecionado === 'produtos' && (
+        <FN13_EditorProdutos
+          dadosProdutos={dadosProdutos}
+          setDadosProdutos={setDadosProdutos}
+        />
+      )}
+    </div>
+  );
+};
 
   // FN12 – Editor de Escolas
   const fn12_EditorEscolas = ({ dadosEscolas, setDadosEscolas }) => {
@@ -789,47 +789,57 @@ return (
       </div>
 
       {/* === RT04 - Lista de Sabores === */}
-      <div className="mb-4">
-        <label>Sabor</label>
-        <select
-          value={sabor}
-          onChange={(e) => setSabor(e.target.value)}
-          className="w-full p-2 rounded border"
-        >
-          <option value="">Selecione</option>
-          {(sabores[produto] || []).map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-      </div>
+{/* === RT04 - Lista de Sabores === */}
+<div className="mb-4">
+  <label>Sabor</label>
+  <select
+    value={sabor}
+    onChange={(e) => setSabor(e.target.value)}
+    className="w-full p-2 rounded border"
+  >
+    <option value="">Selecione</option>
+    {(dadosProdutos[produto] || []).map((s) => (
+      <option key={s} value={s}>{s}</option>
+    ))}
+  </select>
+</div>
 
-      {/* === RT05 - Botões de ação === */}
-      <div className="flex gap-4 mb-6">
-        <button
-          onClick={adicionarPedido}
-          className="bg-green-600 text-white px-4 py-2 rounded"
-        >
-          ➕ Adicionar
-        </button>
-        <button
-          onClick={gerarPDF}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          🧾 Gerar PDF
-        </button>
-        <button
-          onClick={gerarListaCompras}
-          className="bg-yellow-600 text-white px-4 py-2 rounded"
-        >
-          🛒 Lista de Compras
-        </button>
-      </div>
+{/* === RT05 - Botões de ação === */}
+<div className="flex gap-4 mb-6">
+  <button
+    onClick={fn06_adicionarItem}
+    className="bg-green-600 text-white px-4 py-2 rounded"
+  >
+    ➕ Adicionar
+  </button>
+  <button
+    onClick={fn08_gerarPlanejamentoProducao}
+    className="bg-blue-600 text-white px-4 py-2 rounded"
+  >
+    🧾 Gerar PDF
+  </button>
+  <button
+    onClick={fn09_gerarListaCompras}
+    className="bg-yellow-600 text-white px-4 py-2 rounded"
+  >
+    🛒 Lista de Compras
+  </button>
+</div>
+    
+{/* === RT06 - Dados Mestres === */}
+<fn11_PainelDadosMestres
+  tipoSelecionado={tipoSelecionado}
+  setTipoSelecionado={setTipoSelecionado}
+  dadosEscolas={dadosEscolas}
+  setDadosEscolas={setDadosEscolas}
+  dadosProdutos={dadosProdutos}
+  setDadosProdutos={setDadosProdutos}
+/>
 
-      {/* === RT06 - Dados Mestres === */}
-      <PainelDadosMestres />
-    </div>
-  </div>
-);
-// === FIM DO RETURN ===
-};
+    </div> {/* Fecha .max-w-xl */}
+  </div>   {/* Fecha .bg */}
+); // === FIM DO RETURN ===
+
+}; // === FIM DO COMPONENTE App ===
+
 export default App;
