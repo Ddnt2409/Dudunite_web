@@ -143,51 +143,72 @@ const gerarListaCompras = () => {
       insumos.margarina += tabuleiros * 76;
       insumos.ovos += tabuleiros * 190;
 
-      // Recheio
-      const sabor = item.sabor.toLowerCase();
-      const isBranco = sabor.includes('ninho') || sabor.includes('bco') || sabor.includes('maracujá') || sabor.includes('bem casado');
-      const isPreto = sabor.includes('brig') || sabor.includes('oreo') || sabor.includes('ovomaltine') || sabor.includes('palha');
+// === INÍCIO FN04 – Carregar Pedidos com Filtro por Data ===
+const carregarPedidos = async () => {
+  try {
+    const snapshot = await getDocs(collection(db, "pedidos"));
 
-      if (tipo.includes('BRW')) {
-        const rendimento = tipo === 'BRW 7x7' ? 25 : 35;
-        if (isPreto) insumos.recheiosPretos += qtd / rendimento;
-        if (isBranco) insumos.recheiosBrancos += qtd / rendimento;
+    const lista = snapshot.docs.map(doc => {
+      const data = doc.data();
+      let timestamp = data.timestamp;
+
+      // Backup 1: usa dataServidor se timestamp não existir
+      if (!timestamp && data.dataServidor?.seconds) {
+        timestamp = new Timestamp(
+          data.dataServidor.seconds,
+          data.dataServidor.nanoseconds || 0
+        );
       }
 
-      if (tipo.includes('PKT')) {
-        const porUnidade = tipo === 'PKT 5x5' ? 20 : 30;
-        const porBacia = 4 * 395 + 650;
-        const totalGramas = qtd * porUnidade;
-        if (isPreto) insumos.recheiosPretos += totalGramas / porBacia;
-        if (isBranco) insumos.recheiosBrancos += totalGramas / porBacia;
+      // Backup 2: converte string de data antiga
+      if (!timestamp && typeof data.data === 'string') {
+        const d = new Date(data.data);
+        if (!isNaN(d.getTime()) && d.getFullYear() > 2000 && d.getFullYear() < 2100) {
+          timestamp = Timestamp.fromDate(d);
+        }
       }
 
-      if (tipo === 'Esc') {
-        if (isPreto) insumos.recheiosPretos += qtd / 26;
-        if (isBranco) insumos.recheiosBrancos += qtd / 26;
-      }
-    });
-  });
+      return {
+        id: doc.id,
+        ...data,
+        timestamp,
+      };
+    }).filter(p => p.timestamp && typeof p.timestamp.toDate === 'function');
 
-  // Glucose (a cada 6 bacias)
-  const totalBacias = insumos.recheiosPretos + insumos.recheiosBrancos;
-  insumos.glucose = totalBacias >= 6 ? Math.ceil(totalBacias / 6) * 500 : 0;
+    setPedidos(lista);
 
-  // Impressão no PDF
-  Object.entries(insumos).forEach(([nome, valor]) => {
-    const unidade = nome === 'ovos' ? ` (${Math.ceil(valor / 60)} bandejas)` :
-                     nome === 'massas' ? ` (${Math.ceil(valor / 2)} pacotes)` : '';
-    doc.text(`${nome}: ${Math.ceil(valor)}${unidade}`, 10, y);
-    y += 8;
-  });
-
-  const dataHora = new Date().toLocaleString("pt-BR");
-  y += 10;
-  doc.setFontSize(8);
-  doc.text(`Gerado em: ${dataHora}`, 10, y);
-
-  doc.save(`Lista_Compras_Dudunite_${Date.now()}.pdf`);
+    // Aplica filtro por data (se houver)
+    const filtrados = fn05_filtrarPedidos(lista, dataInicio, dataFim);
+    setPedidosFiltrados(filtrados);
+  } catch (err) {
+    console.error("Erro ao carregar pedidos:", err);
+    alert("Erro ao carregar pedidos do banco de dados.");
+  }
 };
+// === FIM FN04 – Carregar Pedidos com Filtro por Data ===
+// === INÍCIO FN05 – Função Auxiliar para Filtrar por Período ===
+const fn05_filtrarPedidos = (lista, dataInicio, dataFim) => {
+  let inicio = new Date(0); // 01/01/1970 – padrão caso dataInicio esteja vazia
+  let fim = new Date(8640000000000000); // Máximo possível no JS
+
+  if (dataInicio) {
+    const dInicio = new Date(`${dataInicio}T00:00:00`);
+    if (!isNaN(dInicio.getTime())) inicio = dInicio;
+  }
+
+  if (dataFim) {
+    const dFim = new Date(`${dataFim}T23:59:59.999`);
+    if (!isNaN(dFim.getTime())) fim = dFim;
+  }
+
+  return lista.filter(p => {
+    if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
+
+    const dataPedido = p.timestamp.toDate();
+    return dataPedido >= inicio && dataPedido <= fim;
+  });
+};
+// === FIM FN05 – Função Auxiliar para Filtrar por Período ===
 // FN06 – Adicionar Item ao Pedido
 const fn06_adicionarItem = () => {
   if (!produto || !sabor || quantidade < 1) {
