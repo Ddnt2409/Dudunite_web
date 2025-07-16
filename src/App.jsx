@@ -871,3 +871,6 @@ return (
   </div>
 );
 // === FIM DO RETURN ===
+};
+
+export default App;
