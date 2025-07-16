@@ -73,76 +73,50 @@ const App = () => {
     setDadosProdutos(produtosFixos);
   }, []);
 
-// // FN04 – Carregar Pedidos do Firestore (com fallback de dataServidor e validação de Timestamp)
-const fn04_carregarPedidos = async () => {
-  try {
-    const snapshot = await getDocs(collection(db, "pedidos"));
+// === BLOCO FN04 – Filtrar Pedidos para Planejamento === const filtrarPedidosPlanejamento = async () => { try { let pedidosSnapshot;
 
-    const totalDocs = snapshot.docs.length;
-    alert(`Total de documentos encontrados na coleção: ${totalDocs}`);
+if (dataInicio && dataFim) {
+  const inicio = new Date(`${dataInicio}T00:00:00`);
+  const fim = new Date(`${dataFim}T23:59:59`);
 
-    if (totalDocs === 0) {
-      alert("Nenhum pedido carregado.");
-      setPedidos([]);
-      setPedidosFiltrados([]);
-      return;
-    }
+  pedidosSnapshot = await getDocs(
+    query(
+      collection(db, 'pedidos'),
+      where('data', ">=", Timestamp.fromDate(inicio)),
+      where('data', "<=", Timestamp.fromDate(fim))
+    )
+  );
+} else {
+  pedidosSnapshot = await getDocs(collection(db, 'pedidos'));
+}
 
-    const lista = snapshot.docs.map(doc => {
-      const data = doc.data();
-      let timestamp = data.timestamp;
+const pedidosFiltrados = pedidosSnapshot.docs.map(doc => doc.data());
+setPedidos(pedidosFiltrados);
 
-      if (!timestamp && data.dataServidor?.seconds) {
-        timestamp = new Timestamp(
-          data.dataServidor.seconds,
-          data.dataServidor.nanoseconds || 0
-        );
-      }
+} catch (error) { console.error("Erro ao filtrar pedidos para planejamento:", error); } };
 
-      if (!timestamp && typeof data.data === 'string') {
-        const d = new Date(data.data);
-        if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
-          timestamp = Timestamp.fromDate(d);
-        }
-      }
+// === BLOCO FN05 – Filtrar Pedidos para Lista de Compras === const filtrarPedidosCompras = async () => { try { let pedidosSnapshot;
 
-      return {
-        id: doc.id,
-        ...data,
-        timestamp,
-      };
-    }).filter(p => p.timestamp && typeof p.timestamp.toDate === 'function');
+if (dataInicio && dataFim) {
+  const inicio = new Date(`${dataInicio}T00:00:00`);
+  const fim = new Date(`${dataFim}T23:59:59`);
 
-    setPedidos(lista);
-    const filtrados = fn05_filtrarPedidos(lista, dataInicio, dataFim);
-    setPedidosFiltrados(filtrados);
-  } catch (err) {
-    console.error("Erro ao carregar pedidos:", err);
-    alert("Erro ao carregar pedidos do banco de dados.");
-  }
-};
-  // FN05 – inicio
-const fn05_filtrarPedidos = (lista, dataInicio, dataFim) => {
-  let inicio = new Date(0); // 01/01/1970
-  let fim = new Date(8640000000000000); // data máxima possível no JS (ano 275760)
+  pedidosSnapshot = await getDocs(
+    query(
+      collection(db, 'pedidos'),
+      where('data', ">=", Timestamp.fromDate(inicio)),
+      where('data', "<=", Timestamp.fromDate(fim))
+    )
+  );
+} else {
+  pedidosSnapshot = await getDocs(collection(db, 'pedidos'));
+}
 
-  if (dataInicio) {
-    const dInicio = new Date(`${dataInicio}T00:00:00`);
-    if (!isNaN(dInicio.getTime())) inicio = dInicio;
-  }
+const pedidosFiltrados = pedidosSnapshot.docs.map(doc => doc.data());
+setPedidos(pedidosFiltrados);
 
-  if (dataFim) {
-    const dFim = new Date(`${dataFim}T23:59:59.999`);
-    if (!isNaN(dFim.getTime())) fim = dFim;
-  }
+} catch (error) { console.error("Erro ao filtrar pedidos para lista de compras:", error); } };
 
-  return lista.filter((p) => {
-    if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
-
-    const dataPedido = p.timestamp.toDate(); // Transforma timestamp Firebase em Date JS
-    return dataPedido >= inicio && dataPedido <= fim;
-  });
-};
 // FN06 – Adicionar Item ao Pedido
 const fn06_adicionarItem = () => {
   if (!produto || !sabor || quantidade < 1) {
