@@ -835,39 +835,156 @@ const fn15_totalItens = itens.reduce((total, item) => total + Number(item.quanti
           <button
             onClick={fn08_gerarPlanejamentoProducao}
             className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800"
-          >
-            📋 Planejamento de Produção
-          </button>
-          <button
-            onClick={fn09_gerarListaCompras}
-            className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800"
-          >
-            🧾 Lista de Compras
-          </button>
-          <button
-            onClick={fn14_toggleDadosMestres}
-            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
-          >
-            ⚙️ Dados Mestres
-          </button>
-        </div>
+          >// === INÍCIO DO RETURN ===
+return (
+  <div className="max-w-4xl mx-auto p-4 bg-[#fff5ec] min-h-screen">
 
-{/* === RT06 - Painel Dados Mestres === */}
-{mostrarDadosMestres && (
-  <div className="mt-6">
-    <Fn11_PainelDadosMestres
-      tipoSelecionado={tipoSelecionado}
-      setTipoSelecionado={setTipoSelecionado}
-      dadosEscolas={dadosEscolas}
-      setDadosEscolas={setDadosEscolas}
-      dadosProdutos={dadosProdutos}
-      setDadosProdutos={setDadosProdutos}
-    />
+    {/* === RT01 – Cabeçalho === */}
+    <div className="text-center mb-6">
+      <img src={logoPath} alt="Logomarca" className="mx-auto h-20" />
+      <h1 className="text-2xl font-bold text-[#8c3b1b] mt-2">Dudunitê – Sistema de Pedidos</h1>
+    </div>
+    {/* === FIM RT01 === */}
+
+    {/* === RT02 – Formulário de Pedidos === */}
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+      <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="p-2 rounded">
+        <option value="">Cidade</option>
+        {Object.keys(dados).map((cidade) => (
+          <option key={cidade} value={cidade}>{cidade}</option>
+        ))}
+      </select>
+
+      <select value={escola} onChange={(e) => setEscola(e.target.value)} className="p-2 rounded">
+        <option value="">Escola</option>
+        {dados[cidade]?.map((escola) => (
+          <option key={escola} value={escola}>{escola}</option>
+        ))}
+      </select>
+
+      <select value={produto} onChange={(e) => setProduto(e.target.value)} className="p-2 rounded">
+        <option value="">Produto</option>
+        {produtos.map((produto) => (
+          <option key={produto} value={produto}>{produto}</option>
+        ))}
+      </select>
+
+      <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="p-2 rounded">
+        <option value="">Sabor</option>
+        {saboresFiltrados.map((sabor) => (
+          <option key={sabor} value={sabor}>{sabor}</option>
+        ))}
+      </select>
+
+      <input
+        type="number"
+        min="1"
+        value={quantidade}
+        onChange={(e) => setQuantidade(Number(e.target.value))}
+        className="p-2 rounded"
+        placeholder="Qtd"
+      />
+
+      <button
+        onClick={adicionarItem}
+        className="bg-[#8c3b1b] text-white px-4 py-2 rounded"
+      >
+        ➕ Adicionar
+      </button>
+    </div>
+    {/* === FIM RT02 === */}
+
+    {/* === RT03 – Lista de Itens === */}
+    <ul className="mb-6">
+      {itens.map((item, index) => (
+        <li key={index} className="mb-1 text-sm">
+          {item.cidade} - {item.escola} - {item.produto} - {item.sabor} - {item.quantidade} und
+        </li>
+      ))}
+    </ul>
+    {/* === FIM RT03 === */}
+
+    {/* === RT04 – Botões Ação Pedidos === */}
+    <div className="flex flex-wrap gap-3 mb-8">
+      <button
+        onClick={salvarPedido}
+        className="bg-green-600 text-white px-4 py-2 rounded"
+      >
+        💾 Salvar Pedido
+      </button>
+
+      <button
+        onClick={gerarPlanejamento}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        📋 Gerar Planejamento
+      </button>
+
+      <button
+        onClick={gerarListaCompras}
+        className="bg-yellow-600 text-white px-4 py-2 rounded"
+      >
+        🛒 Lista de Compras
+      </button>
+    </div>
+    {/* === FIM RT04 === */}
+
+    {/* === RT05 – Filtros de Data === */}
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+      <input
+        type="date"
+        value={dataInicio}
+        onChange={(e) => setDataInicio(e.target.value)}
+        className="p-2 rounded"
+      />
+      <input
+        type="date"
+        value={dataFim}
+        onChange={(e) => setDataFim(e.target.value)}
+        className="p-2 rounded"
+      />
+      <button
+        onClick={filtrarPorData}
+        className="bg-[#8c3b1b] text-white px-4 py-2 rounded"
+      >
+        🔍 Filtrar
+      </button>
+    </div>
+    {/* === FIM RT05 === */}
+
+    {/* === RT06 – Tabela de Pedidos Filtrados === */}
+    <table className="w-full text-sm border mt-6">
+      <thead>
+        <tr className="bg-[#8c3b1b] text-white">
+          <th className="p-2 border">Data</th>
+          <th className="p-2 border">Cidade</th>
+          <th className="p-2 border">Escola</th>
+          <th className="p-2 border">Produto</th>
+          <th className="p-2 border">Sabor</th>
+          <th className="p-2 border">Qtd</th>
+        </tr>
+      </thead>
+      <tbody>
+        {pedidosFiltrados.map((pedido, index) => (
+          <tr key={index}>
+            <td className="border p-1">{formatarDataHora(pedido.timestamp)}</td>
+            <td className="border p-1">{pedido.cidade}</td>
+            <td className="border p-1">{pedido.escola}</td>
+            <td className="border p-1">{pedido.produto}</td>
+            <td className="border p-1">{pedido.sabor}</td>
+            <td className="border p-1">{pedido.quantidade}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    {/* === FIM RT06 === */}
+
+    {/* === RT07 – Rodapé === */}
+    <div className="text-center text-xs text-gray-500 mt-8 mb-4">
+      Sistema desenvolvido para Dudunitê 🍫 – Todos os direitos reservados.
+    </div>
+    {/* === FIM RT07 === */}
+
   </div>
-)}
-</div>
-</div>
 );
-};
-
-export default App;
+// === FIM DO RETURN ===
