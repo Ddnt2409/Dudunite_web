@@ -825,16 +825,19 @@ return (
 </div>
     
 {/* === RT06 - Dados Mestres === */}
-<Fn11_PainelDadosMestres
+{/* Esse painel era opcional e ainda não estava ativado no Porto Seguro 002 */}
+{/* <Fn11_PainelDadosMestres
   tipoSelecionado={tipoSelecionado}
   setTipoSelecionado={setTipoSelecionado}
   dadosEscolas={dadosEscolas}
   setDadosEscolas={setDadosEscolas}
   dadosProdutos={dadosProdutos}
   setDadosProdutos={setDadosProdutos}
-/>
-</div> {/* Fecha .max-w-xl */}
-</div> {/* Fecha .bg */}
+/> */}
+
+    </div> {/* Fecha .max-w-xl */}
+  </div> {/* Fecha .bg */}
+); // === FIM DO RETURN ===
 
 ); // === FIM DO RETURN ===
 }; // === FIM DO COMPONENTE App ===
