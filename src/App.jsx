@@ -1,4 +1,4 @@
-// === BLOCO 1 – Início ===
+// === BLOCO 1 – Início dorcar deploy===
 // FN01 – Importações Gerais
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
