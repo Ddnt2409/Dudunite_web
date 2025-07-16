@@ -852,21 +852,21 @@ const fn15_totalItens = itens.reduce((total, item) => total + Number(item.quanti
           </button>
         </div>
 
-        {/* === RT06 – Painel Dados Mestres === */}
-        {mostrarDadosMestres && (
-          <div className="mt-6">
-            <fn11_PainelDadosMestres
-              tipoSelecionado={tipoSelecionado}
-              setTipoSelecionado={setTipoSelecionado}
-              dadosEscolas={dadosEscolas}
-              setDadosEscolas={setDadosEscolas}
-              dadosProdutos={dadosProdutos}
-              setDadosProdutos={setDadosProdutos}
-            />
-          </div>
-        )}
-      </div>
-    </div>
+{/* === RT06 - Painel Dados Mestres === */}
+{mostrarDadosMestres && (
+  <div className="mt-6">
+    <Fn11_PainelDadosMestres
+      tipoSelecionado={tipoSelecionado}
+      setTipoSelecionado={setTipoSelecionado}
+      dadosEscolas={dadosEscolas}
+      setDadosEscolas={setDadosEscolas}
+      dadosProdutos={dadosProdutos}
+      setDadosProdutos={setDadosProdutos}
+    />
+  </div>
+)}
+</div>
+</div>
 );
 };
 
