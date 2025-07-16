@@ -868,7 +868,7 @@ return (
           setDadosProdutos={setDadosProdutos}
         />
       )}
-    </div>) {/* Fecha o container principal do return */}
+    </div>)) {/* Fecha o container principal do return */}
   );
   // === FIM DO RETURN ===
 };
