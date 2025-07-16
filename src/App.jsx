@@ -158,36 +158,42 @@ const fn06_adicionarItem = () => {
   setSabor('');
   setQuantidade(1);
 };
-  // FN07 – Salvar Pedido no Firestore
-  const fn07_salvarPedido = async () => {
-    if (!cidade || !escola || itens.length === 0) {
-      alert("Preencha cidade, escola e ao menos um item.");
-      return;
-    }
+// === FN07 – salvarPedido ===
+const fn07_salvarPedido = async () => {
+  if (!cidade || !escola || !produto || !sabor || quantidade <= 0) {
+    alert("Preencha todos os campos e adicione pelo menos 1 item.");
+    return;
+  }
+
+  try {
+    const dataAtual = new Date();
+    const itemAtual = {
+      produto,
+      sabor,
+      quantidade: Number(quantidade)
+    };
 
     const novoPedido = {
       cidade,
       escola,
-      itens,
-      timestamp: serverTimestamp(),
+      produto,
+      data: dataAtual.toISOString(),
+      dataServidor: dataAtual.toLocaleString("pt-BR", {
+        timeZone: "America/Recife",
+      }),
+      itens: [itemAtual],
     };
 
-    try {
-      await addDoc(collection(db, "pedidos"), novoPedido);
-      alert("Pedido salvo com sucesso!");
-      setItens([]);
-      setCidade('');
-      setEscola('');
-      setProduto('');
-      setSabor('');
-      setQuantidade(1);
-      carregarPedidos();
-    } catch (error) {
-      console.error("Erro ao salvar pedido:", error);
-      alert("Erro ao salvar pedido. Tente novamente.");
-    }
-  };
+    await addDoc(collection(db, "pedidos"), novoPedido);
 
+    alert("Pedido salvo com sucesso!");
+    setItens([]);
+    setQuantidade(1);
+  } catch (erro) {
+    console.error("Erro ao salvar pedido:", erro);
+    alert("Erro ao salvar pedido. Tente novamente.");
+  }
+};
 // FN08 – Gerar Planejamento de Produção (PDF)
 const fn08_gerarPlanejamentoProducao = () => {
   if (!pedidos.length) {
