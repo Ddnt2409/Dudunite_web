@@ -857,20 +857,19 @@ return (
       </div>
 
 </div>
-{/* === RT06 - Painel de Dados Mestres === */}
-{mostrarDadosMestres && (
-  <PainelDadosMestres
-    tipoSelecionado={tipoSelecionado}
-    setTipoSelecionado={setTipoSelecionado}
-    dadosEscolas={dadosEscolas}
-    setDadosEscolas={setDadosEscolas}
-    dadosProdutos={dadosProdutos}
-    setDadosProdutos={setDadosProdutos}
-  />
-)}
-</div>
-);
+{/* === RT06 – Painel de Dados Mestres === */}
+      {mostrarDadosMestres && (
+        <PainelDadosMestres
+          tipoSelecionado={tipoSelecionado}
+          setTipoSelecionado={setTipoSelecionado}
+          dadosEscolas={dadosEscolas}
+          setDadosEscolas={setDadosEscolas}
+          dadosProdutos={dadosProdutos}
+          setDadosProdutos={setDadosProdutos}
+        />
+      )}
+    </div>
+  );
   // === FIM DO RETURN ===
 };
 export default App;
-  
