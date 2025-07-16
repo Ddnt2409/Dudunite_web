@@ -1,4 +1,4 @@
-// === BLOCO 1 forçar deploy
+// === BLOCO 1
 // FN01 – Importações Gerais
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
@@ -497,7 +497,7 @@ const fn09_gerarListaCompras = () => {
   };
 
 // FN11 – Painel Dados Mestres
-const fn11_PainelDadosMestres = ({
+const Fn11_PainelDadosMestres = ({
   tipoSelecionado,
   setTipoSelecionado,
   dadosEscolas,
@@ -524,13 +524,13 @@ const fn11_PainelDadosMestres = ({
       </div>
 
       {tipoSelecionado === 'escolas' && (
-        <FN12_EditorEscolas
+        <Fn12_EditorEscolas
           dadosEscolas={dadosEscolas}
           setDadosEscolas={setDadosEscolas}
         />
       )}
       {tipoSelecionado === 'produtos' && (
-        <FN13_EditorProdutos
+        <Fn13_EditorProdutos
           dadosProdutos={dadosProdutos}
           setDadosProdutos={setDadosProdutos}
         />
@@ -538,7 +538,6 @@ const fn11_PainelDadosMestres = ({
     </div>
   );
 };
-
   // FN12 – Editor de Escolas
   const fn12_EditorEscolas = ({ dadosEscolas, setDadosEscolas }) => {
     return (
@@ -826,7 +825,7 @@ return (
 </div>
     
 {/* === RT06 - Dados Mestres === */}
-<fn11_PainelDadosMestres
+<Fn11_PainelDadosMestres
   tipoSelecionado={tipoSelecionado}
   setTipoSelecionado={setTipoSelecionado}
   dadosEscolas={dadosEscolas}
@@ -834,7 +833,6 @@ return (
   dadosProdutos={dadosProdutos}
   setDadosProdutos={setDadosProdutos}
 />
-
 </div> {/* Fecha .max-w-xl */}
 </div> {/* Fecha .bg */}
 
