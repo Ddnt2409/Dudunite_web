@@ -869,4 +869,3 @@ const fn15_totalItens = itens.reduce((total, item) => total + Number(item.quanti
     </div>
 );
   });
-default App;
