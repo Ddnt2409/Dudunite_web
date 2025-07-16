@@ -836,9 +836,7 @@ return (
 /> */}
 
     </div> {/* Fecha .max-w-xl */}
-  </div> {/* Fecha .bg */}
-); // === FIM DO RETURN ===
-
+</div> {/* Fecha .bg */}
 ); // === FIM DO RETURN ===
 }; // === FIM DO COMPONENTE App ===
 
