@@ -654,7 +654,7 @@ return (
       </div>
       {/* === FIM RT02 === */}
 
-      {/* === INÍCIO RT03 – Campos do pedido === */}
+{/* === INÍCIO RT03 – Campos do pedido === */}
 <div className="grid grid-cols-2 gap-4 mb-4">
   <div>
     <label>Cidade</label>
@@ -726,14 +726,14 @@ return (
       <button
         type="button"
         onClick={adicionarItem}
-        className="ml-4 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800"
+        className="ml-4 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
       >
-        ➕ Adicionar ao Pedido
+        <span className="text-xl">➕</span> <span>Adicionar ao Pedido</span>
       </button>
     </div>
   </div>
 </div>
-      {/* === FIM RT03 ===*/}
+{/* === FIM RT03 === */}
       
       {/* === INÍCIO RT04 – Lista de Itens e botão Salvar Pedido === */}
       {itens.length > 0 && (
