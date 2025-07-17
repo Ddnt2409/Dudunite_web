@@ -726,9 +726,9 @@ return (
       <button
         type="button"
         onClick={adicionarItem}
-        className="ml-4 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
+        className="ml-4 bg-[#8c3b1b] hover:bg-[#732f16] text-white font-semibold py-2 px-3 rounded flex items-center gap-1 text-sm"
       >
-        <span className="text-xl">➕</span> <span>Adicionar ao Pedido</span>
+        <span className="text-lg">➕</span> <span>Adicionar</span>
       </button>
     </div>
   </div>
