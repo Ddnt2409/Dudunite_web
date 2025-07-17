@@ -487,23 +487,20 @@ const gerarListaCompras = () => {
   doc.save(nomePDF);
 };
 // === FIM FN15 ===
-// ✅ FN16 – filtrarPedidosPorData (VERSÃO AJUSTADA PARA PEGAR TODOS OS PEDIDOS QUANDO DATAS VAZIAS)
+// === INÍCIO FN16 – filtrarPedidosPorData (atualizada com escopo completo) ===
 const filtrarPedidosPorData = () => {
-  let inicio = new Date(0); // início muito antigo
-  let fim = new Date(8640000000000000); // fim muito distante
+  let inicio, fim;
 
-  if (dataInicio) {
-    const dInicio = new Date(`${dataInicio}T00:00:00`);
-    if (!isNaN(dInicio.getTime())) {
-      inicio = dInicio;
-    }
+  if (!dataInicio) {
+    inicio = new Date("1900-01-01T00:00:00");
+  } else {
+    inicio = new Date(`${dataInicio}T00:00:00`);
   }
 
-  if (dataFim) {
-    const dFim = new Date(`${dataFim}T23:59:59.999`);
-    if (!isNaN(dFim.getTime())) {
-      fim = dFim;
-    }
+  if (!dataFim) {
+    fim = new Date("2050-12-31T23:59:59.999");
+  } else {
+    fim = new Date(`${dataFim}T23:59:59.999`);
   }
 
   return pedidos.filter((p) => {
