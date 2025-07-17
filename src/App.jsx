@@ -19,7 +19,107 @@ const logoPath = "/LogomarcaDDnt2025Vazado.png";
 const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
 // FN02 - FINAL//
-// === INÍCIO FN03 – Gerar Planejamento de Produção ===
+// === INÍCIO FN03 – Espaço vazio ===
+// Bloco 2 – Estados e Funções Iniciais
+// Fn04 – Estados Gerais do App
+const App = () => {
+  const [cidade, setCidade] = useState('');
+  const [escola, setEscola] = useState('');
+  const [produto, setProduto] = useState('');
+  const [sabor, setSabor] = useState('');
+  const [quantidade, setQuantidade] = useState(1);
+  const [itens, setItens] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
+  const [filtroDia, setFiltroDia] = useState('');
+  const [filtroMes, setFiltroMes] = useState('');
+  const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
+  const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
+  const [novaEscola, setNovaEscola] = useState('');
+  const [novoProduto, setNovoProduto] = useState('');
+  const [novoSabor, setNovoSabor] = useState('');
+
+// ✅ FN04b – carregarPedidos: busca pedidos e aplica filtro com compatibilidade retroativa
+// ✅ FN04b – carregarPedidos: valida timestamps e exclui pedidos malformados
+const carregarPedidos = async () => {
+  try {
+    const snapshot = await getDocs(collection(db, "pedidos"));
+    const lista = snapshot.docs.map(doc => {
+      const data = doc.data();
+
+      let timestamp = data.timestamp;
+
+      // Compatibilidade com pedidos antigos
+      if (!timestamp && data.dataServidor?.seconds) {
+        timestamp = new Timestamp(
+          data.dataServidor.seconds,
+          data.dataServidor.nanoseconds || 0
+        );
+      }
+
+      if (!timestamp && typeof data.data === 'string') {
+        const d = new Date(data.data);
+        if (!isNaN(d.getTime()) && d.getFullYear() > 2000 && d.getFullYear() < 2100) {
+          timestamp = Timestamp.fromDate(d);
+        }
+      }
+
+      return {
+        id: doc.id,
+        ...data,
+        timestamp // pode ainda ser null se inválido
+      };
+    })
+    // 🔍 EXCLUI explicitamente os pedidos sem timestamp válido
+    .filter(p => p.timestamp && typeof p.timestamp.toDate === 'function');
+
+    setPedidos(lista);
+
+    const filtrados = fn05_filtrarPedidos(lista, dataInicio, dataFim);
+    setPedidosFiltrados(filtrados);
+  } catch (err) {
+    console.error("Erro ao carregar pedidos:", err);
+    alert("Erro ao carregar pedidos do banco de dados.");
+  }
+};
+// ✅ FN04b – FIM (atualizada com filtro forte)
+  // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
+
+  // fn05 - inicio //
+// === INÍCIO FN05 – Filtrar Pedidos com Intervalo Seguro (1900–2050) ===
+function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
+  if (!Array.isArray(pedidos)) return [];
+
+  const parseData = (data, isInicio) => {
+    if (!data) {
+      return isInicio
+        ? new Date('1900-01-01T00:00:00')
+        : new Date('2050-12-31T23:59:59.999');
+    }
+
+    const parsed = new Date(data);
+    if (isNaN(parsed)) {
+      return isInicio
+        ? new Date('1900-01-01T00:00:00')
+        : new Date('2050-12-31T23:59:59.999');
+    }
+
+    parsed.setHours(isInicio ? 0 : 23, isInicio ? 0 : 59, isInicio ? 0 : 59, isInicio ? 0 : 999);
+    return parsed;
+  };
+
+  const dataLimiteInicio = parseData(dataInicio, true);
+  const dataLimiteFim = parseData(dataFim, false);
+
+  return pedidos.filter((pedido) => {
+    if (!pedido.timestamp || typeof pedido.timestamp.toDate !== 'function') return false;
+    const dataPedido = pedido.timestamp.toDate();
+    return dataPedido >= dataLimiteInicio && dataPedido <= dataLimiteFim;
+  });
+}
+// === FIM FN05 ===
+// === INÍCIO FN05a – Gerar Planejamento de Produção (interna ao App) ===
 const gerarPlanejamentoProducao = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
 
@@ -131,106 +231,7 @@ const gerarPlanejamentoProducao = () => {
 
   doc.save("planejamento_producao.pdf");
 };
-// === FIM FN03 ===
-// Bloco 2 – Estados e Funções Iniciais
-// Fn04 – Estados Gerais do App
-const App = () => {
-  const [cidade, setCidade] = useState('');
-  const [escola, setEscola] = useState('');
-  const [produto, setProduto] = useState('');
-  const [sabor, setSabor] = useState('');
-  const [quantidade, setQuantidade] = useState(1);
-  const [itens, setItens] = useState([]);
-  const [pedidos, setPedidos] = useState([]);
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
-  const [filtroDia, setFiltroDia] = useState('');
-  const [filtroMes, setFiltroMes] = useState('');
-  const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
-  const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
-  const [novaEscola, setNovaEscola] = useState('');
-  const [novoProduto, setNovoProduto] = useState('');
-  const [novoSabor, setNovoSabor] = useState('');
-
-// ✅ FN04b – carregarPedidos: busca pedidos e aplica filtro com compatibilidade retroativa
-// ✅ FN04b – carregarPedidos: valida timestamps e exclui pedidos malformados
-const carregarPedidos = async () => {
-  try {
-    const snapshot = await getDocs(collection(db, "pedidos"));
-    const lista = snapshot.docs.map(doc => {
-      const data = doc.data();
-
-      let timestamp = data.timestamp;
-
-      // Compatibilidade com pedidos antigos
-      if (!timestamp && data.dataServidor?.seconds) {
-        timestamp = new Timestamp(
-          data.dataServidor.seconds,
-          data.dataServidor.nanoseconds || 0
-        );
-      }
-
-      if (!timestamp && typeof data.data === 'string') {
-        const d = new Date(data.data);
-        if (!isNaN(d.getTime()) && d.getFullYear() > 2000 && d.getFullYear() < 2100) {
-          timestamp = Timestamp.fromDate(d);
-        }
-      }
-
-      return {
-        id: doc.id,
-        ...data,
-        timestamp // pode ainda ser null se inválido
-      };
-    })
-    // 🔍 EXCLUI explicitamente os pedidos sem timestamp válido
-    .filter(p => p.timestamp && typeof p.timestamp.toDate === 'function');
-
-    setPedidos(lista);
-
-    const filtrados = fn05_filtrarPedidos(lista, dataInicio, dataFim);
-    setPedidosFiltrados(filtrados);
-  } catch (err) {
-    console.error("Erro ao carregar pedidos:", err);
-    alert("Erro ao carregar pedidos do banco de dados.");
-  }
-};
-// ✅ FN04b – FIM (atualizada com filtro forte)
-  // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
-
-  // fn05 - inicio //
-// === INÍCIO FN05 – Filtrar Pedidos com Intervalo Seguro (1900–2050) ===
-function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
-  if (!Array.isArray(pedidos)) return [];
-
-  const parseData = (data, isInicio) => {
-    if (!data) {
-      return isInicio
-        ? new Date('1900-01-01T00:00:00')
-        : new Date('2050-12-31T23:59:59.999');
-    }
-
-    const parsed = new Date(data);
-    if (isNaN(parsed)) {
-      return isInicio
-        ? new Date('1900-01-01T00:00:00')
-        : new Date('2050-12-31T23:59:59.999');
-    }
-
-    parsed.setHours(isInicio ? 0 : 23, isInicio ? 0 : 59, isInicio ? 0 : 59, isInicio ? 0 : 999);
-    return parsed;
-  };
-
-  const dataLimiteInicio = parseData(dataInicio, true);
-  const dataLimiteFim = parseData(dataFim, false);
-
-  return pedidos.filter((pedido) => {
-    if (!pedido.timestamp || typeof pedido.timestamp.toDate !== 'function') return false;
-    const dataPedido = pedido.timestamp.toDate();
-    return dataPedido >= dataLimiteInicio && dataPedido <= dataLimiteFim;
-  });
-}
-// === FIM FN05 ===
+// === FIM FN05a ===
 // Fn06 – Formata data ISO para DD/MM/AAAA
 const formatarData = (isoString) => {
   const data = new Date(isoString);
