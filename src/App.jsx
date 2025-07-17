@@ -190,30 +190,103 @@ const carregarPedidos = async () => {
 // ✅ FN04b – FIM (atualizada com filtro forte)
   // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
 
-// ✅ FN05 – corrigida: filtro com horas bem definidas
-function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
-  if (!Array.isArray(pedidos)) return [];
+// === INÍCIO FN05 – gerarListaCompras ===
+const gerarListaCompras = () => {
+  const pedidosFiltradosPorData = pedidos.filter((pedido) => {
+    if (!dataInicio || !dataFim) return true;
 
-  const parseData = (data, isInicio) => {
-    if (!data) return isInicio ? new Date(0) : new Date(8640000000000000);
-    const parsed = new Date(data);
-    if (isNaN(parsed)) return isInicio ? new Date(0) : new Date(8640000000000000);
+    const inicio = new Date(`${dataInicio}T00:00:00`);
+    const fim = new Date(`${dataFim}T23:59:59`);
+    const dataPedido = new Date(pedido.data?.seconds * 1000);
 
-    // ⏰ Ajuste explícito de hora para o início/fim do dia
-    parsed.setHours(isInicio ? 0 : 23, isInicio ? 0 : 59, isInicio ? 0 : 59, isInicio ? 0 : 999);
-    return parsed;
+    return dataPedido >= inicio && dataPedido <= fim;
+  });
+
+  if (pedidosFiltradosPorData.length === 0) {
+    alert("Nenhum pedido encontrado no intervalo selecionado.");
+    return;
+  }
+
+  const totais = {
+    margarina: 0,
+    ovos: 0,
+    massa: 0,
+    baciasBranco: 0,
+    baciasPreto: 0,
+    glucose: 0,
   };
 
-  const dataLimiteInicio = parseData(dataInicio, true);
-  const dataLimiteFim = parseData(dataFim, false);
+  pedidosFiltradosPorData.forEach((pedido) => {
+    pedido.itens?.forEach((item) => {
+      const { produto, quantidade, sabor } = item;
 
-  return pedidos.filter((pedido) => {
-    if (!pedido.timestamp || typeof pedido.timestamp.toDate !== 'function') return false;
-    const dataPedido = pedido.timestamp.toDate();
-    return dataPedido >= dataLimiteInicio && dataPedido <= dataLimiteFim;
+      // === TABULEIROS ===
+      let tabuleiros = 0;
+      if (produto === "BRW 7x7") tabuleiros = quantidade / 12;
+      if (produto === "BRW 6x6") tabuleiros = quantidade / 17;
+      if (produto === "PKT 5x5") tabuleiros = quantidade / 20;
+      if (produto === "PKT 6x6") tabuleiros = quantidade / 15;
+      if (produto === "Esc") tabuleiros = quantidade / 26;
+
+      totais.margarina += tabuleiros * 76;
+      totais.ovos += tabuleiros * 190;
+      totais.massa += tabuleiros * 900;
+
+      // === RECHEIOS ===
+      const saboresBrancos = [
+        "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho",
+        "Brigadeiro branco", "Brigadeiro branco com confete", "Paçoca",
+        "Bem casado", "KitKat"
+      ];
+      const saboresPretos = [
+        "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana",
+        "Bem casado"
+      ];
+
+      // === Bacia padrão ===
+      let unidadesPorBacia = 1;
+      if (produto === "BRW 7x7") unidadesPorBacia = 25;
+      if (produto === "BRW 6x6") unidadesPorBacia = 35;
+      if (produto === "Esc") unidadesPorBacia = 26;
+      if (produto === "PKT 5x5") unidadesPorBacia = 900 / 20; // 900g por bacia
+      if (produto === "PKT 6x6") unidadesPorBacia = 900 / 30;
+
+      const bacias = quantidade / unidadesPorBacia;
+
+      if (sabor === "Bem casado") {
+        totais.baciasBranco += bacias / 2;
+        totais.baciasPreto += bacias / 2;
+      } else if (saboresBrancos.includes(sabor)) {
+        totais.baciasBranco += bacias;
+      } else if (saboresPretos.includes(sabor)) {
+        totais.baciasPreto += bacias;
+      }
+    });
   });
-}
-// ✅ FN05 – FIM
+
+  totais.glucose = Math.floor((totais.baciasBranco + totais.baciasPreto) / 6) * 500;
+
+  const doc = new jsPDF();
+  doc.setFontSize(16);
+  doc.text("Lista de Compras", 20, 20);
+
+  doc.setFontSize(12);
+  let y = 40;
+  doc.text(`Margarina: ${totais.margarina.toFixed(2)} g`, 20, y);
+  y += 10;
+  doc.text(`Ovos: ${(totais.ovos / 60).toFixed(2)} bandejas (30 ovos cada)`, 20, y);
+  y += 10;
+  doc.text(`Mistura para Brownie: ${(totais.massa / 450).toFixed(2)} pacotes`, 20, y);
+  y += 10;
+  doc.text(`Recheio Branco: ${totais.baciasBranco.toFixed(2)} bacias`, 20, y);
+  y += 10;
+  doc.text(`Recheio Preto: ${totais.baciasPreto.toFixed(2)} bacias`, 20, y);
+  y += 10;
+  doc.text(`Xarope de Glucose: ${(totais.glucose / 500).toFixed(0)} potes (500g cada)`, 20, y);
+
+  doc.save("lista_compras.pdf");
+};
+// === FIM FN05 ===
 // Fn06 – Formata data ISO para DD/MM/AAAA
 const formatarData = (isoString) => {
   const data = new Date(isoString);
