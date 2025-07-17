@@ -121,9 +121,7 @@ function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
 // === FIM FN05 ===
 // === INÍCIO FN05a – Gerar Planejamento de Produção (interna ao App) ===
 const gerarPlanejamentoProducao = () => {
-  const pedidosFiltrados = fn05_filtrarPedidos(pedidos, dataInicio, dataFim);
-
-  if (pedidosFiltrados.length === 0) {
+  if (!Array.isArray(pedidosFiltrados) || pedidosFiltrados.length === 0) {
     alert("Nenhum pedido encontrado no período selecionado.");
     return;
   }
@@ -229,7 +227,15 @@ const gerarPlanejamentoProducao = () => {
   doc.text(`Total de Bacias de Recheio Branco: ${totalBaciasBranco.toFixed(1)}`, 14, y); y += 6;
   doc.text(`Total de Bacias de Recheio Preto: ${totalBaciasPreto.toFixed(1)}`, 14, y);
 
-  doc.save("planejamento_producao.pdf");
+  const agora = new Date();
+  const dia = String(agora.getDate()).padStart(2, '0');
+  const mes = String(agora.getMonth() + 1).padStart(2, '0');
+  const ano = agora.getFullYear();
+  const hora = String(agora.getHours()).padStart(2, '0');
+  const minuto = String(agora.getMinutes()).padStart(2, '0');
+  const nomePDF = `planejamento-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
+
+  doc.save(nomePDF);
 };
 // === FIM FN05a ===
 
