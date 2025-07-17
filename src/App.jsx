@@ -654,87 +654,77 @@ return (
       </div>
       {/* === FIM RT02 === */}
 
-// === INÍCIO RT03 – Campos do pedido ===
-<div className="grid grid-cols-2 gap-4 mb-4">
+{/* === INÍCIO RT03 – Campos do pedido === */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
   <div>
-    <label>Cidade</label>
-    <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
+    <label className="block mb-1 font-medium">Cidade</label>
+    <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 border rounded">
       <option value="">Selecione</option>
-      {Object.keys(dadosEscolas).map((c) => (
-        <option key={c} value={c}>{c}</option>
+      {Object.keys(dados).map((cidade, index) => (
+        <option key={index} value={cidade}>{cidade}</option>
       ))}
     </select>
   </div>
 
   <div>
-    <label>Escola</label>
-    <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
+    <label className="block mb-1 font-medium">Escola</label>
+    <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 border rounded">
       <option value="">Selecione</option>
-      {dadosEscolas[cidade]?.map((e) => (
-        <option key={e} value={e}>{e}</option>
+      {(dados[cidade] || []).map((escola, index) => (
+        <option key={index} value={escola}>{escola}</option>
       ))}
     </select>
   </div>
 
   <div>
-    <label>Produto</label>
-    <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
+    <label className="block mb-1 font-medium">Produto</label>
+    <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 border rounded">
       <option value="">Selecione</option>
-      {Object.keys(dadosProdutos).map((p) => (
-        <option key={p} value={p}>{p}</option>
+      {obterProdutosDisponiveis().map((produto, index) => (
+        <option key={index} value={produto}>{produto}</option>
       ))}
     </select>
   </div>
 
   <div>
-    <label>Sabor</label>
-    <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
+    <label className="block mb-1 font-medium">Sabor</label>
+    <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 border rounded">
       <option value="">Selecione</option>
-      {dadosProdutos[produto]?.map((s) => (
-        <option key={s} value={s}>{s}</option>
+      {obterSaboresPorProduto(produto).map((sabor, index) => (
+        <option key={index} value={sabor}>{sabor}</option>
       ))}
     </select>
-  </div>
-
-  <div className="col-span-2">
-    <label>Quantidade</label>
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={() => setQuantidade(prev => Math.max(1, prev - 1))}
-        className="px-3 py-1 bg-red-600 text-white rounded"
-      >
-        -
-      </button>
-
-      <input
-        type="number"
-        min="1"
-        value={quantidade}
-        onChange={(e) => setQuantidade(Number(e.target.value))}
-        className="w-20 p-2 border rounded text-center"
-      />
-
-      <button
-        type="button"
-        onClick={() => setQuantidade(prev => prev + 1)}
-        className="px-3 py-1 bg-green-600 text-white rounded"
-      >
-        +
-      </button>
-
-      <button
-        type="button"
-        onClick={adicionarItem}
-        className="ml-4 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800"
-      >
-        ➕ Adicionar ao Pedido
-      </button>
-    </div>
   </div>
 </div>
-// === FIM RT03 ===
 
+<div className="flex items-center gap-2 mt-4">
+  <button
+    onClick={() => setQuantidade((prev) => Math.max(0, prev - 1))}
+    className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-lg"
+  >
+    –
+  </button>
+  <input
+    type="number"
+    value={quantidade}
+    onChange={(e) => setQuantidade(Number(e.target.value))}
+    className="w-20 p-2 border rounded text-center"
+  />
+  <button
+    onClick={() => setQuantidade((prev) => prev + 1)}
+    className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded text-lg"
+  >
+    +
+  </button>
+
+  <button
+    onClick={adicionarItem}
+    className="ml-4 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded flex items-center"
+  >
+    ➕ Adicionar ao Pedido
+  </button>
+</div>
+{/* === FIM RT03 === */}
       {/* === INÍCIO RT04 – Lista de Itens e botão Salvar Pedido === */}
       {itens.length > 0 && (
         <div className="mb-6">
