@@ -120,7 +120,9 @@ function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
 }
 // === FIM FN05 ===
 // === INÍCIO FN05a – Gerar Planejamento de Produção (interna ao App) ===
-const gerarPlanejamentoProducao = () => {
+const gerarPlanejamentoProducao = async () => {
+  await carregarPedidos(); // Garante que pedidosFiltrados esteja atualizado
+
   if (!Array.isArray(pedidosFiltrados) || pedidosFiltrados.length === 0) {
     alert("Nenhum pedido encontrado no período selecionado.");
     return;
@@ -131,10 +133,15 @@ const gerarPlanejamentoProducao = () => {
   let totalBaciasBranco = 0;
   let totalBaciasPreto = 0;
   const resumoDudus = {};
+  const totalPorProduto = {};
 
   pedidosFiltrados.forEach((pedido) => {
     pedido.itens.forEach((item) => {
       const { produto, sabor, quantidade } = item;
+
+      // Total geral por produto
+      if (!totalPorProduto[produto]) totalPorProduto[produto] = 0;
+      totalPorProduto[produto] += quantidade;
 
       if (produto.toLowerCase().includes("dudu")) {
         if (!resumoDudus[sabor]) resumoDudus[sabor] = 0;
@@ -194,6 +201,7 @@ const gerarPlanejamentoProducao = () => {
   doc.setFontSize(16);
   doc.text("Planejamento de Produção", 14, 15);
 
+  // === Bloco 1 – Produtos detalhados ===
   doc.setFontSize(12);
   let y = 25;
   Object.keys(resumo).forEach((produto) => {
@@ -206,6 +214,7 @@ const gerarPlanejamentoProducao = () => {
     y += 8;
   });
 
+  // === Bloco 2 – DUDUs por sabor ===
   if (Object.keys(resumoDudus).length > 0) {
     y += 10;
     doc.setFontSize(14);
@@ -218,6 +227,18 @@ const gerarPlanejamentoProducao = () => {
     });
   }
 
+  // === Bloco 3 – Resumo por produto (em unidades) ===
+  y += 10;
+  doc.setFontSize(14);
+  doc.text("Resumo por Produto (Qtde Total):", 14, y);
+  doc.setFontSize(12);
+  y += 8;
+  Object.keys(totalPorProduto).forEach((produto) => {
+    doc.text(`- ${produto}: ${totalPorProduto[produto]} unidades`, 16, y);
+    y += 6;
+  });
+
+  // === Bloco 4 – Totais finais ===
   y += 10;
   doc.setFontSize(14);
   doc.text("Resumo Final", 14, y);
@@ -227,6 +248,7 @@ const gerarPlanejamentoProducao = () => {
   doc.text(`Total de Bacias de Recheio Branco: ${totalBaciasBranco.toFixed(1)}`, 14, y); y += 6;
   doc.text(`Total de Bacias de Recheio Preto: ${totalBaciasPreto.toFixed(1)}`, 14, y);
 
+  // Nome com data e hora
   const agora = new Date();
   const dia = String(agora.getDate()).padStart(2, '0');
   const mes = String(agora.getMonth() + 1).padStart(2, '0');
