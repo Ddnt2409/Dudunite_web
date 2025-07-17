@@ -654,7 +654,7 @@ return (
       </div>
       {/* === FIM RT02 === */}
 
-{/* === INÍCIO RT03 – Campos do pedido === */}
+// === INÍCIO RT03 – Campos do pedido ===
 <div className="grid grid-cols-2 gap-4 mb-4">
   <div>
     <label>Cidade</label>
@@ -665,6 +665,7 @@ return (
       ))}
     </select>
   </div>
+
   <div>
     <label>Escola</label>
     <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
@@ -674,6 +675,7 @@ return (
       ))}
     </select>
   </div>
+
   <div>
     <label>Produto</label>
     <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
@@ -683,6 +685,7 @@ return (
       ))}
     </select>
   </div>
+
   <div>
     <label>Sabor</label>
     <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
@@ -692,33 +695,45 @@ return (
       ))}
     </select>
   </div>
-</div>
 
-{/* Bloco de quantidade + botão adicionar */}
-<div className="flex items-center gap-4 mb-6">
-  <div className="flex items-center border rounded px-2">
-    <button
-      onClick={() => setQuantidade(Math.max(1, quantidade - 1))}
-      className="px-3 py-1 text-xl font-bold text-red-600"
-    >
-      –
-    </button>
-    <span className="px-4">{quantidade}</span>
-    <button
-      onClick={() => setQuantidade(quantidade + 1)}
-      className="px-3 py-1 text-xl font-bold text-green-600"
-    >
-      +
-    </button>
+  <div className="col-span-2">
+    <label>Quantidade</label>
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => setQuantidade(prev => Math.max(1, prev - 1))}
+        className="px-3 py-1 bg-red-600 text-white rounded"
+      >
+        -
+      </button>
+
+      <input
+        type="number"
+        min="1"
+        value={quantidade}
+        onChange={(e) => setQuantidade(Number(e.target.value))}
+        className="w-20 p-2 border rounded text-center"
+      />
+
+      <button
+        type="button"
+        onClick={() => setQuantidade(prev => prev + 1)}
+        className="px-3 py-1 bg-green-600 text-white rounded"
+      >
+        +
+      </button>
+
+      <button
+        type="button"
+        onClick={adicionarItem}
+        className="ml-4 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800"
+      >
+        ➕ Adicionar ao Pedido
+      </button>
+    </div>
   </div>
-  <button
-    onClick={adicionarItem}
-    className="bg-orange-700 text-white px-4 py-2 rounded hover:bg-orange-800"
-  >
-    ➕ Adicionar ao Pedido
-  </button>
 </div>
-{/* === FIM RT03 === */}
+// === FIM RT03 ===
 
       {/* === INÍCIO RT04 – Lista de Itens e botão Salvar Pedido === */}
       {itens.length > 0 && (
