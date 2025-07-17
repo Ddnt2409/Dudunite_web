@@ -394,13 +394,97 @@ const gerarListaCompras = () => {
       if (produto === "DUDU") {
         embalagens.SQ30x5 += qtd;
         embalagens.SQ22x6 += qtd;
+// === INÍCIO FN13 – Estruturas iniciais para PDF, insumos e embalagens ===
+const insumos = {
+  margarina: 0,
+  ovos: 0,
+  massas: 0,
+  recheiosPretos: 0,
+  recheiosBrancos: 0,
+  nutella: 0,
+  dudus: 0
+};
+
+const embalagens = {
+  G650: 0,
+  G640: 0,
+  SQ5x5: 0,
+  SQ6x6: 0,
+  SQ30x5: 0,
+  SQ22x6: 0,
+  D135: 0,
+  EtiqBrw: 0,
+  EtiqDD: 0,
+  EtiqEsc: 0
+};
+// === FIM FN13 ===
+
+// === INÍCIO FN14 – Obter Produtos e Sabores (usado em dados estáticos) ===
+const saboresRecheioBranco = [
+  "Ninho", "Ninho com nutella", "Brigadeiro branco", "Oreo",
+  "Ovomaltine", "Paçoca", "Brigadeiro branco c confete", "Beijinho"
+];
+
+const saboresRecheioPreto = [
+  "Brigadeiro preto", "Brigadeiro c confete", "Palha italiana", "Prestigio"
+];
+// === FIM FN14 ===
+
+// === INÍCIO FN15 – gerarListaCompras (com recheios) ===
+const gerarListaCompras = () => {
+  const pedidosFiltrados = filtrarPedidosPorData();
+  const doc = new jsPDF();
+  let y = 10;
+
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(10);
+  doc.text('Lista de Compras – Dudunitê', 10, y);
+  y += 10;
+
+  const insumos = {
+    margarina: 0, ovos: 0, massas: 0, nutella: 0,
+    leite: 0, misturaLactea: 0, leiteEmPo: 0,
+    leiteCondensado: 0, cremeDeLeite: 0,
+    glucose: 0, nescau: 0
+  };
+
+  const embalagens = {
+    G650: 0, G640: 0, SQ5x5: 0, SQ6x6: 0, D135: 0,
+    SQ30x5: 0, SQ22x6: 0,
+    EtiqBrw: 0, EtiqEsc: 0, EtiqDD: 0
+  };
+
+  const alertaExtras = new Set();
+  let baciasBranco = 0;
+  let baciasPreto = 0;
+
+  pedidosFiltrados.forEach(p => {
+    p.itens.forEach(({ produto, sabor, quantidade }) => {
+      const qtd = Number(quantidade);
+
+      const add = (m, o, f, emb, etiq) => {
+        insumos.margarina += 76 * (qtd / m);
+        insumos.ovos += 190 * (qtd / o);
+        insumos.massas += 2 * (qtd / f);
+        if (emb) embalagens[emb] += qtd;
+        if (etiq) embalagens[etiq] += qtd;
+      };
+
+      if (produto === "BRW 7x7") add(12, 12, 12, "G650", "EtiqBrw");
+      if (produto === "BRW 6x6") add(17, 17, 17, "G640", "EtiqBrw");
+      if (produto === "PKT 5x5") add(20, 20, 20, "SQ5x5", "EtiqBrw");
+      if (produto === "PKT 6x6") add(15, 15, 15, "SQ6x6", "EtiqBrw");
+      if (produto === "ESC")     add(26, 26, 26, "D135", "EtiqEsc");
+
+      if (produto === "DUDU") {
+        embalagens.SQ30x5 += qtd;
+        embalagens.SQ22x6 += qtd;
         embalagens.EtiqDD += qtd;
         insumos.leite += qtd / 10;
         insumos.misturaLactea += qtd / 10;
         insumos.leiteEmPo += qtd / 20;
       }
 
-      // === Nutella ===
       if (sabor === "Ninho com nutella") {
         if (produto === "BRW 7x7") insumos.nutella += qtd / 60;
         if (produto === "BRW 6x6") insumos.nutella += qtd / 85;
@@ -408,14 +492,13 @@ const gerarListaCompras = () => {
         if (produto === "DUDU")    insumos.nutella += qtd / 100;
       }
 
-      // === Recheios ===
       let unidadesPorBacia = 1;
       if (produto === "BRW 7x7") unidadesPorBacia = 25;
       if (produto === "BRW 6x6") unidadesPorBacia = 35;
       if (produto === "ESC")     unidadesPorBacia = 26;
       if (produto === "PKT 5x5") unidadesPorBacia = 650 / 20;
       if (produto === "PKT 6x6") unidadesPorBacia = 650 / 30;
-      if (produto === "DUDU")    unidadesPorBacia = 1e6; // ignorar
+      if (produto === "DUDU")    unidadesPorBacia = 1e6;
 
       const bacias = qtd / unidadesPorBacia;
 
@@ -428,32 +511,27 @@ const gerarListaCompras = () => {
         baciasPreto += bacias / 2;
       }
 
-      // === Ingredientes adicionais ===
       const saborLower = sabor.toLowerCase();
       if (saborLower.includes("confete")) alertaExtras.add("coloreti");
       if (saborLower.includes("beijinho") || saborLower.includes("prestigio")) alertaExtras.add("coco ralado");
-      if (saborLower.includes("palha")) alertaExtras.add("biscoito maizena");
+      if (saborLower.includes("palha")) alertaExtras.add("biscoito maisena");
     });
   });
 
-  // === Insumos de recheios ===
   const baciasTotais = Math.ceil(baciasBranco + baciasPreto);
-  insumos.leiteCondensado += Math.ceil((baciasTotais * 4));
-  insumos.cremeDeLeite += Math.ceil((baciasTotais * 650));
+  insumos.leiteCondensado += Math.ceil(baciasTotais * 4);
+  insumos.cremeDeLeite += Math.ceil(baciasTotais * 650);
   insumos.glucose += Math.ceil((baciasTotais / 6) * 500);
   insumos.nescau += Math.ceil(baciasPreto * 361);
 
-  // === Página 1 – Insumos ===
   doc.text('--- INSUMOS ---', 10, y); y += 8;
   doc.text(`Margarina: ${insumos.margarina.toFixed(0)}g`, 10, y); y += 6;
   doc.text(`Ovos: ${(insumos.ovos / 60).toFixed(0)} un`, 10, y); y += 6;
   doc.text(`Massas (450g): ${insumos.massas.toFixed(0)} un`, 10, y); y += 6;
   doc.text(`Nutella (650g): ${Math.ceil(insumos.nutella)} un`, 10, y); y += 6;
-
   doc.text(`Leite (L): ${insumos.leite.toFixed(1)} L`, 10, y); y += 6;
   doc.text(`Mistura Láctea: ${Math.ceil(insumos.misturaLactea)} un`, 10, y); y += 6;
   doc.text(`Leite em Pó: ${Math.ceil(insumos.leiteEmPo)} un`, 10, y); y += 6;
-
   doc.text(`Leite Condensado: ${insumos.leiteCondensado} un`, 10, y); y += 6;
   doc.text(`Creme de Leite: ${insumos.cremeDeLeite} g`, 10, y); y += 6;
   doc.text(`Glucose: ${insumos.glucose} g`, 10, y); y += 6;
@@ -466,7 +544,6 @@ const gerarListaCompras = () => {
     y += 6;
   });
 
-  // === Mensagem extra ===
   if (alertaExtras.size > 0) {
     y += 10;
     doc.text('⚠️ Itens adicionais necessários:', 10, y); y += 6;
