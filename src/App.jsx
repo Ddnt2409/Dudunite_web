@@ -1,25 +1,4 @@
-// Bloco 1 – Importações e Constantes Globais
-
-// Fn01 – Importações Gerais
-import React, { useState, useEffect } from 'react';
-import jsPDF from 'jspdf';
-import {
-  collection,
-  addDoc,
-  getDocs,
-  serverTimestamp,
-  query,
-  where,
-  Timestamp,
-} from "firebase/firestore";
-import db from './firebase';
-
-// Fn02 – Logomarca e Cores
-const logoPath = "/LogomarcaDDnt2025Vazado.png";
-const corPrimaria = "#8c3b1b";  // Terracota escuro
-const corFundo = "#fff5ec";     // Terracota claro
-// FN02 - FINAL//
-// ✅ FN03 – gerarPDF (Planejamento de Produção) – AJUSTE PARA CELULAR E ERROS SILENCIOSOS
+// FN01 – gerarPDF (Planejamento de Produção)
 const gerarPDF = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
 
@@ -123,29 +102,192 @@ const gerarPDF = () => {
     console.error(erro);
   }
 };
-// === FIM FN03 ===
-// Bloco 2 – Estados e Funções Iniciais
-// Fn04 – Estados Gerais do App
-const App = () => {
-  const [cidade, setCidade] = useState('');
-  const [escola, setEscola] = useState('');
-  const [produto, setProduto] = useState('');
-  const [sabor, setSabor] = useState('');
-  const [quantidade, setQuantidade] = useState(1);
-  const [itens, setItens] = useState([]);
-  const [pedidos, setPedidos] = useState([]);
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
-  const [filtroDia, setFiltroDia] = useState('');
-  const [filtroMes, setFiltroMes] = useState('');
-  const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
-  const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
-  const [novaEscola, setNovaEscola] = useState('');
-  const [novoProduto, setNovoProduto] = useState('');
-  const [novoSabor, setNovoSabor] = useState('');
+// === FIM FN01 ===
 
-// ✅ FN04b – carregarPedidos: busca pedidos e aplica filtro com compatibilidade retroativa
-// ✅ FN04b – carregarPedidos: valida timestamps e exclui pedidos malformados
+// FN02 – formatarData (formata data em DD/MM/AAAA)
+const formatarData = (isoString) => {
+  const data = new Date(isoString);
+  return data.toLocaleDateString('pt-BR');
+};
+// === FIM FN02 ===
+
+// FN03 – filtrarPedidosPorData
+const filtrarPedidosPorData = () => {
+  let inicio = new Date(0);
+  let fim = new Date(8640000000000000);
+
+  if (dataInicio) {
+    const dInicio = new Date(`${dataInicio}T00:00:00`);
+    if (!isNaN(dInicio.getTime())) {
+      inicio = dInicio;
+    }
+  }
+
+  if (dataFim) {
+    const dFim = new Date(`${dataFim}T23:59:59.999`);
+    if (!isNaN(dFim.getTime())) {
+      fim = dFim;
+    }
+  }
+
+  return pedidos.filter((p) => {
+    if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
+    const dataPedido = p.timestamp.toDate();
+    return dataPedido >= inicio && dataPedido <= fim;
+  });
+};
+// === FIM FN03 ===
+
+// FN04 – toggleMostrarDadosMestres
+const toggleMostrarDadosMestres = () => {
+  setMostrarDadosMestres((prev) => !prev);
+};
+// === FIM FN04 ===
+
+// FN05 – toggleDadosMestres (sinônimo para compatibilidade)
+const toggleDadosMestres = () => {
+  setMostrarDadosMestres(!mostrarDadosMestres);
+};
+// === FIM FN05 ===
+
+// FN06 – adicionarItem (botão de adicionar item ao pedido)
+const adicionarItem = () => {
+  if (!produto || !sabor || !quantidade) {
+    alert("Preencha produto, sabor e quantidade.");
+    return;
+  }
+
+  const novoItem = { produto, sabor, quantidade: Number(quantidade) };
+  setItens([...itens, novoItem]);
+
+  setProduto('');
+  setSabor('');
+  setQuantidade(1);
+};
+// === FIM FN06 ===
+
+// FN07 – salvarPedido (envia os dados para o Firebase)
+const salvarPedido = async () => {
+  if (!cidade || !escola || itens.length === 0) {
+    alert("Preencha cidade, escola e pelo menos um item.");
+    return;
+  }
+
+  const novoPedido = {
+    cidade,
+    escola,
+    itens,
+    timestamp: serverTimestamp()
+  };
+
+  try {
+    await addDoc(collection(db, "pedidos"), novoPedido);
+    alert("Pedido salvo com sucesso!");
+    setCidade('');
+    setEscola('');
+    setItens([]);
+    setProduto('');
+    setSabor('');
+    setQuantidade(1);
+  } catch (error) {
+    console.error("Erro ao salvar pedido:", error);
+    alert("Erro ao salvar pedido. Tente novamente.");
+  }
+};
+// === FIM FN07 ===
+
+// FN08 – carregarPedidos (traz todos os pedidos do banco)
+const carregarPedidos = async () => {
+  try {
+    const q = query(collection(db, "pedidos"));
+    const snapshot = await getDocs(q);
+    const listaPedidos = snapshot.docs.map((doc) => doc.data());
+    setPedidos(listaPedidos);
+  } catch (erro) {
+    console.error("Erro ao carregar pedidos:", erro);
+  }
+};
+// === FIM FN08 ===
+
+// FN09 – obterSaboresPorProduto
+const obterSaboresPorProduto = (produtoSelecionado) => {
+  return dadosProdutos[produtoSelecionado] || [];
+};
+// === FIM FN09 ===
+
+// FN10 – obterEscolasPorCidade
+const obterEscolasPorCidade = (cidadeSelecionada) => {
+  return dadosEscolas[cidadeSelecionada] || [];
+};
+// === FIM FN10 ===
+
+// === INÍCIO FN11 – totalItens (soma as quantidades dos itens adicionados) ===
+const totalItens = itens.reduce((acc, item) => acc + Number(item.quantidade), 0);
+// === FIM FN11 ===
+
+// === INÍCIO FN12 – formatarData (DD/MM/AAAA a partir de objeto Date ou ISO) ===
+const formatarData = (dataInput) => {
+  if (!dataInput) return '';
+  const data = new Date(dataInput);
+  if (isNaN(data)) return '';
+  return data.toLocaleDateString('pt-BR');
+};
+// === FIM FN12 ===
+
+// === INÍCIO FN13 – toggleMostrarDadosMestres ===
+const toggleMostrarDadosMestres = () => {
+  setMostrarDadosMestres((prev) => !prev);
+};
+// === FIM FN13 ===
+
+// === INÍCIO FN14 – salvarDadosMestres (grava novos produtos/escolas/sabores) ===
+const salvarDadosMestres = async () => {
+  const novoItem = {
+    cidade,
+    escola,
+    produto,
+    sabor,
+    timestamp: serverTimestamp()
+  };
+
+  try {
+    await addDoc(collection(db, "dadosMestres"), novoItem);
+    alert("Item salvo nos Dados Mestres!");
+    setCidade('');
+    setEscola('');
+    setProduto('');
+    setSabor('');
+  } catch (erro) {
+    console.error("Erro ao salvar dados mestres:", erro);
+    alert("Erro ao salvar dados mestres.");
+  }
+};
+// === FIM FN14 ===
+
+// === INÍCIO FN15 – filtrarPedidosPorData (com fallback se sem filtro) ===
+const filtrarPedidosPorData = () => {
+  let inicio = new Date(0); // data muito antiga
+  let fim = new Date(8640000000000000); // data muito futura
+
+  if (dataInicio) {
+    const dInicio = new Date(`${dataInicio}T00:00:00`);
+    if (!isNaN(dInicio)) inicio = dInicio;
+  }
+
+  if (dataFim) {
+    const dFim = new Date(`${dataFim}T23:59:59.999`);
+    if (!isNaN(dFim)) fim = dFim;
+  }
+
+  return pedidos.filter((p) => {
+    if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
+    const dataPedido = p.timestamp.toDate();
+    return dataPedido >= inicio && dataPedido <= fim;
+  });
+};
+// === FIM FN15 ===
+
+// === INÍCIO FN16 – carregarPedidos (busca pedidos + compatibilidade de data) ===
 const carregarPedidos = async () => {
   try {
     const snapshot = await getDocs(collection(db, "pedidos"));
@@ -154,7 +296,7 @@ const carregarPedidos = async () => {
 
       let timestamp = data.timestamp;
 
-      // Compatibilidade com pedidos antigos
+      // Compatibilidade com registros antigos
       if (!timestamp && data.dataServidor?.seconds) {
         timestamp = new Timestamp(
           data.dataServidor.seconds,
@@ -172,89 +314,52 @@ const carregarPedidos = async () => {
       return {
         id: doc.id,
         ...data,
-        timestamp // pode ainda ser null se inválido
+        timestamp
       };
-    })
-    // 🔍 EXCLUI explicitamente os pedidos sem timestamp válido
-    .filter(p => p.timestamp && typeof p.timestamp.toDate === 'function');
+    }).filter(p => p.timestamp && typeof p.timestamp.toDate === 'function');
 
     setPedidos(lista);
 
-    const filtrados = fn05_filtrarPedidos(lista, dataInicio, dataFim);
+    const filtrados = filtrarPedidosPorData(lista, dataInicio, dataFim);
     setPedidosFiltrados(filtrados);
   } catch (err) {
     console.error("Erro ao carregar pedidos:", err);
     alert("Erro ao carregar pedidos do banco de dados.");
   }
 };
-// ✅ FN04b – FIM (atualizada com filtro forte)
-  // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
+// === FIM FN16 ===
 
-// ✅ FN05 – corrigida: filtro com horas bem definidas
-function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
-  if (!Array.isArray(pedidos)) return [];
-
-  const parseData = (data, isInicio) => {
-    if (!data) return isInicio ? new Date(0) : new Date(8640000000000000);
-    const parsed = new Date(data);
-    if (isNaN(parsed)) return isInicio ? new Date(0) : new Date(8640000000000000);
-
-    // ⏰ Ajuste explícito de hora para o início/fim do dia
-    parsed.setHours(isInicio ? 0 : 23, isInicio ? 0 : 59, isInicio ? 0 : 59, isInicio ? 0 : 999);
-    return parsed;
-  };
-
-  const dataLimiteInicio = parseData(dataInicio, true);
-  const dataLimiteFim = parseData(dataFim, false);
-
-  return pedidos.filter((pedido) => {
-    if (!pedido.timestamp || typeof pedido.timestamp.toDate !== 'function') return false;
-    const dataPedido = pedido.timestamp.toDate();
-    return dataPedido >= dataLimiteInicio && dataPedido <= dataLimiteFim;
-  });
-}
-// ✅ FN05 – FIM
-// Fn06 – Formata data ISO para DD/MM/AAAA
-const formatarData = (isoString) => {
-  const data = new Date(isoString);
-  return data.toLocaleDateString('pt-BR');
-};
-
-// Bloco 3 – Effects e Lógica Visual de Dados Mestres
-
-// Fn07 – useEffect: Carrega pedidos ao selecionar intervalo de datas
+// === INÍCIO FN17 – useEffect (carrega pedidos quando intervalo definido) ===
 useEffect(() => {
   if (dataInicio && dataFim) {
     carregarPedidos();
   }
 }, [dataInicio, dataFim]);
+// === FIM FN17 ===
 
-// Fn08 – useEffect: Carrega todos os pedidos na carga inicial se sem filtro
+// === INÍCIO FN18 – useEffect (carrega todos os pedidos se sem filtro) ===
 useEffect(() => {
   if (!dataInicio && !dataFim) {
     carregarPedidos();
   }
 }, []);
+// === FIM FN18 ===
 
-// Fn09 – toggleDadosMestres: exibe ou oculta seção de dados mestres
-const toggleDadosMestres = () => {
-  setMostrarDadosMestres(!mostrarDadosMestres);
-};
-
-// Bloco 4 – Adicionar e Salvar Pedidos
-
-// Fn10 – adicionarItem: adiciona item ao pedido com validação
+// === INÍCIO FN19 – adicionarItem (validação e inclusão do item na lista) ===
 const adicionarItem = () => {
   if (!produto || !sabor || !quantidade || quantidade <= 0) {
     alert("Preencha todos os campos corretamente.");
     return;
   }
-  setItens([...itens, { produto, sabor, quantidade: Number(quantidade) }]);
+
+  const itemNovo = { produto, sabor, quantidade: Number(quantidade) };
+  setItens([...itens, itemNovo]);
   setSabor('');
   setQuantidade(1);
 };
+// === FIM FN19 ===
 
-// Fn11 – salvarPedido: envia pedido ao Firestore com validações
+// === INÍCIO FN20 – salvarPedido (envia pedido completo ao Firestore) ===
 const salvarPedido = async () => {
   if (!cidade || !escola || itens.length === 0) {
     alert('Preencha todos os campos antes de salvar.');
@@ -288,224 +393,40 @@ const salvarPedido = async () => {
     alert('❌ Falha ao salvar pedido.');
   }
 };
+// === FIM FN20 ===
 
-// Fn12 – totalItens: totaliza a quantidade atual do pedido em andamento
+// === INÍCIO FN21 – totalItens (soma da quantidade atual do pedido) ===
 const totalItens = itens.reduce((soma, item) => soma + item.quantidade, 0);
+// === FIM FN21 ===
 
-// Bloco 5 – Estrutura para cálculo de insumos e embalagens
+// === INÍCIO FN22 – filtrarPedidosPorData (usa dataInicio e dataFim para filtrar) ===
+const filtrarPedidosPorData = (lista = pedidos, inicioStr = dataInicio, fimStr = dataFim) => {
+  let inicio = new Date(0);
+  let fim = new Date(8640000000000000);
 
-// Fn13 – Estruturas iniciais para PDF, insumos e embalagens
-const insumos = {
-  margarina: 0,
-  ovos: 0,
-  massas: 0,
-  recheiosPretos: 0,
-  recheiosBrancos: 0,
-  nutella: 0,
-  dudus: 0
-};
-
-const embalagens = {
-  G650: 0,
-  G640: 0,
-  SQ5x5: 0,
-  SQ6x6: 0,
-  SQ30x5: 0,
-  SQ22x6: 0,
-  D135: 0,
-  EtiqBrw: 0,
-  EtiqDD: 0,
-  EtiqEsc: 0
-};
-
-// Bloco 6 – Geração do PDF de Planejamento de Produção
-// Bloco 9 – Funções auxiliares: filtros, dados mestres, toggle
-// === INÍCIO FN15 – gerarListaCompras (com recheios) ===
-const gerarListaCompras = () => {
-  const pedidosFiltrados = filtrarPedidosPorData();
-  const doc = new jsPDF();
-  let y = 10;
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(10);
-  doc.text('Lista de Compras - Dudunitê', 10, y);
-  y += 10;
-
-  const insumos = {
-    margarina: 0,
-    ovos: 0,
-    massas: 0,
-    nutella: 0,
-    leite: 0,
-    misturaLactea: 0,
-    leiteEmPo: 0,
-    leiteCondensado: 0,
-    cremeDeLeite: 0,
-    glucose: 0,
-    nescau: 0
-  };
-
-  const embalagens = {
-    G650: 0, G640: 0, SQ5x5: 0, SQ6x6: 0, D135: 0,
-    SQ30x5: 0, SQ22x6: 0,
-    EtiqBrw: 0, EtiqEsc: 0, EtiqDD: 0
-  };
-
-  const saboresRecheioBranco = [
-    "Ninho", "Ninho com nutella", "Brigadeiro branco", "Oreo", "Ovomaltine",
-    "Paçoca", "Brigadeiro branco c confete", "Beijinho"
-  ];
-  const saboresRecheioPreto = [
-    "Brigadeiro preto", "Brigadeiro c confete", "Palha italiana", "Prestigio"
-  ];
-
-  const alertaExtras = new Set();
-
-  let baciasBranco = 0;
-  let baciasPreto = 0;
-
-  pedidosFiltrados.forEach(p => {
-    p.itens.forEach(({ produto, sabor, quantidade }) => {
-      const qtd = Number(quantidade);
-
-      // === Produção base ===
-      const add = (m, o, f, emb, etiq) => {
-        insumos.margarina += 76 * (qtd / m);
-        insumos.ovos += 190 * (qtd / o);
-        insumos.massas += 2 * (qtd / f);
-        if (emb) embalagens[emb] += qtd;
-        if (etiq) embalagens[etiq] += qtd;
-      };
-
-      if (produto === "BRW 7x7") add(12, 12, 12, "G650", "EtiqBrw");
-      if (produto === "BRW 6x6") add(17, 17, 17, "G640", "EtiqBrw");
-      if (produto === "PKT 5x5") add(20, 20, 20, "SQ5x5", "EtiqBrw");
-      if (produto === "PKT 6x6") add(15, 15, 15, "SQ6x6", "EtiqBrw");
-      if (produto === "ESC")     add(26, 26, 26, "D135", "EtiqEsc");
-
-      if (produto === "DUDU") {
-        embalagens.SQ30x5 += qtd;
-        embalagens.SQ22x6 += qtd;
-        embalagens.EtiqDD += qtd;
-        insumos.leite += qtd / 10;
-        insumos.misturaLactea += qtd / 10;
-        insumos.leiteEmPo += qtd / 20;
-      }
-
-      // === Nutella ===
-      if (sabor === "Ninho com nutella") {
-        if (produto === "BRW 7x7") insumos.nutella += qtd / 60;
-        if (produto === "BRW 6x6") insumos.nutella += qtd / 85;
-        if (produto === "ESC")     insumos.nutella += qtd / 70;
-        if (produto === "DUDU")    insumos.nutella += qtd / 100;
-      }
-
-      // === Recheios ===
-      let unidadesPorBacia = 1;
-      if (produto === "BRW 7x7") unidadesPorBacia = 25;
-      if (produto === "BRW 6x6") unidadesPorBacia = 35;
-      if (produto === "ESC")     unidadesPorBacia = 26;
-      if (produto === "PKT 5x5") unidadesPorBacia = 650 / 20;
-      if (produto === "PKT 6x6") unidadesPorBacia = 650 / 30;
-      if (produto === "DUDU")    unidadesPorBacia = 1e6; // ignorar
-
-      const bacias = qtd / unidadesPorBacia;
-
-      if (saboresRecheioBranco.includes(sabor)) {
-        baciasBranco += bacias;
-      } else if (saboresRecheioPreto.includes(sabor)) {
-        baciasPreto += bacias;
-      } else if (sabor === "Bem casado") {
-        baciasBranco += bacias / 2;
-        baciasPreto += bacias / 2;
-      }
-
-      // === Ingredientes adicionais ===
-      const saborLower = sabor.toLowerCase();
-      if (saborLower.includes("confete")) alertaExtras.add("coloreti");
-      if (saborLower.includes("beijinho") || saborLower.includes("prestigio")) alertaExtras.add("coco ralado");
-      if (saborLower.includes("palha")) alertaExtras.add("biscoito maizena");
-    });
-  });
-
-  // === Insumos de recheios ===
-  const baciasTotais = Math.ceil(baciasBranco + baciasPreto);
-  insumos.leiteCondensado += Math.ceil((baciasTotais * 4));
-  insumos.cremeDeLeite += Math.ceil((baciasTotais * 650));
-  insumos.glucose += Math.ceil((baciasTotais / 6) * 500);
-  insumos.nescau += Math.ceil(baciasPreto * 361);
-
-  // === Página 1 – Insumos ===
-  doc.text('--- INSUMOS ---', 10, y); y += 8;
-  doc.text(`Margarina: ${insumos.margarina.toFixed(0)}g`, 10, y); y += 6;
-  doc.text(`Ovos: ${(insumos.ovos / 60).toFixed(0)} un`, 10, y); y += 6;
-  doc.text(`Massas (450g): ${insumos.massas.toFixed(0)} un`, 10, y); y += 6;
-  doc.text(`Nutella (650g): ${Math.ceil(insumos.nutella)} un`, 10, y); y += 6;
-
-  doc.text(`Leite (L): ${insumos.leite.toFixed(1)} L`, 10, y); y += 6;
-  doc.text(`Mistura Láctea: ${Math.ceil(insumos.misturaLactea)} un`, 10, y); y += 6;
-  doc.text(`Leite em Pó: ${Math.ceil(insumos.leiteEmPo)} un`, 10, y); y += 6;
-
-  doc.text(`Leite Condensado: ${insumos.leiteCondensado} un`, 10, y); y += 6;
-  doc.text(`Creme de Leite: ${insumos.cremeDeLeite} g`, 10, y); y += 6;
-  doc.text(`Glucose: ${insumos.glucose} g`, 10, y); y += 6;
-  doc.text(`Nescau: ${insumos.nescau} g`, 10, y); y += 10;
-
-  doc.addPage(); y = 10;
-  doc.text('--- EMBALAGENS ---', 10, y); y += 8;
-  Object.entries(embalagens).forEach(([codigo, qtd]) => {
-    doc.text(`${codigo}: ${Math.ceil(qtd)} un`, 10, y);
-    y += 6;
-  });
-
-  // === Mensagem extra ===
-  if (alertaExtras.size > 0) {
-    y += 10;
-    doc.text('⚠️ Itens adicionais necessários:', 10, y); y += 6;
-    alertaExtras.forEach(item => {
-      doc.text(`- ${item}`, 10, y);
-      y += 6;
-    });
-  }
-
-  const agora = new Date();
-  const dia = String(agora.getDate()).padStart(2, '0');
-  const mes = String(agora.getMonth() + 1).padStart(2, '0');
-  const ano = agora.getFullYear();
-  const hora = String(agora.getHours()).padStart(2, '0');
-  const minuto = String(agora.getMinutes()).padStart(2, '0');
-  const nomePDF = `lista-compras-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
-
-  doc.save(nomePDF);
-};
-// === FIM FN15 ===
-// ✅ FN16 – filtrarPedidosPorData (VERSÃO AJUSTADA PARA PEGAR TODOS OS PEDIDOS QUANDO DATAS VAZIAS)
-const filtrarPedidosPorData = () => {
-  let inicio = new Date(0); // início muito antigo
-  let fim = new Date(8640000000000000); // fim muito distante
-
-  if (dataInicio) {
-    const dInicio = new Date(`${dataInicio}T00:00:00`);
+  if (inicioStr) {
+    const dInicio = new Date(`${inicioStr}T00:00:00`);
     if (!isNaN(dInicio.getTime())) {
       inicio = dInicio;
     }
   }
 
-  if (dataFim) {
-    const dFim = new Date(`${dataFim}T23:59:59.999`);
+  if (fimStr) {
+    const dFim = new Date(`${fimStr}T23:59:59.999`);
     if (!isNaN(dFim.getTime())) {
       fim = dFim;
     }
   }
 
-  return pedidos.filter((p) => {
+  return lista.filter((p) => {
     if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
     const dataPedido = p.timestamp.toDate();
     return dataPedido >= inicio && dataPedido <= fim;
   });
 };
-// === FIM FN16 ===
-// Fn17 – salvarDadosMestres: grava dados manuais como cidade, escola, produto, sabor
+// === FIM FN22 ===
+
+// === INÍCIO FN23 – salvarDadosMestres (grava cidade, escola, produto, sabor) ===
 const salvarDadosMestres = async () => {
   const novoItem = {
     cidade,
@@ -517,14 +438,22 @@ const salvarDadosMestres = async () => {
   await addDoc(collection(db, "dadosMestres"), novoItem);
   alert("Item salvo nos Dados Mestres!");
 };
-//FN17 - FINAL//
-// === INÍCIO FN18 – toggleMostrarDadosMestres ===
+// === FIM FN23 ===
+
+// === INÍCIO FN24 – toggleMostrarDadosMestres (alterna exibição) ===
 const toggleMostrarDadosMestres = () => {
   setMostrarDadosMestres((prev) => !prev);
 };
-// === FIM FN18 ===
+// === FIM FN24 ===
 
-// === INÍCIO FN19 – PainelDadosMestres ===
+// === INÍCIO FN25 – formatarData (converte ISO em dd/mm/aaaa) ===
+const formatarData = (isoString) => {
+  const data = new Date(isoString);
+  return data.toLocaleDateString('pt-BR');
+};
+// === FIM FN25 ===
+
+// === INÍCIO FN26 – PainelDadosMestres (com botões e delegação para editores) ===
 const PainelDadosMestres = ({
   tipoSelecionado,
   setTipoSelecionado,
@@ -566,9 +495,9 @@ const PainelDadosMestres = ({
     </div>
   );
 };
-// === FIM FN19 ===
+// === FIM FN26 ===
 
-// === INÍCIO FN20 – EditorEscolas ===
+// === INÍCIO FN27 – EditorEscolas (painel de edição de escolas) ===
 const EditorEscolas = ({ dadosEscolas, setDadosEscolas }) => {
   return (
     <div>
@@ -579,9 +508,9 @@ const EditorEscolas = ({ dadosEscolas, setDadosEscolas }) => {
     </div>
   );
 };
-// === FIM FN20 ===
+// === FIM FN27 ===
 
-// === INÍCIO FN21 – EditorProdutos ===
+// === INÍCIO FN28 – EditorProdutos (painel de edição de produtos e sabores) ===
 const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
   return (
     <div>
@@ -592,58 +521,22 @@ const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
     </div>
   );
 };
-// === FIM FN21 ===
+// === FIM FN28 ===
 
-// === INÍCIO FN22 – useEffect carga dos dados mestres ===
-useEffect(() => {
-  const carregarDadosMestres = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "dadosMestres"));
-      const lista = snapshot.docs.map((doc) => doc.data());
-      const escolasMapeadas = {};
-      const produtosMapeados = {};
+// === INÍCIO FN29 – toggleMostrarDadosMestres ===
+const toggleMostrarDadosMestres = () => {
+  setMostrarDadosMestres((prev) => !prev);
+};
+// === FIM FN29 ===
 
-      lista.forEach((item) => {
-        if (item.cidade && item.escola) {
-          if (!escolasMapeadas[item.cidade]) escolasMapeadas[item.cidade] = [];
-          if (!escolasMapeadas[item.cidade].includes(item.escola)) {
-            escolasMapeadas[item.cidade].push(item.escola);
-          }
-        }
-        if (item.produto && item.sabor) {
-          if (!produtosMapeados[item.produto]) produtosMapeados[item.produto] = [];
-          if (!produtosMapeados[item.produto].includes(item.sabor)) {
-            produtosMapeados[item.produto].push(item.sabor);
-          }
-        }
-      });
-
-      setDadosEscolas(escolasMapeadas);
-      setDadosProdutos(produtosMapeados);
-    } catch (error) {
-      console.error("Erro ao carregar dados mestres:", error);
-    }
-  };
-
-  carregarDadosMestres();
-}, []);
-// === FIM FN22 ===
-
-// === INÍCIO FN23 ===
-const [tipoSelecionado, setTipoSelecionado] = useState('');
-const [dadosEscolas, setDadosEscolas] = useState({});
-const [dadosProdutos, setDadosProdutos] = useState({});
-// === FIM FN23 ===
-
+// === INÍCIO RT99 – Bloco final de interface ===
 return (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
     <div className="max-w-xl mx-auto">
       <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
       <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
 
-      {/* === FIM RT01 === */}
-
-      {/* === INÍCIO RT02 – Filtro por período === */}
+      {/* === RT02 – Filtro por período === */}
       <div className="mb-6">
         <label className="font-semibold block mb-1">📆 Período:</label>
         <div className="flex items-center gap-2">
@@ -652,53 +545,77 @@ return (
           <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className="p-2 border rounded" />
         </div>
       </div>
-      {/* === FIM RT02 === */}
 
-{/* === INÍCIO RT03 – Campos do pedido === */}
-<div className="grid grid-cols-2 gap-4 mb-4">
-  <div>
-    <label>Cidade</label>
-    <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
-      <option value="">Selecione</option>
-      {Object.keys(dadosEscolas).map((c) => (
-        <option key={c} value={c}>{c}</option>
-      ))}
-    </select>
-  </div>
-  <div>
-    <label>Escola</label>
-    <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
-      <option value="">Selecione</option>
-      {dadosEscolas[cidade]?.map((e) => (
-        <option key={e} value={e}>{e}</option>
-      ))}
-    </select>
-  </div>
-  <div>
-    <label>Produto</label>
-    <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
-      <option value="">Selecione</option>
-      {Object.keys(dadosProdutos).map((p) => (
-        <option key={p} value={p}>{p}</option>
-      ))}
-    </select>
-  </div>
-  <div>
-    <label>Sabor</label>
-    <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
-      <option value="">Selecione</option>
-      {dadosProdutos[produto]?.map((s) => (
-        <option key={s} value={s}>{s}</option>
-      ))}
-    </select>
-  </div>
-</div>
-{/* === FIM RT03 === */}
+      {/* === RT03 – Campos do pedido === */}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label>Cidade</label>
+          <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
+            <option value="">Selecione</option>
+            {Object.keys(dadosEscolas).map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Escola</label>
+          <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
+            <option value="">Selecione</option>
+            {dadosEscolas[cidade]?.map((e) => (
+              <option key={e} value={e}>{e}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Produto</label>
+          <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
+            <option value="">Selecione</option>
+            {Object.keys(dadosProdutos).map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Sabor</label>
+          <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
+            <option value="">Selecione</option>
+            {dadosProdutos[produto]?.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Qtd</label>
+          <input
+            type="number"
+            min="1"
+            value={quantidade}
+            onChange={(e) => setQuantidade(Number(e.target.value))}
+            className="w-full p-2 rounded border"
+          />
+        </div>
+        <div className="flex items-end">
+          <button
+            onClick={() => {
+              if (!produto || !sabor || quantidade <= 0) {
+                alert("Preencha produto, sabor e quantidade.");
+                return;
+              }
+              setItens([...itens, { produto, sabor, quantidade }]);
+              setSabor('');
+              setQuantidade(1);
+            }}
+            className="w-full bg-amber-600 text-white p-2 rounded hover:bg-amber-700"
+          >
+            ➕ Adicionar
+          </button>
+        </div>
+      </div>
 
-      {/* === INÍCIO RT04 – Lista de Itens e botão Salvar Pedido === */}
+      {/* === RT04 – Lista de itens do pedido === */}
       {itens.length > 0 && (
         <div className="mb-6">
-          <h2 className="font-semibold text-lg mb-2">Itens do Pedido ({totalItens} un):</h2>
+          <h2 className="font-semibold text-lg mb-2">Itens do Pedido:</h2>
           <ul className="list-disc pl-5">
             {itens.map((item, index) => (
               <li key={index}>{item.produto} - {item.sabor} - {item.quantidade} un</li>
@@ -710,9 +627,8 @@ return (
       <button onClick={salvarPedido} className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4">
         💾 Salvar Pedido
       </button>
-      {/* === FIM RT04 === */}
 
-      {/* === INÍCIO RT05 – Ações adicionais === */}
+      {/* === RT05 – Ações adicionais === */}
       <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
         <button onClick={gerarPDF} className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800">
           📋 Planejamento de Produção
@@ -727,9 +643,8 @@ return (
           ⚙️ Dados Mestres
         </button>
       </div>
-      {/* === FIM RT05 === */}
 
-      {/* === INÍCIO RT06 – Painel de Dados Mestres (corrigido) */}
+      {/* === RT06 – Painel de Dados Mestres === */}
       {mostrarDadosMestres && (
         <div className="mt-6">
           <PainelDadosMestres
@@ -742,9 +657,10 @@ return (
           />
         </div>
       )}
-      {/* === FIM RT06 === */}
     </div>
   </div>
 );
 };
+// === FIM RT99 ===
+
 export default App;
