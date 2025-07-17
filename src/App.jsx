@@ -190,16 +190,24 @@ const carregarPedidos = async () => {
 // ✅ FN04b – FIM (atualizada com filtro forte)
   // 👇 A partir daqui seguem os useEffect, funções etc., tudo dentro do App
 
-  // fn05 - inicio //
+// === INÍCIO FN05 – Filtrar Pedidos com Intervalo Seguro (1900–2050) ===
 function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
   if (!Array.isArray(pedidos)) return [];
 
   const parseData = (data, isInicio) => {
-    if (!data) return isInicio ? new Date(0) : new Date(8640000000000000);
-    const parsed = new Date(data);
-    if (isNaN(parsed)) return isInicio ? new Date(0) : new Date(8640000000000000);
+    if (!data) {
+      return isInicio
+        ? new Date('1900-01-01T00:00:00')
+        : new Date('2050-12-31T23:59:59.999');
+    }
 
-    // Ajuste explícito de hora para o início/fim do dia
+    const parsed = new Date(data);
+    if (isNaN(parsed)) {
+      return isInicio
+        ? new Date('1900-01-01T00:00:00')
+        : new Date('2050-12-31T23:59:59.999');
+    }
+
     parsed.setHours(isInicio ? 0 : 23, isInicio ? 0 : 59, isInicio ? 0 : 59, isInicio ? 0 : 999);
     return parsed;
   };
@@ -213,7 +221,7 @@ function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
     return dataPedido >= dataLimiteInicio && dataPedido <= dataLimiteFim;
   });
 }
-  // FN05 FINAL 
+// === FIM FN05 ===
 // Fn06 – Formata data ISO para DD/MM/AAAA
 const formatarData = (isoString) => {
   const data = new Date(isoString);
