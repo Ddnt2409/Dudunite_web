@@ -594,40 +594,69 @@ const EditorProdutos = ({ dadosProdutos, setDadosProdutos }) => {
 };
 // === FIM FN21 ===
 
-// === INÍCIO FN22 – useEffect carga dos dados mestres ===
+// === INÍCIO FN22 – Buscar dados mestres (DESATIVADA) ===
+// useEffect(() => {
+//   const buscarDadosMestres = async () => {
+//     const colRef = collection(db, "dados_mestres");
+//     const snapshot = await getDocs(colRef);
+//     const dadosFirestore = {};
+//     snapshot.forEach(doc => {
+//       const data = doc.data();
+//       if (data.cidade && data.escolas) {
+//         dadosFirestore[data.cidade] = data.escolas;
+//       }
+//     });
+//     setDadosEscolas(dadosFirestore);
+//   };
+
+//   buscarDadosMestres();
+// }, []);
+// === FIM FN22 ===
+
+  // === INÍCIO FN22a – Carga estática dos dados dos selects ===
 useEffect(() => {
-  const carregarDadosMestres = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "dadosMestres"));
-      const lista = snapshot.docs.map((doc) => doc.data());
-      const escolasMapeadas = {};
-      const produtosMapeados = {};
-
-      lista.forEach((item) => {
-        if (item.cidade && item.escola) {
-          if (!escolasMapeadas[item.cidade]) escolasMapeadas[item.cidade] = [];
-          if (!escolasMapeadas[item.cidade].includes(item.escola)) {
-            escolasMapeadas[item.cidade].push(item.escola);
-          }
-        }
-        if (item.produto && item.sabor) {
-          if (!produtosMapeados[item.produto]) produtosMapeados[item.produto] = [];
-          if (!produtosMapeados[item.produto].includes(item.sabor)) {
-            produtosMapeados[item.produto].push(item.sabor);
-          }
-        }
-      });
-
-      setDadosEscolas(escolasMapeadas);
-      setDadosProdutos(produtosMapeados);
-    } catch (error) {
-      console.error("Erro ao carregar dados mestres:", error);
-    }
+  const escolas = {
+    "Gravatá": [
+      "Pequeno Príncipe", "Salesianas", "Céu Azul", "Russas", "Bora Gastar", "Kaduh", "Society Show", "Degusty"
+    ],
+    "Recife": [
+      "Tio Valter", "Vera Cruz", "Pinheiros", "Dourado", "BMQ", "CFC", "Madre de Deus", "Saber Viver"
+    ],
+    "Caruaru": [
+      "Interativo", "Exato Sede", "Exato Anexo", "Sesi", "Motivo", "Jesus Salvador"
+    ]
   };
 
-  carregarDadosMestres();
+  const sabores = {
+    "BRW 7x7": [
+      "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho", "Brigadeiro branco", "Brigadeiro branco com confete",
+      "Bem casado", "Paçoca", "KitKat", "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana"
+    ],
+    "BRW 6x6": [
+      "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho", "Brigadeiro branco", "Brigadeiro branco com confete",
+      "Bem casado", "Paçoca", "KitKat", "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana"
+    ],
+    "PKT 5x5": [
+      "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho", "Brigadeiro branco", "Brigadeiro branco com confete",
+      "Bem casado", "Paçoca", "KitKat", "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana"
+    ],
+    "PKT 6x6": [
+      "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho", "Brigadeiro branco", "Brigadeiro branco com confete",
+      "Bem casado", "Paçoca", "KitKat", "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana"
+    ],
+    "Esc": [
+      "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho", "Brigadeiro branco", "Brigadeiro branco com confete",
+      "Bem casado", "Paçoca", "KitKat", "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana"
+    ],
+    "Dudu": [
+      "Dd Oreo", "Dd Ovomaltine", "Dd Ninho com Nutella", "Dd Creme de Maracujá", "Dd KitKat"
+    ]
+  };
+
+  setDadosEscolas(escolas);
+  setDadosProdutos(sabores);
 }, []);
-// === FIM FN22 ===
+// === FIM FN22a ===
 
 // === INÍCIO FN23 ===
 const [tipoSelecionado, setTipoSelecionado] = useState('');
