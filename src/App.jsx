@@ -1,622 +1,497 @@
 // === INÍCIO FN01 – Importações e Constantes Globais ===
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
-import {
-  collection,
-  addDoc,
-  getDocs,
-  serverTimestamp,
-  query,
-  where,
-  Timestamp,
-} from "firebase/firestore";
+import 'jspdf-autotable';
+import { collection, addDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 import db from './firebase';
 
-const logoPath = "/LogomarcaDDnt2025Vazado.png";
-const corPrimaria = "#8c3b1b";
-const corFundo = "#fff5ec";
-// === FIM FN01 ===
-
-
-// === INÍCIO FN02 – Carga Estática das Cidades e Escolas ===
-const obterCidadesEscolas = () => ({
-  "Gravatá": [
-    "Pequeno Príncipe",
-    "Salesianas",
-    "Céu Azul",
-    "Russas",
-    "Bora Gastar",
-    "Kaduh",
-    "Society Show",
-    "Degusty",
-  ],
-  "Recife": [
-    "Tio Valter",
-    "Vera Cruz",
-    "Pinheiros",
-    "Dourado",
-    "BMQ",
-    "CFC",
-    "Madre de Deus",
-    "Saber Viver",
-  ],
-  "Caruaru": [
-    "Interativo",
-    "Exato Sede",
-    "Exato Anexo",
-    "Sesi",
-    "Motivo",
-    "Jesus Salvador",
-  ],
-});
-// === FIM FN02 ===
-
-
-// === INÍCIO FN03 – Carga Estática de Sabores por Produto ===
-const obterSaboresPorProduto = () => ({
-  "BRW 7x7": [
-    "Ninho",
-    "Ninho com Nutella",
-    "Oreo",
-    "Ovomaltine",
-    "Beijinho",
-    "Brigadeiro branco",
-    "Brigadeiro branco com confete",
-    "Bem casado",
-    "Paçoca",
-    "KitKat",
-    "Brigadeiro preto",
-    "Brigadeiro preto com confete",
-    "Palha italiana"
-  ],
-  "BRW 6x6": [
-    "Ninho",
-    "Ninho com Nutella",
-    "Oreo",
-    "Ovomaltine",
-    "Beijinho",
-    "Brigadeiro branco",
-    "Brigadeiro branco com confete",
-    "Bem casado",
-    "Paçoca",
-    "KitKat",
-    "Brigadeiro preto",
-    "Brigadeiro preto com confete",
-    "Palha italiana"
-  ],
-  "PKT 5x5": [
-    "Ninho",
-    "Ninho com Nutella",
-    "Oreo",
-    "Ovomaltine",
-    "Beijinho",
-    "Brigadeiro branco",
-    "Brigadeiro branco com confete",
-    "Bem casado",
-    "Paçoca",
-    "KitKat",
-    "Brigadeiro preto",
-    "Brigadeiro preto com confete",
-    "Palha italiana"
-  ],
-  "PKT 6x6": [
-    "Ninho",
-    "Ninho com Nutella",
-    "Oreo",
-    "Ovomaltine",
-    "Beijinho",
-    "Brigadeiro branco",
-    "Brigadeiro branco com confete",
-    "Bem casado",
-    "Paçoca",
-    "KitKat",
-    "Brigadeiro preto",
-    "Brigadeiro preto com confete",
-    "Palha italiana"
-  ],
-  "DUDU": [
-    "Dd Oreo",
-    "Dd Ovomaltine",
-    "Dd Ninho com Nutella",
-    "Dd Creme de Maracujá",
-    "Dd KitKat"
-  ],
-  "Esc": [
-    "Ninho",
-    "Ninho com Nutella",
-    "Oreo",
-    "Ovomaltine",
-    "Beijinho",
-    "Brigadeiro branco",
-    "Brigadeiro branco com confete",
-    "Bem casado",
-    "Paçoca",
-    "KitKat",
-    "Brigadeiro preto",
-    "Brigadeiro preto com confete",
-    "Palha italiana"
-  ]
-});
-// === FIM FN03 ===
-
-// === INÍCIO FN04 – Recheios por Sabor ===
-const obterRecheioPorSabor = () => ({
-  "Ninho": "branco",
-  "Ninho com Nutella": "branco",
-  "Oreo": "branco",
-  "Ovomaltine": "branco",
-  "Beijinho": "branco",
-  "Brigadeiro branco": "branco",
-  "Brigadeiro branco com confete": "branco",
-  "Paçoca": "branco",
-  "KitKat": "branco",
-
-  "Brigadeiro preto": "preto",
-  "Brigadeiro preto com confete": "preto",
-  "Palha italiana": "preto",
-
-  "Bem casado": "misto", // 50% branco, 50% preto
-});
-// === FIM FN04 ===
-
-
-// === INÍCIO FN05 – Estados Globais do App ===
 const App = () => {
+  // === Estados Globais ===
   const [cidade, setCidade] = useState('');
   const [escola, setEscola] = useState('');
   const [produto, setProduto] = useState('');
   const [sabor, setSabor] = useState('');
-  const [quantidade, setQuantidade] = useState(1);
+  const [quantidade, setQuantidade] = useState('');
   const [itens, setItens] = useState([]);
   const [pedidos, setPedidos] = useState([]);
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
-  const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
   const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
-  const [novaEscola, setNovaEscola] = useState('');
-  const [novoProduto, setNovoProduto] = useState('');
-  const [novoSabor, setNovoSabor] = useState('');
-  const [tipoSelecionado, setTipoSelecionado] = useState('');
-  const [dadosEscolas, setDadosEscolas] = useState({});
-  const [dadosProdutos, setDadosProdutos] = useState({});
+// === FIM FN01 ===
+
+  // === INÍCIO FN02 – gerarPDF (gera relatório de pedidos em PDF) ===
+const gerarPDF = () => {
+  const doc = new jsPDF();
+  doc.text(`Relatório de Pedidos – ${cidade}`, 10, 10);
+
+  const dadosTabela = itens.map((item, index) => [
+    index + 1,
+    item.produto,
+    item.sabor,
+    item.quantidade,
+  ]);
+
+  doc.autoTable({
+    head: [['#', 'Produto', 'Sabor', 'Quantidade']],
+    body: dadosTabela,
+    startY: 20,
+  });
+
+  doc.save(`Pedidos_${cidade}_${new Date().toISOString().slice(0, 10)}.pdf`);
+};
+// === FIM FN02 ===
+
+
+// === INÍCIO FN03 – obterProdutosDisponiveis (dados fixos no código) ===
+const obterProdutosDisponiveis = () => [
+  'BRW 6x6',
+  'BRW 7x7',
+  'PKT 5x5',
+  'PKT 6x6',
+  'Esc',
+  'Dudu'
+];
+// === FIM FN03 ===
+
+
+// === INÍCIO FN04 – obterSaboresPorProduto (com base no tipo e nome do produto) ===
+const obterSaboresPorProduto = (produtoSelecionado) => {
+  const saboresBrancos = [
+    'Ninho',
+    'Ninho com Nutella',
+    'Oreo',
+    'Ovomaltine',
+    'Beijinho',
+    'Brigadeiro branco',
+    'Brigadeiro branco c confete',
+    'Bem casado',
+    'Paçoca',
+    'Kitkat',
+  ];
+
+  const saboresPretos = [
+    'Brigadeiro preto',
+    'Brigadeiro preto c confete',
+    'Palha italiana',
+    'Bem casado',
+  ];
+
+  const saboresDudu = [
+    'Dd Oreo',
+    'Dd Ovomaltine',
+    'Dd Ninho com Nutella',
+    'Dd Creme de Maracujá',
+    'Dd Kitkat'
+  ];
+
+  if (produtoSelecionado === 'Dudu') return saboresDudu;
+  return [...new Set([...saboresBrancos, ...saboresPretos])];
+};
+// === FIM FN04 ===
+
+  // === INÍCIO FN05 – obterCidadesDisponiveis (lista fixa de cidades permitidas) ===
+const obterCidadesDisponiveis = () => [
+  'Gravatá',
+  'Recife',
+  'Caruaru'
+];
 // === FIM FN05 ===
 
-  // === INÍCIO FN06 – Carga de Cidades e Escolas (fixa) ===
-const obterCidadesEscolas = () => ({
-  "Gravatá": [
-    "Pequeno Príncipe",
-    "Salesianas",
-    "Céu Azul",
-    "Russas",
-    "Bora Gastar",
-    "Kaduh",
-    "Society Show",
-    "Degusty"
-  ],
-  "Recife": [
-    "Tio Valter",
-    "Vera Cruz",
-    "Pinheiros",
-    "Dourado",
-    "BMQ",
-    "CFC",
-    "Madre de Deus",
-    "Saber Viver"
-  ],
-  "Caruaru": [
-    "Interativo",
-    "Exato Sede",
-    "Exato Anexo",
-    "Sesi",
-    "Motivo",
-    "Jesus Salvador"
-  ]
-});
+
+// === INÍCIO FN06 – obterEscolasPorCidade (mapeamento direto por cidade) ===
+const obterEscolasPorCidade = (cidadeSelecionada) => {
+  const escolas = {
+    'Gravatá': [
+      'Pequeno Príncipe',
+      'Salesianas',
+      'Céu Azul',
+      'Russas',
+      'Bora Gastar',
+      'Kaduh',
+      'Society Show',
+      'Degusty'
+    ],
+    'Recife': [
+      'Tio Valter',
+      'Vera Cruz',
+      'Pinheiros',
+      'Dourado',
+      'BMQ',
+      'CFC',
+      'Madre de Deus',
+      'Saber Viver'
+    ],
+    'Caruaru': [
+      'Interativo',
+      'Exato Sede',
+      'Exato Anexo',
+      'Sesi',
+      'Motivo',
+      'Jesus Salvador'
+    ]
+  };
+
+  return escolas[cidadeSelecionada] || [];
+};
 // === FIM FN06 ===
 
 
-// === INÍCIO FN07 – Carga de Sabores por Produto ===
-const obterSaboresPorProduto = () => ({
-  "BRW 7x7": [
-    "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho",
-    "Brigadeiro branco", "Brigadeiro branco com confete", "Paçoca", "KitKat",
-    "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana", "Bem casado"
-  ],
-  "BRW 6x6": [
-    "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho",
-    "Brigadeiro branco", "Brigadeiro branco com confete", "Paçoca", "KitKat",
-    "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana", "Bem casado"
-  ],
-  "PKT 5x5": [
-    "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho",
-    "Brigadeiro branco", "Brigadeiro branco com confete", "Paçoca", "KitKat",
-    "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana", "Bem casado"
-  ],
-  "PKT 6x6": [
-    "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho",
-    "Brigadeiro branco", "Brigadeiro branco com confete", "Paçoca", "KitKat",
-    "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana", "Bem casado"
-  ],
-  "Esc": [
-    "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho",
-    "Brigadeiro branco", "Brigadeiro branco com confete", "Paçoca", "KitKat",
-    "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana", "Bem casado"
-  ],
-  "Dudu": [
-    "Dd Oreo", "Dd Ovomaltine", "Dd Ninho com Nutella", "Dd Creme de Maracujá", "Dd KitKat"
-  ]
-});
+// === INÍCIO FN07 – adicionarItem (validação e inclusão do item na lista) ===
+const adicionarItem = () => {
+  if (!produto || !sabor || !quantidade || quantidade <= 0) {
+    alert("Preencha todos os campos corretamente.");
+    return;
+  }
+
+  const novoItem = {
+    produto,
+    sabor,
+    quantidade,
+  };
+
+  setItens([...itens, novoItem]);
+  setProduto('');
+  setSabor('');
+  setQuantidade('');
+};
 // === FIM FN07 ===
 
-  // === INÍCIO FN08 – adicionarItem (validação e inclusão do item na lista) ===
-  const adicionarItem = () => {
-    if (!produto || !sabor || !quantidade || quantidade <= 0) {
-      alert("Preencha todos os campos corretamente.");
-      return;
-    }
+  // === INÍCIO FN08 – obterProdutosDisponiveis (lista fixa de tipos de produtos) ===
+const obterProdutosDisponiveis = () => [
+  'BRW 7x7',
+  'BRW 6x6',
+  'PKT 5x5',
+  'PKT 6x6',
+  'Dudu',
+  'Esc'
+];
+// === FIM FN08 ===
 
-    const novoItem = { produto, sabor, quantidade: parseInt(quantidade) };
-    setItens((prev) => [...prev, novoItem]);
 
-    setProduto('');
-    setSabor('');
-    setQuantidade(1);
-  };
-  // === FIM FN08 ===
+// === INÍCIO FN09 – obterSaboresPorProduto (com exceção dos Dudus que têm sabores próprios) ===
+const obterSaboresPorProduto = (produtoSelecionado) => {
+  if (produtoSelecionado === 'Dudu') {
+    return [
+      'Dd Oreo',
+      'Dd Ovomaltine',
+      'Dd Ninho com Nutella',
+      'Dd Creme de Maracujá',
+      'Dd KitKat'
+    ];
+  }
 
-  // === INÍCIO FN09 – totalItens (soma da quantidade atual do pedido) ===
-  const totalItens = itens.reduce((soma, item) => soma + item.quantidade, 0);
-  // === FIM FN09 ===
+  return [
+    'Ninho',
+    'Ninho com Nutella',
+    'Oreo',
+    'Ovomaltine',
+    'Beijinho',
+    'Brigadeiro branco',
+    'Brigadeiro branco com confete',
+    'Bem casado',
+    'Paçoca',
+    'KitKat',
+    'Brigadeiro preto',
+    'Brigadeiro preto com confete',
+    'Palha italiana'
+  ];
+};
+// === FIM FN09 ===
 
-  // === INÍCIO FN10 – salvarPedido (validação e envio para o Firestore) ===
-  const salvarPedido = async () => {
-    if (!cidade || !escola || itens.length === 0) {
-      alert("Preencha todos os campos antes de salvar.");
-      return;
-    }
 
-    const novoPedido = {
-      cidade,
-      escola,
-      itens,
-      data: serverTimestamp()
-    };
+// === INÍCIO FN10 – obterRecheioPorSabor (retorna branco, preto ou misto conforme o sabor) ===
+const obterRecheioPorSabor = (sabor) => {
+  const recheioBranco = [
+    'Ninho',
+    'Ninho com Nutella',
+    'Oreo',
+    'Ovomaltine',
+    'Beijinho',
+    'Brigadeiro branco',
+    'Brigadeiro branco com confete',
+    'Paçoca',
+    'KitKat'
+  ];
 
-    try {
-      const docRef = await addDoc(collection(db, "pedidos"), novoPedido);
-      if (docRef.id) {
-        alert("Pedido salvo com sucesso!");
-        setCidade('');
-        setEscola('');
-        setItens([]);
-      } else {
-        throw new Error("Erro ao salvar.");
-      }
-    } catch (error) {
-      console.error("Erro ao salvar pedido:", error);
-      alert("Erro ao salvar o pedido.");
-    }
-  };
-  // === FIM FN10 ===
+  const recheioPreto = [
+    'Brigadeiro preto',
+    'Brigadeiro preto com confete',
+    'Palha italiana'
+  ];
 
-  // === INÍCIO FN11 – carregarPedidos (busca do Firestore + ajuste datas) ===
-  const carregarPedidos = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "pedidos"));
-      const lista = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        data: doc.data().data?.toDate?.() || new Date()
-      }));
-      setPedidos(lista);
-    } catch (error) {
-      console.error("Erro ao carregar pedidos:", error);
-    }
-  };
-  // === FIM FN11 ===
+  if (sabor === 'Bem casado') return 'misto';
+  if (recheioBranco.includes(sabor)) return 'branco';
+  if (recheioPreto.includes(sabor)) return 'preto';
+  return null;
+};
+// === FIM FN10 ===
 
-  // === INÍCIO FN12 – useEffect para carregarPedidos ao iniciar ===
-  useEffect(() => {
-    carregarPedidos();
-  }, []);
-  // === FIM FN12 ===
 
-  // === INÍCIO FN13 – formatarData (converte ISO em dd/mm/aaaa) ===
-  const formatarData = (isoString) => {
-    const data = new Date(isoString);
-    return data.toLocaleDateString('pt-BR');
-  };
-  // === FIM FN13 ===
+// === INÍCIO FN11 – obterQuantidadePorTabuleiro (retorna rendimento por tipo de produto) ===
+const obterQuantidadePorTabuleiro = (produto) => {
+  switch (produto) {
+    case 'BRW 7x7': return 12;
+    case 'BRW 6x6': return 17;
+    case 'PKT 5x5': return 20;
+    case 'PKT 6x6': return 15;
+    case 'Esc': return 26;
+    default: return 0;
+  }
+};
+// === FIM FN11 ===
 
-  // === INÍCIO FN14 – filtrarPedidosPorData (com fallback se sem filtro) ===
-  const filtrarPedidosPorData = () => {
-    let inicio = new Date("1900-01-01");
-    let fim = new Date("2050-12-31");
+  // === INÍCIO FN12 – formatarData (DD/MM/AAAA a partir de objeto Date ou ISO) ===
+const formatarData = (dataInput) => {
+  if (!dataInput) return '';
+  const data = new Date(dataInput);
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const ano = data.getFullYear();
+  return `${dia}/${mes}/${ano}`;
+};
+// === FIM FN12 ===
 
-    if (dataInicio) {
-      const partesInicio = dataInicio.split("-");
-      inicio = new Date(`${partesInicio[0]}-${partesInicio[1]}-${partesInicio[2]}T00:00:00`);
-    }
 
-    if (dataFim) {
-      const partesFim = dataFim.split("-");
-      fim = new Date(`${partesFim[0]}-${partesFim[1]}-${partesFim[2]}T23:59:59`);
-    }
+// === INÍCIO FN13 – toggleMostrarDadosMestres (exibe ou oculta painel de Dados Mestres) ===
+const toggleMostrarDadosMestres = () => {
+  setMostrarDadosMestres((prev) => !prev);
+};
+// === FIM FN13 ===
 
-    const pedidosFiltrados = pedidos.filter((pedido) => {
-      const dataPedido = new Date(pedido.data);
-      return dataPedido >= inicio && dataPedido <= fim;
-    });
 
-    setPedidosFiltrados(pedidosFiltrados);
-  };
-  // === FIM FN14 ===
+// === INÍCIO FN14 – inicializarDatasFiltro (define datas padrão para filtros caso estejam vazias) ===
+const inicializarDatasFiltro = () => {
+  if (!dataInicio) setDataInicio('01/01/1900');
+  if (!dataFim) setDataFim('31/12/2050');
+};
+// === FIM FN14 ===
 
-  // === INÍCIO FN15 – toggleMostrarDadosMestres ===
-  const toggleMostrarDadosMestres = () => {
-    setMostrarDadosMestres((prev) => !prev);
-  };
-  // === FIM FN15 ===
+  // === INÍCIO FN15 – filtrarPedidosPorData (fallback se datas não preenchidas) ===
+const filtrarPedidosPorData = () => {
+  let inicio = new Date('1900-01-01T00:00:00');
+  let fim = new Date('2050-12-31T23:59:59');
 
-  // === INÍCIO FN16 – salvarDadosMestres (grava cidade, escola, produto, sabor) ===
-  const salvarDadosMestres = async () => {
-    const novoItem = {
-      cidade,
-      escola,
-      produto,
-      sabor
-    };
+  if (dataInicio) {
+    const [dia, mes, ano] = dataInicio.split('/');
+    inicio = new Date(`${ano}-${mes}-${dia}T00:00:00`);
+  }
 
-    try {
-      await addDoc(collection(db, "dadosMestres"), novoItem);
-      alert("Dados mestres salvos com sucesso!");
-      setNovaEscola('');
-      setNovoProduto('');
-      setNovoSabor('');
-      carregarDadosMestres();
-    } catch (error) {
-      console.error("Erro ao salvar dados mestres:", error);
-      alert("Erro ao salvar dados mestres.");
-    }
-  };
-  // === FIM FN16 ===
+  if (dataFim) {
+    const [dia, mes, ano] = dataFim.split('/');
+    fim = new Date(`${ano}-${mes}-${dia}T23:59:59`);
+  }
 
-  // === INÍCIO FN17 – adicionarItem (validação e inclusão do item na lista) ===
-  const adicionarItem = () => {
-    if (!produto || !sabor || !quantidade || quantidade <= 0) {
-      alert("Preencha todos os campos corretamente.");
-      return;
-    }
+  const pedidosFiltrados = pedidos.filter((pedido) => {
+    const dataPedido = new Date(pedido.data?.seconds * 1000 || pedido.data);
+    return dataPedido >= inicio && dataPedido <= fim;
+  });
 
-    const novoItem = { produto, sabor, quantidade: parseInt(quantidade) };
-    setItens((prevItens) => [...prevItens, novoItem]);
-    setProduto('');
-    setSabor('');
-    setQuantidade(1);
-  };
-  // === FIM FN17 ===
+  setPedidosFiltrados(pedidosFiltrados);
+};
+// === FIM FN15 ===
 
-  // === INÍCIO FN18 – totalItens (soma da quantidade atual do pedido) ===
-  const totalItens = itens.reduce((soma, item) => soma + item.quantidade, 0);
-  // === FIM FN18 ===
+
+// === INÍCIO FN16 – carregarPedidos (busca todos os pedidos do Firestore) ===
+const carregarPedidos = async () => {
+  try {
+    const snapshot = await getDocs(collection(db, "pedidos"));
+    const lista = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    setPedidos(lista);
+    setPedidosFiltrados(lista);
+  } catch (error) {
+    console.error("Erro ao carregar pedidos:", error);
+  }
+};
+// === FIM FN16 ===
+
+
+// === INÍCIO FN17 – adicionarItem (validação e inclusão do item na lista) ===
+const adicionarItem = () => {
+  if (!produto || !sabor || !quantidade || quantidade <= 0) {
+    alert("Preencha todos os campos corretamente.");
+    return;
+  }
+
+  const novoItem = { produto, sabor, quantidade };
+  setItens([...itens, novoItem]);
+  setProduto('');
+  setSabor('');
+  setQuantidade('');
+};
+// === FIM FN17 ===
+
+
+// === INÍCIO FN18 – totalItens (soma da quantidade atual do pedido) ===
+const totalItens = itens.reduce((soma, item) => soma + item.quantidade, 0);
+// === FIM FN18 ===
 
   // === INÍCIO FN19 – salvarPedido (envia pedido completo ao Firestore com validação) ===
-  const salvarPedido = async () => {
-    if (!cidade || !escola || itens.length === 0) {
-      alert("Preencha todos os campos antes de salvar.");
-      return;
-    }
+const salvarPedido = async () => {
+  if (!cidade || !escola || itens.length === 0) {
+    alert('Preencha todos os campos antes de salvar.');
+    return;
+  }
 
-    const novoPedido = {
-      cidade,
-      escola,
-      data: new Date().toISOString(),
-      itens,
-      criadoEm: serverTimestamp()
-    };
-
-    try {
-      const docRef = await addDoc(collection(db, "pedidos"), novoPedido);
-      if (docRef && docRef.id) {
-        alert("Pedido salvo com sucesso!");
-        setCidade('');
-        setEscola('');
-        setItens([]);
-        carregarPedidos();
-      } else {
-        throw new Error("Falha ao salvar no Firestore");
-      }
-    } catch (error) {
-      console.error("Erro ao salvar pedido:", error);
-      alert("Erro ao salvar o pedido.");
-    }
+  const novoPedido = {
+    cidade,
+    escola,
+    itens,
+    data: serverTimestamp(),
   };
-  // === FIM FN19 ===
 
-  // === INÍCIO FN20 – carregarPedidos (busca todos os pedidos do Firestore) ===
-  const carregarPedidos = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "pedidos"));
-      const listaPedidos = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setPedidos(listaPedidos);
-      filtrarPedidosPorData(listaPedidos); // aplica filtro ao carregar
-    } catch (error) {
-      console.error("Erro ao carregar pedidos:", error);
-    }
+  try {
+    await addDoc(collection(db, "pedidos"), novoPedido);
+    alert("Pedido salvo com sucesso!");
+    setCidade('');
+    setEscola('');
+    setItens([]);
+  } catch (error) {
+    console.error("Erro ao salvar pedido:", error);
+    alert("Erro ao salvar pedido.");
+  }
+};
+// === FIM FN19 ===
+
+
+// === INÍCIO FN20 – formatarData (converte ISO em dd/mm/aaaa) ===
+const formatarData = (isoString) => {
+  if (!isoString) return '';
+  const data = new Date(isoString);
+  return data.toLocaleDateString('pt-BR');
+};
+// === FIM FN20 ===
+
+
+// === INÍCIO FN21 – filtrarPedidosPorData (usa dataInicio e dataFim para filtrar pedidos) ===
+const filtrarPedidosPorData = (
+  lista = pedidos,
+  inicioStr = dataInicio,
+  fimStr = dataFim
+) => {
+  let inicio = new Date('1900-01-01T00:00:00');
+  let fim = new Date('2050-12-31T23:59:59');
+
+  if (inicioStr) {
+    const [dia, mes, ano] = inicioStr.split('/');
+    inicio = new Date(`${ano}-${mes}-${dia}T00:00:00`);
+  }
+
+  if (fimStr) {
+    const [dia, mes, ano] = fimStr.split('/');
+    fim = new Date(`${ano}-${mes}-${dia}T23:59:59`);
+  }
+
+  return lista.filter((pedido) => {
+    const data = new Date(pedido.data?.seconds * 1000 || pedido.data);
+    return data >= inicio && data <= fim;
+  });
+};
+// === FIM FN21 ===
+
+
+// === INÍCIO FN22 – salvarDadosMestres (grava cidade, escola, produto, sabor) ===
+const salvarDadosMestres = async () => {
+  const novoItem = {
+    cidade,
+    escola,
+    produto,
+    sabor,
   };
-  // === FIM FN20 ===
 
-  // === INÍCIO FN21 – filtrarPedidosPorData (usa dataInicio e dataFim para filtrar) ===
-  const filtrarPedidosPorData = (
-    lista = pedidos,
-    inicioStr = dataInicio,
-    fimStr = dataFim
-  ) => {
-    let inicio = inicioStr ? new Date(inicioStr + " 00:00:00") : new Date("1900-01-01T00:00:00");
-    let fim = fimStr ? new Date(fimStr + " 23:59:59") : new Date("2050-12-31T23:59:59");
+  try {
+    await addDoc(collection(db, "dadosMestres"), novoItem);
+    alert("Dados mestres salvos com sucesso!");
+  } catch (error) {
+    console.error("Erro ao salvar dados mestres:", error);
+    alert("Erro ao salvar dados mestres.");
+  }
+};
+// === FIM FN22 ===
 
-    const filtrados = lista.filter((pedido) => {
-      const dataPedido = new Date(pedido.data);
-      return dataPedido >= inicio && dataPedido <= fim;
-    });
-
-    setPedidosFiltrados(filtrados);
-  };
-  // === FIM FN21 ===
-
-  // === INÍCIO FN22 – formatarData (converte ISO em dd/mm/aaaa) ===
-  const formatarData = (isoString) => {
-    if (!isoString) return '';
-    const data = new Date(isoString);
-    return data.toLocaleDateString('pt-BR');
-  };
-  // === FIM FN22 ===
-
-  // === INÍCIO RT99 – BLOCO PRINCIPAL DE INTERFACE ===
+  // === INÍCIO RT99 – Interface Principal do App ===
 return (
-  <div className="container mx-auto p-4">
-    {/* === INÍCIO RT01 – Seletor de Cidade, Escola, Produto e Sabor === */}
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 border border-gray-300 p-4 rounded-2xl shadow">
-      <div>
-        <label className="block text-sm font-medium">Cidade</label>
-        <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full border rounded p-1">
-          <option value="">Selecione</option>
-          {cidades.map((c, i) => (
-            <option key={i} value={c}>{c}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="block text-sm font-medium">Escola</label>
-        <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full border rounded p-1">
-          <option value="">Selecione</option>
-          {escolasFiltradas.map((e, i) => (
-            <option key={i} value={e}>{e}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="block text-sm font-medium">Produto</label>
-        <select value={produto} onChange={(e) => handleProdutoChange(e.target.value)} className="w-full border rounded p-1">
-          <option value="">Selecione</option>
-          {produtos.map((p, i) => (
-            <option key={i} value={p}>{p}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="block text-sm font-medium">Sabor</label>
-        <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full border rounded p-1">
-          <option value="">Selecione</option>
-          {saboresFiltrados.map((s, i) => (
-            <option key={i} value={s}>{s}</option>
-          ))}
-        </select>
-      </div>
+  <div className="container">
+    {/* === INÍCIO RT01 – Seletor de Cidade === */}
+    <div>
+      <label>Cidade:</label>
+      <select value={cidade} onChange={(e) => setCidade(e.target.value)}>
+        <option value="">Selecione</option>
+        <option value="Gravatá">Gravatá</option>
+        <option value="Recife">Recife</option>
+        <option value="Caruaru">Caruaru</option>
+      </select>
     </div>
     {/* === FIM RT01 === */}
 
-    {/* === INÍCIO RT02 – Quantidade e Botão Adicionar === */}
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 items-end">
-      <div>
-        <label className="block text-sm font-medium">Quantidade</label>
-        <input
-          type="number"
-          value={quantidade}
-          onChange={(e) => setQuantidade(Number(e.target.value))}
-          className="w-full border rounded p-1"
-          min="1"
-        />
-      </div>
-      <div>
-        <button onClick={adicionarItem} className="bg-green-600 text-white px-4 py-2 rounded shadow-md w-full">
-          Adicionar
-        </button>
-      </div>
+    {/* === INÍCIO RT02 – Seletor de Escola === */}
+    <div>
+      <label>Escola:</label>
+      <select value={escola} onChange={(e) => setEscola(e.target.value)}>
+        <option value="">Selecione</option>
+        {escolasDisponiveis.map((esc) => (
+          <option key={esc} value={esc}>{esc}</option>
+        ))}
+      </select>
     </div>
     {/* === FIM RT02 === */}
 
-    {/* === INÍCIO RT03 – Lista de Itens do Pedido === */}
-    <div className="mb-6">
-      <h2 className="text-lg font-semibold mb-2">Itens do Pedido ({totalItens})</h2>
-      <ul className="list-disc ml-5">
-        {itens.map((item, i) => (
-          <li key={i}>
-            {item.produto} – {item.sabor} – {item.quantidade}
-          </li>
+    {/* === INÍCIO RT03 – Seletor de Produto e Sabor === */}
+    <div>
+      <label>Produto:</label>
+      <select value={produto} onChange={(e) => setProduto(e.target.value)}>
+        <option value="">Selecione</option>
+        {produtosDisponiveis.map((prod) => (
+          <option key={prod} value={prod}>{prod}</option>
         ))}
-      </ul>
+      </select>
+
+      <label>Sabor:</label>
+      <select value={sabor} onChange={(e) => setSabor(e.target.value)}>
+        <option value="">Selecione</option>
+        {saboresDisponiveis.map((sab) => (
+          <option key={sab} value={sab}>{sab}</option>
+        ))}
+      </select>
     </div>
     {/* === FIM RT03 === */}
 
-    {/* === INÍCIO RT04 – Botão Salvar Pedido e Planejamento === */}
-    <div className="flex flex-col md:flex-row gap-4 mb-6">
-      <button onClick={salvarPedido} className="bg-blue-600 text-white px-4 py-2 rounded shadow-md w-full md:w-auto">
-        Salvar Pedido
-      </button>
-      <button onClick={gerarPlanejamento} className="bg-purple-600 text-white px-4 py-2 rounded shadow-md w-full md:w-auto">
-        Planejamento de Produção
-      </button>
-      <button onClick={gerarListaCompras} className="bg-amber-700 text-white px-4 py-2 rounded shadow-md w-full md:w-auto">
-        Lista de Compras
-      </button>
-      <button onClick={toggleMostrarDadosMestres} className="bg-gray-800 text-white px-4 py-2 rounded shadow-md w-full md:w-auto">
-        Dados Mestres
-      </button>
+    {/* === INÍCIO RT04 – Campo de Quantidade e Botão Adicionar === */}
+    <div>
+      <label>Quantidade:</label>
+      <input
+        type="number"
+        value={quantidade}
+        onChange={(e) => setQuantidade(Number(e.target.value))}
+        min={1}
+      />
+      <button onClick={adicionarItem}>Adicionar</button>
     </div>
     {/* === FIM RT04 === */}
 
-    {/* === INÍCIO RT05 – Filtros por Data e Geração de PDF === */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <div>
-        <label className="block text-sm font-medium">Data Início</label>
-        <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="w-full border rounded p-1" />
-      </div>
-      <div>
-        <label className="block text-sm font-medium">Data Fim</label>
-        <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className="w-full border rounded p-1" />
-      </div>
-      <div className="flex items-end">
-        <button onClick={() => gerarPDF(pedidosFiltrados)} className="bg-red-600 text-white px-4 py-2 rounded shadow-md w-full">
-          Gerar PDF
-        </button>
-      </div>
+    {/* === INÍCIO RT05 – Lista de Itens do Pedido === */}
+    <div>
+      <h3>Itens:</h3>
+      <ul>
+        {itens.map((item, index) => (
+          <li key={index}>
+            {item.produto} - {item.sabor} - {item.quantidade} un
+          </li>
+        ))}
+      </ul>
+      <p>Total de itens: {totalItens}</p>
     </div>
     {/* === FIM RT05 === */}
 
-    {/* === INÍCIO RT06 – Tabela de Pedidos Salvos === */}
-    <div className="overflow-x-auto border border-gray-300 rounded-2xl shadow mb-8">
-      <table className="min-w-full text-sm">
-        <thead className="bg-terra text-white">
-          <tr>
-            <th className="py-2 px-4 border">Data</th>
-            <th className="py-2 px-4 border">Cidade</th>
-            <th className="py-2 px-4 border">Escola</th>
-            <th className="py-2 px-4 border">Produto</th>
-            <th className="py-2 px-4 border">Sabor</th>
-            <th className="py-2 px-4 border">Qtd</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pedidosFiltrados.map((p, i) => (
-            <tr key={i} className="bg-white even:bg-gray-100">
-              <td className="py-1 px-4 border">{formatarData(p.timestamp)}</td>
-              <td className="py-1 px-4 border">{p.cidade}</td>
-              <td className="py-1 px-4 border">{p.escola}</td>
-              <td className="py-1 px-4 border">{p.produto}</td>
-              <td className="py-1 px-4 border">{p.sabor}</td>
-              <td className="py-1 px-4 border">{p.quantidade}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    {/* === INÍCIO RT06 – Botão de Salvar Pedido === */}
+    <div>
+      <button onClick={salvarPedido}>Salvar Pedido</button>
     </div>
     {/* === FIM RT06 === */}
   </div>
 );
 // === FIM RT99 ===
+
+// === Fechamento do Componente App ===
+};
 
 export default App;
