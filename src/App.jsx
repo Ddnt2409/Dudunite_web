@@ -814,7 +814,6 @@ return (
   </button>
 </div>
 {/* === FIM RT05 === */}
-
       {/* === INÍCIO RT06 – Painel de Dados Mestres (corrigido) */}
       {mostrarDadosMestres && (
         <div className="mt-6">
