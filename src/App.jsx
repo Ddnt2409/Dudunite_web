@@ -19,109 +19,117 @@ const logoPath = "/LogomarcaDDnt2025Vazado.png";
 const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
 // FN02 - FINAL//
-// ✅ FN03 – gerarPDF (Planejamento de Produção) – AJUSTE PARA CELULAR E ERROS SILENCIOSOS
-const gerarPDF = () => {
+// === INÍCIO FN03 – Gerar Planejamento de Produção ===
+const gerarPlanejamentoProducao = () => {
   const pedidosFiltrados = filtrarPedidosPorData();
 
-  if (!pedidosFiltrados.length) {
-    alert('Nenhum pedido encontrado para o período selecionado.');
+  if (pedidosFiltrados.length === 0) {
+    alert("Nenhum pedido encontrado no período selecionado.");
     return;
   }
 
-  const doc = new jsPDF();
-  let y = 10;
-
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(10);
-  doc.text('Planejamento de Produção - Dudunitê', 10, y);
-  y += 10;
-
-  const rendimentoPorProduto = {
-    "BRW 7x7": { tabuleiro: 12, bacia: { branco: 25, preto: 25 } },
-    "BRW 6x6": { tabuleiro: 17, bacia: { branco: 35, preto: 35 } },
-    "PKT 5x5": { tabuleiro: 20, bacia: { branco: 650 / 20, preto: 650 / 20 } },
-    "PKT 6x6": { tabuleiro: 15, bacia: { branco: 650 / 30, preto: 650 / 30 } },
-    "ESC":     { tabuleiro: 26, bacia: { branco: 26, preto: 26 } },
-    "DUDU":    { tabuleiro: 100, bacia: { branco: 100, preto: 100 } }
-  };
-
-  const saboresBrancos = [
-    "Ninho", "Ninho com nutella", "Brigadeiro branco", "Oreo",
-    "Ovomaltine", "Paçoca", "Brigadeiro branco c confete", "Beijinho"
-  ];
-  const saboresPretos = [
-    "Brigadeiro preto", "Brigadeiro c confete", "Palha italiana", "Prestigio"
-  ];
-
-  const tabuleiros = {};
-  const bacias = { branco: 0, preto: 0 };
+  const resumo = {};
+  let totalTabuleiros = 0;
+  let totalBaciasBranco = 0;
+  let totalBaciasPreto = 0;
+  const resumoDudus = {};
 
   pedidosFiltrados.forEach((pedido) => {
-    try {
-      const dataFormatada = pedido.timestamp?.toDate?.()?.toLocaleDateString?.("pt-BR") || "Data inválida";
+    pedido.itens.forEach((item) => {
+      const { produto, sabor, quantidade } = item;
 
-      doc.text(`Escola: ${pedido.escola || '---'}`, 10, y); y += 6;
-      doc.text(`Cidade: ${pedido.cidade || '---'}`, 10, y); y += 6;
-      doc.text(`Data: ${dataFormatada}`, 10, y); y += 6;
-      doc.text('Itens:', 10, y); y += 6;
-
-      pedido.itens.forEach(({ produto, sabor, quantidade }) => {
-        const qtd = Number(quantidade);
-        doc.text(`${produto} - ${sabor} - ${qtd} un`, 12, y); y += 6;
-
-        const rend = rendimentoPorProduto[produto];
-        if (!rend) return;
-
-        if (!tabuleiros[produto]) tabuleiros[produto] = 0;
-        tabuleiros[produto] += qtd / rend.tabuleiro;
-
-        if (sabor === "Bem casado") {
-          bacias.branco += qtd / (rend.bacia.branco * 2);
-          bacias.preto += qtd / (rend.bacia.preto * 2);
-        } else if (saboresBrancos.includes(sabor)) {
-          bacias.branco += qtd / rend.bacia.branco;
-        } else if (saboresPretos.includes(sabor)) {
-          bacias.preto += qtd / rend.bacia.preto;
-        }
-      });
-
-      y += 4;
-      if (y >= 270) {
-        doc.addPage();
-        y = 10;
+      if (produto.toLowerCase().includes("dudu")) {
+        if (!resumoDudus[sabor]) resumoDudus[sabor] = 0;
+        resumoDudus[sabor] += quantidade;
+        return;
       }
-    } catch (erro) {
-      console.error('Erro ao processar pedido:', pedido, erro);
-    }
+
+      if (!resumo[produto]) {
+        resumo[produto] = {
+          quantidade: 0,
+          tabuleiros: 0,
+          baciasBranco: 0,
+          baciasPreto: 0,
+        };
+      }
+
+      resumo[produto].quantidade += quantidade;
+
+      let fatorTabuleiro = 1;
+      if (produto === "BRW 7x7") fatorTabuleiro = 12;
+      else if (produto === "BRW 6x6") fatorTabuleiro = 17;
+      else if (produto === "PKT 5x5") fatorTabuleiro = 20;
+      else if (produto === "PKT 6x6") fatorTabuleiro = 15;
+      else if (produto === "Esc") fatorTabuleiro = 26;
+
+      const tabuleiros = Math.ceil(quantidade / fatorTabuleiro);
+      resumo[produto].tabuleiros += tabuleiros;
+      totalTabuleiros += tabuleiros;
+
+      const saboresBranco = [
+        "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho",
+        "Brigadeiro branco", "Brigadeiro branco com confete", "Paçoca", "KitKat"
+      ];
+      const saboresPreto = [
+        "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana"
+      ];
+
+      if (sabor === "Bem casado") {
+        const b = 0.5 * (quantidade / fatorTabuleiro);
+        resumo[produto].baciasBranco += b;
+        resumo[produto].baciasPreto += b;
+        totalBaciasBranco += b;
+        totalBaciasPreto += b;
+      } else if (saboresBranco.includes(sabor)) {
+        const b = quantidade / fatorTabuleiro;
+        resumo[produto].baciasBranco += b;
+        totalBaciasBranco += b;
+      } else if (saboresPreto.includes(sabor)) {
+        const b = quantidade / fatorTabuleiro;
+        resumo[produto].baciasPreto += b;
+        totalBaciasPreto += b;
+      }
+    });
   });
 
-  doc.addPage(); y = 10;
-  doc.text('--- RESUMO DE PRODUÇÃO ---', 10, y); y += 8;
+  const doc = new jsPDF();
+  doc.setFontSize(16);
+  doc.text("Planejamento de Produção", 14, 15);
 
-  doc.text('TABULEIROS:', 10, y); y += 6;
-  Object.entries(tabuleiros).forEach(([produto, qtd]) => {
-    doc.text(`${produto}: ${qtd.toFixed(2)} tabuleiros`, 12, y); y += 6;
+  doc.setFontSize(12);
+  let y = 25;
+  Object.keys(resumo).forEach((produto) => {
+    const item = resumo[produto];
+    doc.text(
+      `Produto: ${produto} – Qtde: ${item.quantidade} – Tabuleiros: ${Math.ceil(item.tabuleiros)} – Bacias Branco: ${item.baciasBranco.toFixed(1)} – Bacias Preto: ${item.baciasPreto.toFixed(1)}`,
+      14,
+      y
+    );
+    y += 8;
   });
 
-  y += 4;
-  doc.text('RECHEIOS:', 10, y); y += 6;
-  doc.text(`Branco: ${bacias.branco.toFixed(2)} bacias`, 12, y); y += 6;
-  doc.text(`Preto: ${bacias.preto.toFixed(2)} bacias`, 12, y); y += 6;
-
-  const agora = new Date();
-  const dia = String(agora.getDate()).padStart(2, '0');
-  const mes = String(agora.getMonth() + 1).padStart(2, '0');
-  const ano = agora.getFullYear();
-  const hora = String(agora.getHours()).padStart(2, '0');
-  const minuto = String(agora.getMinutes()).padStart(2, '0');
-  const nomePDF = `producao-${dia}-${mes}-${ano}-${hora}h${minuto}.pdf`;
-
-  try {
-    doc.save(nomePDF);
-  } catch (erro) {
-    alert('Erro ao tentar salvar o PDF. Experimente usar um navegador em modo desktop.');
-    console.error(erro);
+  if (Object.keys(resumoDudus).length > 0) {
+    y += 10;
+    doc.setFontSize(14);
+    doc.text("DUDUs", 14, y);
+    doc.setFontSize(12);
+    y += 6;
+    Object.keys(resumoDudus).forEach((sabor) => {
+      doc.text(`- ${sabor}: ${resumoDudus[sabor]} unidades`, 16, y);
+      y += 6;
+    });
   }
+
+  y += 10;
+  doc.setFontSize(14);
+  doc.text("Resumo Final", 14, y);
+  y += 8;
+  doc.setFontSize(12);
+  doc.text(`Total de Tabuleiros: ${totalTabuleiros}`, 14, y); y += 6;
+  doc.text(`Total de Bacias de Recheio Branco: ${totalBaciasBranco.toFixed(1)}`, 14, y); y += 6;
+  doc.text(`Total de Bacias de Recheio Preto: ${totalBaciasPreto.toFixed(1)}`, 14, y);
+
+  doc.save("planejamento_producao.pdf");
 };
 // === FIM FN03 ===
 // Bloco 2 – Estados e Funções Iniciais
@@ -790,22 +798,22 @@ return (
       </button>
       {/* === FIM RT04 === */}
 
-      {/* === INÍCIO RT05 – Ações adicionais === */}
-      <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
-        <button onClick={gerarPDF} className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800">
-          📋 Planejamento de Produção
-        </button>
-        <button onClick={gerarListaCompras} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
-          🧾 Lista de Compras
-        </button>
-      </div>
+{/* === INÍCIO RT05 – Ações adicionais === */}
+<div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
+  <button onClick={gerarPlanejamentoProducao} className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800">
+    📋 Planejamento de Produção
+  </button>
+  <button onClick={gerarListaCompras} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
+    🧾 Lista de Compras
+  </button>
+</div>
 
-      <div className="flex justify-center">
-        <button onClick={toggleMostrarDadosMestres} className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-800">
-          ⚙️ Dados Mestres
-        </button>
-      </div>
-      {/* === FIM RT05 === */}
+<div className="flex justify-center">
+  <button onClick={toggleMostrarDadosMestres} className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-800">
+    ⚙️ Dados Mestres
+  </button>
+</div>
+{/* === FIM RT05 === */}
 
       {/* === INÍCIO RT06 – Painel de Dados Mestres (corrigido) */}
       {mostrarDadosMestres && (
