@@ -697,34 +697,41 @@ return (
   </div>
 </div>
 
-<div className="flex items-center gap-2 mt-4">
-  <button
-    onClick={() => setQuantidade((prev) => Math.max(0, prev - 1))}
-    className="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-lg"
-  >
-    –
-  </button>
-  <input
-    type="number"
-    value={quantidade}
-    onChange={(e) => setQuantidade(Number(e.target.value))}
-    className="w-20 p-2 border rounded text-center"
-  />
-  <button
-    onClick={() => setQuantidade((prev) => prev + 1)}
-    className="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded text-lg"
-  >
-    +
-  </button>
+<div className="flex items-center gap-4 mt-4">
+  <div className="flex items-center border border-gray-300 rounded px-2">
+    <button
+      type="button"
+      className="text-xl px-2"
+      onClick={() => setQuantidade((prev) => (prev > 1 ? prev - 1 : 1))}
+    >
+      –
+    </button>
+    <input
+      type="number"
+      min="1"
+      value={quantidade}
+      onChange={(e) => setQuantidade(Math.max(1, parseInt(e.target.value) || 1))}
+      className="w-16 text-center outline-none bg-transparent"
+    />
+    <button
+      type="button"
+      className="text-xl px-2"
+      onClick={() => setQuantidade((prev) => prev + 1)}
+    >
+      +
+    </button>
+  </div>
 
   <button
+    type="button"
     onClick={adicionarItem}
-    className="ml-4 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded flex items-center"
+    className="bg-[#8c3b1b] hover:bg-[#6e2f15] text-white px-4 py-2 rounded"
   >
-    ➕ Adicionar ao Pedido
+    Adicionar ao Pedido
   </button>
 </div>
 {/* === FIM RT03 === */}
+      
       {/* === INÍCIO RT04 – Lista de Itens e botão Salvar Pedido === */}
       {itens.length > 0 && (
         <div className="mb-6">
