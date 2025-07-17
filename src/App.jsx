@@ -121,7 +121,7 @@ function fn05_filtrarPedidos(pedidos, dataInicio, dataFim) {
 // === FIM FN05 ===
 // === INÍCIO FN05a – Gerar Planejamento de Produção (interna ao App) ===
 const gerarPlanejamentoProducao = () => {
-  const pedidosFiltrados = filtrarPedidosPorData();
+  const pedidosFiltrados = fn05_filtrarPedidos(pedidos, dataInicio, dataFim);
 
   if (pedidosFiltrados.length === 0) {
     alert("Nenhum pedido encontrado no período selecionado.");
@@ -232,6 +232,7 @@ const gerarPlanejamentoProducao = () => {
   doc.save("planejamento_producao.pdf");
 };
 // === FIM FN05a ===
+
 // Fn06 – Formata data ISO para DD/MM/AAAA
 const formatarData = (isoString) => {
   const data = new Date(isoString);
