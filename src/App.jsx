@@ -487,27 +487,123 @@ const gerarListaCompras = () => {
   doc.save(nomePDF);
 };
 // === FIM FN15 ===
-// === INÍCIO FN16 – filtrarPedidosPorData (atualizada com escopo completo) ===
-const filtrarPedidosPorData = () => {
-  let inicio, fim;
+// === INÍCIO FN16 – Gerar Planejamento de Produção ===
+const gerarPlanejamentoProducao = () => {
+  const pedidosFiltrados = filtrarPedidosPorData();
 
-  if (!dataInicio) {
-    inicio = new Date("1900-01-01T00:00:00");
-  } else {
-    inicio = new Date(`${dataInicio}T00:00:00`);
+  if (pedidosFiltrados.length === 0) {
+    alert("Nenhum pedido encontrado no período selecionado.");
+    return;
   }
 
-  if (!dataFim) {
-    fim = new Date("2050-12-31T23:59:59.999");
-  } else {
-    fim = new Date(`${dataFim}T23:59:59.999`);
-  }
+  const resumo = {};
+  let totalTabuleiros = 0;
+  let totalBaciasBranco = 0;
+  let totalBaciasPreto = 0;
+  const resumoDudus = {};
 
-  return pedidos.filter((p) => {
-    if (!p.timestamp || typeof p.timestamp.toDate !== 'function') return false;
-    const dataPedido = p.timestamp.toDate();
-    return dataPedido >= inicio && dataPedido <= fim;
+  pedidosFiltrados.forEach((pedido) => {
+    pedido.itens.forEach((item) => {
+      const { produto, sabor, quantidade } = item;
+
+      if (produto.toLowerCase().includes("dudu")) {
+        // Totaliza os sabores de DUDUs separadamente
+        if (!resumoDudus[sabor]) resumoDudus[sabor] = 0;
+        resumoDudus[sabor] += quantidade;
+        return; // pula o restante para não contar como tabuleiro ou bacia
+      }
+
+      // Inicializa produto se ainda não existe
+      if (!resumo[produto]) {
+        resumo[produto] = {
+          quantidade: 0,
+          tabuleiros: 0,
+          baciasBranco: 0,
+          baciasPreto: 0,
+        };
+      }
+
+      // Totaliza quantidade por produto
+      resumo[produto].quantidade += quantidade;
+
+      // Define fator de tabuleiros conforme tipo
+      let fatorTabuleiro = 1;
+      if (produto === "BRW 7x7") fatorTabuleiro = 12;
+      else if (produto === "BRW 6x6") fatorTabuleiro = 17;
+      else if (produto === "PKT 5x5") fatorTabuleiro = 20;
+      else if (produto === "PKT 6x6") fatorTabuleiro = 15;
+      else if (produto === "Esc") fatorTabuleiro = 26;
+
+      const tabuleiros = Math.ceil(quantidade / fatorTabuleiro);
+      resumo[produto].tabuleiros += tabuleiros;
+      totalTabuleiros += tabuleiros;
+
+      // Recheios
+      const saboresBranco = [
+        "Ninho", "Ninho com Nutella", "Oreo", "Ovomaltine", "Beijinho",
+        "Brigadeiro branco", "Brigadeiro branco com confete", "Paçoca", "KitKat",
+      ];
+      const saboresPreto = [
+        "Brigadeiro preto", "Brigadeiro preto com confete", "Palha italiana",
+      ];
+
+      if (sabor === "Bem casado") {
+        resumo[produto].baciasBranco += 0.5 * (quantidade / fatorTabuleiro);
+        resumo[produto].baciasPreto += 0.5 * (quantidade / fatorTabuleiro);
+        totalBaciasBranco += 0.5 * (quantidade / fatorTabuleiro);
+        totalBaciasPreto += 0.5 * (quantidade / fatorTabuleiro);
+      } else if (saboresBranco.includes(sabor)) {
+        resumo[produto].baciasBranco += quantidade / fatorTabuleiro;
+        totalBaciasBranco += quantidade / fatorTabuleiro;
+      } else if (saboresPreto.includes(sabor)) {
+        resumo[produto].baciasPreto += quantidade / fatorTabuleiro;
+        totalBaciasPreto += quantidade / fatorTabuleiro;
+      }
+    });
   });
+
+  // Gera PDF
+  const doc = new jsPDF();
+  doc.setFontSize(16);
+  doc.text("Planejamento de Produção", 14, 15);
+
+  doc.setFontSize(12);
+  let y = 25;
+  Object.keys(resumo).forEach((produto) => {
+    const item = resumo[produto];
+    doc.text(
+      `Produto: ${produto} – Qtde: ${item.quantidade} – Tabuleiros: ${Math.ceil(item.tabuleiros)} – Bacias Branco: ${item.baciasBranco.toFixed(1)} – Bacias Preto: ${item.baciasPreto.toFixed(1)}`,
+      14,
+      y
+    );
+    y += 8;
+  });
+
+  // Se houver DUDUs, adiciona seção separada
+  if (Object.keys(resumoDudus).length > 0) {
+    y += 10;
+    doc.setFontSize(14);
+    doc.text("DUDUs", 14, y);
+    doc.setFontSize(12);
+    y += 6;
+    Object.keys(resumoDudus).forEach((sabor) => {
+      doc.text(`- ${sabor}: ${resumoDudus[sabor]} unidades`, 16, y);
+      y += 6;
+    });
+  }
+
+  y += 10;
+  doc.setFontSize(14);
+  doc.text("Resumo Final", 14, y);
+  y += 8;
+  doc.setFontSize(12);
+  doc.text(`Total de Tabuleiros: ${totalTabuleiros}`, 14, y);
+  y += 6;
+  doc.text(`Total de Bacias de Recheio Branco: ${totalBaciasBranco.toFixed(1)}`, 14, y);
+  y += 6;
+  doc.text(`Total de Bacias de Recheio Preto: ${totalBaciasPreto.toFixed(1)}`, 14, y);
+
+  doc.save("planejamento_producao.pdf");
 };
 // === FIM FN16 ===
 // Fn17 – salvarDadosMestres: grava dados manuais como cidade, escola, produto, sabor
