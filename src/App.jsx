@@ -1133,20 +1133,43 @@ return (
   </button>
 </div>
 {/* === FIM RT05 === */}
-      {/* === INÍCIO RT06 – Painel de Dados Mestres (corrigido) */}
-      {mostrarDadosMestres && (
-        <div className="mt-6">
-          <PainelDadosMestres
-            tipoSelecionado={tipoSelecionado}
-            setTipoSelecionado={setTipoSelecionado}
-            dadosEscolas={dadosEscolas}
-            setDadosEscolas={setDadosEscolas}
-            dadosProdutos={dadosProdutos}
-            setDadosProdutos={setDadosProdutos}
-          />
-        </div>
+{/* === INÍCIO RT06 – Painel de Dados Mestres (com RT07 embutida) === */}
+{mostrarDadosMestres && (
+  <div className="mt-6">
+    <div className="bg-white p-4 rounded shadow-md">
+      <h2 className="text-xl font-bold mb-4">🛠️ Dados Mestres</h2>
+      <div className="flex gap-4 mb-4">
+        <button
+          className={`px-4 py-2 rounded font-semibold ${tipoSelecionado === 'escolas' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800'}`}
+          onClick={() => setTipoSelecionado('escolas')}
+        >
+          Ponto de Venda
+        </button>
+        <button
+          className={`px-4 py-2 rounded font-semibold ${tipoSelecionado === 'produtos' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800'}`}
+          onClick={() => setTipoSelecionado('produtos')}
+        >
+          Produtos
+        </button>
+      </div>
+
+      {tipoSelecionado === 'escolas' && (
+        <EditorPDVs
+          dadosEscolas={dadosEscolas}
+          setDadosEscolas={setDadosEscolas}
+        />
       )}
-      {/* === FIM RT06 === */}
+
+      {tipoSelecionado === 'produtos' && (
+        <EditorProdutos
+          dadosProdutos={dadosProdutos}
+          setDadosProdutos={setDadosProdutos}
+        />
+      )}
+    </div>
+  </div>
+)}
+{/* === FIM RT06 === */}
       {/* === INÍCIO RT07 – EditorPDVs === */}
 <div className="mt-6 p-4 border rounded bg-white">
   <h2 className="text-lg font-bold mb-4">🏫 Editor de Pontos de Venda (PDVs)</h2>
