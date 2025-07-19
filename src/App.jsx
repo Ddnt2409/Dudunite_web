@@ -1133,26 +1133,37 @@ return (
   </button>
 </div>
 {/* === FIM RT05 === */}
-{/* === INÍCIO RT06 – Painel de Dados Mestres (com RT07 embutida) === */}
+{/* === INÍCIO RT06 – Painel de Dados Mestres com RT07 controlada === */}
 {mostrarDadosMestres && (
   <div className="mt-6">
     <div className="bg-white p-4 rounded shadow-md">
       <h2 className="text-xl font-bold mb-4">🛠️ Dados Mestres</h2>
+
+      {/* Botões de tipo selecionado */}
       <div className="flex gap-4 mb-4">
         <button
-          className={`px-4 py-2 rounded font-semibold ${tipoSelecionado === 'escolas' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800'}`}
           onClick={() => setTipoSelecionado('escolas')}
+          className={`px-4 py-2 rounded font-semibold ${
+            tipoSelecionado === 'escolas'
+              ? 'bg-blue-600 text-white'
+              : 'bg-blue-100 text-blue-800'
+          }`}
         >
-          Ponto de Venda
+          Pontos de Venda
         </button>
         <button
-          className={`px-4 py-2 rounded font-semibold ${tipoSelecionado === 'produtos' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800'}`}
           onClick={() => setTipoSelecionado('produtos')}
+          className={`px-4 py-2 rounded font-semibold ${
+            tipoSelecionado === 'produtos'
+              ? 'bg-green-600 text-white'
+              : 'bg-green-100 text-green-800'
+          }`}
         >
           Produtos
         </button>
       </div>
 
+      {/* Renderiza RT07 apenas quando tipoSelecionado === 'escolas' */}
       {tipoSelecionado === 'escolas' && (
         <EditorPDVs
           dadosEscolas={dadosEscolas}
@@ -1160,6 +1171,7 @@ return (
         />
       )}
 
+      {/* Renderiza Editor de Produtos normalmente */}
       {tipoSelecionado === 'produtos' && (
         <EditorProdutos
           dadosProdutos={dadosProdutos}
