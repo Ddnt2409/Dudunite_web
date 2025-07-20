@@ -1040,7 +1040,7 @@ return (
   </button>
 </div>
 {/* === FIM RT05 === */}
-{/* === INÍCIO RT06 – Painel de Dados Mestres com lógica interna === */}
+{/* === INÍCIO RT06 – Painel de Dados Mestres com renderização dinâmica === */}
 {mostrarDadosMestres && (
   <div className="mt-6">
     <div className="bg-white p-4 rounded shadow-md">
@@ -1070,7 +1070,7 @@ return (
         </button>
       </div>
 
-      {/* Renderiza Editor de PDVs */}
+      {/* Renderiza Editor de Escolas (PDVs) */}
       {tipoSelecionado === 'escolas' && (
         <EditorEscolas
           dadosEscolas={dadosEscolas}
@@ -1089,7 +1089,6 @@ return (
   </div>
 )}
 {/* === FIM RT06 === */}
-
 </div>
 </div>
 );
