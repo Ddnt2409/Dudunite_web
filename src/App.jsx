@@ -1182,7 +1182,7 @@ return (
   </div>
 )}
 {/* === FIM RT06 === */}
-{/* === INÍCIO RT07 – Editor de Pontos de Venda === */}
+                    {/* === INÍCIO RT07 – Editor de Pontos de Venda === */}
 {mostrarDadosMestres && tipoSelecionado === 'Ponto de Venda' && (
   <div className="mt-8 p-4 border rounded bg-white">
     <h2 className="text-xl font-semibold mb-4">🏫 Editor de Pontos de Venda (PDVs)</h2>
@@ -1284,3 +1284,10 @@ return (
   </div>
 )}
 {/* === FIM RT07 === */}
+
+</div>
+</div>
+);
+};
+
+export default App;
