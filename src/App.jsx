@@ -1040,13 +1040,12 @@ return (
   </button>
 </div>
 {/* === FIM RT05 === */}
-{/* === INÍCIO RT06 – Painel de Dados Mestres com renderização dinâmica === */}
+{/* === INÍCIO RT06 – Painel de Dados Mestres (Final do Componente) === */}
 {mostrarDadosMestres && (
   <div className="mt-6">
     <div className="bg-white p-4 rounded shadow-md">
       <h2 className="text-xl font-bold mb-4">🛠️ Dados Mestres</h2>
 
-      {/* Botões de tipo selecionado */}
       <div className="flex gap-4 mb-4">
         <button
           onClick={() => setTipoSelecionado('escolas')}
@@ -1070,7 +1069,6 @@ return (
         </button>
       </div>
 
-      {/* Renderiza Editor de Escolas (PDVs) */}
       {tipoSelecionado === 'escolas' && (
         <EditorEscolas
           dadosEscolas={dadosEscolas}
@@ -1078,7 +1076,6 @@ return (
         />
       )}
 
-      {/* Renderiza Editor de Produtos */}
       {tipoSelecionado === 'produtos' && (
         <EditorProdutos
           dadosProdutos={dadosProdutos}
@@ -1089,7 +1086,9 @@ return (
   </div>
 )}
 {/* === FIM RT06 === */}
-</div>
-</div>
+    </div>
+  </div>
 );
+}
+
 export default App;
