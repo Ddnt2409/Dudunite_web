@@ -629,187 +629,94 @@ const PainelDadosMestres = ({
 };
 // === FIM FN19 ===
 
-// === INÍCIO FN20 – EditorEscolas (PDVs) ===
+// === INÍCIO FN20 – EditorEscolas (PDVs) – VERSÃO ATUALIZADA COM RT07 ===
 const EditorEscolas = ({ dadosEscolas, setDadosEscolas }) => {
-  const [cidadeSelecionada, setCidadeSelecionada] = useState(null);
-  const [mostrarExcluidos, setMostrarExcluidos] = useState(false);
-  const [novaCidade, setNovaCidade] = useState("");
-  const [novoPDV, setNovoPDV] = useState("");
-
-  const toggleStatusPDV = (cidade, index) => {
-    setDadosEscolas(prev => {
-      const novaLista = { ...prev };
-      const atual = novaLista[cidade][index];
-      if (atual.status === "ATIVO") atual.status = "INATIVO";
-      else if (atual.status === "INATIVO") atual.status = "ATIVO";
-      return novaLista;
-    });
-  };
-
-  const excluirPDV = (cidade, index) => {
-    const confirmar = window.confirm("⚠️ Esta ação é irreversível. Deseja excluir o PDV?");
-    if (!confirmar) return;
-    setDadosEscolas(prev => {
-      const novaLista = { ...prev };
-      novaLista[cidade][index].status = "SUSPENSO";
-      return novaLista;
-    });
-  };
-
-  const reviverPDV = (cidade, nomePDV) => {
-    setDadosEscolas(prev => {
-      const novaLista = { ...prev };
-      const idx = novaLista[cidade].findIndex(p => p.nome === nomePDV);
-      if (idx !== -1) {
-        novaLista[cidade][idx].status = "INATIVO";
-      }
-      return novaLista;
-    });
-  };
-
-  const adicionarPDV = () => {
-    if (!novaCidade || !novoPDV) {
-      alert("Preencha todos os campos.");
-      return;
-    }
-    setDadosEscolas(prev => {
-      const novaLista = { ...prev };
-      const cidade = novaCidade.trim();
-      const nomePDV = novoPDV.trim();
-
-      if (!novaLista[cidade]) novaLista[cidade] = [];
-
-      const existe = novaLista[cidade].some(p => p.nome.toLowerCase() === nomePDV.toLowerCase());
-      if (existe) {
-        alert("Este PDV já está cadastrado.");
-        return prev;
-      }
-
-      novaLista[cidade].push({ nome: nomePDV, status: "ATIVO" });
-      return novaLista;
-    });
-
-    setNovaCidade("");
-    setNovoPDV("");
-    alert("✅ PDV adicionado com sucesso.");
-  };
-
   return (
-    <div className="mt-6 p-4 border rounded bg-white">
-      <h2 className="text-lg font-bold mb-4">🏫 Editor de Pontos de Venda (PDVs)</h2>
+    <div className="mt-8 p-4 border rounded bg-white">
+      <h2 className="text-xl font-semibold mb-4">🏫 Editor de Pontos de Venda (PDVs)</h2>
 
-      <div className="mb-4 flex flex-wrap gap-4">
+      <div className="flex flex-wrap gap-4 mb-4">
         <button
-          className="px-4 py-2 bg-gray-800 text-white rounded"
-          onClick={() => setMostrarExcluidos(!mostrarExcluidos)}
+          className="bg-gray-900 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
+          onClick={toggleExibirSuspensos}
         >
-          {mostrarExcluidos ? "🔙 Voltar" : "🗂️ Exibir Excluídos"}
+          📂 Exibir Excluídos
         </button>
-
         <button
-          className="px-4 py-2 bg-green-700 text-white rounded"
-          onClick={() => setCidadeSelecionada("INCLUIR")}
+          className="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
+          onClick={abrirFormularioInclusao}
         >
           ➕ Incluir Novo PDV
         </button>
       </div>
 
-      {/* Inclusão */}
-      {cidadeSelecionada === "INCLUIR" && (
-        <div className="border p-4 rounded mb-4 bg-[#fffefc]">
-          <h3 className="text-md font-semibold mb-3">➕ Novo Ponto de Venda</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
-            <div>
-              <label className="block text-sm font-semibold mb-1">Cidade:</label>
-              <input
-                type="text"
-                value={novaCidade}
-                onChange={(e) => setNovaCidade(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-1">PDV (nome):</label>
-              <input
-                type="text"
-                value={novoPDV}
-                onChange={(e) => setNovoPDV(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-          </div>
-          <button
-            className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800"
-            onClick={adicionarPDV}
-          >
-            Salvar PDV
-          </button>
-        </div>
-      )}
-
-      {/* Ativos/Inativos */}
-      {!mostrarExcluidos && cidadeSelecionada !== "INCLUIR" && (
-        <>
+      {Object.keys(dadosPDVs).length > 0 && (
+        <div className="mb-6">
           <h3 className="text-md font-semibold mb-2">📍 Cidades</h3>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {Object.keys(dadosEscolas).map((cidadeNome) => (
+          <div className="flex flex-wrap gap-2">
+            {Object.keys(dadosPDVs).map((cidade, index) => (
               <button
-                key={cidadeNome}
-                className={`px-3 py-1 rounded border ${cidadeSelecionada === cidadeNome ? "bg-blue-600 text-white" : "bg-gray-100"}`}
-                onClick={() => setCidadeSelecionada(cidadeNome)}
+                key={index}
+                className={`px-3 py-1 rounded border ${
+                  cidadeSelecionada === cidade
+                    ? 'bg-red-700 text-white'
+                    : 'bg-white text-red-700 border-red-700'
+                }`}
+                onClick={() => setCidadeSelecionada(cidade)}
               >
-                {cidadeNome}
+                {cidade}
               </button>
             ))}
           </div>
-
-          {cidadeSelecionada && (
-            <div>
-              <h4 className="text-md font-semibold mb-2">🏫 PDVs em {cidadeSelecionada}</h4>
-              {dadosEscolas[cidadeSelecionada]
-                .filter(e => e.status !== "SUSPENSO")
-                .map((pdv, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 border rounded mb-2">
-                    <span>{pdv.nome}</span>
-                    <div className="flex gap-2 items-center">
-                      <button
-                        className={`px-2 py-1 rounded text-white ${pdv.status === "ATIVO" ? "bg-green-600" : "bg-yellow-600"}`}
-                        onClick={() => toggleStatusPDV(cidadeSelecionada, index)}
-                      >
-                        {pdv.status === "ATIVO" ? "Ativo" : "Inativo"}
-                      </button>
-                      <button
-                        className="px-2 py-1 bg-red-600 text-white rounded"
-                        onClick={() => excluirPDV(cidadeSelecionada, index)}
-                      >
-                        Excluir
-                      </button>
-                    </div>
-                  </div>
-              ))}
-            </div>
-          )}
-        </>
+        </div>
       )}
 
-      {/* Excluídos */}
-      {mostrarExcluidos && (
-        <>
-          <h3 className="text-md font-semibold mb-2">🗑️ PDVs Excluídos</h3>
-          {Object.keys(dadosEscolas).map((cidade) => {
-            const suspensos = dadosEscolas[cidade].filter(e => e.status === "SUSPENSO");
+      {cidadeSelecionada && dadosPDVs[cidadeSelecionada] && (
+        <div className="mt-4">
+          <h4 className="text-lg font-semibold mb-2">{cidadeSelecionada}</h4>
+          {dadosPDVs[cidadeSelecionada]
+            .filter((pdv) => pdv.status !== 'SUSPENSO')
+            .map((pdv, idx) => (
+              <div key={idx} className="flex justify-between items-center border-b py-2">
+                <span>{pdv.nome}</span>
+                <div className="flex gap-2">
+                  <label className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      checked={pdv.status === 'ATIVO'}
+                      onChange={() => alternarStatusPDV(cidadeSelecionada, pdv.nome)}
+                    />
+                    {pdv.status}
+                  </label>
+                  <button
+                    className="text-sm text-red-600 underline"
+                    onClick={() => excluirPDV(cidadeSelecionada, pdv.nome)}
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
+
+      {exibirSuspensos && (
+        <div className="mt-6">
+          <h3 className="text-md font-semibold mb-2">📦 PDVs Excluídos</h3>
+          {Object.keys(dadosPDVs).map((cidade) => {
+            const suspensos = dadosPDVs[cidade].filter((pdv) => pdv.status === 'SUSPENSO');
             if (suspensos.length === 0) return null;
 
             return (
               <div key={cidade} className="mb-4">
-                <h4 className="font-semibold text-sm mb-1">{cidade}</h4>
+                <h4 className="font-semibold">{cidade}</h4>
                 {suspensos.map((pdv, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-2 border rounded mb-1">
+                  <div key={idx} className="flex justify-between items-center border-b py-2">
                     <span>{pdv.nome}</span>
-                    <div className="flex gap-2 items-center">
-                      <span className="text-xs px-2 py-1 rounded bg-gray-600 text-white">SUSPENSO</span>
+                    <div className="flex gap-2">
+                      <span className="text-gray-500">SUSPENSO</span>
                       <button
-                        className="px-2 py-1 bg-blue-600 text-white rounded"
+                        className="text-sm text-green-700 underline"
                         onClick={() => reviverPDV(cidade, pdv.nome)}
                       >
                         Reviver
@@ -820,7 +727,7 @@ const EditorEscolas = ({ dadosEscolas, setDadosEscolas }) => {
               </div>
             );
           })}
-        </>
+        </div>
       )}
     </div>
   );
@@ -1133,7 +1040,7 @@ return (
   </button>
 </div>
 {/* === FIM RT05 === */}
-{/* === INÍCIO RT06 – Painel de Dados Mestres com RT07 controlada === */}
+{/* === INÍCIO RT06 – Painel de Dados Mestres com lógica interna === */}
 {mostrarDadosMestres && (
   <div className="mt-6">
     <div className="bg-white p-4 rounded shadow-md">
@@ -1163,15 +1070,15 @@ return (
         </button>
       </div>
 
-      {/* Renderiza RT07 apenas quando tipoSelecionado === 'escolas' */}
+      {/* Renderiza Editor de PDVs */}
       {tipoSelecionado === 'escolas' && (
-        <EditorPDVs
+        <EditorEscolas
           dadosEscolas={dadosEscolas}
           setDadosEscolas={setDadosEscolas}
         />
       )}
 
-      {/* Renderiza Editor de Produtos normalmente */}
+      {/* Renderiza Editor de Produtos */}
       {tipoSelecionado === 'produtos' && (
         <EditorProdutos
           dadosProdutos={dadosProdutos}
@@ -1182,112 +1089,8 @@ return (
   </div>
 )}
 {/* === FIM RT06 === */}
-                    {/* === INÍCIO RT07 – Editor de Pontos de Venda === */}
-{mostrarDadosMestres && tipoSelecionado === 'Ponto de Venda' && (
-  <div className="mt-8 p-4 border rounded bg-white">
-    <h2 className="text-xl font-semibold mb-4">🏫 Editor de Pontos de Venda (PDVs)</h2>
-
-    <div className="flex flex-wrap gap-4 mb-4">
-      <button
-        className="bg-gray-900 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
-        onClick={toggleExibirSuspensos}
-      >
-        📂 Exibir Excluídos
-      </button>
-      <button
-        className="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
-        onClick={abrirFormularioInclusao}
-      >
-        ➕ Incluir Novo PDV
-      </button>
-    </div>
-
-    {Object.keys(dadosPDVs).length > 0 && (
-      <div className="mb-6">
-        <h3 className="text-md font-semibold mb-2">📍 Cidades</h3>
-        <div className="flex flex-wrap gap-2">
-          {Object.keys(dadosPDVs).map((cidade, index) => (
-            <button
-              key={index}
-              className={`px-3 py-1 rounded border ${
-                cidadeSelecionada === cidade
-                  ? 'bg-red-700 text-white'
-                  : 'bg-white text-red-700 border-red-700'
-              }`}
-              onClick={() => setCidadeSelecionada(cidade)}
-            >
-              {cidade}
-            </button>
-          ))}
-        </div>
-      </div>
-    )}
-
-    {cidadeSelecionada && dadosPDVs[cidadeSelecionada] && (
-      <div className="mt-4">
-        <h4 className="text-lg font-semibold mb-2">{cidadeSelecionada}</h4>
-        {dadosPDVs[cidadeSelecionada]
-          .filter((pdv) => pdv.status !== 'SUSPENSO')
-          .map((pdv, idx) => (
-            <div key={idx} className="flex justify-between items-center border-b py-2">
-              <span>{pdv.nome}</span>
-              <div className="flex gap-2">
-                <label className="flex items-center gap-1">
-                  <input
-                    type="checkbox"
-                    checked={pdv.status === 'ATIVO'}
-                    onChange={() => alternarStatusPDV(cidadeSelecionada, pdv.nome)}
-                  />
-                  {pdv.status}
-                </label>
-                <button
-                  className="text-sm text-red-600 underline"
-                  onClick={() => excluirPDV(cidadeSelecionada, pdv.nome)}
-                >
-                  Excluir
-                </button>
-              </div>
-            </div>
-          ))}
-      </div>
-    )}
-
-    {exibirSuspensos && (
-      <div className="mt-6">
-        <h3 className="text-md font-semibold mb-2">📦 PDVs Excluídos</h3>
-        {Object.keys(dadosPDVs).map((cidade) => {
-          const suspensos = dadosPDVs[cidade].filter((pdv) => pdv.status === 'SUSPENSO');
-          if (suspensos.length === 0) return null;
-
-          return (
-            <div key={cidade} className="mb-4">
-              <h4 className="font-semibold">{cidade}</h4>
-              {suspensos.map((pdv, idx) => (
-                <div key={idx} className="flex justify-between items-center border-b py-2">
-                  <span>{pdv.nome}</span>
-                  <div className="flex gap-2">
-                    <span className="text-gray-500">SUSPENSO</span>
-                    <button
-                      className="text-sm text-green-700 underline"
-                      onClick={() => reviverPDV(cidade, pdv.nome)}
-                    >
-                      Reviver
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          );
-        })}
-      </div>
-    )}
-  </div>
-)}
-{/* === FIM RT07 === */}
 
 </div>
 </div>
 );
-};
-
 export default App;
