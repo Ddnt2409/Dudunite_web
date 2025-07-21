@@ -920,23 +920,101 @@ const adicionarPDV = () => {
   alert("✅ PDV adicionado com sucesso!");
 };
 // === FIM FN29 ===
-// === BLOCO DE TESTE SEGURO ===
-function App() {
-  return (
-    <>
-      <div style={{ padding: 40, fontSize: 20, background: "#d4edda", color: "#155724" }}>
-        ✅ Renderização com RT01
-      </div>
+// === RT00 ===
+return (
+  <div className="App">
+    {/* === RT01 === */}
+    {showNav && (
+      <Navbar
+        toggleSidebar={toggleSidebar}
+        showSidebar={showSidebar}
+        setShowSidebar={setShowSidebar}
+        user={user}
+        handleLogout={handleLogout}
+        notificacoes={notificacoes}
+        setShowNotificacoes={setShowNotificacoes}
+        showNotificacoes={showNotificacoes}
+      />
+    )}
 
-      {/* RT01 - Bloco de Status Básico */}
-      <div style={{ marginTop: 20 }}>
-        <h2>Status Inicial</h2>
-        <p>FN001: OK</p>
-        <p>FN002: OK</p>
-        <p>FN003: OK</p>
+    {/* === RT02 === */}
+    {showSidebar && (
+      <Sidebar
+        toggleSidebar={toggleSidebar}
+        handleShowDashboard={handleShowDashboard}
+        handleShowFinanceiro={handleShowFinanceiro}
+        handleShowConfig={handleShowConfig}
+        handleShowRelatorios={handleShowRelatorios}
+        handleShowComercial={handleShowComercial}
+        handleShowOperacional={handleShowOperacional}
+        handleShowUsuarios={handleShowUsuarios}
+        handleShowChat={handleShowChat}
+        handleShowAjuda={handleShowAjuda}
+        handleShowSobre={handleShowSobre}
+        handleShowCadastroPDV={handleShowCadastroPDV}
+        handleShowCadastroOperador={handleShowCadastroOperador}
+        handleShowCadastroProduto={handleShowCadastroProduto}
+        handleShowCadastroCliente={handleShowCadastroCliente}
+        handleShowCadastroFornecedor={handleShowCadastroFornecedor}
+        handleShowCadastroTransportadora={handleShowCadastroTransportadora}
+        handleShowIntegracoes={handleShowIntegracoes}
+        handleShowFinanceiroResumo={handleShowFinanceiroResumo}
+        handleShowNotificacoes={handleShowNotificacoes}
+        handleShowLogs={handleShowLogs}
+      />
+    )}
+
+    {/* === RT03 === */}
+    <main>
+      {showDashboard && <Dashboard />}
+      {showFinanceiro && <Financeiro />}
+      {showConfig && <Configuracoes />}
+      {showRelatorios && <Relatorios />}
+      {showComercial && <Comercial />}
+      {showOperacional && <Operacional />}
+      {showUsuarios && <Usuarios />}
+      {showChat && <Chat />}
+      {showAjuda && <Ajuda />}
+      {showSobre && <Sobre />}
+      {showCadastroPDV && <CadastroPDV />}
+      {showCadastroOperador && <CadastroOperador />}
+      {showCadastroProduto && <CadastroProduto />}
+      {showCadastroCliente && <CadastroCliente />}
+      {showCadastroFornecedor && <CadastroFornecedor />}
+      {showCadastroTransportadora && <CadastroTransportadora />}
+      {showIntegracoes && <Integracoes />}
+      {showFinanceiroResumo && <FinanceiroResumo />}
+      {showNotificacoes && <Notificacoes />}
+      {showLogs && <Logs />}
+    </main>
+
+    {/* === RT04 === */}
+    {mensagemSucesso && (
+      <div className="mensagem-sucesso">{mensagemSucesso}</div>
+    )}
+    {mensagemErro && <div className="mensagem-erro">{mensagemErro}</div>}
+
+    {/* === RT05 === */}
+    {loading && (
+      <div className="loading-overlay">
+        <div className="loading-spinner" />
       </div>
-    </>
-  );
+    )}
+
+    {/* === RT06 === */}
+    <div
+      style={{
+        padding: 40,
+        fontSize: 20,
+        background: "#d4edda",
+        color: "#155724",
+      }}
+    >
+      ✅ App.jsx carregado com sucesso.
+    </div>
+  </div>
+);
 }
 
+// === FIM do componente App ===
 export default App;
