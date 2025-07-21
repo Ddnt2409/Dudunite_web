@@ -920,23 +920,23 @@ const adicionarPDV = () => {
   alert("✅ PDV adicionado com sucesso!");
 };
 // === FIM FN29 ===
-return (
-  <>
-    <div style={{ padding: 20, background: "#fff3cd", color: "#856404" }}>
-      <p>Debug:</p>
-      <p>telaAtual: {String(telaAtual)}</p>
-      <p>abaSelecionada: {String(abaSelecionada)}</p>
-      <p>PDVs: {pontosDeVenda ? 'OK' : 'Indefinido'}</p>
-    </div>
+// === FIM FN29 ===
 
-    {/* === INÍCIO RT00 === */}
+console.log("✅ App.jsx montado com sucesso");
+
+return (
+  <div style={{ padding: 20, background: '#fff3cd', color: '#000' }}>
+    <p><strong>Debug:</strong></p>
+    <p>telaAtual: {String(telaAtual)}</p>
+    <p>abaSelecionada: {String(abaSelecionada)}</p>
+    <p>PDVs: {pontosDeVenda ? 'OK' : 'Indefinido'}</p>
+
     {telaAtual === "PCP" && (
-      <div className="min-h-screen bg-gray-100 p-4">
-        {/* conteúdo do RT00 */}
-        <p>Componente RT00 carregado.</p>
+      <div style={{ marginTop: 20, padding: 10, background: '#d1ecf1', color: '#0c5460' }}>
+        <strong>Componente RT00 carregado.</strong>
       </div>
     )}
-  </>
+  </div>
 );
 }
 
