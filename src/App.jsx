@@ -13,8 +13,20 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import db from './firebase';
-// === INÍCIO FN00 – Controle de tela inicial PCP ===
-const [telaAtual, setTelaAtual] = useState("PCP");
+// === INÍCIO FN00 – Controle de tela ===
+function ControleTelaPCP() {
+  return (
+    <>
+      {/* === INÍCIO RT00 – PCP – Planejamento e Controle de Produção === */}
+      <div className="titulo-modulo">PCP – Planejamento e Controle de Produção</div>
+      <div className="botoes-pcp">
+        <button className="botao-pcp">Lançar Pedido</button>
+        <button className="botao-pcp">Alimentar Sabores</button>
+      </div>
+      {/* === FIM RT00 === */}
+    </>
+  );
+}
 // === FIM FN00 ===
 // Fn02 – Logomarca e Cores
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
