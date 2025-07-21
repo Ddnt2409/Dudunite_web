@@ -921,6 +921,7 @@ const adicionarPDV = () => {
 };
 // === FIM FN29 ===
 // === BLOCO DE TESTE SIMPLES ===
+// === BLOCO DE TESTE BÁSICO ===
 console.log("✅ App.jsx montado com sucesso");
 
 return (
