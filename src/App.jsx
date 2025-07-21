@@ -1210,4 +1210,7 @@ const adicionarPDV = () => {
 )}
 {/* === FIM RT06 === */}
 
+  );
+}
+
 export default App;
