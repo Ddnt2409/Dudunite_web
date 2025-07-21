@@ -921,10 +921,19 @@ const adicionarPDV = () => {
 };
 // === FIM FN29 ===
 // === BLOCO DE TESTE SEGURO ===
-return (
+function App() {
+  return (
     <>
       <div style={{ padding: 40, fontSize: 20, background: "#d4edda", color: "#155724" }}>
-        ✅ App.jsx carregado com sucesso.
+        ✅ Renderização com RT01
+      </div>
+
+      {/* RT01 - Bloco de Status Básico */}
+      <div style={{ marginTop: 20 }}>
+        <h2>Status Inicial</h2>
+        <p>FN001: OK</p>
+        <p>FN002: OK</p>
+        <p>FN003: OK</p>
       </div>
     </>
   );
