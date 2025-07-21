@@ -1275,7 +1275,6 @@ const adicionarPDV = () => {
   </div>
 )}
 {/* === FIM RT06 === */}
-</div> {/* fechamento do container principal que envolve todas as telas */}
 </>
 );
 }
