@@ -13,7 +13,9 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import db from './firebase';
-
+// === INÍCIO FN00 – Controle de tela inicial PCP ===
+const [telaAtual, setTelaAtual] = useState("PCP");
+// === FIM FN00 ===
 // Fn02 – Logomarca e Cores
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
 const corPrimaria = "#8c3b1b";  // Terracota escuro
