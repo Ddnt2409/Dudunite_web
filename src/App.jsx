@@ -920,7 +920,10 @@ const adicionarPDV = () => {
   alert("✅ PDV adicionado com sucesso!");
 };
 // === FIM FN29 ===
-          /* 
+
+// ==============================
+// Bloco original preservado (comentado)
+// ==============================
 // const renderOriginal = (
 //   <>
 //     <div style={{ padding: 20, backgroundColor: '#ffeeba' }}>
@@ -942,10 +945,14 @@ const adicionarPDV = () => {
 //   </>
 // );
 
+// ==============================
+// Bloco de teste atual
+// ==============================
 return (
   <div style={{ padding: 40, fontSize: 20, background: "#d4edda", color: "#155724" }}>
     ✅ App.jsx carregado com sucesso.
   </div>
 );
+} // ← Aqui encerra a função App
 
 export default App;
