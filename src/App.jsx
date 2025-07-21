@@ -1178,20 +1178,21 @@ const adicionarPDV = () => {
           <div
             key={index}
             className={`flex items-center justify-between px-4 py-2 border rounded mb-2 ${
-              pdv.status === 'SUSPENSO' ? 'bg-red-100' : pdv.status === 'INATIVO' ? 'bg-yellow-100' : 'bg-green-100'
+              pdv.status === 'SUSPENSO'
+                ? 'bg-red-100'
+                : pdv.status === 'INATIVO'
+                ? 'bg-yellow-100'
+                : 'bg-green-100'
             }`}
           >
             <span>{pdv.nome}</span>
             <div className="flex space-x-2">
-              {/* Alternar status */}
               <button
                 className="bg-blue-500 text-white px-2 py-1 rounded"
                 onClick={() => alternarStatusPDV(cidade, index)}
               >
                 {pdv.status === 'ATIVO' ? 'Inativar' : 'Ativar'}
               </button>
-
-              {/* Excluir PDV */}
               <button
                 className="bg-red-500 text-white px-2 py-1 rounded"
                 onClick={() => excluirPDV(cidade, index)}
@@ -1221,6 +1222,7 @@ const adicionarPDV = () => {
         {Object.keys(pontosDeVenda).map((cidade) => {
           const suspensos = pontosDeVenda[cidade].filter((pdv) => pdv.status === 'SUSPENSO');
           if (suspensos.length === 0) return null;
+
           return (
             <div key={cidade} className="mb-4">
               <h4 className="font-medium">{cidade}</h4>
@@ -1273,12 +1275,9 @@ const adicionarPDV = () => {
   </div>
 )}
 {/* === FIM RT06 === */}
-
-{/* === INÍCIO RT99 – Fechamento e Export === */}
-</div>
+</div> {/* fechamento do container principal que envolve todas as telas */}
 </>
 );
 }
 
 export default App;
-{/* === FIM RT99 === */}
