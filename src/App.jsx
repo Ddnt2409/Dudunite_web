@@ -946,12 +946,97 @@ const adicionarPDV = () => {
       </div>
     )}
     {/* === FIM RT00 === */}
+{/* === INÍCIO RT01 – Lançamento de Pedido Rápido === */}
+{telaAtual === "Lancamento" && (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
     <div className="max-w-xl mx-auto">
       <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
-      <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedidos - Dudunitê</h1>
+      <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedido Rápido</h1>
 
-      {/* === FIM RT01 === */}
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Cidade</label>
+        <select
+          value={cidade}
+          onChange={(e) => setCidade(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="">Selecione</option>
+          {cidades.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Escola / PDV</label>
+        <select
+          value={escola}
+          onChange={(e) => setEscola(e.target.value)}
+          className="w-full p-2 border rounded"
+          disabled={!cidade}
+        >
+          <option value="">Selecione</option>
+          {escolasFiltradas.map((e) => (
+            <option key={e} value={e}>{e}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Produto</label>
+        <select
+          value={produtoSelecionado}
+          onChange={(e) => setProdutoSelecionado(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="">Selecione</option>
+          {produtos.map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Quantidade</label>
+        <input
+          type="number"
+          value={quantidade}
+          onChange={(e) => setQuantidade(e.target.value)}
+          className="w-full p-2 border rounded"
+          min={1}
+        />
+      </div>
+
+      <button
+        onClick={adicionarItemSimples}
+        className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-2 px-4 rounded-xl w-full mb-4"
+      >
+        ➕ Adicionar ao Pedido
+      </button>
+
+      {itensPedido.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-lg font-bold mb-2">Itens do Pedido:</h2>
+          <ul className="space-y-2">
+            {itensPedido.map((item, index) => (
+              <li key={index} className="border p-2 rounded bg-white shadow flex justify-between">
+                <span>{item.produto} – {item.quantidade} un</span>
+              </li>
+            ))}
+          </ul>
+
+          <button
+            onClick={salvarPedidoSimples}
+            className="bg-[#a65a3d] hover:bg-[#8b3e2a] text-white font-bold py-2 px-4 rounded-xl w-full mt-6"
+          >
+            💾 Salvar Pedido
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+{/* === FIM RT01 === */}
 
       {/* === INÍCIO RT02 – Filtro por período === */}
       <div className="mb-6">
