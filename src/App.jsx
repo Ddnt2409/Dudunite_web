@@ -921,38 +921,24 @@ const adicionarPDV = () => {
 };
 // === FIM FN29 ===
 
-// ==============================
-// Bloco original preservado (comentado)
-// ==============================
-// const renderOriginal = (
-//   <>
-//     <div style={{ padding: 20, backgroundColor: '#ffeeba' }}>
-//       <p>Debug:</p>
-//       <p>telaAtual: {String(telaAtual)}</p>
-//       <p>abaSelecionada: {String(abaSelecionada)}</p>
-//       <p>PDVs: {pontosDeVenda ? 'OK' : 'Indefinido'}</p>
-//     </div>
+// Estados de teste seguro
+const [telaAtual, setTelaAtual] = useState("PCP");
+const [abaSelecionada, setAbaSelecionada] = useState("aba1");
+const [pontosDeVenda, setPontosDeVenda] = useState({
+  "São Paulo": [
+    { nome: "PDV Exemplo 1", status: "ativo" },
+    { nome: "PDV Exemplo 2", status: "inativo" },
+  ],
+});
 
-//     {/* === INÍCIO RT00 === */}
-//     {telaAtual === "PCP" && (
-//       <div className="min-h-screen bg-gray-100">
-//         {/* conteúdo do RT00 */}
-//       </div>
-//     )}
-
-//     {/* === INÍCIO RT01, RT02... RT06 === */}
-//     {/* Adicione os demais blocos conforme necessário */}
-//   </>
-// );
-
-// ==============================
-// Bloco de teste atual
-// ==============================
 return (
-  <div style={{ padding: 40, fontSize: 20, background: "#d4edda", color: "#155724" }}>
-    ✅ App.jsx carregado com sucesso.
+  <div style={{ padding: 20, backgroundColor: '#ffeeba' }}>
+    <p>Debug:</p>
+    <p>telaAtual: {String(telaAtual)}</p>
+    <p>abaSelecionada: {String(abaSelecionada)}</p>
+    <p>PDVs: {pontosDeVenda ? 'OK' : 'Indefinido'}</p>
   </div>
 );
-} // ← Aqui encerra a função App
+}
 
 export default App;
