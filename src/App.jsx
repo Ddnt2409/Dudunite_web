@@ -923,30 +923,11 @@ const adicionarPDV = () => {
 // === BLOCO DE TESTE SEGURO ===
 
 function App() {
-  const telaAtual = "PCP";
-  const abaSelecionada = "aba1";
-  const pontosDeVenda = { cidadeExemplo: [{ nome: "PDV 1" }] };
-
   return (
-    <div style={{ padding: 20, background: "#fdf6f0" }}>
-      <p style={{ background: "#d4edda", padding: 10, fontSize: 20, color: "#155724" }}>
-        ✅ Teste de Renderização
-      </p>
-
-      <div style={{ marginTop: 20, background: "#fff3cd", padding: 10, color: "#333" }}>
-        <p><strong>Debug:</strong></p>
-        <p>telaAtual: {telaAtual}</p>
-        <p>abaSelecionada: {abaSelecionada}</p>
-        <p>PDVs: {pontosDeVenda ? 'OK' : 'Vazio ou null'}</p>
-      </div>
-
-      {telaAtual === "PCP" && (
-        <div style={{ marginTop: 20, padding: 10, background: "#e2e3e5", color: "#383d41" }}>
-          <strong>Componente RT00 carregado</strong>
-        </div>
-      )}
+    <div>
+      <h1>✅ Teste de Renderização</h1>
     </div>
   );
-}
+} // ← Esta chave fecha a função App corretamente
 
-export default App;
+export default App; // ← Fora da função, corretamente
