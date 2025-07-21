@@ -921,22 +921,14 @@ const adicionarPDV = () => {
 };
 // === FIM FN29 ===
 // === BLOCO DE TESTE SIMPLES ===
-console.log("✅ App.jsx montado com sucesso");
+console.log("✅ App.jsx montado com sucesso.");
 
 return (
-  <div style={{ padding: 20, background: "#fff3cd", color: "#856404" }}>
-    <p><strong>Debug:</strong></p>
-    <p>telaAtual: {String(telaAtual)}</p>
-    <p>abaSelecionada: {String(abaSelecionada)}</p>
-    <p>PDVs: {pontosDeVenda ? 'OK' : 'Indefinido'}</p>
-
-    {telaAtual === "PCP" && (
-      <div style={{ marginTop: 20, padding: 10, background: "#d1ecf1", color: "#0c5460" }}>
-        <strong>Componente RT00 carregado</strong>
-      </div>
-    )}
+  <div style={{ padding: 40, background: "#d4edda", fontSize: 24 }}>
+    ✅ App.jsx carregado com sucesso.
   </div>
 );
-}
+
+} // ← fechamento da função App
 
 export default App;
