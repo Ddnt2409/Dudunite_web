@@ -920,24 +920,18 @@ const adicionarPDV = () => {
   alert("✅ PDV adicionado com sucesso!");
 };
 // === FIM FN29 ===
-// === BLOCO DE TESTE COM CONDICIONAL ===
-console.log("✅ App.jsx montado com sucesso.");
+// === BLOCO DE TESTE ULTRA SIMPLES ===
+console.log("✅ App.jsx montado. Antes do return.");
+
+// Remover temporariamente qualquer hook ou variável extra
+// que venha depois de FN29
 
 return (
-  <div style={{ padding: 20, background: "#fff3cd", fontSize: 20 }}>
-    <p><strong>Debug:</strong></p>
-    <p>telaAtual: {String(telaAtual)}</p>
-    <p>abaSelecionada: {String(abaSelecionada)}</p>
-    <p>PDVs: {pontosDeVenda ? 'OK' : 'Nulo'}</p>
-
-    {telaAtual === "PCP" && (
-      <div style={{ marginTop: 20, padding: 10, background: "#d1ecf1" }}>
-        <strong>Componente RTO0 carregado com sucesso.</strong>
-      </div>
-    )}
+  <div style={{ padding: 40, fontSize: 20, background: "#d4edda", color: "#155724" }}>
+    ✅ Render simples funcionando.
   </div>
 );
 
-} // ← fechamento da função App
+} // fechamento do componente
 
 export default App;
