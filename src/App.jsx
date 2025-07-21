@@ -923,6 +923,12 @@ const adicionarPDV = () => {
   // início RT99
   return (
   <>
+    <div style={{ padding: 20, backgroundColor: '#ffeeba', color: '#333' }}>
+  <p>Debug:</p>
+  <p>telaAtual: {String(telaAtual)}</p>
+  <p>abaSelecionada: {String(abaSelecionada)}</p>
+  <p>PDVs: {pontosDeVenda ? 'OK' : 'Indefinido'}</p>
+</div>
     {/* === INÍCIO RT00 – PCP: Tela Inicial === */}
     {telaAtual === "PCP" && (
       <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
