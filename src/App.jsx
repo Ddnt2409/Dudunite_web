@@ -1209,9 +1209,5 @@ const adicionarPDV = () => {
   </div>
 )}
 {/* === FIM RT06 === */}
-    </div>
-  </div>
-);
-}
 
 export default App;
