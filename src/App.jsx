@@ -922,25 +922,11 @@ const adicionarPDV = () => {
 // === FIM FN29 ===
 // === BLOCO DE TESTE SEGURO ===
 
-console.log("✅ App.jsx render test iniciado");
-
 return (
-  <div style={{ padding: 20, background: "#fff8dc" }}>
-    <p><strong>Debug:</strong></p>
-    <p>telaAtual: {String(telaAtual)}</p>
-    <p>abaSelecionada: {String(abaSelecionada)}</p>
-    <p>PDVs: {pontosDeVenda ? 'OK' : 'Vazio ou null'}</p>
-
-    {/* Renderização condicional protegida */}
-    {telaAtual === "PCP" && (
-      <div style={{ marginTop: 20, padding: 10, background: "#e0f7fa" }}>
-        <strong>Componente RT00 carregado com sucesso.</strong>
-      </div>
-    )}
-  </div>
-);
-
-// fechamento da função App
+    <div style={{ padding: 20, background: "#fff8dc" }}>
+      <p>✅ Teste de Renderização</p>
+    </div>
+  );
 }
 
 export default App;
