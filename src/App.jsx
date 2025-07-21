@@ -921,7 +921,6 @@ const adicionarPDV = () => {
 };
 // === FIM FN29 ===
           /* 
-return (
 // const renderOriginal = (
 //   <>
 //     <div style={{ padding: 20, backgroundColor: '#ffeeba' }}>
@@ -939,15 +938,15 @@ return (
 //     )}
 
 //     {/* === INÍCIO RT01, RT02... RT06 === */}
-//     {/* Adicione os demais blocos aqui conforme já estavam */}
+//     {/* Adicione os demais blocos conforme necessário */}
 //   </>
 // );
+
 return (
   <div style={{ padding: 40, fontSize: 20, background: "#d4edda", color: "#155724" }}>
     ✅ App.jsx carregado com sucesso.
   </div>
 );
-
 }
 
 export default App;
