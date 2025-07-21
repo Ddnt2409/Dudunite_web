@@ -920,43 +920,7 @@ const adicionarPDV = () => {
   alert("✅ PDV adicionado com sucesso!");
 };
 // === FIM FN29 ===
-  // início RT99
-  // Estados essenciais (evita falha silenciosa na renderização)
-const [telaAtual, setTelaAtual] = useState("PCP");
-const [abaSelecionada, setAbaSelecionada] = useState("dadosMestresPDVs");
-const [pontosDeVenda, setPontosDeVenda] = useState({
-  "São Paulo": [
-    { nome: "PDV Exemplo 1", status: "ATIVO" },
-    { nome: "PDV Exemplo 2", status: "SUSPENSO" }
-  ]
-});
-  return (
-  <>
-    <div style={{ padding: 20, backgroundColor: '#ffeeba', color: '#333' }}>
-  <p>Debug:</p>
-  <p>telaAtual: {String(telaAtual)}</p>
-  <p>abaSelecionada: {String(abaSelecionada)}</p>
-  <p>PDVs: {pontosDeVenda ? 'OK' : 'Indefinido'}</p>
-</div>
-    {/* === INÍCIO RT00 – PCP: Tela Inicial === */}
-    {telaAtual === "PCP" && (
-      <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
-        <img src="/logo-dudunite.png" alt="Logomarca Dudunitê" className="w-40 mt-4 mb-2" />
-        <h1 className="text-2xl font-bold text-[#a65a3d] mb-6">PCP – Planejamento e Controle de Produção</h1>
-        <div className="flex flex-col space-y-4 w-full max-w-xs">
-          <button
-            className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
-            onClick={() => setTelaAtual("Lancamento")}
-          >
-            📦 Lançar Pedido
-          </button>
-
-          <button
-            className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
-            onClick={() => setTelaAtual("Sabores")}
-          >
-            🍫 Alimentar Sabores
-          </button>
+https://dudunite-c1doc5930-ddnt2409s-projects.vercel.app/
         </div>
       </div>
     )}
@@ -1235,63 +1199,75 @@ const [pontosDeVenda, setPontosDeVenda] = useState({
       <div className="mt-6">
         <h3 className="text-lg font-semibold mb-2">PDVs Suspensos</h3>
         {Object.keys(pontosDeVenda).map((cidade) => {
-          const suspensos = pontosDeVenda[cidade].filter((pdv) => pdv.status === 'SUSPENSO');
-          if (suspensos.length === 0) return null;
+          /* 
+return (
+  <>
+    <div style={{ padding: 20, backgroundColor: '#ffeeba' }}>
+      <p>Debug:</p>
+      <p>telaAtual: {String(telaAtual)}</p>
+      <p>abaSelecionada: {String(abaSelecionada)}</p>
+      <p>PDVs: {pontosDeVenda ? 'OK' : 'Indefinido'}</p>
+    </div>
 
-          return (
-            <div key={cidade} className="mb-4">
-              <h4 className="font-medium">{cidade}</h4>
-              {suspensos.map((pdv, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between px-4 py-2 border rounded mb-2 bg-red-200"
-                >
-                  <span>{pdv.nome}</span>
-                  <button
-                    className="bg-green-600 text-white px-2 py-1 rounded"
-                    onClick={() => reviverPDV(cidade, index)}
-                  >
-                    Reviver
-                  </button>
-                </div>
-              ))}
-            </div>
-          );
-        })}
+    {/* === INÍCIO RT00 === */}
+    {telaAtual === "PCP" && (
+      <div className="min-h-screen bg-gray-100">
+        {/* conteúdo do RT00 */}
       </div>
     )}
 
-    {/* Formulário para adicionar novo PDV */}
-    <div className="mt-8 border-t pt-4">
-      <h3 className="text-lg font-semibold mb-2">Adicionar Novo Ponto de Venda</h3>
-      <div className="flex flex-col sm:flex-row gap-4">
-        <input
-          type="text"
-          placeholder="Cidade"
-          value={novaCidade}
-          onChange={(e) => setNovaCidade(e.target.value)}
-          className="border px-2 py-1 rounded w-full"
-        />
-        <input
-          type="text"
-          placeholder="Nome do PDV"
-          value={novoPDV}
-          onChange={(e) => setNovoPDV(e.target.value)}
-          className="border px-2 py-1 rounded w-full"
-        />
-        <button
-          className="bg-green-600 text-white px-4 py-2 rounded"
-          onClick={adicionarPDV}
-        >
-          Salvar
-        </button>
+    {/* === INÍCIO RT01 === */}
+    {telaAtual === "Lancamento" && (
+      <div>
+        {/* conteúdo do RT01 */}
       </div>
-    </div>
-  </div>
-)}
-{/* === FIM RT06 === */}
-</>
+    )}
+
+    {/* === INÍCIO RT02 === */}
+    {telaAtual === "Expedicao" && (
+      <div>
+        {/* conteúdo do RT02 */}
+      </div>
+    )}
+
+    {/* === INÍCIO RT03 === */}
+    {telaAtual === "Financeiro" && (
+      <div>
+        {/* conteúdo do RT03 */}
+      </div>
+    )}
+
+    {/* === INÍCIO RT04 === */}
+    {telaAtual === "Indicadores" && (
+      <div>
+        {/* conteúdo do RT04 */}
+      </div>
+    )}
+
+    {/* === INÍCIO RT05 === */}
+    {telaAtual === "DadosMestresProdutos" && (
+      <div>
+        {/* conteúdo do RT05 */}
+      </div>
+    )}
+
+    {/* === INÍCIO RT06 === */}
+    {abaSelecionada === "dadosMestresPDVs" && (
+      <div>
+        {/* conteúdo completo do RT06 vai aqui */}
+      </div>
+    )}
+  </>
 );
+*/
+
+// === BLOCO DE TESTE TEMPORÁRIO ===
+return (
+  <div style={{ padding: 40, fontSize: 20, background: "#d4edda", color: "#155724" }}>
+    ✅ App.jsx carregado com sucesso.
+  </div>
+);
+
 }
 
 export default App;
