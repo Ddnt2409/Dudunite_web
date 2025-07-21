@@ -1163,79 +1163,122 @@ const adicionarPDV = () => {
   </button>
 </div>
 {/* === FIM RT05 === */}
-{/* === INÍCIO RT06 – Painel de Dados Mestres + Tela PCP (Final do Componente) === */}
-{telaAtual === 'pcp' && (
-  <div className="mt-6">
-    <div className="bg-white p-4 rounded shadow-md">
-      <h2 className="text-xl font-bold mb-4">🧮 PCP – Planejamento e Controle de Produção</h2>
+{/* === INÍCIO RT06 – Tela Dados Mestres PDVs === */}
+{abaSelecionada === 'dadosMestresPDVs' && (
+  <div className="p-4">
+    <h2 className="text-xl font-bold mb-4">Cadastro de Pontos de Venda</h2>
 
-      <div className="flex gap-4">
-        <button
-          onClick={() => console.log('Ir para Lançar Pedido')}
-          className="px-4 py-2 rounded bg-blue-600 text-white font-semibold"
-        >
-          Lançar Pedido
-        </button>
-        <button
-          onClick={() => console.log('Ir para Alimentar Sabores')}
-          className="px-4 py-2 rounded bg-green-600 text-white font-semibold"
-        >
-          Alimentar Sabores
-        </button>
+    {/* Lista de cidades */}
+    {Object.keys(pontosDeVenda).map((cidade) => (
+      <div key={cidade} className="mb-6 border border-gray-300 rounded-lg p-4">
+        <h3 className="text-lg font-semibold mb-2">{cidade}</h3>
+
+        {/* Lista de PDVs da cidade */}
+        {pontosDeVenda[cidade].map((pdv, index) => (
+          <div
+            key={index}
+            className={`flex items-center justify-between px-4 py-2 border rounded mb-2 ${
+              pdv.status === 'SUSPENSO' ? 'bg-red-100' : pdv.status === 'INATIVO' ? 'bg-yellow-100' : 'bg-green-100'
+            }`}
+          >
+            <span>{pdv.nome}</span>
+            <div className="flex space-x-2">
+              {/* Alternar status */}
+              <button
+                className="bg-blue-500 text-white px-2 py-1 rounded"
+                onClick={() => alternarStatusPDV(cidade, index)}
+              >
+                {pdv.status === 'ATIVO' ? 'Inativar' : 'Ativar'}
+              </button>
+
+              {/* Excluir PDV */}
+              <button
+                className="bg-red-500 text-white px-2 py-1 rounded"
+                onClick={() => excluirPDV(cidade, index)}
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
+    ))}
+
+    {/* Botão para exibir suspensos */}
+    <div className="my-4">
+      <button
+        className="bg-purple-600 text-white px-4 py-2 rounded"
+        onClick={toggleExibirSuspensos}
+      >
+        {exibirSuspensos ? 'Ocultar Suspensos' : 'Exibir Excluídos'}
+      </button>
     </div>
-  </div>
-)}
 
-{mostrarDadosMestres && (
-  <div className="mt-6">
-    <div className="bg-white p-4 rounded shadow-md">
-      <h2 className="text-xl font-bold mb-4">🛠️ Dados Mestres</h2>
+    {/* Lista de PDVs suspensos */}
+    {exibirSuspensos && (
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold mb-2">PDVs Suspensos</h3>
+        {Object.keys(pontosDeVenda).map((cidade) => {
+          const suspensos = pontosDeVenda[cidade].filter((pdv) => pdv.status === 'SUSPENSO');
+          if (suspensos.length === 0) return null;
+          return (
+            <div key={cidade} className="mb-4">
+              <h4 className="font-medium">{cidade}</h4>
+              {suspensos.map((pdv, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between px-4 py-2 border rounded mb-2 bg-red-200"
+                >
+                  <span>{pdv.nome}</span>
+                  <button
+                    className="bg-green-600 text-white px-2 py-1 rounded"
+                    onClick={() => reviverPDV(cidade, index)}
+                  >
+                    Reviver
+                  </button>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    )}
 
-      <div className="flex gap-4 mb-4">
+    {/* Formulário para adicionar novo PDV */}
+    <div className="mt-8 border-t pt-4">
+      <h3 className="text-lg font-semibold mb-2">Adicionar Novo Ponto de Venda</h3>
+      <div className="flex flex-col sm:flex-row gap-4">
+        <input
+          type="text"
+          placeholder="Cidade"
+          value={novaCidade}
+          onChange={(e) => setNovaCidade(e.target.value)}
+          className="border px-2 py-1 rounded w-full"
+        />
+        <input
+          type="text"
+          placeholder="Nome do PDV"
+          value={novoPDV}
+          onChange={(e) => setNovoPDV(e.target.value)}
+          className="border px-2 py-1 rounded w-full"
+        />
         <button
-          onClick={() => setTipoSelecionado('escolas')}
-          className={`px-4 py-2 rounded font-semibold ${
-            tipoSelecionado === 'escolas'
-              ? 'bg-blue-600 text-white'
-              : 'bg-blue-100 text-blue-800'
-          }`}
+          className="bg-green-600 text-white px-4 py-2 rounded"
+          onClick={adicionarPDV}
         >
-          Pontos de Venda
-        </button>
-        <button
-          onClick={() => setTipoSelecionado('produtos')}
-          className={`px-4 py-2 rounded font-semibold ${
-            tipoSelecionado === 'produtos'
-              ? 'bg-green-600 text-white'
-              : 'bg-green-100 text-green-800'
-          }`}
-        >
-          Produtos
+          Salvar
         </button>
       </div>
-
-      {tipoSelecionado === 'escolas' && (
-        <EditorEscolas
-          dadosEscolas={dadosEscolas}
-          setDadosEscolas={setDadosEscolas}
-        />
-      )}
-
-      {tipoSelecionado === 'produtos' && (
-        <EditorProdutos
-          dadosProdutos={dadosProdutos}
-          setDadosProdutos={setDadosProdutos}
-        />
-      )}
     </div>
   </div>
 )}
 {/* === FIM RT06 === */}
 
+{/* === INÍCIO RT99 – Fechamento e Export === */}
 </div>
-</div>
+</>
 );
 }
 
 export default App;
+{/* === FIM RT99 === */}
