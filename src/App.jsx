@@ -921,13 +921,13 @@ const adicionarPDV = () => {
 };
 // === FIM FN29 ===
 // === BLOCO DE TESTE SEGURO ===
+console.log("✅ App.jsx montado com sucesso");
 
-function App() {
-  return (
-    <div>
-      <h1>✅ Teste de Renderização</h1>
-    </div>
-  );
-} // ← Esta chave fecha a função App corretamente
+return (
+  <div style={{ padding: 20, background: "#fffbe6" }}>
+    <h1>✅ Teste de Renderização</h1>
+  </div>
+);
+} // ← Fechamento correto da função App()
 
-export default App; // ← Fora da função, corretamente
+export default App; // ← Fora da função, correto
