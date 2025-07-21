@@ -920,18 +920,13 @@ const adicionarPDV = () => {
   alert("✅ PDV adicionado com sucesso!");
 };
 // === FIM FN29 ===
-// === BLOCO DE TESTE ULTRA SIMPLES ===
-console.log("✅ App.jsx montado. Antes do return.");
-
-// Remover temporariamente qualquer hook ou variável extra
-// que venha depois de FN29
+console.log("✅ App.jsx montado. Teste variáveis.");
 
 return (
-  <div style={{ padding: 40, fontSize: 20, background: "#d4edda", color: "#155724" }}>
-    ✅ Render simples funcionando.
+  <div style={{ padding: 20, background: "#fff3cd", color: "#856404" }}>
+    <p><strong>Debug:</strong></p>
+    <p>telaAtual: {String(telaAtual)}</p>
+    <p>abaSelecionada: {String(abaSelecionada)}</p>
+    <p>PDVs: {pontosDeVenda ? 'OK' : 'Vazio ou null'}</p>
   </div>
 );
-
-} // fechamento do componente
-
-export default App;
