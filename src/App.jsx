@@ -920,24 +920,23 @@ const adicionarPDV = () => {
   alert("✅ PDV adicionado com sucesso!");
 };
 // === FIM FN29 ===
-
-// Estados de teste seguro
-const [telaAtual, setTelaAtual] = useState("PCP");
-const [abaSelecionada, setAbaSelecionada] = useState("aba1");
-const [pontosDeVenda, setPontosDeVenda] = useState({
-  "São Paulo": [
-    { nome: "PDV Exemplo 1", status: "ativo" },
-    { nome: "PDV Exemplo 2", status: "inativo" },
-  ],
-});
-
 return (
-  <div style={{ padding: 20, backgroundColor: '#ffeeba' }}>
-    <p>Debug:</p>
-    <p>telaAtual: {String(telaAtual)}</p>
-    <p>abaSelecionada: {String(abaSelecionada)}</p>
-    <p>PDVs: {pontosDeVenda ? 'OK' : 'Indefinido'}</p>
-  </div>
+  <>
+    <div style={{ padding: 20, background: "#fff3cd", color: "#856404" }}>
+      <p>Debug:</p>
+      <p>telaAtual: {String(telaAtual)}</p>
+      <p>abaSelecionada: {String(abaSelecionada)}</p>
+      <p>PDVs: {pontosDeVenda ? 'OK' : 'Indefinido'}</p>
+    </div>
+
+    {/* === INÍCIO RT00 === */}
+    {telaAtual === "PCP" && (
+      <div className="min-h-screen bg-gray-100 p-4">
+        {/* conteúdo do RT00 */}
+        <p>Componente RT00 carregado.</p>
+      </div>
+    )}
+  </>
 );
 }
 
