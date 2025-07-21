@@ -1163,7 +1163,30 @@ const adicionarPDV = () => {
   </button>
 </div>
 {/* === FIM RT05 === */}
-{/* === INÍCIO RT06 – Painel de Dados Mestres (Final do Componente) === */}
+{/* === INÍCIO RT06 – Painel de Dados Mestres + Tela PCP (Final do Componente) === */}
+{telaAtual === 'pcp' && (
+  <div className="mt-6">
+    <div className="bg-white p-4 rounded shadow-md">
+      <h2 className="text-xl font-bold mb-4">🧮 PCP – Planejamento e Controle de Produção</h2>
+
+      <div className="flex gap-4">
+        <button
+          onClick={() => console.log('Ir para Lançar Pedido')}
+          className="px-4 py-2 rounded bg-blue-600 text-white font-semibold"
+        >
+          Lançar Pedido
+        </button>
+        <button
+          onClick={() => console.log('Ir para Alimentar Sabores')}
+          className="px-4 py-2 rounded bg-green-600 text-white font-semibold"
+        >
+          Alimentar Sabores
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 {mostrarDadosMestres && (
   <div className="mt-6">
     <div className="bg-white p-4 rounded shadow-md">
@@ -1210,7 +1233,9 @@ const adicionarPDV = () => {
 )}
 {/* === FIM RT06 === */}
 
-  );
+</div>
+</div>
+);
 }
 
 export default App;
