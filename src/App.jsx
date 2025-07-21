@@ -922,67 +922,26 @@ const adicionarPDV = () => {
 // === FIM FN29 ===
           /* 
 return (
-  <>
-    <div style={{ padding: 20, backgroundColor: '#ffeeba' }}>
-      <p>Debug:</p>
-      <p>telaAtual: {String(telaAtual)}</p>
-      <p>abaSelecionada: {String(abaSelecionada)}</p>
-      <p>PDVs: {pontosDeVenda ? 'OK' : 'Indefinido'}</p>
-    </div>
+// const renderOriginal = (
+//   <>
+//     <div style={{ padding: 20, backgroundColor: '#ffeeba' }}>
+//       <p>Debug:</p>
+//       <p>telaAtual: {String(telaAtual)}</p>
+//       <p>abaSelecionada: {String(abaSelecionada)}</p>
+//       <p>PDVs: {pontosDeVenda ? 'OK' : 'Indefinido'}</p>
+//     </div>
 
-    {/* === INÍCIO RT00 === */}
-    {telaAtual === "PCP" && (
-      <div className="min-h-screen bg-gray-100">
-        {/* conteúdo do RT00 */}
-      </div>
-    )}
+//     {/* === INÍCIO RT00 === */}
+//     {telaAtual === "PCP" && (
+//       <div className="min-h-screen bg-gray-100">
+//         {/* conteúdo do RT00 */}
+//       </div>
+//     )}
 
-    {/* === INÍCIO RT01 === */}
-    {telaAtual === "Lancamento" && (
-      <div>
-        {/* conteúdo do RT01 */}
-      </div>
-    )}
-
-    {/* === INÍCIO RT02 === */}
-    {telaAtual === "Expedicao" && (
-      <div>
-        {/* conteúdo do RT02 */}
-      </div>
-    )}
-
-    {/* === INÍCIO RT03 === */}
-    {telaAtual === "Financeiro" && (
-      <div>
-        {/* conteúdo do RT03 */}
-      </div>
-    )}
-
-    {/* === INÍCIO RT04 === */}
-    {telaAtual === "Indicadores" && (
-      <div>
-        {/* conteúdo do RT04 */}
-      </div>
-    )}
-
-    {/* === INÍCIO RT05 === */}
-    {telaAtual === "DadosMestresProdutos" && (
-      <div>
-        {/* conteúdo do RT05 */}
-      </div>
-    )}
-
-    {/* === INÍCIO RT06 === */}
-    {abaSelecionada === "dadosMestresPDVs" && (
-      <div>
-        {/* conteúdo completo do RT06 vai aqui */}
-      </div>
-    )}
-  </>
-);
-*/
-
-// === BLOCO DE TESTE TEMPORÁRIO ===
+//     {/* === INÍCIO RT01, RT02... RT06 === */}
+//     {/* Adicione os demais blocos aqui conforme já estavam */}
+//   </>
+// );
 return (
   <div style={{ padding: 40, fontSize: 20, background: "#d4edda", color: "#155724" }}>
     ✅ App.jsx carregado com sucesso.
