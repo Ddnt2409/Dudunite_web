@@ -947,6 +947,5 @@ return (
     ✅ App.jsx carregado com sucesso.
   </div>
 );
-}
 
 export default App;
