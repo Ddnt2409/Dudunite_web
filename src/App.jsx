@@ -921,6 +921,15 @@ const adicionarPDV = () => {
 };
 // === FIM FN29 ===
   // início RT99
+  // Estados essenciais (evita falha silenciosa na renderização)
+const [telaAtual, setTelaAtual] = useState("PCP");
+const [abaSelecionada, setAbaSelecionada] = useState("dadosMestresPDVs");
+const [pontosDeVenda, setPontosDeVenda] = useState({
+  "São Paulo": [
+    { nome: "PDV Exemplo 1", status: "ATIVO" },
+    { nome: "PDV Exemplo 2", status: "SUSPENSO" }
+  ]
+});
   return (
   <>
     <div style={{ padding: 20, backgroundColor: '#ffeeba', color: '#333' }}>
