@@ -920,12 +920,21 @@ const adicionarPDV = () => {
   alert("✅ PDV adicionado com sucesso!");
 };
 // === FIM FN29 ===
-// === BLOCO DE TESTE SIMPLES ===
+// === BLOCO DE TESTE COM CONDICIONAL ===
 console.log("✅ App.jsx montado com sucesso.");
 
 return (
-  <div style={{ padding: 40, background: "#d4edda", fontSize: 24 }}>
-    ✅ App.jsx carregado com sucesso.
+  <div style={{ padding: 20, background: "#fff3cd", fontSize: 20 }}>
+    <p><strong>Debug:</strong></p>
+    <p>telaAtual: {String(telaAtual)}</p>
+    <p>abaSelecionada: {String(abaSelecionada)}</p>
+    <p>PDVs: {pontosDeVenda ? 'OK' : 'Nulo'}</p>
+
+    {telaAtual === "PCP" && (
+      <div style={{ marginTop: 20, padding: 10, background: "#d1ecf1" }}>
+        <strong>Componente RTO0 carregado com sucesso.</strong>
+      </div>
+    )}
   </div>
 );
 
