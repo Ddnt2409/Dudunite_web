@@ -920,7 +920,8 @@ const adicionarPDV = () => {
   alert("✅ PDV adicionado com sucesso!");
 };
 // === FIM FN29 ===
-console.log("✅ App.jsx montado. Teste variáveis.");
+// === BLOCO DE TESTE SIMPLES ===
+console.log("✅ App.jsx montado com sucesso");
 
 return (
   <div style={{ padding: 20, background: "#fff3cd", color: "#856404" }}>
@@ -928,5 +929,14 @@ return (
     <p>telaAtual: {String(telaAtual)}</p>
     <p>abaSelecionada: {String(abaSelecionada)}</p>
     <p>PDVs: {pontosDeVenda ? 'OK' : 'Vazio ou null'}</p>
+
+    {telaAtual === "PCP" && (
+      <div style={{ marginTop: 20, padding: 10, background: "#d4edda", color: "#155724" }}>
+        <strong>Componente RT00 carregado</strong>
+      </div>
+    )}
   </div>
 );
+} // ← fechamento da função App
+
+export default App;
