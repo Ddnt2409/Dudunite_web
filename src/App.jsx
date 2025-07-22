@@ -8,8 +8,13 @@ const logoPath = "/LogomarcaDDnt2025Vazado.png";
 // === FN03 – Estado Principal ===
 const App = () => {
   const [telaAtual, setTelaAtual] = useState("PCP");
-// === INÍCIO FN03b – Cidades fixas ===
+// === INÍCIO FN03b – Mocks mínimos para RT01 ===
 const cidades = ["Gravatá", "Recife", "Caruaru"];
+const escolasFiltradas = ["Pequeno Príncipe", "Salesianas"];
+const produtos = ["BRW 7x7", "PKT 5x5"];
+const produtoSelecionado = produto;
+const setProdutoSelecionado = setProduto;
+const salvarPedidoRapido = () => alert("Pedido salvo!");
 // === FIM FN03b ===
   // === RT99 – Return mínimo apenas para teste ===
   return (
