@@ -540,6 +540,93 @@ useEffect(() => {
 
       {/* Produto, Quantidade e Valor */}
       <div className="grid grid-cols-3 gap-2">
+{/* === INÍCIO RT03 – Tela de Lançamento de Pedido === */}
+{telaAtual === "Lancamento" && (
+  <div className="p-6 bg-[#fdf8f5] min-h-screen">
+    <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Lançamento de Pedido</h2>
+
+    <div className="space-y-4 max-w-xl mx-auto">
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Cidade</label>
+        <select
+          value={cidade}
+          onChange={(e) => {
+            setCidade(e.target.value);
+            ajustarValorProdutoAoSelecionar({
+              produtoSelecionado,
+              cidade: e.target.value,
+              tabelaPreco,
+              setValorUnitario,
+              referenciaTabela,
+            });
+          }}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        >
+          <option value="">Selecione</option>
+          {cidades.map((c, i) => (
+            <option key={i} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Escola</label>
+        <select
+          value={escola}
+          onChange={(e) => setEscola(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        >
+          <option value="">Selecione</option>
+          {escolasFiltradas.map((e, i) => (
+            <option key={i} value={e}>{e}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Tabela</label>
+        <input
+          type="text"
+          value={referenciaTabela}
+          onChange={(e) => {
+            setReferenciaTabela(e.target.value);
+            ajustarValorProdutoAoSelecionar({
+              produtoSelecionado,
+              cidade,
+              tabelaPreco,
+              setValorUnitario,
+              referenciaTabela: e.target.value,
+            });
+          }}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Vencimento</label>
+        <input
+          type="date"
+          value={dataVencimento}
+          onChange={(e) => setDataVencimento(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Forma de Pagamento</label>
+        <select
+          value={formaPagamento}
+          onChange={(e) => setFormaPagamento(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        >
+          <option value="">Selecione</option>
+          {Array.isArray(formasPagamento) && formasPagamento.map((f, i) => (
+            <option key={i} value={f}>{f}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
         <select
           value={produtoSelecionado}
           onChange={(e) => {
@@ -578,7 +665,6 @@ useEffect(() => {
         />
       </div>
 
-      {/* Adicionar Item */}
       <button
         onClick={adicionarItemAoPedido}
         className="mt-2 bg-[#8c3b1b] text-white py-2 px-4 rounded"
@@ -586,7 +672,6 @@ useEffect(() => {
         ➕ Adicionar Item
       </button>
 
-      {/* Lista de Itens */}
       <ul className="mt-4 space-y-2">
         {itensPedido.map((item, i) => (
           <li key={i} className="bg-white border p-2 rounded shadow text-sm">
@@ -595,14 +680,12 @@ useEffect(() => {
         ))}
       </ul>
 
-      {/* Total do Pedido */}
       {itensPedido.length > 0 && (
         <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2">
           Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
         </div>
       )}
 
-      {/* Botões */}
       <div className="mt-6 flex justify-between">
         <button
           onClick={() => setTelaAtual("PCP")}
@@ -621,8 +704,9 @@ useEffect(() => {
   </div>
 )}
 {/* === FIM RT03 === */}
-    </>
+
+{/* === INÍCIO RT99 – Fechamento do Componente === */}
   );
 }
-
 export default App;
+{/* === FIM RT99 === */}
