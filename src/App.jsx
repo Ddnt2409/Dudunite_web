@@ -254,6 +254,11 @@ const ajustarValorProdutoAoSelecionar = ({
   setValorUnitario,
   referenciaTabela,
 }) => {
+  if (!produtoSelecionado || !cidade || !referenciaTabela) {
+    setValorUnitario("");
+    return;
+  }
+
   const item = tabelaPreco.find(
     (p) =>
       p.produto === produtoSelecionado &&
@@ -261,7 +266,7 @@ const ajustarValorProdutoAoSelecionar = ({
       p.referencia === referenciaTabela
   );
 
-  if (item) {
+  if (item && typeof item.valor === "number") {
     setValorUnitario(item.valor);
   } else {
     setValorUnitario("");
