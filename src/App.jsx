@@ -925,7 +925,6 @@ const adicionarPDV = () => {
 // === INÍCIO RT99 – Bloco completo de retorno do componente ===
 return (
   <>
-    console.log("🔍 Entrou no return do App.jsx");
     {/* === INÍCIO RT00 – PCP: Tela Inicial === */}
     {telaAtual === "PCP" && (
       <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
@@ -949,163 +948,40 @@ return (
     )}
     {/* === FIM RT00 === */}
 
-    {/* === INÍCIO RT01 – Lançamento de Pedido Rápido === */}
+    {/*
+    // === INÍCIO RT01 – Lançamento de Pedido Rápido ===
     {telaAtual === "Lancamento" && (
-      <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
-        <div className="max-w-xl mx-auto">
-          <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
-          <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedido Rápido</h1>
-
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Cidade</label>
-            <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 border rounded">
-              <option value="">Selecione</option>
-              {cidades.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Escola / PDV</label>
-            <select
-              value={escola}
-              onChange={(e) => setEscola(e.target.value)}
-              className="w-full p-2 border rounded"
-              disabled={!cidade}
-            >
-              <option value="">Selecione</option>
-              {escolasFiltradas.map((e) => (
-                <option key={e} value={e}>{e}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Produto</label>
-            <select value={produtoSelecionado} onChange={(e) => setProdutoSelecionado(e.target.value)} className="w-full p-2 border rounded">
-              <option value="">Selecione</option>
-              {produtos.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-4">
-            <label className="block font-semibold mb-1">Quantidade</label>
-            <input
-              type="number"
-              value={quantidade}
-              onChange={(e) => setQuantidade(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <button
-            onClick={salvarPedidoRapido}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded"
-          >
-            💾 Salvar Pedido
-          </button>
-        </div>
-      </div>
+      <div className="..."> ... </div>
     )}
-    {/* === FIM RT01 === */}
+    // === FIM RT01 ===
 
-    {/* === INÍCIO RT02 – Alimentar Sabores === */}
-    {telaAtual === "Sabores" && (
-      <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
-        <div className="max-w-xl mx-auto">
-          <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
-          <h1 className="text-center text-xl font-bold mb-6">Alimentar Sabores</h1>
+    // === INÍCIO RT02 – Filtro por período ===
+    <div className="..."> ... </div>
+    // === FIM RT02 ===
 
-          {/* Conteúdo da tela de sabores pode continuar aqui */}
-        </div>
-      </div>
-    )}
-    {/* === FIM RT02 === */}
+    // === INÍCIO RT03 – Campos do pedido ===
+    <div className="..."> ... </div>
+    // === FIM RT03 ===
 
-    {/* === INÍCIO RT03 – Filtro por período === */}
-    <div className="mb-6">
-      <label className="font-semibold block mb-1">📆 Período:</label>
-      <div className="flex items-center gap-2">
-        <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="p-2 border rounded" />
-        <span>até</span>
-        <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className="p-2 border rounded" />
-      </div>
-    </div>
-    {/* === FIM RT03 === */}
-
-    {/* === INÍCIO RT04 – Lista de Itens e botão Salvar Pedido === */}
+    // === INÍCIO RT04 – Lista de Itens ===
     {itens.length > 0 && (
-      <div className="mb-6">
-        <h2 className="font-semibold text-lg mb-2">Itens do Pedido ({totalItens} un):</h2>
-        <ul className="list-disc pl-5">
-          {itens.map((item, index) => (
-            <li key={index}>{item.produto} - {item.sabor} - {item.quantidade} un</li>
-          ))}
-        </ul>
-      </div>
+      <div className="..."> ... </div>
     )}
-    <button onClick={salvarPedido} className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4">
-      💾 Salvar Pedido
-    </button>
-    {/* === FIM RT04 === */}
+    // === FIM RT04 ===
 
-    {/* === INÍCIO RT05 – Ações adicionais === */}
-    <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
-      <button onClick={gerarPlanejamentoProducao} className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800">
-        📋 Planejamento de Produção
-      </button>
-      <button onClick={gerarListaCompras} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
-        🧾 Lista de Compras
-      </button>
-    </div>
+    // === INÍCIO RT05 – Ações adicionais ===
+    <div className="..."> ... </div>
+    // === FIM RT05 ===
 
-    <div className="flex justify-center">
-      <button onClick={toggleMostrarDadosMestres} className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-800">
-        ⚙️ Dados Mestres
-      </button>
-    </div>
-    {/* === FIM RT05 === */}
-
-    {/* === INÍCIO RT06 – Painel de Dados Mestres === */}
+    // === INÍCIO RT06 – Painel de Dados Mestres ===
     {mostrarDadosMestres && (
-      <div className="mt-6">
-        <div className="bg-white p-4 rounded shadow-md">
-          <h2 className="text-xl font-bold mb-4">🛠️ Dados Mestres</h2>
-          <div className="flex gap-4 mb-4">
-            <button
-              onClick={() => setTipoSelecionado('escolas')}
-              className={`px-4 py-2 rounded font-semibold ${
-                tipoSelecionado === 'escolas' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800'
-              }`}
-            >
-              Pontos de Venda
-            </button>
-            <button
-              onClick={() => setTipoSelecionado('produtos')}
-              className={`px-4 py-2 rounded font-semibold ${
-                tipoSelecionado === 'produtos' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800'
-              }`}
-            >
-              Produtos
-            </button>
-          </div>
-
-          {tipoSelecionado === 'escolas' && (
-            <EditorEscolas dadosEscolas={dadosEscolas} setDadosEscolas={setDadosEscolas} />
-          )}
-
-          {tipoSelecionado === 'produtos' && (
-            <EditorProdutos dadosProdutos={dadosProdutos} setDadosProdutos={setDadosProdutos} />
-          )}
-        </div>
-      </div>
+      <div className="..."> ... </div>
     )}
-    {/* === FIM RT06 === */}
+    // === FIM RT06 ===
+    */}
+
   </>
 );
 // === FIM RT99 ===
-}
+
 export default App;
