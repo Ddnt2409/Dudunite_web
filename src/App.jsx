@@ -34,6 +34,88 @@ const App = () => {
   </div>
 )}
 {/* === FIM RT00 === */}
+{/* === INÍCIO RT01 – Lançamento de Pedido Rápido === */}
+{telaAtual === "Lancamento" && (
+  <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
+    <div className="max-w-xl mx-auto">
+      <img
+        src="/LogomarcaDDnt2025Vazado.png"
+        alt="Dudunitê"
+        className="w-48 mx-auto mb-4"
+      />
+      <h1 className="text-center text-xl font-bold mb-6">
+        Lançamento de Pedido Rápido
+      </h1>
+
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Cidade</label>
+        <select
+          value={cidade}
+          onChange={(e) => setCidade(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="">Selecione</option>
+          {cidades.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Escola / PDV</label>
+        <select
+          value={escola}
+          onChange={(e) => setEscola(e.target.value)}
+          className="w-full p-2 border rounded"
+          disabled={!cidade}
+        >
+          <option value="">Selecione</option>
+          {escolasFiltradas.map((e) => (
+            <option key={e} value={e}>
+              {e}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Produto</label>
+        <select
+          value={produtoSelecionado}
+          onChange={(e) => setProdutoSelecionado(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="">Selecione</option>
+          {produtos.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Quantidade</label>
+        <input
+          type="number"
+          value={quantidade}
+          onChange={(e) => setQuantidade(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+
+      <button
+        onClick={salvarPedidoRapido}
+        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded"
+      >
+        💾 Salvar Pedido
+      </button>
+    </div>
+  </div>
+)}
+{/* === FIM RT01 === */}
     </>
   );
 };
