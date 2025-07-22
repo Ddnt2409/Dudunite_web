@@ -262,6 +262,12 @@ const carregarFormasPagamento = (setFormasPagamento) => {
   setFormasPagamento(formas);
 };
 // === FIM FN14 ===
+  // === INÍCIO FN15 – Inicializar Formas de Pagamento ===
+useEffect(() => {
+  const formas = ["PIX", "Espécie", "Boleto"];
+  setFormasPagamento(formas);
+}, []);
+// === FIM FN15 ===
   // === RT99 – Return do Componente ===
   return (
     <>
@@ -424,6 +430,7 @@ const carregarFormasPagamento = (setFormasPagamento) => {
   </div>
 )}
 {/* === FIM RT02 === */}
+
 {/* === INÍCIO RT03 – Tela de Lançamento de Pedido === */}
 {telaAtual === "Lancamento" && (
   <div className="p-6 bg-[#fdf8f5] min-h-screen">
@@ -509,7 +516,7 @@ const carregarFormasPagamento = (setFormasPagamento) => {
           className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
         >
           <option value="">Selecione</option>
-          {formasPagamento.map((f, i) => (
+          {Array.isArray(formasPagamento) && formasPagamento.map((f, i) => (
             <option key={i} value={f}>{f}</option>
           ))}
         </select>
