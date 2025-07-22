@@ -262,12 +262,12 @@ function App() {
               >
                 💾 Salvar Pedido
 </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
+            </div> {/* fechamento do .mt-4 text-right */}
+          </div> {/* fechamento do pedido do map */}
+        ))} {/* fechamento do map de pedidosPendentes */}
+      </div> {/* fechamento da lista de pedidos pendentes */}
+    )} {/* fechamento do if de pedidosPendentes.length === 0 */}
   </>
-)}
+)} {/* fechamento da condição telaAtual === "Sabores" */}
 
 export default App;
