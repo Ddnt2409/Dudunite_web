@@ -341,7 +341,6 @@ const salvarPedidoRapido = () => {
   </div>
 )}
 {/* === FIM RT01 === */}
-    </>
   );
 }
 
