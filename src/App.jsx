@@ -281,346 +281,350 @@ useEffect(() => {
   setFormasPagamento(formas);
 }, []);
 // === FIM FN15 ===
-  // === RT99 – Return do Componente ===
-  return (
-    <>
-      {/* === RT00a – Tela Inicial PCP === */}
-      {telaAtual === "PCP" && (
-        <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
-          <img src={logoPath} alt="Logomarca Dudunitê" className="w-40 mt-4 mb-2" />
-          <h1 className="text-2xl font-bold text-[#a65a3d] mb-6">PCP – Planejamento e Controle de Produção</h1>
-          <div className="flex flex-col space-y-4 w-full max-w-xs">
-            <button
-              className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
-              onClick={() => setTelaAtual("Lancamento")}
-            >
-              📦 Lançar Pedido
-            </button>
-            <button
-              className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
-              onClick={() => setTelaAtual("Sabores")}
-            >
-              🍫 Alimentar Sabores
-            </button>
-          </div>
+// === RT99 – Return do Componente ===
+return (
+  <>
+    {/* === RT00a – Tela Inicial PCP === */}
+    {telaAtual === "PCP" && (
+      <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
+        <img src={logoPath} alt="Logomarca Dudunitê" className="w-40 mt-4 mb-2" />
+        <h1 className="text-2xl font-bold text-[#a65a3d] mb-6">
+          PCP – Planejamento e Controle de Produção
+        </h1>
 
-          {pedidosLancados.length > 0 && (
-            <div className="mt-6 w-full max-w-xl bg-white p-4 rounded-lg shadow text-sm">
-              <h2 className="text-lg font-bold mb-3 text-[#5C1D0E]">Pedidos já lançados</h2>
-              <ul className="space-y-2">
-                {pedidosLancados.map((pedido) => {
-                  const data = pedido.criadoEm?.toDate?.();
-                  const dataFormatada = data
-                    ? `${data.toLocaleDateString()} ${data.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                    : "Data desconhecida";
-                  return (
-                    <li
-                      key={pedido.id}
-                      className="flex justify-between items-center bg-[#f9f1e8] p-2 rounded border border-[#d3c0b0]"
-                    >
-                      <span>{dataFormatada} – {pedido.escola}</span>
-                      <button
-                        className="text-blue-700 hover:underline text-xs"
-                        onClick={() => alert(`Alterar pedido: ${pedido.id}`)}
-                      >
-                        Alterar Pedido
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
-
-{/* === INÍCIO RT01 – Alimentar Sabores === */}
-{telaAtual === "Sabores" && (
-  <div className="p-4 bg-[#fdf8f5] min-h-screen">
-    <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Alimentar Sabores</h2>
-
-    {pedidosPendentes.length === 0 ? (
-      <p className="text-gray-600">Nenhum pedido pendente encontrado.</p>
-    ) : (
-      <div className="space-y-6">
-        {pedidosPendentes.map((pedido, index) => (
-          <div
-            key={index}
-            className="border border-gray-300 rounded p-4 bg-white shadow"
+        <div className="flex flex-col space-y-4 w-full max-w-xs">
+          <button
+            className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
+            onClick={() => setTelaAtual("Lancamento")}
           >
-            <p><strong>Cidade:</strong> {pedido.cidade}</p>
-            <p><strong>Escola:</strong> {pedido.escola}</p>
+            📦 Lançar Pedido
+          </button>
+          <button
+            className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
+            onClick={() => setTelaAtual("Sabores")}
+          >
+            🍫 Alimentar Sabores
+          </button>
+        </div>
 
-            <div className="mt-4 space-y-4">
-              {pedido.itens.map((item, itemIndex) => (
-                <div
-                  key={itemIndex}
-                  className="border p-3 rounded bg-gray-50"
-                >
-                  <p><strong>Produto:</strong> {item.produto}</p>
-                  <p><strong>Quantidade:</strong> {item.quantidade}</p>
-
-                  <div className="mt-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Sabores:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">
-                      {saboresDisponiveis
-                        .filter((sabor) => sabor.produto === item.produto)
-                        .map((sabor, saborIndex) => (
-                          <label
-                            key={saborIndex}
-                            className="inline-flex items-center"
-                          >
-                            <input
-                              type="checkbox"
-                              className="form-checkbox h-4 w-4 text-[#8c3b1b] transition duration-150 ease-in-out"
-                              checked={
-                                item.sabores?.includes(sabor.nome) || false
-                              }
-                              onChange={(e) => {
-                                const novosPedidos = [...pedidosPendentes];
-                                const saboresAtuais =
-                                  novosPedidos[index].itens[itemIndex].sabores || [];
-
-                                if (e.target.checked) {
-                                  saboresAtuais.push(sabor.nome);
-                                } else {
-                                  const idx = saboresAtuais.indexOf(sabor.nome);
-                                  if (idx > -1) saboresAtuais.splice(idx, 1);
-                                }
-
-                                novosPedidos[index].itens[itemIndex].sabores = saboresAtuais;
-                                setPedidosPendentes(novosPedidos);
-                              }}
-                            />
-                            <span className="ml-2 text-sm">{sabor.nome}</span>
-                          </label>
-                        ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 text-right">
-              <button
-                onClick={() => salvarSabores(pedido, index)}
-                className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
-              >
-                💾 Salvar Pedido
-              </button>
-            </div>
+        {pedidosLancados.length > 0 && (
+          <div className="mt-6 w-full max-w-xl bg-white p-4 rounded-lg shadow text-sm">
+            <h2 className="text-lg font-bold mb-3 text-[#5C1D0E]">Pedidos já lançados</h2>
+            <ul className="space-y-2">
+              {pedidosLancados.map((pedido) => {
+                const data = pedido.criadoEm?.toDate?.();
+                const dataFormatada = data
+                  ? `${data.toLocaleDateString()} ${data.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}`
+                  : "Data desconhecida";
+                return (
+                  <li
+                    key={pedido.id}
+                    className="flex justify-between items-center bg-[#f9f1e8] p-2 rounded border border-[#d3c0b0]"
+                  >
+                    <span>
+                      {dataFormatada} – {pedido.escola}
+                    </span>
+                    <button
+                      className="text-blue-700 hover:underline text-xs"
+                      onClick={() => alert(`Alterar pedido: ${pedido.id}`)}
+                    >
+                      Alterar Pedido
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
-        ))}
+        )}
       </div>
     )}
-  </div>
-)}
-{/* === FIM RT01 === */}
+    {/* === FIM RT00a === */}
 
-{/* === INÍCIO RT02 – Tela de Resumo de Pedidos === */}
-{telaAtual === "Resumo" && (
-  <div className="p-6 bg-[#fdf8f5] min-h-screen">
-    <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Resumo de Pedidos</h2>
+    {/* === INÍCIO RT01 – Alimentar Sabores === */}
+    {telaAtual === "Sabores" && (
+      <div className="p-4 bg-[#fdf8f5] min-h-screen">
+        <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Alimentar Sabores</h2>
 
-    {pedidosLancados.length === 0 ? (
-      <p className="text-gray-600">Nenhum pedido lançado.</p>
-    ) : (
-      <ul className="space-y-3">
-        {pedidosLancados.map((pedido, idx) => (
-          <li
-            key={pedido.id || idx}
-            className="bg-white rounded p-3 border border-gray-200 shadow-sm"
-          >
-            <p><strong>Escola:</strong> {pedido.escola}</p>
-            <p><strong>Cidade:</strong> {pedido.cidade}</p>
-            <p><strong>Valor Total:</strong> R$ {pedido.totalPedido?.toFixed(2)}</p>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-)}
-{/* === FIM RT02 === */}
-
-// === RT03 – Tela de Lançamento de Pedido ===
-function App() {
-  return (
-    <>
-      {telaAtual === "Lancamento" && (
-        <div className="p-6 bg-[#fdf8f5] min-h-screen">
-          <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Lançamento de Pedido</h2>
-
-          <div className="space-y-4 max-w-xl mx-auto">
-            {/* Cidade */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Cidade</label>
-              <select
-                value={cidade}
-                onChange={(e) => {
-                  setCidade(e.target.value);
-                  ajustarValorProdutoAoSelecionar({
-                    produtoSelecionado,
-                    cidade: e.target.value,
-                    tabelaPreco,
-                    setValorUnitario,
-                    referenciaTabela,
-                  });
-                }}
-                className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        {pedidosPendentes.length === 0 ? (
+          <p className="text-gray-600">Nenhum pedido pendente encontrado.</p>
+        ) : (
+          <div className="space-y-6">
+            {pedidosPendentes.map((pedido, index) => (
+              <div
+                key={index}
+                className="border border-gray-300 rounded p-4 bg-white shadow"
               >
-                <option value="">Selecione</option>
-                {cidades.map((c, i) => (
-                  <option key={i} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
+                <p><strong>Cidade:</strong> {pedido.cidade}</p>
+                <p><strong>Escola:</strong> {pedido.escola}</p>
 
-            {/* Escola */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Escola</label>
-              <select
-                value={escola}
-                onChange={(e) => setEscola(e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-              >
-                <option value="">Selecione</option>
-                {escolasFiltradas.map((e, i) => (
-                  <option key={i} value={e}>{e}</option>
-                ))}
-              </select>
-            </div>
+                <div className="mt-4 space-y-4">
+                  {pedido.itens.map((item, itemIndex) => (
+                    <div
+                      key={itemIndex}
+                      className="border p-3 rounded bg-gray-50"
+                    >
+                      <p><strong>Produto:</strong> {item.produto}</p>
+                      <p><strong>Quantidade:</strong> {item.quantidade}</p>
 
-            {/* Tabela */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Tabela</label>
-              <input
-                type="text"
-                value={referenciaTabela}
-                onChange={(e) => {
-                  setReferenciaTabela(e.target.value);
-                  ajustarValorProdutoAoSelecionar({
-                    produtoSelecionado,
-                    cidade,
-                    tabelaPreco,
-                    setValorUnitario,
-                    referenciaTabela: e.target.value,
-                  });
-                }}
-                className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-              />
-            </div>
+                      <div className="mt-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Sabores:
+                        </label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">
+                          {saboresDisponiveis
+                            .filter((sabor) => sabor.produto === item.produto)
+                            .map((sabor, saborIndex) => (
+                              <label key={saborIndex} className="inline-flex items-center">
+                                <input
+                                  type="checkbox"
+                                  className="form-checkbox h-4 w-4 text-[#8c3b1b] transition duration-150 ease-in-out"
+                                  checked={item.sabores?.includes(sabor.nome) || false}
+                                  onChange={(e) => {
+                                    const novosPedidos = [...pedidosPendentes];
+                                    const saboresAtuais =
+                                      novosPedidos[index].itens[itemIndex].sabores || [];
 
-            {/* Vencimento */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Vencimento</label>
-              <input
-                type="date"
-                value={dataVencimento}
-                onChange={(e) => setDataVencimento(e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-              />
-            </div>
+                                    if (e.target.checked) {
+                                      saboresAtuais.push(sabor.nome);
+                                    } else {
+                                      const idx = saboresAtuais.indexOf(sabor.nome);
+                                      if (idx > -1) saboresAtuais.splice(idx, 1);
+                                    }
 
-            {/* Forma de Pagamento */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Forma de Pagamento</label>
-              <select
-                value={formaPagamento}
-                onChange={(e) => setFormaPagamento(e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-              >
-                <option value="">Selecione</option>
-                {formasPagamento.map((f, i) => (
-                  <option key={i} value={f}>{f}</option>
-                ))}
-              </select>
-            </div>
+                                    novosPedidos[index].itens[itemIndex].sabores = saboresAtuais;
+                                    setPedidosPendentes(novosPedidos);
+                                  }}
+                                />
+                                <span className="ml-2 text-sm">{sabor.nome}</span>
+                              </label>
+                            ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-            {/* Produto, Quantidade, Valor */}
-            <div className="grid grid-cols-3 gap-2">
-              <select
-                value={produtoSelecionado}
-                onChange={(e) => {
-                  setProdutoSelecionado(e.target.value);
-                  ajustarValorProdutoAoSelecionar({
-                    produtoSelecionado: e.target.value,
-                    cidade,
-                    tabelaPreco,
-                    setValorUnitario,
-                    referenciaTabela,
-                  });
-                }}
-                className="border border-gray-300 rounded px-2 py-1"
-              >
-                <option value="">Produto</option>
-                {produtos.map((p, i) => (
-                  <option key={i} value={p}>{p}</option>
-                ))}
-              </select>
-              <input
-                type="number"
-                min="1"
-                value={quantidade}
-                onChange={(e) => setQuantidade(e.target.value)}
-                className="border border-gray-300 rounded px-2 py-1"
-                placeholder="Qtd"
-              />
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={valorUnitario}
-                onChange={(e) => setValorUnitario(e.target.value)}
-                className="border border-gray-300 rounded px-2 py-1"
-                placeholder="R$"
-              />
-            </div>
-
-            <button
-              onClick={adicionarItemAoPedido}
-              className="mt-2 bg-[#8c3b1b] text-white py-2 px-4 rounded"
-            >
-              ➕ Adicionar Item
-            </button>
-
-            {/* Lista de Itens */}
-            <ul className="mt-4 space-y-2">
-              {itensPedido.map((item, i) => (
-                <li key={i} className="bg-white border p-2 rounded shadow text-sm">
-                  {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
-                </li>
-              ))}
-            </ul>
-
-            {/* Total */}
-            {itensPedido.length > 0 && (
-              <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2">
-                Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
+                <div className="mt-4 text-right">
+                  <button
+                    onClick={() => salvarSabores(pedido, index)}
+                    className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
+                  >
+                    💾 Salvar Pedido
+                  </button>
+                </div>
               </div>
-            )}
+            ))}
+          </div>
+        )}
+      </div>
+    )}
+    {/* === FIM RT01 === */}
 
-            {/* Botões */}
-            <div className="mt-6 flex justify-between">
-              <button
-                onClick={() => setTelaAtual("PCP")}
-                className="bg-gray-400 text-white px-4 py-2 rounded"
+    {/* === INÍCIO RT02 – Tela de Resumo de Pedidos === */}
+    {telaAtual === "Resumo" && (
+      <div className="p-6 bg-[#fdf8f5] min-h-screen">
+        <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Resumo de Pedidos</h2>
+
+        {pedidosLancados.length === 0 ? (
+          <p className="text-gray-600">Nenhum pedido lançado.</p>
+        ) : (
+          <ul className="space-y-3">
+            {pedidosLancados.map((pedido, idx) => (
+              <li
+                key={pedido.id || idx}
+                className="bg-white rounded p-3 border border-gray-200 shadow-sm"
               >
-                ← Voltar
-              </button>
-              <button
-                onClick={salvarPedidoRapido}
-                className="bg-green-600 text-white px-4 py-2 rounded"
-              >
-                💾 Salvar Pedido
-              </button>
+                <p><strong>Escola:</strong> {pedido.escola}</p>
+                <p><strong>Cidade:</strong> {pedido.cidade}</p>
+                <p><strong>Valor Total:</strong> R$ {pedido.totalPedido?.toFixed(2)}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    )}
+    {/* === FIM RT02 === */}
+
+    {/* === INÍCIO RT03 – Tela de Lançamento de Pedido === */}
+    {telaAtual === "Lancamento" && (
+      <div className="p-6 bg-[#fdf8f5] min-h-screen">
+        <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Lançamento de Pedido</h2>
+
+        <div className="space-y-4 max-w-xl mx-auto">
+          {/* Cidade */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Cidade</label>
+            <select
+              value={cidade}
+              onChange={(e) => {
+                setCidade(e.target.value);
+                ajustarValorProdutoAoSelecionar({
+                  produtoSelecionado,
+                  cidade: e.target.value,
+                  tabelaPreco,
+                  setValorUnitario,
+                  referenciaTabela,
+                });
+              }}
+              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            >
+              <option value="">Selecione</option>
+              {cidades.map((c, i) => (
+                <option key={i} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Escola */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Escola</label>
+            <select
+              value={escola}
+              onChange={(e) => setEscola(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            >
+              <option value="">Selecione</option>
+              {escolasFiltradas.map((e, i) => (
+                <option key={i} value={e}>{e}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tabela */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Tabela</label>
+            <input
+              type="text"
+              value={referenciaTabela}
+              onChange={(e) => {
+                setReferenciaTabela(e.target.value);
+                ajustarValorProdutoAoSelecionar({
+                  produtoSelecionado,
+                  cidade,
+                  tabelaPreco,
+                  setValorUnitario,
+                  referenciaTabela: e.target.value,
+                });
+              }}
+              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            />
+          </div>
+
+          {/* Vencimento */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Vencimento</label>
+            <input
+              type="date"
+              value={dataVencimento}
+              onChange={(e) => setDataVencimento(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            />
+          </div>
+
+          {/* Forma de Pagamento */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Forma de Pagamento</label>
+            <select
+              value={formaPagamento}
+              onChange={(e) => setFormaPagamento(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            >
+              <option value="">Selecione</option>
+              {formasPagamento.map((f, i) => (
+                <option key={i} value={f}>{f}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Produto, Quantidade, Valor */}
+          <div className="grid grid-cols-3 gap-2">
+            <select
+              value={produtoSelecionado}
+              onChange={(e) => {
+                setProdutoSelecionado(e.target.value);
+                ajustarValorProdutoAoSelecionar({
+                  produtoSelecionado: e.target.value,
+                  cidade,
+                  tabelaPreco,
+                  setValorUnitario,
+                  referenciaTabela,
+                });
+              }}
+              className="border border-gray-300 rounded px-2 py-1"
+            >
+              <option value="">Produto</option>
+              {produtos.map((p, i) => (
+                <option key={i} value={p}>{p}</option>
+              ))}
+            </select>
+            <input
+              type="number"
+              min="1"
+              value={quantidade}
+              onChange={(e) => setQuantidade(e.target.value)}
+              className="border border-gray-300 rounded px-2 py-1"
+              placeholder="Qtd"
+            />
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={valorUnitario}
+              onChange={(e) => setValorUnitario(e.target.value)}
+              className="border border-gray-300 rounded px-2 py-1"
+              placeholder="R$"
+            />
+          </div>
+
+          <button
+            onClick={adicionarItemAoPedido}
+            className="mt-2 bg-[#8c3b1b] text-white py-2 px-4 rounded"
+          >
+            ➕ Adicionar Item
+          </button>
+
+          <ul className="mt-4 space-y-2">
+            {itensPedido.map((item, i) => (
+              <li key={i} className="bg-white border p-2 rounded shadow text-sm">
+                {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
+              </li>
+            ))}
+          </ul>
+
+          {itensPedido.length > 0 && (
+            <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2">
+              Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
             </div>
+          )}
+
+          <div className="mt-6 flex justify-between">
+            <button
+              onClick={() => setTelaAtual("PCP")}
+              className="bg-gray-400 text-white px-4 py-2 rounded"
+            >
+              ← Voltar
+            </button>
+            <button
+              onClick={salvarPedidoRapido}
+              className="bg-green-600 text-white px-4 py-2 rounded"
+            >
+              💾 Salvar Pedido
+<button
+              onClick={salvarPedidoRapido}
+              className="bg-green-600 text-white px-4 py-2 rounded"
+            >
+              💾 Salvar Pedido
+            </button>
           </div>
         </div>
-      )}
-    </>
-  );
-}
+      </div>
+    )}
+    {/* === FIM RT03 === */}
+  </>
+);
+// === FIM RT99 ===
 
 export default App;
