@@ -255,7 +255,10 @@ function App() {
                 onClick={() => salvarSabores(pedido, index)}
                 className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
               >
-</div> {/* fechamento do pedido */}
+                💾 Salvar Pedido
+</button>
+            </div> {/* fechamento do bloco do botão salvar */}
+          </div> {/* fechamento do pedido */}
         ))}
       </div> {/* fechamento do bloco de pedidos pendentes */}
     )}
