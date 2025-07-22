@@ -262,9 +262,9 @@ function App() {
         ))} {/* fechamento do map de pedidosPendentes */}
       </div> {/* fechamento do bloco de pedidos pendentes */}
     )}
-  </>
-)} {/* fechamento da condição abaAtiva === "alimentarSabores" */}
+  </> // fechamento do fragmento da aba "alimentarSabores"
+)} // fechamento da condição abaAtiva === "alimentarSabores"
 
-{/* === FIM RT01 === */}
+/* === FIM RT01 === */
 
 export default App;
