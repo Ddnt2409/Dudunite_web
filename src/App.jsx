@@ -328,15 +328,16 @@ const salvarPedidoRapido = () => {
         />
       </div>
 
-      {/* Botão Final de Salvamento */}
+{/* Botão Final de Salvamento */}
       <button
         onClick={salvarPedidoRapido}
         className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded"
       >
-</button>
-      </div>
-    </div>
-  </>
-)}
+        💾 Salvar Pedido
+      </button>
+    </div> {/* Fecha div de conteúdo interno */}
+  </div>   {/* Fecha div de tela de lançamento */}
+</>
+)} {/* Fecha condicional do RT01 */}
 };
 export default App;
