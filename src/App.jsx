@@ -271,91 +271,123 @@ function App() {
 {/* === FIM RT01 === */}
 
 
-{/* === INÍCIO RT02 – Tela Lançamento de Pedido === */}
+{/* === RT02 – Tela de Lançar Pedido === */}
 {telaAtual === "Lancamento" && (
-  <div className="min-h-screen bg-white p-6">
-    <h2 className="text-2xl font-bold text-[#8c3b1b] mb-4">📦 Lançar Pedido</h2>
+  <div className="min-h-screen bg-[#fff8f3] flex flex-col items-center p-6">
+    <h2 className="text-2xl font-bold text-[#8c3b1b] mb-4">📦 Lançamento Rápido de Pedido</h2>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label className="block mb-1 text-sm font-medium">Cidade:</label>
-        <select
-          className="w-full border rounded px-3 py-2"
-          value={cidade}
-          onChange={(e) => setCidade(e.target.value)}
-        >
-          <option value="">Selecione...</option>
-          {cidades.map((c, i) => (
-            <option key={i} value={c}>{c}</option>
-          ))}
-        </select>
-      </div>
+    <div className="grid gap-4 w-full max-w-md">
+      <select
+        className="p-2 border rounded"
+        value={cidade}
+        onChange={(e) => setCidade(e.target.value)}
+      >
+        <option value="">Selecione a cidade</option>
+        {cidades.map((c) => (
+          <option key={c} value={c}>{c}</option>
+        ))}
+      </select>
 
-      <div>
-        <label className="block mb-1 text-sm font-medium">Escola:</label>
-        <select
-          className="w-full border rounded px-3 py-2"
-          value={escola}
-          onChange={(e) => setEscola(e.target.value)}
-        >
-          <option value="">Selecione...</option>
-          {(escolasPorCidade[cidade] || []).map((e, i) => (
-            <option key={i} value={e}>{e}</option>
-          ))}
-        </select>
-      </div>
+      <select
+        className="p-2 border rounded"
+        value={escola}
+        onChange={(e) => setEscola(e.target.value)}
+        disabled={!cidade}
+      >
+        <option value="">Selecione a escola</option>
+        {escolasFiltradas.map((e) => (
+          <option key={e} value={e}>{e}</option>
+        ))}
+      </select>
 
-      <div>
-        <label className="block mb-1 text-sm font-medium">Produto:</label>
+      <input
+        className="p-2 border rounded"
+        type="text"
+        placeholder="Referência da Tabela"
+        value={referenciaTabela}
+        onChange={(e) => setReferenciaTabela(e.target.value)}
+      />
+
+      <input
+        className="p-2 border rounded"
+        type="date"
+        placeholder="Data de Vencimento"
+        value={dataVencimento}
+        onChange={(e) => setDataVencimento(e.target.value)}
+      />
+
+      <input
+        className="p-2 border rounded"
+        type="text"
+        placeholder="Forma de Pagamento"
+        value={formaPagamento}
+        onChange={(e) => setFormaPagamento(e.target.value)}
+      />
+
+      <hr />
+
+      <div className="grid gap-2">
         <select
-          className="w-full border rounded px-3 py-2"
+          className="p-2 border rounded"
           value={produtoSelecionado}
           onChange={(e) => setProdutoSelecionado(e.target.value)}
         >
-          <option value="">Selecione...</option>
-          {produtos.map((p, i) => (
-            <option key={i} value={p}>{p}</option>
+          <option value="">Selecione o produto</option>
+          {produtos.map((p) => (
+            <option key={p} value={p}>{p}</option>
           ))}
         </select>
-      </div>
 
-      <div>
-        <label className="block mb-1 text-sm font-medium">Quantidade:</label>
         <input
+          className="p-2 border rounded"
           type="number"
-          className="w-full border rounded px-3 py-2"
+          placeholder="Quantidade"
           value={quantidade}
-          onChange={(e) => setQuantidade(Number(e.target.value))}
+          onChange={(e) => setQuantidade(e.target.value)}
         />
-      </div>
 
-      <div>
-        <label className="block mb-1 text-sm font-medium">Valor Unitário:</label>
         <input
+          className="p-2 border rounded"
           type="number"
-          className="w-full border rounded px-3 py-2"
+          placeholder="Valor Unitário"
           value={valorUnitario}
           onChange={(e) => setValorUnitario(e.target.value)}
         />
-      </div>
 
-      <div className="col-span-2 text-right mt-4">
         <button
-          className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
+          className="bg-[#a65a3d] hover:bg-[#8c3b1b] text-white py-2 rounded"
           onClick={adicionarItemAoPedido}
         >
           ➕ Adicionar Item
         </button>
       </div>
 
-      <div className="col-span-2 text-right mt-2">
-        <button
-          className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
-          onClick={salvarPedidoRapido}
-        >
-          💾 Salvar Pedido
-        </button>
-      </div>
+      {itensPedido.length > 0 && (
+        <div className="bg-white p-3 rounded border mt-4">
+          <h3 className="font-bold mb-2">Itens do Pedido:</h3>
+          <ul className="list-disc pl-5 text-sm text-gray-700">
+            {itensPedido.map((item, idx) => (
+              <li key={idx}>
+                {item.produto} – {item.quantidade}x R${item.valorUnitario}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <button
+        onClick={salvarPedidoRapido}
+        className="mt-6 bg-[#d38b5d] hover:bg-[#c3794a] text-white font-bold py-3 rounded"
+      >
+        💾 Salvar Pedido
+      </button>
+
+      <button
+        onClick={() => setTelaAtual("PCP")}
+        className="text-[#a65a3d] text-sm mt-2 underline"
+      >
+        Voltar para o Início
+      </button>
     </div>
   </div>
 )}
