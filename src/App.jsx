@@ -61,8 +61,23 @@ useEffect(() => {
   }
 }, [telaAtual]);
 // === FIM FN04 ===
-// === INÍCIO FN05 – salvarPedidoRapido: Salvar Pedido Detalhado com Itens e Valor ===
-const salvarPedidoRapido = async () => {
+// === INÍCIO FN05 – salvarPedidoRapidoOriginal ===
+const salvarPedidoRapidoOriginal = async ({
+  cidade,
+  escola,
+  tabelaSelecionada,
+  itensPedido,
+  dataVencimento,
+  formaPagamento,
+  setCidade,
+  setEscola,
+  setTabelaSelecionada,
+  setItensPedido,
+  setDataVencimento,
+  setFormaPagamento,
+  setTelaAtual,
+  carregarPedidosLancados,
+}) => {
   try {
     const totalPedido = itensPedido.reduce(
       (soma, item) => soma + item.quantidade * item.valorUnitario,
@@ -72,7 +87,7 @@ const salvarPedidoRapido = async () => {
     const novoPedido = {
       cidade,
       escola,
-      tabela: referenciaTabela,
+      tabela: tabelaSelecionada,
       itens: itensPedido,
       dataVencimento,
       formaPagamento,
@@ -87,10 +102,7 @@ const salvarPedidoRapido = async () => {
     // Resetar campos
     setCidade("");
     setEscola("");
-    setReferenciaTabela("");
-    setProdutoSelecionado("");
-    setQuantidade(1);
-    setValorUnitario(0);
+    setTabelaSelecionada("");
     setItensPedido([]);
     setDataVencimento("");
     setFormaPagamento("");
@@ -98,7 +110,7 @@ const salvarPedidoRapido = async () => {
     // Voltar à tela inicial
     setTelaAtual("PCP");
 
-    // Atualizar pedidos exibidos
+    // Atualizar lista de lançados
     carregarPedidosLancados();
   } catch (error) {
     console.error("Erro ao salvar pedido:", error);
@@ -125,7 +137,7 @@ const adicionarItemAoPedido = () => {
 };
 // === FIM FN06 ===
 
-// === INÍCIO FN07 – salvarPedidoRapido (Wrapper) ===
+// === INÍCIO FN07 – Wrapper salvarPedidoRapido ===
 const salvarPedidoRapido = () => {
   salvarPedidoRapidoOriginal({
     cidade,
