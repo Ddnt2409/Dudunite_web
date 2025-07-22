@@ -179,6 +179,33 @@ const salvarSabores = async (pedido, index) => {
     alert("Erro ao salvar sabores.");
   }
 };
+  //FN09 - Final
+  // === FN10 – Carregar Tabela de Preços ===
+const carregarTabelaDePrecos = async () => {
+  try {
+    const tabelaRef = collection(db, "tabela_precos");
+    const querySnapshot = await getDocs(tabelaRef);
+    const precos = {};
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      precos[data.produto] = data.valorRevenda; // apenas revenda usada como referência
+    });
+    setTabelaPrecos(precos);
+  } catch (error) {
+    console.error("Erro ao carregar tabela de preços:", error);
+  }
+};  
+// === FIM FN10 ===
+
+// === FN11 – Buscar valor unitário na tabela ===
+const buscarValorUnitario = (produtoSelecionado) => {
+  if (tabelaPrecos && tabelaPrecos[produtoSelecionado]) {
+    setValorUnitario(tabelaPrecos[produtoSelecionado]);
+  } else {
+    setValorUnitario("");
+  }
+};
+// === FIM FN11 ===
   // === RT99 – Return do Componente ===
   return (
     <>
@@ -346,7 +373,6 @@ const salvarSabores = async (pedido, index) => {
   <div className="p-6 bg-[#fdf8f5] min-h-screen">
     <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Lançamento de Pedido</h2>
 
-    {/* Aqui ficam os campos do formulário de lançamento */}
     <div className="space-y-4 max-w-xl mx-auto">
       {/* Cidade */}
       <div>
@@ -378,7 +404,7 @@ const salvarSabores = async (pedido, index) => {
         </select>
       </div>
 
-      {/* Referência da Tabela */}
+      {/* Tabela de Preço */}
       <div>
         <label className="block text-sm font-medium text-gray-700">Tabela</label>
         <input
@@ -411,11 +437,14 @@ const salvarSabores = async (pedido, index) => {
         />
       </div>
 
-      {/* Produto, Quantidade e Valor */}
+      {/* Produto, Quantidade, Valor */}
       <div className="grid grid-cols-3 gap-2">
         <select
           value={produtoSelecionado}
-          onChange={(e) => setProdutoSelecionado(e.target.value)}
+          onChange={(e) => {
+            setProdutoSelecionado(e.target.value);
+            buscarValorUnitario(e.target.value);
+          }}
           className="border border-gray-300 rounded px-2 py-1"
         >
           <option value="">Produto</option>
@@ -453,11 +482,23 @@ const salvarSabores = async (pedido, index) => {
       {/* Lista de Itens */}
       <ul className="mt-4 space-y-2">
         {itensPedido.map((item, i) => (
-          <li key={i} className="bg-white border p-2 rounded shadow text-sm">
-            {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
+          <li key={i} className="bg-white border p-2 rounded shadow text-sm flex justify-between items-center">
+            <span>
+              {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
+            </span>
+            <button className="text-xs text-blue-700 hover:underline" onClick={() => alert("Func alterar ainda será implementada")}>
+              Alterar
+            </button>
           </li>
         ))}
       </ul>
+
+      {/* Total */}
+      {itensPedido.length > 0 && (
+        <div className="text-right font-semibold text-[#8c3b1b]">
+          Total: R$ {itensPedido.reduce((soma, item) => soma + item.quantidade * item.valorUnitario, 0).toFixed(2)}
+        </div>
+      )}
 
       {/* Botões */}
       <div className="mt-6 flex justify-between">
