@@ -335,9 +335,11 @@ const salvarPedidoRapido = () => {
       >
         💾 Salvar Pedido
       </button>
-    </div>
-  </div>   
+    </div> {/* Fecha div de conteúdo interno */}
+  </div>   {/* Fecha div de tela de lançamento */}
+</div>     {/* Se ainda houver uma <div> superior aberta – revise se necessário */}
 </>
-); 
-} 
+); // Fecha return principal
+} // Fecha componente App
+
 export default App;
