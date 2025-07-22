@@ -998,86 +998,37 @@ return (
             />
           </div>
 
-          <div className="flex justify-center">
-            <button
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"
-              onClick={salvarPedido}
-            >
-              💾 Salvar Pedido
-            </button>
-          </div>
+          <button
+            onClick={salvarPedidoRapido}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded"
+          >
+            💾 Salvar Pedido
+          </button>
         </div>
       </div>
     )}
     {/* === FIM RT01 === */}
 
-    {/* === INÍCIO RT02 – Filtro por período === */}
+    {/* === INÍCIO RT02 – Alimentar Sabores === */}
+    {telaAtual === "Sabores" && (
+      <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
+        <div className="max-w-xl mx-auto">
+          <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
+          <h1 className="text-center text-xl font-bold mb-6">Alimentar Sabores</h1>
+
+          {/* Conteúdo da tela de sabores pode continuar aqui */}
+        </div>
+      </div>
+    )}
+    {/* === FIM RT02 === */}
+
+    {/* === INÍCIO RT03 – Filtro por período === */}
     <div className="mb-6">
       <label className="font-semibold block mb-1">📆 Período:</label>
       <div className="flex items-center gap-2">
         <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="p-2 border rounded" />
         <span>até</span>
         <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className="p-2 border rounded" />
-      </div>
-    </div>
-    {/* === FIM RT02 === */}
-
-    {/* === INÍCIO RT03 – Campos do pedido === */}
-    <div className="grid grid-cols-2 gap-4 mb-4">
-      <div>
-        <label>Cidade</label>
-        <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
-          <option value="">Selecione</option>
-          {Object.keys(dadosEscolas).map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label>Escola</label>
-        <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
-          <option value="">Selecione</option>
-          {dadosEscolas[cidade]?.map((e) => (
-            <option key={e} value={e}>{e}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label>Produto</label>
-        <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
-          <option value="">Selecione</option>
-          {Object.keys(dadosProdutos).map((p) => (
-            <option key={p} value={p}>{p}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label>Sabor</label>
-        <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
-          <option value="">Selecione</option>
-          {dadosProdutos[produto]?.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="col-span-2">
-        <label>Quantidade</label>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setQuantidade(prev => Math.max(1, prev - 1))} className="px-3 py-1 bg-red-600 text-white rounded">-</button>
-          <input type="number" min="1" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} className="w-20 p-2 border rounded text-center" />
-          <button type="button" onClick={() => setQuantidade(prev => prev + 1)} className="px-3 py-1 bg-green-600 text-white rounded">+</button>
-          <button
-            type="button"
-            onClick={adicionarItem}
-            className="ml-4 bg-[#8c3b1b] hover:bg-[#732f16] text-white font-semibold py-2 px-3 rounded flex items-center gap-1 text-sm"
-          >
-            <span className="text-lg">➕</span> <span>Adicionar</span>
-          </button>
-        </div>
       </div>
     </div>
     {/* === FIM RT03 === */}
@@ -1153,5 +1104,4 @@ return (
   </>
 );
 // === FIM RT99 ===
-}
 export default App;
