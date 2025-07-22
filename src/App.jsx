@@ -337,9 +337,9 @@ const salvarPedidoRapido = () => {
       </button>
     </div>
   </div>
-</div> {/* fechamento da div principal do return */}
-</>   {/* fechamento do fragment do return */}
-)}     {/* fechamento da função App */}
+</div>
+</> 
+)} 
 {/* === FIM RT01 === */}
 {/* === FIM RT99 === */}
 export default App;
