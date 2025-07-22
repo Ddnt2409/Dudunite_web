@@ -200,7 +200,7 @@ function App() {
       )}
 
 {/* === INÍCIO RT01 – Alimentar Sabores (Lista de pedidos pendentes) === */}
-{abaAtiva === "alimentarSabores" && (
+{telaAtual === "Sabores" && (
   <>
     <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Alimentar Sabores</h2>
     {pedidosPendentes.length === 0 ? (
@@ -263,7 +263,7 @@ function App() {
       </div> {/* fechamento do bloco de todos os pedidos pendentes */}
     )}
   </>
-)} {/* fechamento da condição abaAtiva === "alimentarSabores" */}
+)} {/* fechamento da condição telaAtual === "Sabores" */}
 {/* === FIM RT01 === */}
 
 export default App;
