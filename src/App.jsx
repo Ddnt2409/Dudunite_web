@@ -616,12 +616,12 @@ return (
       </div> {/* FIM dos botões */}
     </div> {/* FIM do container interno */}
   </div> 
-))}} {/* FIM condicional RT03 */}
+) {/* FIM condicional RT03 */}
 {/* === FIM RT03 === */}
 </> // FIM do fragmento
 ); // FIM do return
 // === FIM RT99 ===
 
-} // FIM da função App
+}; // FIM da função App
 
 export default App;
