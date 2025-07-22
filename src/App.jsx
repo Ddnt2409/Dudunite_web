@@ -334,11 +334,12 @@ const salvarPedidoRapido = () => {
         className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded"
       >
         💾 Salvar Pedido
-      </button>
+</button>
     </div>
   </div>
 )}
 {/* === FIM RT01 === */}
+</>
 {/* === FIM RT99 === */}
-
+}
 export default App;
