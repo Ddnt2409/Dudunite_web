@@ -7,15 +7,18 @@ import db from "./firebase";
 const corPrimaria = "#8c3b1b";
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
 
-// === INÍCIO FN03 – Componente App ===
+// === INÍCIO FN03 – Componente App e Estados ===
 function App() {
-  // === FN03 – Estados Principais de Testes ===
   const [telaAtual, setTelaAtual] = useState("PCP");
   const [cidade, setCidade] = useState("");
   const [escola, setEscola] = useState("");
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [quantidade, setQuantidade] = useState(1);
-  const [pedidosLancados, setPedidosLancados] = useState([]);
+  const [dataVencimento, setDataVencimento] = useState("");
+  const [formaPagamento, setFormaPagamento] = useState("");
+  const [referenciaTabela, setReferenciaTabela] = useState("");
+  const [anexoNota, setAnexoNota] = useState(null);
+  const [anexoBoleto, setAnexoBoleto] = useState(null);
 
   const cidades = ["Gravatá", "Recife", "Caruaru"];
   const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
@@ -28,7 +31,11 @@ function App() {
 
   const escolasFiltradas = cidade ? escolasPorCidade[cidade] || [] : [];
 
-  // === FIM FN03 ===
+  const handleAnexoNota = (e) => setAnexoNota(e.target.files[0]);
+  const handleAnexoBoleto = (e) => setAnexoBoleto(e.target.files[0]);
+
+  const [pedidosLancados, setPedidosLancados] = useState([]);
+// === FIM FN03 ===
 // === INÍCIO FN04 – Carregar pedidos com status 'Lançado' ===
 const carregarPedidosLancados = async () => {
   try {
@@ -62,6 +69,9 @@ const salvarPedidoRapido = async () => {
       escola,
       produto: produtoSelecionado,
       quantidade: Number(quantidade),
+      dataVencimento,
+      formaPagamento,
+      referenciaTabela,
       statusEtapa: "Lançado",
       criadoEm: serverTimestamp(),
     };
@@ -74,6 +84,11 @@ const salvarPedidoRapido = async () => {
     setEscola("");
     setProdutoSelecionado("");
     setQuantidade(1);
+    setDataVencimento("");
+    setFormaPagamento("");
+    setReferenciaTabela("");
+    setAnexoNota(null);
+    setAnexoBoleto(null);
 
     // Voltar à tela principal
     setTelaAtual("PCP");
@@ -141,68 +156,97 @@ const salvarPedidoRapido = async () => {
 )}
 {/* === FIM RT0b === */}
 
-      {/* === INÍCIO RT01 – Lançamento de Pedido Rápido === */}
-      {telaAtual === "Lancamento" && (
-        <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
-          <div className="max-w-xl mx-auto">
-            <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
-            <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedido Rápido</h1>
+{/* === INÍCIO RT01 – Lançamento de Pedido Rápido === */}
+{telaAtual === "Lancamento" && (
+  <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
+    <div className="max-w-xl mx-auto">
+      <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
+      <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedido Rápido</h1>
 
-            <div className="mb-4">
-              <label className="block font-semibold mb-1">Cidade</label>
-              <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 border rounded">
-                <option value="">Selecione</option>
-                {cidades.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Cidade</label>
+        <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 border rounded">
+          <option value="">Selecione</option>
+          {cidades.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
 
-            <div className="mb-4">
-              <label className="block font-semibold mb-1">Escola / PDV</label>
-              <select
-                value={escola}
-                onChange={(e) => setEscola(e.target.value)}
-                className="w-full p-2 border rounded"
-                disabled={!cidade}
-              >
-                <option value="">Selecione</option>
-                {escolasFiltradas.map((e) => (
-                  <option key={e} value={e}>{e}</option>
-                ))}
-              </select>
-            </div>
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Escola / PDV</label>
+        <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 border rounded" disabled={!cidade}>
+          <option value="">Selecione</option>
+          {escolasFiltradas.map((e) => (
+            <option key={e} value={e}>{e}</option>
+          ))}
+        </select>
+      </div>
 
-            <div className="mb-4">
-              <label className="block font-semibold mb-1">Produto</label>
-              <select value={produtoSelecionado} onChange={(e) => setProdutoSelecionado(e.target.value)} className="w-full p-2 border rounded">
-                <option value="">Selecione</option>
-                {produtos.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-            </div>
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Produto</label>
+        <select value={produtoSelecionado} onChange={(e) => setProdutoSelecionado(e.target.value)} className="w-full p-2 border rounded">
+          <option value="">Selecione</option>
+          {produtos.map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+      </div>
 
-            <div className="mb-4">
-              <label className="block font-semibold mb-1">Quantidade</label>
-              <input
-                type="number"
-                value={quantidade}
-                onChange={(e) => setQuantidade(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-            </div>
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Quantidade</label>
+        <input type="number" value={quantidade} onChange={(e) => setQuantidade(e.target.value)} className="w-full p-2 border rounded" />
+      </div>
 
-            <button
-              onClick={salvarPedidoRapido}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded"
-            >
-              💾 Salvar Pedido
-            </button>
-          </div>
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Data de Vencimento</label>
+        <input type="date" value={dataVencimento} onChange={(e) => setDataVencimento(e.target.value)} className="w-full p-2 border rounded" />
+      </div>
+
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Forma de Pagamento</label>
+        <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)} className="w-full p-2 border rounded">
+          <option value="">Selecione</option>
+          <option value="PIX">PIX</option>
+          <option value="Boleto">Boleto</option>
+          <option value="Espécie">Espécie</option>
+        </select>
+      </div>
+
+      {formaPagamento === "PIX" && (
+        <div className="mb-4 bg-yellow-100 p-2 rounded">
+          <p className="text-sm">🔑 Chave PIX padrão: <strong>chavepix@dudunite.com.br</strong></p>
         </div>
       )}
-      {/* === FIM RT01 === */}
+
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">Referência de Tabela</label>
+        <select value={referenciaTabela} onChange={(e) => setReferenciaTabela(e.target.value)} className="w-full p-2 border rounded">
+          <option value="">Selecione</option>
+          <option value="Rev1">Rev1</option>
+          <option value="Rev2">Rev2</option>
+          <option value="Varejo1">Varejo1</option>
+          <option value="Varejo2">Varejo2</option>
+        </select>
+      </div>
+
+      {formaPagamento === "Boleto" && (
+        <div className="mb-4">
+          <label className="block font-semibold mb-1">Anexar Nota Fiscal</label>
+          <input type="file" accept=".pdf" onChange={handleAnexoNota} className="mb-2 w-full" />
+
+          <label className="block font-semibold mb-1">Anexar Boleto</label>
+          <input type="file" accept=".pdf" onChange={handleAnexoBoleto} className="w-full" />
+        </div>
+      )}
+
+      <button onClick={salvarPedidoRapido} className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded">
+        💾 Salvar Pedido
+      </button>
+    </div>
+  </div>
+)}
+{/* === FIM RT01 === */}
     </>
   );
 }
