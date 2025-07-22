@@ -199,135 +199,71 @@ function App() {
         </div>
       )}
 
-      {/* === RT01 – Tela de Lançamento de Pedido === */}
-      {telaAtual === "Lancamento" && (
-        <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
-          <div className="max-w-xl mx-auto">
-            <img src={logoPath} alt="Dudunitê" className="w-48 mx-auto mb-4" />
-            <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedido</h1>
-
-            {/* Tabela de Preço */}
-            <div className="mb-4">
-              <label className="block font-semibold mb-1">Tabela de Preço</label>
-              <select
-                value={referenciaTabela}
-                onChange={(e) => setReferenciaTabela(e.target.value)}
-                className="w-full p-2 border rounded"
-              >
-                <option value="">Selecione</option>
-                <option value="REV1">REV1</option>
-                <option value="REV2">REV2</option>
-                <option value="VAR1">VAR1</option>
-                <option value="VAR2">VAR2</option>
-              </select>
+{/* === INÍCIO RT01 – Alimentar Sabores (Lista de pedidos pendentes) === */}
+{abaAtiva === "alimentarSabores" && (
+  <>
+    <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Alimentar Sabores</h2>
+    {pedidosPendentes.length === 0 ? (
+      <p className="text-gray-600">Nenhum pedido pendente encontrado.</p>
+    ) : (
+      <div className="space-y-6">
+        {pedidosPendentes.map((pedido, index) => (
+          <div key={index} className="border border-gray-300 rounded p-4 bg-white shadow">
+            <p><strong>Cidade:</strong> {pedido.cidade}</p>
+            <p><strong>Escola:</strong> {pedido.escola}</p>
+            <div className="mt-4 space-y-4">
+              {pedido.itens.map((item, itemIndex) => (
+                <div key={itemIndex} className="border p-3 rounded bg-gray-50">
+                  <p><strong>Produto:</strong> {item.produto}</p>
+                  <p><strong>Quantidade:</strong> {item.quantidade}</p>
+                  <div className="mt-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Sabores:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">
+                      {saboresDisponiveis
+                        .filter((sabor) => sabor.produto === item.produto)
+                        .map((sabor, saborIndex) => (
+                          <label key={saborIndex} className="inline-flex items-center">
+                            <input
+                              type="checkbox"
+                              className="form-checkbox h-4 w-4 text-[#8c3b1b] transition duration-150 ease-in-out"
+                              checked={item.sabores?.includes(sabor.nome) || false}
+                              onChange={(e) => {
+                                const novosPedidos = [...pedidosPendentes];
+                                const saboresAtuais = novosPedidos[index].itens[itemIndex].sabores || [];
+                                if (e.target.checked) {
+                                  saboresAtuais.push(sabor.nome);
+                                } else {
+                                  const idx = saboresAtuais.indexOf(sabor.nome);
+                                  if (idx > -1) saboresAtuais.splice(idx, 1);
+                                }
+                                novosPedidos[index].itens[itemIndex].sabores = saboresAtuais;
+                                setPedidosPendentes(novosPedidos);
+                              }}
+                            />
+                            <span className="ml-2 text-sm">{sabor.nome}</span>
+                          </label>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            {/* Produto */}
-            <div className="mb-4">
-              <label className="block font-semibold mb-1">Produto</label>
-              <select
-                value={produtoSelecionado}
-                onChange={(e) => setProdutoSelecionado(e.target.value)}
-                className="w-full p-2 border rounded"
-              >
-                <option value="">Selecione</option>
-                {produtos.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Quantidade */}
-            <div className="mb-4">
-              <label className="block font-semibold mb-1">Quantidade</label>
-              <input
-                type="number"
-                value={quantidade}
-                onChange={(e) => setQuantidade(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            {/* Valor Unitário */}
-            <div className="mb-4">
-              <label className="block font-semibold mb-1">Valor Unitário</label>
-              <input
-                type="number"
-                step="0.01"
-                value={valorUnitario}
-                onChange={(e) => setValorUnitario(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            {/* Botão Adicionar Item */}
-            <div className="mb-6">
+            <div className="mt-4 text-right">
               <button
-                onClick={adicionarItemAoPedido}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded"
+                onClick={() => salvarSabores(pedido, index)}
+                className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
               >
-                ➕ Adicionar Item
+                💾 Salvar Pedido
               </button>
             </div>
-
-            {/* Itens do Pedido */}
-            <div className="mb-6">
-              <h2 className="font-bold mb-2">Itens do Pedido:</h2>
-              {itensPedido.length === 0 ? (
-                <p className="text-gray-600">Nenhum item adicionado ainda.</p>
-              ) : (
-                <>
-                  {itensPedido.map((item, index) => (
-                    <div key={index} className="flex justify-between border-b py-1">
-                      <span>{item.quantidade}x {item.produto}</span>
-                      <span>R$ {(item.quantidade * item.valorUnitario).toFixed(2)}</span>
-                    </div>
-                  ))}
-                  <div className="text-right font-bold mt-2">
-                    Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Forma de Pagamento */}
-            <div className="mb-4">
-              <label className="block font-semibold mb-1">Forma de Pagamento</label>
-              <select
-                value={formaPagamento}
-                onChange={(e) => setFormaPagamento(e.target.value)}
-                className="w-full p-2 border rounded"
-              >
-                <option value="">Selecione</option>
-                <option value="PIX">PIX</option>
-                <option value="Boleto">Boleto</option>
-                <option value="Espécie">Espécie</option>
-              </select>
-            </div>
-
-            {/* Data de Vencimento */}
-            <div className="mb-6">
-              <label className="block font-semibold mb-1">Data de Vencimento</label>
-              <input
-                type="date"
-                value={dataVencimento}
-                onChange={(e) => setDataVencimento(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            {/* Botão Final de Salvamento */}
-            <button
-              onClick={salvarPedidoRapido}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded"
-            >
-              💾 Salvar Pedido
-            </button>
           </div>
-        </div>
-      )}
-    </>
-  );
-}
+        ))}
+      </div>
+    )}
+  </>
+)}
+{/* === FIM RT01 === */}
 
 export default App;
