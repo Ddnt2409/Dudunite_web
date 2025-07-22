@@ -7,7 +7,7 @@ import db from "./firebase";
 const corPrimaria = "#8c3b1b";
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
 
-// === INÍCIO FN03 – Componente App ===
+// === FN03 – Componente App ===
 function App() {
   const [telaAtual, setTelaAtual] = useState("PCP");
   const [cidade, setCidade] = useState("");
@@ -16,14 +16,14 @@ function App() {
   const [quantidade, setQuantidade] = useState(1);
   const [dataVencimento, setDataVencimento] = useState("");
   const [formaPagamento, setFormaPagamento] = useState("");
-  const [formasPagamento, setFormasPagamento] = useState([]); // ADICIONADO
   const [referenciaTabela, setReferenciaTabela] = useState("");
   const [valorUnitario, setValorUnitario] = useState("");
   const [itensPedido, setItensPedido] = useState([]);
   const [pedidosLancados, setPedidosLancados] = useState([]);
   const [pedidosPendentes, setPedidosPendentes] = useState([]);
   const [saboresDisponiveis, setSaboresDisponiveis] = useState([]);
-  const [tabelaPreco, setTabelaPreco] = useState([]); // NECESSÁRIO para ajuste de preço automático
+  const [formasPagamento, setFormasPagamento] = useState([]); // ← ADICIONADO
+  const [tabelaPreco, setTabelaPreco] = useState([]);         // ← ADICIONADO
 
   const cidades = ["Gravatá", "Recife", "Caruaru"];
   const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
@@ -36,22 +36,18 @@ function App() {
 
   const escolasFiltradas = cidade ? escolasPorCidade[cidade] || [] : [];
 
-  // Carrega a tabela de preços ao montar
-  useEffect(() => {
-    carregarTabelaPrecoFirebase(setTabelaPreco);
-  }, []);
-
-  // Carrega formas de pagamento ao montar
-  useEffect(() => {
-    carregarFormasPagamento(setFormasPagamento);
-  }, []);
-
-  // Carrega pedidos lançados ao entrar na tela de Sabores
+  // === useEffect para pedidos 'Lançado'
   useEffect(() => {
     if (telaAtual === "Sabores") {
       carregarPedidosLancados();
     }
   }, [telaAtual]);
+
+  // === useEffect para carregar tabela de preços e formas de pagamento
+  useEffect(() => {
+    carregarTabelaPrecoFirebase(setTabelaPreco);
+    carregarFormasPagamento(setFormasPagamento);
+  }, []);
 }
 // === FIM FN03 ===
   // === FN04 – Carregar pedidos com status 'Lançado' ===
