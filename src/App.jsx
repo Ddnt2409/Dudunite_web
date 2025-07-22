@@ -615,8 +615,8 @@ return (
 </button>
       </div> {/* FIM dos botões */}
     </div> {/* FIM do container interno */}
-  </div> {/* FIM da tela de lançamento */}
-)} {/* FIM condicional RT03 */}
+  </div> 
+))} {/* FIM condicional RT03 */}
 {/* === FIM RT03 === */}
 </> // FIM do fragmento
 ); // FIM do return
