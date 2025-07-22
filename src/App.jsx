@@ -338,6 +338,6 @@ const salvarPedidoRapido = () => {
     </div> {/* Fecha div de conteúdo interno */}
   </div>   {/* Fecha div de tela de lançamento */}
 </>
-)} {/* Fecha condicional do RT01 */}
-};
+); // Fecha return principal
+} // Fecha componente App
 export default App;
