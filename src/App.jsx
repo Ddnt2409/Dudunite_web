@@ -995,7 +995,7 @@ return (
               value={quantidade}
               onChange={(e) => setQuantidade(e.target.value)}
               className="w-full p-2 border rounded"
-{/* === INÍCIO RT00 – Tela Inicial PCP com Logomarca === */}
+{/* === INÍCIO RT00 – Tela Inicial PCP com Logomarca === */...
 {telaAtual === 'inicio' && (
   <div className="min-h-screen bg-[#fff5ec] p-4">
     <div className="max-w-3xl mx-auto">
