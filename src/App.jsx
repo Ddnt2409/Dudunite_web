@@ -926,7 +926,7 @@ return (
     {/* === INÍCIO RT00 – PCP: Tela Inicial === */}
     {telaAtual === "PCP" && (
       <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
-        <img src="/logo-dudunite.png" alt="Logomarca Dudunitê" className="w-40 mt-4 mb-2" />
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logomarca Dudunitê" className="w-40 mt-4 mb-2" />
         <h1 className="text-2xl font-bold text-[#a65a3d] mb-6">PCP – Planejamento e Controle de Produção</h1>
         <div className="flex flex-col space-y-4 w-full max-w-xs">
           <button
@@ -950,7 +950,7 @@ return (
     {telaAtual === "Lancamento" && (
       <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
         <div className="max-w-xl mx-auto">
-          <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
+          <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
           <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedido Rápido</h1>
 
           <div className="mb-4">
@@ -995,88 +995,22 @@ return (
               value={quantidade}
               onChange={(e) => setQuantidade(e.target.value)}
               className="w-full p-2 border rounded"
-{/* === INÍCIO RT00 – Tela Inicial PCP com Logomarca === */...
-{telaAtual } 'inicio' > (
-  <div className="min-h-screen bg-[#fff5ec] p-4">
-    <div className="max-w-3xl mx-auto">
-      <img
-        src="/logomarcaDDnt2025Vazado.png"
-        alt="Logomarca Dudunitê"
-        className="w-52 mx-auto mb-6"
-      />
-      <h1 className="text-3xl font-bold text-center text-[#8c3b1b] mb-6">
-        Planejamento e Controle de Produção
-      </h1>
-      <div className="flex flex-col md:flex-row justify-center gap-4">
-        <button
-          onClick={() => setTelaAtual('pcp')}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded"
-        >
-          Lançar Pedido
-        </button>
-        <button
-          onClick={() => setTelaAtual('dadosMestres')}
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"
-        >
-          Alimentar Sabores
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-{/* === FIM RT00 === */}
+            />
+          </div>
 
-{/* === INÍCIO RT01 – Tela Lançar Pedido === */}
-{telaAtual === 'lancar' && (
-  <div className="min-h-screen bg-[#fff5ec] p-4">
-    <div className="max-w-2xl mx-auto bg-white p-6 rounded shadow">
-      <img
-        src="/LogomarcaDDnt2025Vazado.png"
-        alt="Logomarca Dudunitê"
-        className="w-32 mx-auto mb-4"
-      />
-      <h2 className="text-2xl font-bold text-center text-[#8c3b1b] mb-6">
-        Lançamento Rápido de Pedido
-      </h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block font-semibold text-[#8c3b1b] mb-1">Cidade</label>
-          <select
-            value={cidade}
-            onChange={(e) => setCidade(e.target.value)}
-            className="w-full p-2 border rounded"
-          >
-            <option value="">Selecione a cidade</option>
-            {Object.keys(dados).map((cidade) => (
-              <option key={cidade} value={cidade}>
-                {cidade}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block font-semibold text-[#8c3b1b] mb-1">Escola / PDV</label>
-          <select
-            value={escola}
-            onChange={(e) => setEscola(e.target.value)}
-            className="w-full p-2 border rounded"
-          >
-            <option value="">Selecione a escola</option>
-            {cidade &&
-              dados[cidade]?.map((esc) => (
-                <option key={esc} value={esc}>
-                  {esc}
-                </option>
-              ))}
-          </select>
+          <div className="flex justify-center">
+            <button
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"
+              onClick={salvarPedido}
+            >
+              💾 Salvar Pedido
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-)}
-{/* === FIM RT01 === */}
+    )}
+    {/* === FIM RT01 === */}
+
     {/* === INÍCIO RT02 – Filtro por período === */}
     <div className="mb-6">
       <label className="font-semibold block mb-1">📆 Período:</label>
