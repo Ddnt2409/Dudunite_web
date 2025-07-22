@@ -200,71 +200,165 @@ function App() {
         </div>
       )}
 
-      {/* === RT01 – Tela Sabores === */}
-      {telaAtual === "Sabores" && (
-        <>
-          <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Alimentar Sabores</h2>
-          {pedidosPendentes.length === 0 ? (
-            <p className="text-gray-600">Nenhum pedido pendente encontrado.</p>
-          ) : (
-            <div className="space-y-6">
-              {pedidosPendentes.map((pedido, index) => (
-                <div key={index} className="border border-gray-300 rounded p-4 bg-white shadow">
-                  <p><strong>Cidade:</strong> {pedido.cidade}</p>
-                  <p><strong>Escola:</strong> {pedido.escola}</p>
-                  <div className="mt-4 space-y-4">
-                    {pedido.itens.map((item, itemIndex) => (
-                      <div key={itemIndex} className="border p-3 rounded bg-gray-50">
-                        <p><strong>Produto:</strong> {item.produto}</p>
-                        <p><strong>Quantidade:</strong> {item.quantidade}</p>
-                        <div className="mt-2">
-                          <label className="block text-sm font-medium text-gray-700">Sabores:</label>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">
-                            {saboresDisponiveis
-                              .filter((sabor) => sabor.produto === item.produto)
-                              .map((sabor, saborIndex) => (
-                                <label key={saborIndex} className="inline-flex items-center">
-                                  <input
-                                    type="checkbox"
-                                    className="form-checkbox h-4 w-4 text-[#8c3b1b] transition duration-150 ease-in-out"
-                                    checked={item.sabores?.includes(sabor.nome) || false}
-                                    onChange={(e) => {
-                                      const novosPedidos = [...pedidosPendentes];
-                                      const saboresAtuais = novosPedidos[index].itens[itemIndex].sabores || [];
-                                      if (e.target.checked) {
-                                        saboresAtuais.push(sabor.nome);
-                                      } else {
-                                        const idx = saboresAtuais.indexOf(sabor.nome);
-                                        if (idx > -1) saboresAtuais.splice(idx, 1);
-                                      }
-                                      novosPedidos[index].itens[itemIndex].sabores = saboresAtuais;
-                                      setPedidosPendentes(novosPedidos);
-                                    }}
-                                  />
-                                  <span className="ml-2 text-sm">{sabor.nome}</span>
-                                </label>
-                              ))}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 text-right">
-                    <button
-                      onClick={() => salvarSabores(pedido, index)}
-                      className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
-                    >
-                      💾 Salvar Pedido
-                    </button>
+{/* === INÍCIO RT01 – Tela Sabores === */}
+{telaAtual === "Sabores" && (
+  <>
+    <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Alimentar Sabores</h2>
+
+    {/* Comentado para testes e isolamento de erro */}
+    {/*
+    {pedidosPendentes.length === 0 ? (
+      <p className="text-gray-600">Nenhum pedido pendente encontrado.</p>
+    ) : (
+      <div className="space-y-6">
+        {pedidosPendentes.map((pedido, index) => (
+          <div key={index} className="border border-gray-300 rounded p-4 bg-white shadow">
+            <p><strong>Cidade:</strong> {pedido.cidade}</p>
+            <p><strong>Escola:</strong> {pedido.escola}</p>
+            <div className="mt-4 space-y-4">
+              {pedido.itens.map((item, itemIndex) => (
+                <div key={itemIndex} className="border p-3 rounded bg-gray-50">
+                  <p><strong>Produto:</strong> {item.produto}</p>
+                  <p><strong>Quantidade:</strong> {item.quantidade}</p>
+                  <div className="mt-2">
+                    <label className="block text-sm font-medium text-gray-700">Sabores:</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">
+                      {saboresDisponiveis
+                        .filter((sabor) => sabor.produto === item.produto)
+                        .map((sabor, saborIndex) => (
+                          <label key={saborIndex} className="inline-flex items-center">
+                            <input
+                              type="checkbox"
+                              className="form-checkbox h-4 w-4 text-[#8c3b1b] transition duration-150 ease-in-out"
+                              checked={item.sabores?.includes(sabor.nome) || false}
+                              onChange={(e) => {
+                                const novosPedidos = [...pedidosPendentes];
+                                const saboresAtuais = novosPedidos[index].itens[itemIndex].sabores || [];
+                                if (e.target.checked) {
+                                  saboresAtuais.push(sabor.nome);
+                                } else {
+                                  const idx = saboresAtuais.indexOf(sabor.nome);
+                                  if (idx > -1) saboresAtuais.splice(idx, 1);
+                                }
+                                novosPedidos[index].itens[itemIndex].sabores = saboresAtuais;
+                                setPedidosPendentes(novosPedidos);
+                              }}
+                            />
+                            <span className="ml-2 text-sm">{sabor.nome}</span>
+                          </label>
+                        ))}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-          )}
-        </>
-      )}
-    </>
-  );
-}
+            <div className="mt-4 text-right">
+              <button
+                onClick={() => salvarSabores(pedido, index)}
+                className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
+              >
+                💾 Salvar Pedido
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+    */}
+    <p className="text-gray-500 italic">[RT01 está renderizando com conteúdo interno comentado]</p>
+  </>
+)}
+{/* === FIM RT01 === */}
+
+
+{/* === INÍCIO RT02 – Tela Lançamento de Pedido === */}
+{telaAtual === "Lancamento" && (
+  <div className="min-h-screen bg-white p-6">
+    <h2 className="text-2xl font-bold text-[#8c3b1b] mb-4">📦 Lançar Pedido</h2>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label className="block mb-1 text-sm font-medium">Cidade:</label>
+        <select
+          className="w-full border rounded px-3 py-2"
+          value={cidade}
+          onChange={(e) => setCidade(e.target.value)}
+        >
+          <option value="">Selecione...</option>
+          {cidades.map((c, i) => (
+            <option key={i} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block mb-1 text-sm font-medium">Escola:</label>
+        <select
+          className="w-full border rounded px-3 py-2"
+          value={escola}
+          onChange={(e) => setEscola(e.target.value)}
+        >
+          <option value="">Selecione...</option>
+          {(escolasPorCidade[cidade] || []).map((e, i) => (
+            <option key={i} value={e}>{e}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block mb-1 text-sm font-medium">Produto:</label>
+        <select
+          className="w-full border rounded px-3 py-2"
+          value={produtoSelecionado}
+          onChange={(e) => setProdutoSelecionado(e.target.value)}
+        >
+          <option value="">Selecione...</option>
+          {produtos.map((p, i) => (
+            <option key={i} value={p}>{p}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block mb-1 text-sm font-medium">Quantidade:</label>
+        <input
+          type="number"
+          className="w-full border rounded px-3 py-2"
+          value={quantidade}
+          onChange={(e) => setQuantidade(Number(e.target.value))}
+        />
+      </div>
+
+      <div>
+        <label className="block mb-1 text-sm font-medium">Valor Unitário:</label>
+        <input
+          type="number"
+          className="w-full border rounded px-3 py-2"
+          value={valorUnitario}
+          onChange={(e) => setValorUnitario(e.target.value)}
+        />
+      </div>
+
+      <div className="col-span-2 text-right mt-4">
+        <button
+          className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
+          onClick={adicionarItemAoPedido}
+        >
+          ➕ Adicionar Item
+        </button>
+      </div>
+
+      <div className="col-span-2 text-right mt-2">
+        <button
+          className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
+          onClick={salvarPedidoRapido}
+        >
+          💾 Salvar Pedido
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+{/* === FIM RT02 === */}
 
 export default App;
