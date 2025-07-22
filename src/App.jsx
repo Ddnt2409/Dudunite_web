@@ -920,135 +920,256 @@ const adicionarPDV = () => {
   alert("✅ PDV adicionado com sucesso!");
 };
 // === FIM FN29 ===
-// === RT00 ===
+// === INÍCIO RT99 – Bloco completo de retorno do componente ===
 return (
-  <div className="App">
-    {/* === RT01 === */}
-    {showNav && (
-      <Navbar
-        toggleSidebar={toggleSidebar}
-        showSidebar={showSidebar}
-        setShowSidebar={setShowSidebar}
-        user={user}
-        handleLogout={handleLogout}
-        notificacoes={notificacoes}
-        setShowNotificacoes={setShowNotificacoes}
-        showNotificacoes={showNotificacoes}
-      />
-    )}
-
-    {/* === RT02 === */}
-    {showSidebar && (
-      <Sidebar
-        toggleSidebar={toggleSidebar}
-        handleShowDashboard={handleShowDashboard}
-        handleShowFinanceiro={handleShowFinanceiro}
-        handleShowConfig={handleShowConfig}
-        handleShowRelatorios={handleShowRelatorios}
-        handleShowComercial={handleShowComercial}
-        handleShowOperacional={handleShowOperacional}
-        handleShowUsuarios={handleShowUsuarios}
-        handleShowChat={handleShowChat}
-        handleShowAjuda={handleShowAjuda}
-        handleShowSobre={handleShowSobre}
-        handleShowCadastroPDV={handleShowCadastroPDV}
-        handleShowCadastroOperador={handleShowCadastroOperador}
-        handleShowCadastroProduto={handleShowCadastroProduto}
-        handleShowCadastroCliente={handleShowCadastroCliente}
-        handleShowCadastroFornecedor={handleShowCadastroFornecedor}
-        handleShowCadastroTransportadora={handleShowCadastroTransportadora}
-        handleShowIntegracoes={handleShowIntegracoes}
-        handleShowFinanceiroResumo={handleShowFinanceiroResumo}
-        handleShowNotificacoes={handleShowNotificacoes}
-        handleShowLogs={handleShowLogs}
-      />
-    )}
-
-    {/* === RT03 === */}
-    <main>
-      {showDashboard && <Dashboard />}
-      {showFinanceiro && <Financeiro />}
-      {showConfig && <Configuracoes />}
-      {showRelatorios && <Relatorios />}
-      {showComercial && <Comercial />}
-      {showOperacional && <Operacional />}
-      {showUsuarios && <Usuarios />}
-      {showChat && <Chat />}
-      {showAjuda && <Ajuda />}
-      {showSobre && <Sobre />}
-      {showCadastroPDV && <CadastroPDV />}
-      {showCadastroOperador && <CadastroOperador />}
-      {showCadastroProduto && <CadastroProduto />}
-      {showCadastroCliente && <CadastroCliente />}
-      {showCadastroFornecedor && <CadastroFornecedor />}
-      {showCadastroTransportadora && <CadastroTransportadora />}
-      {showIntegracoes && <Integracoes />}
-      {showFinanceiroResumo && <FinanceiroResumo />}
-      {showNotificacoes && <Notificacoes />}
-      {showLogs && <Logs />}
-    </main>
-
-    {/* === RT04 === */}
-    {mensagemSucesso && (
-      <div className="mensagem-sucesso">{mensagemSucesso}</div>
-    )}
-    {mensagemErro && <div className="mensagem-erro">{mensagemErro}</div>}
-
-    {/* === RT05 === */}
-    {loading && (
-      <div className="loading-overlay">
-        <div className="loading-spinner" />
+  <>
+    {/* === INÍCIO RT00 – PCP: Tela Inicial === */}
+    {telaAtual === "PCP" && (
+      <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
+        <img src="/logo-dudunite.png" alt="Logomarca Dudunitê" className="w-40 mt-4 mb-2" />
+        <h1 className="text-2xl font-bold text-[#a65a3d] mb-6">PCP – Planejamento e Controle de Produção</h1>
+        <div className="flex flex-col space-y-4 w-full max-w-xs">
+          <button
+            className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
+            onClick={() => setTelaAtual("Lancamento")}
+          >
+            📦 Lançar Pedido
+          </button>
+          <button
+            className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
+            onClick={() => setTelaAtual("Sabores")}
+          >
+            🍫 Alimentar Sabores
+          </button>
+        </div>
       </div>
     )}
+    {/* === FIM RT00 === */}
 
-{/* === INÍCIO RT06 – Painel de Dados Mestres (Final do Componente) === */}
-{mostrarDadosMestres && (
-  <div className="mt-6">
-    <div className="bg-white p-4 rounded shadow-md">
-      <h2 className="text-xl font-bold mb-4">🛠️ Dados Mestres</h2>
+    {/* === INÍCIO RT01 – Lançamento de Pedido Rápido === */}
+    {telaAtual === "Lancamento" && (
+      <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
+        <div className="max-w-xl mx-auto">
+          <img src="/logo.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
+          <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedido Rápido</h1>
 
-      <div className="flex gap-4 mb-4">
-        <button
-          onClick={() => setTipoSelecionado('escolas')}
-          className={`px-4 py-2 rounded font-semibold ${
-            tipoSelecionado === 'escolas'
-              ? 'bg-blue-600 text-white'
-              : 'bg-blue-100 text-blue-800'
-          }`}
-        >
-          Pontos de Venda
-        </button>
-        <button
-          onClick={() => setTipoSelecionado('produtos')}
-          className={`px-4 py-2 rounded font-semibold ${
-            tipoSelecionado === 'produtos'
-              ? 'bg-green-600 text-white'
-              : 'bg-green-100 text-green-800'
-          }`}
-        >
-          Produtos
-        </button>
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">Cidade</label>
+            <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 border rounded">
+              <option value="">Selecione</option>
+              {cidades.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">Escola / PDV</label>
+            <select
+              value={escola}
+              onChange={(e) => setEscola(e.target.value)}
+              className="w-full p-2 border rounded"
+              disabled={!cidade}
+            >
+              <option value="">Selecione</option>
+              {escolasFiltradas.map((e) => (
+                <option key={e} value={e}>{e}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">Produto</label>
+            <select value={produtoSelecionado} onChange={(e) => setProdutoSelecionado(e.target.value)} className="w-full p-2 border rounded">
+              <option value="">Selecione</option>
+              {produtos.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">Quantidade</label>
+            <input
+              type="number"
+              value={quantidade}
+              onChange={(e) => setQuantidade(e.target.value)}
+              className="w-full p-2 border rounded"
+              min={1}
+            />
+          </div>
+
+          <button
+            onClick={adicionarItemSimples}
+            className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-2 px-4 rounded-xl w-full mb-4"
+          >
+            ➕ Adicionar ao Pedido
+          </button>
+
+          {itensPedido.length > 0 && (
+            <div className="mt-6">
+              <h2 className="text-lg font-bold mb-2">Itens do Pedido:</h2>
+              <ul className="space-y-2">
+                {itensPedido.map((item, index) => (
+                  <li key={index} className="border p-2 rounded bg-white shadow flex justify-between">
+                    <span>{item.produto} – {item.quantidade} un</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={salvarPedidoSimples}
+                className="bg-[#a65a3d] hover:bg-[#8b3e2a] text-white font-bold py-2 px-4 rounded-xl w-full mt-6"
+              >
+                💾 Salvar Pedido
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+    )}
+    {/* === FIM RT01 === */}
 
-      {tipoSelecionado === 'escolas' && (
-        <EditorEscolas
-          dadosEscolas={dadosEscolas}
-          setDadosEscolas={setDadosEscolas}
-        />
-      )}
-
-      {tipoSelecionado === 'produtos' && (
-        <EditorProdutos
-          dadosProdutos={dadosProdutos}
-          setDadosProdutos={setDadosProdutos}
-        />
-      )}
+    {/* === INÍCIO RT02 – Filtro por período === */}
+    <div className="mb-6">
+      <label className="font-semibold block mb-1">📆 Período:</label>
+      <div className="flex items-center gap-2">
+        <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} className="p-2 border rounded" />
+        <span>até</span>
+        <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} className="p-2 border rounded" />
+      </div>
     </div>
-  </div>
-)}
-{/* === FIM RT06 === */}
-</>
+    {/* === FIM RT02 === */}
+
+    {/* === INÍCIO RT03 – Campos do pedido === */}
+    <div className="grid grid-cols-2 gap-4 mb-4">
+      <div>
+        <label>Cidade</label>
+        <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 rounded border">
+          <option value="">Selecione</option>
+          {Object.keys(dadosEscolas).map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label>Escola</label>
+        <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 rounded border">
+          <option value="">Selecione</option>
+          {dadosEscolas[cidade]?.map((e) => (
+            <option key={e} value={e}>{e}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label>Produto</label>
+        <select value={produto} onChange={(e) => setProduto(e.target.value)} className="w-full p-2 rounded border">
+          <option value="">Selecione</option>
+          {Object.keys(dadosProdutos).map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label>Sabor</label>
+        <select value={sabor} onChange={(e) => setSabor(e.target.value)} className="w-full p-2 rounded border">
+          <option value="">Selecione</option>
+          {dadosProdutos[produto]?.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="col-span-2">
+        <label>Quantidade</label>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setQuantidade(prev => Math.max(1, prev - 1))} className="px-3 py-1 bg-red-600 text-white rounded">-</button>
+          <input type="number" min="1" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} className="w-20 p-2 border rounded text-center" />
+          <button type="button" onClick={() => setQuantidade(prev => prev + 1)} className="px-3 py-1 bg-green-600 text-white rounded">+</button>
+          <button
+            type="button"
+            onClick={adicionarItem}
+            className="ml-4 bg-[#8c3b1b] hover:bg-[#732f16] text-white font-semibold py-2 px-3 rounded flex items-center gap-1 text-sm"
+          >
+            <span className="text-lg">➕</span> <span>Adicionar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    {/* === FIM RT03 === */}
+
+    {/* === INÍCIO RT04 – Lista de Itens e botão Salvar Pedido === */}
+    {itens.length > 0 && (
+      <div className="mb-6">
+        <h2 className="font-semibold text-lg mb-2">Itens do Pedido ({totalItens} un):</h2>
+        <ul className="list-disc pl-5">
+          {itens.map((item, index) => (
+            <li key={index}>{item.produto} - {item.sabor} - {item.quantidade} un</li>
+          ))}
+        </ul>
+      </div>
+    )}
+    <button onClick={salvarPedido} className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full mb-4">
+      💾 Salvar Pedido
+    </button>
+    {/* === FIM RT04 === */}
+
+    {/* === INÍCIO RT05 – Ações adicionais === */}
+    <div className="flex flex-wrap justify-center gap-4 mt-6 mb-6">
+      <button onClick={gerarPlanejamentoProducao} className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800">
+        📋 Planejamento de Produção
+      </button>
+      <button onClick={gerarListaCompras} className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
+        🧾 Lista de Compras
+      </button>
+    </div>
+
+    <div className="flex justify-center">
+      <button onClick={toggleMostrarDadosMestres} className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-800">
+        ⚙️ Dados Mestres
+      </button>
+    </div>
+    {/* === FIM RT05 === */}
+
+    {/* === INÍCIO RT06 – Painel de Dados Mestres === */}
+    {mostrarDadosMestres && (
+      <div className="mt-6">
+        <div className="bg-white p-4 rounded shadow-md">
+          <h2 className="text-xl font-bold mb-4">🛠️ Dados Mestres</h2>
+          <div className="flex gap-4 mb-4">
+            <button
+              onClick={() => setTipoSelecionado('escolas')}
+              className={`px-4 py-2 rounded font-semibold ${
+                tipoSelecionado === 'escolas' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800'
+              }`}
+            >
+              Pontos de Venda
+            </button>
+            <button
+              onClick={() => setTipoSelecionado('produtos')}
+              className={`px-4 py-2 rounded font-semibold ${
+                tipoSelecionado === 'produtos' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800'
+              }`}
+            >
+              Produtos
+            </button>
+          </div>
+
+          {tipoSelecionado === 'escolas' && (
+            <EditorEscolas dadosEscolas={dadosEscolas} setDadosEscolas={setDadosEscolas} />
+          )}
+
+          {tipoSelecionado === 'produtos' && (
+            <EditorProdutos dadosProdutos={dadosProdutos} setDadosProdutos={setDadosProdutos} />
+          )}
+        </div>
+      </div>
+    )}
+    {/* === FIM RT06 === */}
+  </>
 );
-}
+// === FIM RT99 ===
 
 export default App;
