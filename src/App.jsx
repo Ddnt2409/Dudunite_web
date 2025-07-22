@@ -995,40 +995,88 @@ return (
               value={quantidade}
               onChange={(e) => setQuantidade(e.target.value)}
               className="w-full p-2 border rounded"
-              min={1}
-            />
-          </div>
+{/* === INÍCIO RT00 – Tela Inicial PCP com Logomarca === */}
+{telaAtual === 'inicio' && (
+  <div className="min-h-screen bg-[#fff5ec] p-4">
+    <div className="max-w-3xl mx-auto">
+      <img
+        src="/LogomarcaDDnt2025Vazado.png"
+        alt="Logomarca Dudunitê"
+        className="w-40 mx-auto mb-4"
+      />
+      <h1 className="text-3xl font-bold text-center text-[#8c3b1b] mb-6">
+        Sistema Dudunitê – PCP
+      </h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <button
+          onClick={() => setTelaAtual('lancar')}
+          className="bg-blue-600 text-white p-4 rounded shadow hover:bg-blue-700 transition"
+        >
+          ➕ Lançar Pedido
+        </button>
+        <button
+          onClick={() => setTelaAtual('alimentar')}
+          className="bg-green-600 text-white p-4 rounded shadow hover:bg-green-700 transition"
+        >
+          🍫 Alimentar Sabores
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+{/* === FIM RT00 === */}
 
-          <button
-            onClick={adicionarItemSimples}
-            className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-2 px-4 rounded-xl w-full mb-4"
+{/* === INÍCIO RT01 – Tela Lançar Pedido === */}
+{telaAtual === 'lancar' && (
+  <div className="min-h-screen bg-[#fff5ec] p-4">
+    <div className="max-w-2xl mx-auto bg-white p-6 rounded shadow">
+      <img
+        src="/LogomarcaDDnt2025Vazado.png"
+        alt="Logomarca Dudunitê"
+        className="w-32 mx-auto mb-4"
+      />
+      <h2 className="text-2xl font-bold text-center text-[#8c3b1b] mb-6">
+        Lançamento Rápido de Pedido
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block font-semibold text-[#8c3b1b] mb-1">Cidade</label>
+          <select
+            value={cidade}
+            onChange={(e) => setCidade(e.target.value)}
+            className="w-full p-2 border rounded"
           >
-            ➕ Adicionar ao Pedido
-          </button>
+            <option value="">Selecione a cidade</option>
+            {Object.keys(dados).map((cidade) => (
+              <option key={cidade} value={cidade}>
+                {cidade}
+              </option>
+            ))}
+          </select>
+        </div>
 
-          {itensPedido.length > 0 && (
-            <div className="mt-6">
-              <h2 className="text-lg font-bold mb-2">Itens do Pedido:</h2>
-              <ul className="space-y-2">
-                {itensPedido.map((item, index) => (
-                  <li key={index} className="border p-2 rounded bg-white shadow flex justify-between">
-                    <span>{item.produto} – {item.quantidade} un</span>
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={salvarPedidoSimples}
-                className="bg-[#a65a3d] hover:bg-[#8b3e2a] text-white font-bold py-2 px-4 rounded-xl w-full mt-6"
-              >
-                💾 Salvar Pedido
-              </button>
-            </div>
-          )}
+        <div>
+          <label className="block font-semibold text-[#8c3b1b] mb-1">Escola / PDV</label>
+          <select
+            value={escola}
+            onChange={(e) => setEscola(e.target.value)}
+            className="w-full p-2 border rounded"
+          >
+            <option value="">Selecione a escola</option>
+            {cidade &&
+              dados[cidade]?.map((esc) => (
+                <option key={esc} value={esc}>
+                  {esc}
+                </option>
+              ))}
+          </select>
         </div>
       </div>
-    )}
-    {/* === FIM RT01 === */}
-
+    </div>
+  </div>
+)}
+{/* === FIM RT01 === */}
     {/* === INÍCIO RT02 – Filtro por período === */}
     <div className="mb-6">
       <label className="font-semibold block mb-1">📆 Período:</label>
