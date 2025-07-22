@@ -33,7 +33,9 @@ const logoPath = "/LogomarcaDDnt2025Vazado.png";
 const corPrimaria = "#8c3b1b";  // Terracota escuro
 const corFundo = "#fff5ec";     // Terracota claro
 // FN02 - FINAL//
-// === INÍCIO FN03 – Espaço vazio ===
+// === INÍCIO FN03 – Estados Principais ===
+const [telaAtual, setTelaAtual] = useState("PCP");
+// === FIM FN03 ===
 // Bloco 2 – Estados e Funções Iniciais
 // Fn04 – Estados Gerais do App
 const App = () => {
