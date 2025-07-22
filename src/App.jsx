@@ -925,14 +925,13 @@ const adicionarPDV = () => {
 // === INÍCIO RT99 – Bloco completo de retorno do componente ===
 return (
   <>
-{/* === INÍCIO RT00 – PCP: Tela Inicial === */}
-{true && (
-  <div style={{ background: "#fdf8f5", minHeight: "100vh", padding: "20px" }}>
-    <h1 style={{ fontSize: "24px", color: "#a65a3d" }}>TESTE DE RENDERIZAÇÃO</h1>
+// === INÍCIO RT00 – Teste de Renderização Mínima ===
+return (
+  <div style={{ padding: 20 }}>
+    <h1>✅ Renderização bem-sucedida (teste mínimo)</h1>
   </div>
-)}
-{/* === FIM RT00 === */}
-
+);
+// === FIM RT00 ===
     {/*
     // === INÍCIO RT01 – Lançamento de Pedido Rápido ===
     {telaAtual === "Lancamento" && (
