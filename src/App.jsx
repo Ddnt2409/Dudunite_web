@@ -1001,20 +1001,54 @@ return (
       </div>
     )}
 
-    {/* === RT06 === */}
-    <div
-      style={{
-        padding: 40,
-        fontSize: 20,
-        background: "#d4edda",
-        color: "#155724",
-      }}
-    >
-      ✅ App.jsx carregado com sucesso.
+{/* === INÍCIO RT06 – Painel de Dados Mestres (Final do Componente) === */}
+{mostrarDadosMestres && (
+  <div className="mt-6">
+    <div className="bg-white p-4 rounded shadow-md">
+      <h2 className="text-xl font-bold mb-4">🛠️ Dados Mestres</h2>
+
+      <div className="flex gap-4 mb-4">
+        <button
+          onClick={() => setTipoSelecionado('escolas')}
+          className={`px-4 py-2 rounded font-semibold ${
+            tipoSelecionado === 'escolas'
+              ? 'bg-blue-600 text-white'
+              : 'bg-blue-100 text-blue-800'
+          }`}
+        >
+          Pontos de Venda
+        </button>
+        <button
+          onClick={() => setTipoSelecionado('produtos')}
+          className={`px-4 py-2 rounded font-semibold ${
+            tipoSelecionado === 'produtos'
+              ? 'bg-green-600 text-white'
+              : 'bg-green-100 text-green-800'
+          }`}
+        >
+          Produtos
+        </button>
+      </div>
+
+      {tipoSelecionado === 'escolas' && (
+        <EditorEscolas
+          dadosEscolas={dadosEscolas}
+          setDadosEscolas={setDadosEscolas}
+        />
+      )}
+
+      {tipoSelecionado === 'produtos' && (
+        <EditorProdutos
+          dadosProdutos={dadosProdutos}
+          setDadosProdutos={setDadosProdutos}
+        />
+      )}
     </div>
   </div>
+)}
+{/* === FIM RT06 === */}
+</>
 );
 }
 
-// === FIM do componente App ===
 export default App;
