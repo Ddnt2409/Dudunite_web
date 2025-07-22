@@ -8,6 +8,7 @@ const corPrimaria = "#8c3b1b";
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
 
 // === INÍCIO FN03 – Componente App e Estados ===
+// === INÍCIO FN03 – Componente App e Estados ===
 function App() {
   const [telaAtual, setTelaAtual] = useState("PCP");
   const [cidade, setCidade] = useState("");
@@ -34,7 +35,8 @@ function App() {
 
   const handleAnexoNota = (e) => setAnexoNota(e.target.files[0]);
   const handleAnexoBoleto = (e) => setAnexoBoleto(e.target.files[0]);
-}
+
+  // NÃO FECHA AQUI
 // === FIM FN03 ===
 // === INÍCIO FN04 – Carregar pedidos com status 'Lançado' ===
 const carregarPedidosLancados = async () => {
@@ -99,7 +101,6 @@ const salvarPedidoRapidoOriginal = async ({
     const pedidosRef = collection(db, "PEDIDOS");
     await addDoc(pedidosRef, novoPedido);
 
-    // Resetar campos
     setCidade("");
     setEscola("");
     setTabelaSelecionada("");
@@ -107,17 +108,14 @@ const salvarPedidoRapidoOriginal = async ({
     setDataVencimento("");
     setFormaPagamento("");
 
-    // Voltar à tela inicial
     setTelaAtual("PCP");
-
-    // Atualizar lista de lançados
     carregarPedidosLancados();
   } catch (error) {
     console.error("Erro ao salvar pedido:", error);
   }
 };
 // === FIM FN05 ===
-  // === INÍCIO FN06 – adicionarItemAoPedido ===
+// === INÍCIO FN06 – adicionarItemAoPedido ===
 const adicionarItemAoPedido = () => {
   if (!produtoSelecionado || !quantidade || !valorUnitario) {
     alert("Preencha produto, quantidade e valor unitário.");
