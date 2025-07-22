@@ -1171,5 +1171,5 @@ return (
   </>
 );
 // === FIM RT99 ===
-
+}
 export default App;
