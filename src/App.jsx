@@ -259,7 +259,7 @@ function App() {
 </button>
             </div> {/* fechamento do bloco do botão salvar */}
           </div> {/* fechamento do pedido */}
-        ))}
+        ))} {/* fechamento do map de pedidosPendentes */}
       </div> {/* fechamento do bloco de pedidos pendentes */}
     )}
   </>
