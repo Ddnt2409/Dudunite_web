@@ -337,9 +337,8 @@ const salvarPedidoRapido = () => {
 </button>
     </div>
   </div>
-)}
 </>
+)}
 {/* === FIM RT01 === */}
 {/* === FIM RT99 === */}
-}
 export default App;
