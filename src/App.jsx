@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from "firebase/firestore";
 import db from "./firebase";
-// === FIM FN01 ===
 
 // === FN02 – Cores e Logomarca ===
 const corPrimaria = "#8c3b1b";
@@ -21,6 +20,8 @@ function App() {
   const [valorUnitario, setValorUnitario] = useState("");
   const [itensPedido, setItensPedido] = useState([]);
   const [pedidosLancados, setPedidosLancados] = useState([]);
+  const [pedidosPendentes, setPedidosPendentes] = useState([]);
+  const [saboresDisponiveis, setSaboresDisponiveis] = useState([]);
 
   const cidades = ["Gravatá", "Recife", "Caruaru"];
   const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
@@ -149,7 +150,7 @@ function App() {
   // === RT99 – Return do Componente ===
   return (
     <>
-      {/* === RT0a – Tela Inicial PCP === */}
+      {/* === RT00a – Tela Inicial PCP === */}
       {telaAtual === "PCP" && (
         <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
           <img src={logoPath} alt="Logomarca Dudunitê" className="w-40 mt-4 mb-2" />
@@ -199,75 +200,71 @@ function App() {
         </div>
       )}
 
-{/* === INÍCIO RT01 – Alimentar Sabores (Lista de pedidos pendentes) === */}
-{telaAtual === "Sabores" && (
-  <>
-    <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Alimentar Sabores</h2>
-    {pedidosPendentes.length === 0 ? (
-      <p className="text-gray-600">Nenhum pedido pendente encontrado.</p>
-    ) : (
-      <div className="space-y-6">
-        {pedidosPendentes.map((pedido, index) => (
-          <div key={index} className="border border-gray-300 rounded p-4 bg-white shadow">
-            <p><strong>Cidade:</strong> {pedido.cidade}</p>
-            <p><strong>Escola:</strong> {pedido.escola}</p>
-            <div className="mt-4 space-y-4">
-              {pedido.itens.map((item, itemIndex) => (
-                <div key={itemIndex} className="border p-3 rounded bg-gray-50">
-                  <p><strong>Produto:</strong> {item.produto}</p>
-                  <p><strong>Quantidade:</strong> {item.quantidade}</p>
-                  <div className="mt-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Sabores:
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">
-                      {saboresDisponiveis
-                        .filter((sabor) => sabor.produto === item.produto)
-                        .map((sabor, saborIndex) => (
-                          <label key={saborIndex} className="inline-flex items-center">
-                            <input
-                              type="checkbox"
-                              className="form-checkbox h-4 w-4 text-[#8c3b1b] transition duration-150 ease-in-out"
-                              checked={item.sabores?.includes(sabor.nome) || false}
-                              onChange={(e) => {
-                                const novosPedidos = [...pedidosPendentes];
-                                const saboresAtuais = novosPedidos[index].itens[itemIndex].sabores || [];
-                                if (e.target.checked) {
-                                  saboresAtuais.push(sabor.nome);
-                                } else {
-                                  const idx = saboresAtuais.indexOf(sabor.nome);
-                                  if (idx > -1) saboresAtuais.splice(idx, 1);
-                                }
-                                novosPedidos[index].itens[itemIndex].sabores = saboresAtuais;
-                                setPedidosPendentes(novosPedidos);
-                              }}
-                            />
-                            <span className="ml-2 text-sm">{sabor.nome}</span>
-                          </label>
-                        ))}
-                    </div>
+      {/* === RT01 – Tela Sabores === */}
+      {telaAtual === "Sabores" && (
+        <>
+          <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Alimentar Sabores</h2>
+          {pedidosPendentes.length === 0 ? (
+            <p className="text-gray-600">Nenhum pedido pendente encontrado.</p>
+          ) : (
+            <div className="space-y-6">
+              {pedidosPendentes.map((pedido, index) => (
+                <div key={index} className="border border-gray-300 rounded p-4 bg-white shadow">
+                  <p><strong>Cidade:</strong> {pedido.cidade}</p>
+                  <p><strong>Escola:</strong> {pedido.escola}</p>
+                  <div className="mt-4 space-y-4">
+                    {pedido.itens.map((item, itemIndex) => (
+                      <div key={itemIndex} className="border p-3 rounded bg-gray-50">
+                        <p><strong>Produto:</strong> {item.produto}</p>
+                        <p><strong>Quantidade:</strong> {item.quantidade}</p>
+                        <div className="mt-2">
+                          <label className="block text-sm font-medium text-gray-700">Sabores:</label>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">
+                            {saboresDisponiveis
+                              .filter((sabor) => sabor.produto === item.produto)
+                              .map((sabor, saborIndex) => (
+                                <label key={saborIndex} className="inline-flex items-center">
+                                  <input
+                                    type="checkbox"
+                                    className="form-checkbox h-4 w-4 text-[#8c3b1b] transition duration-150 ease-in-out"
+                                    checked={item.sabores?.includes(sabor.nome) || false}
+                                    onChange={(e) => {
+                                      const novosPedidos = [...pedidosPendentes];
+                                      const saboresAtuais = novosPedidos[index].itens[itemIndex].sabores || [];
+                                      if (e.target.checked) {
+                                        saboresAtuais.push(sabor.nome);
+                                      } else {
+                                        const idx = saboresAtuais.indexOf(sabor.nome);
+                                        if (idx > -1) saboresAtuais.splice(idx, 1);
+                                      }
+                                      novosPedidos[index].itens[itemIndex].sabores = saboresAtuais;
+                                      setPedidosPendentes(novosPedidos);
+                                    }}
+                                  />
+                                  <span className="ml-2 text-sm">{sabor.nome}</span>
+                                </label>
+                              ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 text-right">
+                    <button
+                      onClick={() => salvarSabores(pedido, index)}
+                      className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
+                    >
+                      💾 Salvar Pedido
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="mt-4 text-right">
-              <button
-                onClick={() => salvarSabores(pedido, index)}
-                className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
-              >
-                💾 Salvar Pedido
-<button
-                onClick={() => salvarSabores(pedido, index)}
-                className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
-              >
-                💾 Salvar Pedido
-</button>
-            </div> {/* fechamento do .mt-4 text-right */}
-          </div> {/* fechamento do pedido do map */}
-        ))} {/* fechamento do map de pedidosPendentes */}
-      </div> {/* fechamento da lista de pedidos pendentes */}
-    )} {/* fechamento do if de pedidosPendentes.length === 0 */}
-  </>
-)} {/* fechamento da condição telaAtual === "Sabores" */}
+          )}
+        </>
+      )}
+    </>
+  );
+}
 
 export default App;
