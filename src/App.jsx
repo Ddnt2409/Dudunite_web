@@ -212,17 +212,9 @@ const carregarTabelaDePrecos = async () => {
 };  
 // === FIM FN10 ===
 
-// === FN11 – Buscar valor unitário na tabela ===
-const buscarValorUnitario = (produtoSelecionado) => {
-  if (tabelaPrecos && tabelaPrecos[produtoSelecionado]) {
-    setValorUnitario(tabelaPrecos[produtoSelecionado]);
-  } else {
-    setValorUnitario("");
-  }
-};
-// === FIM FN11 ===
-  // === INÍCIO FN12 – Carregar tabela de preços do Firebase ===
-const carregarTabelaPrecoFirebase = async (setTabelaPreco) => {
+// === FN11 – espaço vago
+// === INÍCIO FN12 – Carregar tabela de preços do Firebase ===
+const carregarTabelaPrecoFirebase = async () => {
   try {
     const ref = collection(db, "tabela_precos");
     const snapshot = await getDocs(ref);
@@ -231,7 +223,7 @@ const carregarTabelaPrecoFirebase = async (setTabelaPreco) => {
     const precosMaisRecentes = {};
 
     precos.forEach((p) => {
-      const chave = `${p.cidade}-${p.produto}`;
+      const chave = `${p.cidade}-${p.produto}-${p.referencia}`;
       if (
         !precosMaisRecentes[chave] ||
         (p.timestamp?.seconds || 0) > (precosMaisRecentes[chave].timestamp?.seconds || 0)
@@ -247,7 +239,6 @@ const carregarTabelaPrecoFirebase = async (setTabelaPreco) => {
   }
 };
 // === FIM FN12 ===
-
 // === INÍCIO FN13 – Ajustar valor unitário ao selecionar produto ===
 const ajustarValorProdutoAoSelecionar = ({
   produtoSelecionado,
@@ -282,10 +273,10 @@ const carregarFormasPagamento = (setFormasPagamento) => {
   setFormasPagamento(formas);
 };
 // === FIM FN14 ===
-  // === INÍCIO FN15 – Inicializar Formas de Pagamento ===
+// === INÍCIO FN15 – Inicialização de dados ===
 useEffect(() => {
-  const formas = ["PIX", "Espécie", "Boleto"];
-  setFormasPagamento(formas);
+  carregarTabelaPrecoFirebase();
+  carregarFormasPagamento(setFormasPagamento);
 }, []);
 // === FIM FN15 ===
 // === RT99 – Return do Componente ===
