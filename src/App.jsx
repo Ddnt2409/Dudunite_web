@@ -59,18 +59,7 @@ useEffect(() => {
 }, [telaAtual]);
 // === FIM FN04 ===
 // === INÍCIO FN05 – Salvar Pedido Rápido e Retornar à Tela Inicial ===
-const salvarPedidoRapido = async ({
-  cidade,
-  escola,
-  produtoSelecionado,
-  quantidade,
-  setTelaAtual,
-  setCidade,
-  setEscola,
-  setProdutoSelecionado,
-  setQuantidade,
-  setPedidosLancados,
-}) => {
+const salvarPedidoRapido = async () => {
   try {
     const novoPedido = {
       cidade,
@@ -94,7 +83,7 @@ const salvarPedidoRapido = async ({
     setTelaAtual("PCP");
 
     // Atualizar lista de pedidos lançados
-    carregarPedidosLancados(setPedidosLancados);
+    carregarPedidosLancados();
   } catch (error) {
     console.error("Erro ao salvar pedido:", error);
   }
