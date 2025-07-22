@@ -261,7 +261,7 @@ function App() {
                 className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
               >
                 💾 Salvar Pedido
-              </button>
+</button>
             </div>
           </div>
         ))}
