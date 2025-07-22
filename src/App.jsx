@@ -607,28 +607,18 @@ return (
             >
               ← Voltar
             </button>
-            <button
-              onClick={salvarPedidoRapido}
-              className="bg-green-600 text-white px-4 py-2 rounded"
-            >
-              💾 Salvar Pedido
 <button
-              onClick={salvarPedidoRapido}
-              className="bg-green-600 text-white px-4 py-2 rounded"
-            >
-              💾 Salvar Pedido
-<button
-              onClick={salvarPedidoRapido}
-              className="bg-green-600 text-white px-4 py-2 rounded"
-            >
-              💾 Salvar Pedido
-            </button>
-          </div> {/* FIM dos botões */}
-        </div> {/* FIM do container interno */}
-      </div>   {/* FIM da tela de lançamento */}
-    )}
-    {/* === FIM RT03 === */}
-  </>
+  onClick={salvarPedidoRapido}
+  className="bg-green-600 text-white px-4 py-2 rounded"
+>
+  💾 Salvar Pedido
+</button>
+</div> {/* FIM dos botões */}
+</div> {/* FIM do container interno */}
+</div> {/* FIM da tela de lançamento */}
+)} {/* FIM condicional RT03 */}
+{/* === FIM RT03 === */}
+</> // FIM do fragmento
 ); // FIM do return
 // === FIM RT99 ===
 
