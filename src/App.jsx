@@ -59,37 +59,44 @@ useEffect(() => {
 }, [telaAtual]);
 // === FIM FN04 ===
 // === INÍCIO FN05 – Salvar Pedido Rápido e Retornar à Tela Inicial ===
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-
 const salvarPedidoRapido = async ({
   cidade,
   escola,
   produtoSelecionado,
   quantidade,
   setTelaAtual,
-  carregarPedidosLancados,
+  setCidade,
+  setEscola,
+  setProdutoSelecionado,
+  setQuantidade,
+  setPedidosLancados,
 }) => {
   try {
-    const pedido = {
+    const novoPedido = {
       cidade,
       escola,
       produto: produtoSelecionado,
-      quantidade,
-      dataHora: serverTimestamp(),
+      quantidade: Number(quantidade),
       statusEtapa: "Lançado",
+      criadoEm: serverTimestamp(),
     };
 
-    await addDoc(collection(db, "PEDIDOS"), pedido);
+    const pedidosRef = collection(db, "PEDIDOS");
+    await addDoc(pedidosRef, novoPedido);
 
-    // Volta para a tela PCP após salvar
+    // Resetar campos
+    setCidade("");
+    setEscola("");
+    setProdutoSelecionado("");
+    setQuantidade(1);
+
+    // Voltar à tela principal
     setTelaAtual("PCP");
 
-    // Recarrega os pedidos lançados
-    await carregarPedidosLancados();
-
+    // Atualizar lista de pedidos lançados
+    carregarPedidosLancados(setPedidosLancados);
   } catch (error) {
     console.error("Erro ao salvar pedido:", error);
-    alert("Erro ao salvar o pedido. Tente novamente.");
   }
 };
 // === FIM FN05 ===
