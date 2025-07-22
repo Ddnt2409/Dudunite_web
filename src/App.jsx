@@ -255,15 +255,13 @@ function App() {
                 onClick={() => salvarSabores(pedido, index)}
                 className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
               >
-                💾 Salvar Pedido
-              </button>
-            </div>
-          </div>
+</div> {/* fechamento do pedido */}
         ))}
-      </div>
+      </div> {/* fechamento do bloco de pedidos pendentes */}
     )}
   </>
-)}
+)} {/* fechamento da condição abaAtiva === "alimentarSabores" */}
+
 {/* === FIM RT01 === */}
 
 export default App;
