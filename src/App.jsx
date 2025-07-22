@@ -336,7 +336,6 @@ const salvarPedidoRapido = () => {
 </button>
       </div>
     </div>
-  </div>
   </>
 )}
 };
