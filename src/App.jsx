@@ -1000,25 +1000,25 @@ return (
   <div className="min-h-screen bg-[#fff5ec] p-4">
     <div className="max-w-3xl mx-auto">
       <img
-        src="/LogomarcaDDnt2025Vazado.png"
+        src="/logomarcaDDnt2025Vazado.png"
         alt="Logomarca Dudunitê"
-        className="w-40 mx-auto mb-4"
+        className="w-52 mx-auto mb-6"
       />
       <h1 className="text-3xl font-bold text-center text-[#8c3b1b] mb-6">
-        Sistema Dudunitê – PCP
+        Planejamento e Controle de Produção
       </h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="flex flex-col md:flex-row justify-center gap-4">
         <button
-          onClick={() => setTelaAtual('lancar')}
-          className="bg-blue-600 text-white p-4 rounded shadow hover:bg-blue-700 transition"
+          onClick={() => setTelaAtual('pcp')}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded"
         >
-          ➕ Lançar Pedido
+          Lançar Pedido
         </button>
         <button
-          onClick={() => setTelaAtual('alimentar')}
-          className="bg-green-600 text-white p-4 rounded shadow hover:bg-green-700 transition"
+          onClick={() => setTelaAtual('dadosMestres')}
+          className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"
         >
-          🍫 Alimentar Sabores
+          Alimentar Sabores
         </button>
       </div>
     </div>
