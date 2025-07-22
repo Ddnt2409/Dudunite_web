@@ -1,6 +1,8 @@
-// === FN01 – Importações Gerais ===
-import React, { useState } from "react";
-
+// === INÍCIO FN01 – Importações Gerais ===
+import React, { useState, useEffect } from "react";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import db from "./firebase";
+// === FIM FN01 ===
 // === FN02 – Cores e Logomarca (placeholder, não usado aqui) ===
 const corPrimaria = "#8c3b1b";
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
@@ -29,11 +31,10 @@ function App() {
     alert("Pedido salvo (simulação)");
   }
   //FN03 - final
-  // === INÍCIO FN04 – Carregar pedidos com status 'Lançado' ===
-import { collection, getDocs, query, where } from "firebase/firestore";
-import db from "./firebase"; // certifique-se que esse caminho está correto
+// === INÍCIO FN04 – Carregar pedidos com status 'Lançado' ===
+const [pedidosLancados, setPedidosLancados] = useState([]);
 
-const carregarPedidosLancados = async (setPedidosLancados) => {
+const carregarPedidosLancados = async () => {
   try {
     const pedidosRef = collection(db, "PEDIDOS");
     const q = query(pedidosRef, where("statusEtapa", "==", "Lançado"));
@@ -50,6 +51,12 @@ const carregarPedidosLancados = async (setPedidosLancados) => {
     setPedidosLancados([]);
   }
 };
+
+useEffect(() => {
+  if (telaAtual === "Sabores") {
+    carregarPedidosLancados();
+  }
+}, [telaAtual]);
 // === FIM FN04 ===
 
   // === RT99 – Return mínimo apenas para teste ===
