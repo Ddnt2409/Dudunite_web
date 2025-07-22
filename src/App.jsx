@@ -34,10 +34,22 @@ const App = () => {
   </div>
 )}
 {/* === FIM RT00 === */}
-{/* === INÍCIO RT01 – Lançamento de Pedido Rápido (Teste mínimo) === */}
+{/* === INÍCIO RT01 – Campo Cidade === */}
 {telaAtual === "Lancamento" && (
-  <div className="min-h-screen p-6 text-center">
-    <h1 className="text-2xl font-bold text-green-800">🧪 RT01 OK</h1>
+  <div className="min-h-screen p-6">
+    <h1 className="text-xl font-bold mb-4 text-green-900">🧪 Teste: Campo Cidade</h1>
+
+    <label className="block font-semibold mb-1">Cidade</label>
+    <select
+      value={cidade}
+      onChange={(e) => setCidade(e.target.value)}
+      className="w-full p-2 border rounded"
+    >
+      <option value="">Selecione</option>
+      {cidades.map((c) => (
+        <option key={c} value={c}>{c}</option>
+      ))}
+    </select>
   </div>
 )}
 {/* === FIM RT01 === */}
