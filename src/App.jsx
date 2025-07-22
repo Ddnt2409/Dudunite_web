@@ -392,5 +392,8 @@ function App() {
   </div>
 )}
 {/* === FIM RT02 === */}
+    </>
+  );
+}
 
 export default App;
