@@ -61,17 +61,37 @@ useEffect(() => {
   }
 }, [telaAtual]);
 // === FIM FN04 ===
-// === INÍCIO FN05 – Salvar Pedido Rápido e Retornar à Tela Inicial ===
-const salvarPedidoRapido = async () => {
+// === INÍCIO FN05 – Salvar Pedido Detalhado com Itens e Valor Unitário ===
+const salvarPedidoRapido = async ({
+  cidade,
+  escola,
+  tabelaSelecionada,
+  itensPedido,
+  dataVencimento,
+  formaPagamento,
+  setCidade,
+  setEscola,
+  setTabelaSelecionada,
+  setItensPedido,
+  setDataVencimento,
+  setFormaPagamento,
+  setTelaAtual,
+  carregarPedidosLancados,
+}) => {
   try {
+    const totalPedido = itensPedido.reduce(
+      (soma, item) => soma + item.quantidade * item.valorUnitario,
+      0
+    );
+
     const novoPedido = {
       cidade,
       escola,
-      produto: produtoSelecionado,
-      quantidade: Number(quantidade),
+      tabela: tabelaSelecionada,
+      itens: itensPedido,
       dataVencimento,
       formaPagamento,
-      referenciaTabela,
+      totalPedido,
       statusEtapa: "Lançado",
       criadoEm: serverTimestamp(),
     };
@@ -82,18 +102,15 @@ const salvarPedidoRapido = async () => {
     // Resetar campos
     setCidade("");
     setEscola("");
-    setProdutoSelecionado("");
-    setQuantidade(1);
+    setTabelaSelecionada("");
+    setItensPedido([]);
     setDataVencimento("");
     setFormaPagamento("");
-    setReferenciaTabela("");
-    setAnexoNota(null);
-    setAnexoBoleto(null);
 
-    // Voltar à tela principal
+    // Voltar à tela inicial
     setTelaAtual("PCP");
 
-    // Atualizar lista de pedidos
+    // Atualizar lista de lançados
     carregarPedidosLancados();
   } catch (error) {
     console.error("Erro ao salvar pedido:", error);
@@ -156,36 +173,37 @@ const salvarPedidoRapido = async () => {
 )}
 {/* === FIM RT0b === */}
 
-{/* === INÍCIO RT01 – Lançamento de Pedido Rápido === */}
+{/* === INÍCIO RT01 – Lançamento de Pedido Rápido com Itens e Valor === */}
 {telaAtual === "Lancamento" && (
   <div className="bg-[#FFF3E9] min-h-screen p-4 text-sm font-sans text-[#5C1D0E]">
     <div className="max-w-xl mx-auto">
       <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" className="w-48 mx-auto mb-4" />
-      <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedido Rápido</h1>
+      <h1 className="text-center text-xl font-bold mb-6">Lançamento de Pedido</h1>
 
+      {/* Referência de Tabela */}
       <div className="mb-4">
-        <label className="block font-semibold mb-1">Cidade</label>
-        <select value={cidade} onChange={(e) => setCidade(e.target.value)} className="w-full p-2 border rounded">
+        <label className="block font-semibold mb-1">Tabela de Preço</label>
+        <select
+          value={tabelaSelecionada}
+          onChange={(e) => setTabelaSelecionada(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
           <option value="">Selecione</option>
-          {cidades.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
+          <option value="REV1">REV1</option>
+          <option value="REV2">REV2</option>
+          <option value="VAR1">VAR1</option>
+          <option value="VAR2">VAR2</option>
         </select>
       </div>
 
-      <div className="mb-4">
-        <label className="block font-semibold mb-1">Escola / PDV</label>
-        <select value={escola} onChange={(e) => setEscola(e.target.value)} className="w-full p-2 border rounded" disabled={!cidade}>
-          <option value="">Selecione</option>
-          {escolasFiltradas.map((e) => (
-            <option key={e} value={e}>{e}</option>
-          ))}
-        </select>
-      </div>
-
+      {/* Produto */}
       <div className="mb-4">
         <label className="block font-semibold mb-1">Produto</label>
-        <select value={produtoSelecionado} onChange={(e) => setProdutoSelecionado(e.target.value)} className="w-full p-2 border rounded">
+        <select
+          value={produtoSelecionado}
+          onChange={(e) => setProdutoSelecionado(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
           <option value="">Selecione</option>
           {produtos.map((p) => (
             <option key={p} value={p}>{p}</option>
@@ -193,19 +211,61 @@ const salvarPedidoRapido = async () => {
         </select>
       </div>
 
+      {/* Quantidade */}
       <div className="mb-4">
         <label className="block font-semibold mb-1">Quantidade</label>
-        <input type="number" value={quantidade} onChange={(e) => setQuantidade(e.target.value)} className="w-full p-2 border rounded" />
+        <input
+          type="number"
+          value={quantidade}
+          onChange={(e) => setQuantidade(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
       </div>
 
+      {/* Valor Unitário */}
       <div className="mb-4">
-        <label className="block font-semibold mb-1">Data de Vencimento</label>
-        <input type="date" value={dataVencimento} onChange={(e) => setDataVencimento(e.target.value)} className="w-full p-2 border rounded" />
+        <label className="block font-semibold mb-1">Valor Unitário</label>
+        <input
+          type="number"
+          step="0.01"
+          value={valorUnitario}
+          onChange={(e) => setValorUnitario(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
       </div>
 
+      {/* Botão Adicionar Item */}
+      <div className="mb-6">
+        <button
+          onClick={adicionarItemAoPedido}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded"
+        >
+          ➕ Adicionar Item
+        </button>
+      </div>
+
+      {/* Lista de Itens Adicionados */}
+      <div className="mb-6">
+        <h2 className="font-bold mb-2">Itens do Pedido:</h2>
+        {itensPedido.map((item, index) => (
+          <div key={index} className="flex justify-between border-b py-1">
+            <span>{item.quantidade}x {item.produto}</span>
+            <span>R$ {(item.quantidade * item.valorUnitario).toFixed(2)}</span>
+          </div>
+        ))}
+        <div className="text-right font-bold mt-2">
+          Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
+        </div>
+      </div>
+
+      {/* Campos Finais */}
       <div className="mb-4">
         <label className="block font-semibold mb-1">Forma de Pagamento</label>
-        <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)} className="w-full p-2 border rounded">
+        <select
+          value={formaPagamento}
+          onChange={(e) => setFormaPagamento(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
           <option value="">Selecione</option>
           <option value="PIX">PIX</option>
           <option value="Boleto">Boleto</option>
@@ -213,34 +273,21 @@ const salvarPedidoRapido = async () => {
         </select>
       </div>
 
-      {formaPagamento === "PIX" && (
-        <div className="mb-4 bg-yellow-100 p-2 rounded">
-          <p className="text-sm">🔑 Chave PIX padrão: <strong>chavepix@dudunite.com.br</strong></p>
-        </div>
-      )}
-
-      <div className="mb-4">
-        <label className="block font-semibold mb-1">Referência de Tabela</label>
-        <select value={referenciaTabela} onChange={(e) => setReferenciaTabela(e.target.value)} className="w-full p-2 border rounded">
-          <option value="">Selecione</option>
-          <option value="Rev1">Rev1</option>
-          <option value="Rev2">Rev2</option>
-          <option value="Varejo1">Varejo1</option>
-          <option value="Varejo2">Varejo2</option>
-        </select>
+      <div className="mb-6">
+        <label className="block font-semibold mb-1">Data de Vencimento</label>
+        <input
+          type="date"
+          value={dataVencimento}
+          onChange={(e) => setDataVencimento(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
       </div>
 
-      {formaPagamento === "Boleto" && (
-        <div className="mb-4">
-          <label className="block font-semibold mb-1">Anexar Nota Fiscal</label>
-          <input type="file" accept=".pdf" onChange={handleAnexoNota} className="mb-2 w-full" />
-
-          <label className="block font-semibold mb-1">Anexar Boleto</label>
-          <input type="file" accept=".pdf" onChange={handleAnexoBoleto} className="w-full" />
-        </div>
-      )}
-
-      <button onClick={salvarPedidoRapido} className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded">
+      {/* Botão Final de Salvamento */}
+      <button
+        onClick={salvarPedidoRapido}
+        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded"
+      >
         💾 Salvar Pedido
       </button>
     </div>
