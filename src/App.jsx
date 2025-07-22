@@ -256,15 +256,14 @@ function App() {
                 className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
               >
                 💾 Salvar Pedido
-</button>
-            </div> {/* fechamento do bloco do botão salvar */}
-          </div> {/* fechamento do pedido */}
-        ))} {/* fechamento do map de pedidosPendentes */}
-      </div> {/* fechamento do bloco de pedidos pendentes */}
-    )}
-  </> // fechamento do fragmento da aba "alimentarSabores"
-)} // fechamento da condição abaAtiva === "alimentarSabores"
+</div> {/* fechamento do bloco do botão salvar */}
+            </div> {/* fechamento do item do pedido */}
+          ))} {/* fechamento do map de pedidosPendentes */}
+        </div> {/* fechamento do bloco de todos os pedidos pendentes */}
+      )}
+    </>
+  )} {/* fechamento da condição abaAtiva === "alimentarSabores" */}
 
-/* === FIM RT01 === */
+  {/* === FIM RT01 === */}
 
-export default App;
+  export default App;
