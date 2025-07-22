@@ -34,19 +34,15 @@ const App = () => {
   </div>
 )}
 {/* === FIM RT00 === */}
-{/* === INÍCIO RT01 – Campo Cidade === */}
+{/* === INÍCIO RT01 – Teste fixo: Cidades === */}
 {telaAtual === "Lancamento" && (
   <div className="min-h-screen p-6">
-    <h1 className="text-xl font-bold mb-4 text-green-900">🧪 Teste: Campo Cidade</h1>
+    <h1 className="text-xl font-bold mb-4 text-green-900">🧪 Teste: Cidade com array fixo</h1>
 
     <label className="block font-semibold mb-1">Cidade</label>
-    <select
-      value={cidade}
-      onChange={(e) => setCidade(e.target.value)}
-      className="w-full p-2 border rounded"
-    >
+    <select className="w-full p-2 border rounded">
       <option value="">Selecione</option>
-      {cidades.map((c) => (
+      {["Gravatá", "Recife", "Caruaru"].map((c) => (
         <option key={c} value={c}>{c}</option>
       ))}
     </select>
