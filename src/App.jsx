@@ -7,7 +7,7 @@ import db from "./firebase";
 const corPrimaria = "#8c3b1b";
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
 
-// === FN03 – Componente App ===
+// === INÍCIO FN03 – Componente App ===
 function App() {
   // === FN03 – Estados Principais de Testes ===
   const [telaAtual, setTelaAtual] = useState("PCP");
@@ -15,6 +15,7 @@ function App() {
   const [escola, setEscola] = useState("");
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [quantidade, setQuantidade] = useState(1);
+  const [pedidosLancados, setPedidosLancados] = useState([]);
 
   const cidades = ["Gravatá", "Recife", "Caruaru"];
   const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
@@ -27,10 +28,7 @@ function App() {
 
   const escolasFiltradas = cidade ? escolasPorCidade[cidade] || [] : [];
 
-  function salvarPedidoRapido() {
-    alert("Pedido salvo (simulação)");
-  }
-  //FN03 - final
+  // === FIM FN03 ===
 // === INÍCIO FN04 – Carregar pedidos com status 'Lançado' ===
 const [pedidosLancados, setPedidosLancados] = useState([]);
 
