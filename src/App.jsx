@@ -206,6 +206,62 @@ const buscarValorUnitario = (produtoSelecionado) => {
   }
 };
 // === FIM FN11 ===
+  // === INÍCIO FN12 – Carregar tabela de preços do Firebase ===
+const carregarTabelaPrecoFirebase = async (setTabelaPreco) => {
+  try {
+    const ref = collection(db, "tabela_precos");
+    const snapshot = await getDocs(ref);
+
+    const precos = snapshot.docs.map((doc) => doc.data());
+    const precosMaisRecentes = {};
+
+    precos.forEach((p) => {
+      const chave = `${p.cidade}-${p.produto}`;
+      if (
+        !precosMaisRecentes[chave] ||
+        (p.timestamp?.seconds || 0) > (precosMaisRecentes[chave].timestamp?.seconds || 0)
+      ) {
+        precosMaisRecentes[chave] = p;
+      }
+    });
+
+    setTabelaPreco(Object.values(precosMaisRecentes));
+  } catch (error) {
+    console.error("Erro ao carregar tabela de preços:", error);
+    setTabelaPreco([]);
+  }
+};
+// === FIM FN12 ===
+
+// === INÍCIO FN13 – Ajustar valor unitário ao selecionar produto ===
+const ajustarValorProdutoAoSelecionar = ({
+  produtoSelecionado,
+  cidade,
+  tabelaPreco,
+  setValorUnitario,
+  referenciaTabela,
+}) => {
+  const item = tabelaPreco.find(
+    (p) =>
+      p.produto === produtoSelecionado &&
+      p.cidade === cidade &&
+      p.referencia === referenciaTabela
+  );
+
+  if (item) {
+    setValorUnitario(item.valor);
+  } else {
+    setValorUnitario("");
+  }
+};
+// === FIM FN13 ===
+
+// === INÍCIO FN14 – Carregar formas de pagamento fixas ===
+const carregarFormasPagamento = (setFormasPagamento) => {
+  const formas = ["PIX", "Espécie", "Boleto"];
+  setFormasPagamento(formas);
+};
+// === FIM FN14 ===
   // === RT99 – Return do Componente ===
   return (
     <>
@@ -379,7 +435,16 @@ const buscarValorUnitario = (produtoSelecionado) => {
         <label className="block text-sm font-medium text-gray-700">Cidade</label>
         <select
           value={cidade}
-          onChange={(e) => setCidade(e.target.value)}
+          onChange={(e) => {
+            setCidade(e.target.value);
+            ajustarValorProdutoAoSelecionar({
+              produtoSelecionado,
+              cidade: e.target.value,
+              tabelaPreco,
+              setValorUnitario,
+              referenciaTabela,
+            });
+          }}
           className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
         >
           <option value="">Selecione</option>
@@ -404,13 +469,22 @@ const buscarValorUnitario = (produtoSelecionado) => {
         </select>
       </div>
 
-      {/* Tabela de Preço */}
+      {/* Referência da Tabela */}
       <div>
         <label className="block text-sm font-medium text-gray-700">Tabela</label>
         <input
           type="text"
           value={referenciaTabela}
-          onChange={(e) => setReferenciaTabela(e.target.value)}
+          onChange={(e) => {
+            setReferenciaTabela(e.target.value);
+            ajustarValorProdutoAoSelecionar({
+              produtoSelecionado,
+              cidade,
+              tabelaPreco,
+              setValorUnitario,
+              referenciaTabela: e.target.value,
+            });
+          }}
           className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
         />
       </div>
@@ -429,21 +503,31 @@ const buscarValorUnitario = (produtoSelecionado) => {
       {/* Forma de Pagamento */}
       <div>
         <label className="block text-sm font-medium text-gray-700">Forma de Pagamento</label>
-        <input
-          type="text"
+        <select
           value={formaPagamento}
           onChange={(e) => setFormaPagamento(e.target.value)}
           className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        />
+        >
+          <option value="">Selecione</option>
+          {formasPagamento.map((f, i) => (
+            <option key={i} value={f}>{f}</option>
+          ))}
+        </select>
       </div>
 
-      {/* Produto, Quantidade, Valor */}
+      {/* Produto, Quantidade e Valor */}
       <div className="grid grid-cols-3 gap-2">
         <select
           value={produtoSelecionado}
           onChange={(e) => {
             setProdutoSelecionado(e.target.value);
-            buscarValorUnitario(e.target.value);
+            ajustarValorProdutoAoSelecionar({
+              produtoSelecionado: e.target.value,
+              cidade,
+              tabelaPreco,
+              setValorUnitario,
+              referenciaTabela,
+            });
           }}
           className="border border-gray-300 rounded px-2 py-1"
         >
@@ -482,21 +566,16 @@ const buscarValorUnitario = (produtoSelecionado) => {
       {/* Lista de Itens */}
       <ul className="mt-4 space-y-2">
         {itensPedido.map((item, i) => (
-          <li key={i} className="bg-white border p-2 rounded shadow text-sm flex justify-between items-center">
-            <span>
-              {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
-            </span>
-            <button className="text-xs text-blue-700 hover:underline" onClick={() => alert("Func alterar ainda será implementada")}>
-              Alterar
-            </button>
+          <li key={i} className="bg-white border p-2 rounded shadow text-sm">
+            {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
           </li>
         ))}
       </ul>
 
-      {/* Total */}
+      {/* Total do Pedido */}
       {itensPedido.length > 0 && (
-        <div className="text-right font-semibold text-[#8c3b1b]">
-          Total: R$ {itensPedido.reduce((soma, item) => soma + item.quantidade * item.valorUnitario, 0).toFixed(2)}
+        <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2">
+          Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
         </div>
       )}
 
