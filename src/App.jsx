@@ -5,17 +5,28 @@ import React, { useState } from "react";
 const corPrimaria = "#8c3b1b";
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
 
-// === FN03 – Estado Principal ===
-const App = () => {
-  const [telaAtual, setTelaAtual] = useState("PCP");
-// === INÍCIO FN03b – Mocks mínimos para RT01 ===
+// === INÍCIO FN03 – Estados Principais de Testes ===
+const [telaAtual, setTelaAtual] = useState("PCP"); // Pode ser: "PCP", "RT01", "RT02"
+
+// Estados usados em RT01 – Lançamento de Pedido Rápido
+const [cidade, setCidade] = useState("");
+const [escola, setEscola] = useState("");
+const [produtoSelecionado, setProdutoSelecionado] = useState("");
+const [quantidade, setQuantidade] = useState(1);
+
+// Estados para listas fixas de teste
 const cidades = ["Gravatá", "Recife", "Caruaru"];
-const escolasFiltradas = ["Pequeno Príncipe", "Salesianas"];
-const produtos = ["BRW 7x7", "PKT 5x5"];
-const produtoSelecionado = produto;
-const setProdutoSelecionado = setProduto;
-const salvarPedidoRapido = () => alert("Pedido salvo!");
-// === FIM FN03b ===
+const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
+
+// Filtragem de escolas (RT01)
+const escolasPorCidade = {
+  "Gravatá": ["Pequeno Príncipe", "Salesianas", "Céu Azul", "Russas", "Bora Gastar", "Kaduh", "Society Show", "Degusty"],
+  "Recife": ["Tio Valter", "Vera Cruz", "Pinheiros", "Dourado", "BMQ", "CFC", "Madre de Deus", "Saber Viver"],
+  "Caruaru": ["Interativo", "Exato Sede", "Exato Anexo", "Sesi", "Motivo", "Jesus Salvador"]
+};
+
+const escolasFiltradas = cidade ? escolasPorCidade[cidade] || [] : [];
+// === FIM FN03 ===
   // === RT99 – Return mínimo apenas para teste ===
   return (
     <>
