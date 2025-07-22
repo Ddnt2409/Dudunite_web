@@ -59,6 +59,7 @@ useEffect(() => {
 }, [telaAtual]);
 // === FIM FN04 ===
 // === INÍCIO FN05 – Salvar Pedido Rápido e Retornar à Tela Inicial ===
+// === INÍCIO FN05 – Salvar Pedido Rápido e Retornar à Tela Inicial ===
 const salvarPedidoRapido = async () => {
   try {
     const novoPedido = {
@@ -82,7 +83,7 @@ const salvarPedidoRapido = async () => {
     // Voltar à tela principal
     setTelaAtual("PCP");
 
-    // Atualizar lista de pedidos lançados
+    // Atualizar lista de pedidos
     carregarPedidosLancados();
   } catch (error) {
     console.error("Erro ao salvar pedido:", error);
