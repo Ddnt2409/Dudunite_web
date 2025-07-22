@@ -30,8 +30,6 @@ function App() {
 
   // === FIM FN03 ===
 // === INÍCIO FN04 – Carregar pedidos com status 'Lançado' ===
-const [pedidosLancados, setPedidosLancados] = useState([]);
-
 const carregarPedidosLancados = async () => {
   try {
     const pedidosRef = collection(db, "PEDIDOS");
@@ -56,7 +54,6 @@ useEffect(() => {
   }
 }, [telaAtual]);
 // === FIM FN04 ===
-// === INÍCIO FN05 – Salvar Pedido Rápido e Retornar à Tela Inicial ===
 // === INÍCIO FN05 – Salvar Pedido Rápido e Retornar à Tela Inicial ===
 const salvarPedidoRapido = async () => {
   try {
