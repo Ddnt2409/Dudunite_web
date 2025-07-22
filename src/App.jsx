@@ -28,6 +28,29 @@ function App() {
   function salvarPedidoRapido() {
     alert("Pedido salvo (simulação)");
   }
+  //FN03 - final
+  // === INÍCIO FN04 – Carregar pedidos com status 'Lançado' ===
+import { collection, getDocs, query, where } from "firebase/firestore";
+import db from "./firebase"; // certifique-se que esse caminho está correto
+
+const carregarPedidosLancados = async (setPedidosLancados) => {
+  try {
+    const pedidosRef = collection(db, "PEDIDOS");
+    const q = query(pedidosRef, where("statusEtapa", "==", "Lançado"));
+    const querySnapshot = await getDocs(q);
+
+    const pedidos = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    setPedidosLancados(pedidos);
+  } catch (error) {
+    console.error("Erro ao carregar pedidos lançados:", error);
+    setPedidosLancados([]);
+  }
+};
+// === FIM FN04 ===
 
   // === RT99 – Return mínimo apenas para teste ===
   return (
