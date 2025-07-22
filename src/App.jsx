@@ -925,6 +925,7 @@ const adicionarPDV = () => {
 // === INÍCIO RT99 – Bloco completo de retorno do componente ===
 return (
   <>
+    console.log("🔍 Entrou no return do App.jsx");
     {/* === INÍCIO RT00 – PCP: Tela Inicial === */}
     {telaAtual === "PCP" && (
       <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
