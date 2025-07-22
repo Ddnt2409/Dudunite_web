@@ -333,11 +333,10 @@ const salvarPedidoRapido = () => {
         onClick={salvarPedidoRapido}
         className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded"
       >
-        💾 Salvar Pedido
-</button>
+💾 Salvar Pedido
+      </button>
     </div>
   </div>
-</div> {/* fechamento da div principal do return */}
 )} {/* fechamento da função App */}
 {/* === FIM RT01 === */}
 {/* === FIM RT99 === */}
