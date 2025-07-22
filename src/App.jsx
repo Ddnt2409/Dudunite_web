@@ -92,28 +92,58 @@ const salvarPedidoRapido = async () => {
   // === RT99 – Return mínimo apenas para teste ===
   return (
     <>
-      {/* === INÍCIO RT00 – PCP: Tela Inicial === */}
-      {telaAtual === "PCP" && (
-        <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
-          <img src="/LogomarcaDDnt2025Vazado.png" alt="Logomarca Dudunitê" className="w-40 mt-4 mb-2" />
-          <h1 className="text-2xl font-bold text-[#a65a3d] mb-6">PCP – Planejamento e Controle de Produção</h1>
-          <div className="flex flex-col space-y-4 w-full max-w-xs">
+{/* === INÍCIO RT0a – PCP: Tela Inicial com Botões === */}
+{telaAtual === "PCP" && (
+  <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
+    <img src="/LogomarcaDDnt2025Vazado.png" alt="Logomarca Dudunitê" className="w-40 mt-4 mb-2" />
+    <h1 className="text-2xl font-bold text-[#a65a3d] mb-6">PCP – Planejamento e Controle de Produção</h1>
+    <div className="flex flex-col space-y-4 w-full max-w-xs">
+      <button
+        className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
+        onClick={() => setTelaAtual("Lancamento")}
+      >
+        📦 Lançar Pedido
+      </button>
+      <button
+        className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
+        onClick={() => setTelaAtual("Sabores")}
+      >
+        🍫 Alimentar Sabores
+      </button>
+    </div>
+  </div>
+)}
+{/* === FIM RT0a === */}
+
+{/* === INÍCIO RT0b – Lista de Pedidos Lançados === */}
+{telaAtual === "PCP" && pedidosLancados.length > 0 && (
+  <div className="mt-6 w-full max-w-xl bg-white p-4 rounded-lg shadow text-sm">
+    <h2 className="text-lg font-bold mb-3 text-[#5C1D0E]">Pedidos já lançados</h2>
+    <ul className="space-y-2">
+      {pedidosLancados.map((pedido) => {
+        const data = pedido.criadoEm?.toDate?.();
+        const dataFormatada = data
+          ? `${data.toLocaleDateString()} ${data.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+          : "Data desconhecida";
+        return (
+          <li
+            key={pedido.id}
+            className="flex justify-between items-center bg-[#f9f1e8] p-2 rounded border border-[#d3c0b0]"
+          >
+            <span>{dataFormatada} – {pedido.escola}</span>
             <button
-              className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
-              onClick={() => setTelaAtual("Lancamento")}
+              className="text-blue-700 hover:underline text-xs"
+              onClick={() => alert(`Alterar pedido: ${pedido.id}`)}
             >
-              📦 Lançar Pedido
+              Alterar Pedido
             </button>
-            <button
-              className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
-              onClick={() => setTelaAtual("Sabores")}
-            >
-              🍫 Alimentar Sabores
-            </button>
-          </div>
-        </div>
-      )}
-      {/* === FIM RT00 === */}
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+)}
+{/* === FIM RT0b === */}
 
       {/* === INÍCIO RT01 – Lançamento de Pedido Rápido === */}
       {telaAtual === "Lancamento" && (
