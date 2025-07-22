@@ -338,5 +338,6 @@ const salvarPedidoRapido = () => {
     </div>
   </div>
   </>
-)};
+)}
+};
 export default App;
