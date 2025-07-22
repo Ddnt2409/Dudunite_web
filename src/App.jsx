@@ -17,8 +17,9 @@ function App() {
   const [dataVencimento, setDataVencimento] = useState("");
   const [formaPagamento, setFormaPagamento] = useState("");
   const [referenciaTabela, setReferenciaTabela] = useState("");
-  const [anexoNota, setAnexoNota] = useState(null);
-  const [anexoBoleto, setAnexoBoleto] = useState(null);
+  const [valorUnitario, setValorUnitario] = useState("");
+  const [itensPedido, setItensPedido] = useState([]);
+  const [pedidosLancados, setPedidosLancados] = useState([]);
 
   const cidades = ["Gravatá", "Recife", "Caruaru"];
   const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
@@ -33,8 +34,7 @@ function App() {
 
   const handleAnexoNota = (e) => setAnexoNota(e.target.files[0]);
   const handleAnexoBoleto = (e) => setAnexoBoleto(e.target.files[0]);
-
-  const [pedidosLancados, setPedidosLancados] = useState([]);
+}
 // === FIM FN03 ===
 // === INÍCIO FN04 – Carregar pedidos com status 'Lançado' ===
 const carregarPedidosLancados = async () => {
@@ -61,23 +61,8 @@ useEffect(() => {
   }
 }, [telaAtual]);
 // === FIM FN04 ===
-// === INÍCIO FN05 – Salvar Pedido Detalhado com Itens e Valor Unitário ===
-const salvarPedidoRapido = async ({
-  cidade,
-  escola,
-  tabelaSelecionada,
-  itensPedido,
-  dataVencimento,
-  formaPagamento,
-  setCidade,
-  setEscola,
-  setTabelaSelecionada,
-  setItensPedido,
-  setDataVencimento,
-  setFormaPagamento,
-  setTelaAtual,
-  carregarPedidosLancados,
-}) => {
+// === INÍCIO FN05 – salvarPedidoRapido: Salvar Pedido Detalhado com Itens e Valor ===
+const salvarPedidoRapido = async () => {
   try {
     const totalPedido = itensPedido.reduce(
       (soma, item) => soma + item.quantidade * item.valorUnitario,
@@ -87,7 +72,7 @@ const salvarPedidoRapido = async ({
     const novoPedido = {
       cidade,
       escola,
-      tabela: tabelaSelecionada,
+      tabela: referenciaTabela,
       itens: itensPedido,
       dataVencimento,
       formaPagamento,
@@ -102,7 +87,10 @@ const salvarPedidoRapido = async ({
     // Resetar campos
     setCidade("");
     setEscola("");
-    setTabelaSelecionada("");
+    setReferenciaTabela("");
+    setProdutoSelecionado("");
+    setQuantidade(1);
+    setValorUnitario(0);
     setItensPedido([]);
     setDataVencimento("");
     setFormaPagamento("");
@@ -110,13 +98,53 @@ const salvarPedidoRapido = async ({
     // Voltar à tela inicial
     setTelaAtual("PCP");
 
-    // Atualizar lista de lançados
+    // Atualizar pedidos exibidos
     carregarPedidosLancados();
   } catch (error) {
     console.error("Erro ao salvar pedido:", error);
   }
 };
 // === FIM FN05 ===
+  // === INÍCIO FN06 – adicionarItemAoPedido ===
+const adicionarItemAoPedido = () => {
+  if (!produtoSelecionado || !quantidade || !valorUnitario) {
+    alert("Preencha produto, quantidade e valor unitário.");
+    return;
+  }
+
+  const novoItem = {
+    produto: produtoSelecionado,
+    quantidade: Number(quantidade),
+    valorUnitario: Number(valorUnitario),
+  };
+
+  setItensPedido((prev) => [...prev, novoItem]);
+  setProdutoSelecionado("");
+  setQuantidade(1);
+  setValorUnitario("");
+};
+// === FIM FN06 ===
+
+// === INÍCIO FN07 – salvarPedidoRapido (Wrapper) ===
+const salvarPedidoRapido = () => {
+  salvarPedidoRapidoOriginal({
+    cidade,
+    escola,
+    tabelaSelecionada: referenciaTabela,
+    itensPedido,
+    dataVencimento,
+    formaPagamento,
+    setCidade,
+    setEscola,
+    setTabelaSelecionada: setReferenciaTabela,
+    setItensPedido,
+    setDataVencimento,
+    setFormaPagamento,
+    setTelaAtual,
+    carregarPedidosLancados,
+  });
+};
+// === FIM FN07 ===
   // === RT99 – Return mínimo apenas para teste ===
   return (
     <>
@@ -184,8 +212,8 @@ const salvarPedidoRapido = async ({
       <div className="mb-4">
         <label className="block font-semibold mb-1">Tabela de Preço</label>
         <select
-          value={tabelaSelecionada}
-          onChange={(e) => setTabelaSelecionada(e.target.value)}
+          value={referenciaTabela}
+          onChange={(e) => setReferenciaTabela(e.target.value)}
           className="w-full p-2 border rounded"
         >
           <option value="">Selecione</option>
@@ -247,18 +275,24 @@ const salvarPedidoRapido = async ({
       {/* Lista de Itens Adicionados */}
       <div className="mb-6">
         <h2 className="font-bold mb-2">Itens do Pedido:</h2>
-        {itensPedido.map((item, index) => (
-          <div key={index} className="flex justify-between border-b py-1">
-            <span>{item.quantidade}x {item.produto}</span>
-            <span>R$ {(item.quantidade * item.valorUnitario).toFixed(2)}</span>
-          </div>
-        ))}
-        <div className="text-right font-bold mt-2">
-          Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
-        </div>
+        {itensPedido.length === 0 ? (
+          <p className="text-gray-600">Nenhum item adicionado ainda.</p>
+        ) : (
+          <>
+            {itensPedido.map((item, index) => (
+              <div key={index} className="flex justify-between border-b py-1">
+                <span>{item.quantidade}x {item.produto}</span>
+                <span>R$ {(item.quantidade * item.valorUnitario).toFixed(2)}</span>
+              </div>
+            ))}
+            <div className="text-right font-bold mt-2">
+              Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Campos Finais */}
+      {/* Forma de Pagamento */}
       <div className="mb-4">
         <label className="block font-semibold mb-1">Forma de Pagamento</label>
         <select
@@ -273,6 +307,7 @@ const salvarPedidoRapido = async ({
         </select>
       </div>
 
+      {/* Data de Vencimento */}
       <div className="mb-6">
         <label className="block font-semibold mb-1">Data de Vencimento</label>
         <input
