@@ -617,14 +617,21 @@ return (
               className="bg-green-600 text-white px-4 py-2 rounded"
             >
               💾 Salvar Pedido
+<button
+              onClick={salvarPedidoRapido}
+              className="bg-green-600 text-white px-4 py-2 rounded"
+            >
+              💾 Salvar Pedido
             </button>
-          </div>
-        </div>
-      </div>
+          </div> {/* FIM dos botões */}
+        </div> {/* FIM do container interno */}
+      </div>   {/* FIM da tela de lançamento */}
     )}
     {/* === FIM RT03 === */}
   </>
-);
+); // FIM do return
 // === FIM RT99 ===
+
+} // FIM da função App
 
 export default App;
