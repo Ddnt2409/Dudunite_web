@@ -927,23 +927,8 @@ return (
   <>
 {/* === INÍCIO RT00 – PCP: Tela Inicial === */}
 {true && (
-  <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
-    <img src="/LogomarcaDDnt2025Vazado.png" alt="Logomarca Dudunitê" className="w-40 mt-4 mb-2" />
-    <h1 className="text-2xl font-bold text-[#a65a3d] mb-6">PCP – Planejamento e Controle de Produção</h1>
-    <div className="flex flex-col space-y-4 w-full max-w-xs">
-      <button
-        className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
-        onClick={() => setTelaAtual("Lancamento")}
-      >
-        📦 Lançar Pedido
-      </button>
-      <button
-        className="bg-[#d38b5d] hover:bg-[#c3794a] text-white font-semibold py-3 px-6 rounded-xl shadow"
-        onClick={() => setTelaAtual("Sabores")}
-      >
-        🍫 Alimentar Sabores
-      </button>
-    </div>
+  <div style={{ background: "#fdf8f5", minHeight: "100vh", padding: "20px" }}>
+    <h1 style={{ fontSize: "24px", color: "#a65a3d" }}>TESTE DE RENDERIZAÇÃO</h1>
   </div>
 )}
 {/* === FIM RT00 === */}
