@@ -336,10 +336,8 @@ const salvarPedidoRapido = () => {
         💾 Salvar Pedido
       </button>
     </div> {/* Fecha div de conteúdo interno */}
-  </div>   {/* Fecha div de tela de lançamento */}
-</div>     {/* Se ainda houver uma <div> superior aberta – revise se necessário */}
-</>
-); // Fecha return principal
-} // Fecha componente App
+  </div>   {/* Fecha div da tela de lançamento */}
+); // Fecha o return
+} // Fecha o componente
 
 export default App;
