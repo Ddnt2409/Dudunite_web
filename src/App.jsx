@@ -146,7 +146,39 @@ function App() {
       carregarPedidosLancados,
     });
   };
+  // === FN08 – Carregar pedidos com status 'Pendente' ===
+const carregarPedidosPendentes = async () => {
+  try {
+    const pedidosRef = collection(db, "PEDIDOS");
+    const q = query(pedidosRef, where("statusEtapa", "==", "Pendente"));
+    const querySnapshot = await getDocs(q);
+    const pedidos = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setPedidosPendentes(pedidos);
+  } catch (error) {
+    console.error("Erro ao carregar pedidos pendentes:", error);
+    setPedidosPendentes([]);
+  }
+};
+// === FN09 – Salvar sabores selecionados ===
+const salvarSabores = async (pedido, index) => {
+  try {
+    const pedidoRef = collection(db, "PEDIDOS");
 
+    await addDoc(pedidoRef, {
+      ...pedido,
+      statusEtapa: "Sabores Preenchidos",
+      atualizadoEm: serverTimestamp(),
+    });
+
+    alert("Sabores salvos com sucesso!");
+  } catch (error) {
+    console.error("Erro ao salvar sabores:", error);
+    alert("Erro ao salvar sabores.");
+  }
+};
   // === RT99 – Return do Componente ===
   return (
     <>
@@ -309,6 +341,21 @@ function App() {
   </div>
 )}
 {/* === FIM RT02 === */}
+      {/* === INÍCIO RT03 – Tela de Lançamento de Pedido === */}
+{telaAtual === "Lancamento" && (
+  <div className="p-6 bg-[#fdf8f5] min-h-screen">
+    <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Lançamento de Pedido</h2>
+    <p className="text-gray-600">Tela em construção ou aguardando layout.</p>
+
+    <button
+      onClick={() => setTelaAtual("PCP")}
+      className="mt-4 bg-[#8c3b1b] text-white px-4 py-2 rounded"
+    >
+      ← Voltar
+    </button>
+  </div>
+)}
+{/* === FIM RT03 === */}
     </>
   );
 }
