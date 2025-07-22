@@ -1,6 +1,6 @@
-// === INÍCIO FN01 – Importações Gerais ===
+// === FN01 – Importações Gerais ===
 import React, { useState, useEffect } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where, serverTimestamp } from "firebase/firestore";
 import db from "./firebase";
 // === FIM FN01 ===
 // === FN02 – Cores e Logomarca (placeholder, não usado aqui) ===
