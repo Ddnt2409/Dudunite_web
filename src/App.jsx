@@ -341,18 +341,140 @@ const salvarSabores = async (pedido, index) => {
   </div>
 )}
 {/* === FIM RT02 === */}
-      {/* === INÍCIO RT03 – Tela de Lançamento de Pedido === */}
+{/* === INÍCIO RT03 – Tela de Lançamento de Pedido === */}
 {telaAtual === "Lancamento" && (
   <div className="p-6 bg-[#fdf8f5] min-h-screen">
     <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Lançamento de Pedido</h2>
-    <p className="text-gray-600">Tela em construção ou aguardando layout.</p>
 
-    <button
-      onClick={() => setTelaAtual("PCP")}
-      className="mt-4 bg-[#8c3b1b] text-white px-4 py-2 rounded"
-    >
-      ← Voltar
-    </button>
+    {/* Aqui ficam os campos do formulário de lançamento */}
+    <div className="space-y-4 max-w-xl mx-auto">
+      {/* Cidade */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Cidade</label>
+        <select
+          value={cidade}
+          onChange={(e) => setCidade(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        >
+          <option value="">Selecione</option>
+          {cidades.map((c, i) => (
+            <option key={i} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Escola */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Escola</label>
+        <select
+          value={escola}
+          onChange={(e) => setEscola(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        >
+          <option value="">Selecione</option>
+          {escolasFiltradas.map((e, i) => (
+            <option key={i} value={e}>{e}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Referência da Tabela */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Tabela</label>
+        <input
+          type="text"
+          value={referenciaTabela}
+          onChange={(e) => setReferenciaTabela(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        />
+      </div>
+
+      {/* Data de Vencimento */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Vencimento</label>
+        <input
+          type="date"
+          value={dataVencimento}
+          onChange={(e) => setDataVencimento(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        />
+      </div>
+
+      {/* Forma de Pagamento */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Forma de Pagamento</label>
+        <input
+          type="text"
+          value={formaPagamento}
+          onChange={(e) => setFormaPagamento(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        />
+      </div>
+
+      {/* Produto, Quantidade e Valor */}
+      <div className="grid grid-cols-3 gap-2">
+        <select
+          value={produtoSelecionado}
+          onChange={(e) => setProdutoSelecionado(e.target.value)}
+          className="border border-gray-300 rounded px-2 py-1"
+        >
+          <option value="">Produto</option>
+          {produtos.map((p, i) => (
+            <option key={i} value={p}>{p}</option>
+          ))}
+        </select>
+        <input
+          type="number"
+          min="1"
+          value={quantidade}
+          onChange={(e) => setQuantidade(e.target.value)}
+          className="border border-gray-300 rounded px-2 py-1"
+          placeholder="Qtd"
+        />
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          value={valorUnitario}
+          onChange={(e) => setValorUnitario(e.target.value)}
+          className="border border-gray-300 rounded px-2 py-1"
+          placeholder="R$"
+        />
+      </div>
+
+      {/* Adicionar Item */}
+      <button
+        onClick={adicionarItemAoPedido}
+        className="mt-2 bg-[#8c3b1b] text-white py-2 px-4 rounded"
+      >
+        ➕ Adicionar Item
+      </button>
+
+      {/* Lista de Itens */}
+      <ul className="mt-4 space-y-2">
+        {itensPedido.map((item, i) => (
+          <li key={i} className="bg-white border p-2 rounded shadow text-sm">
+            {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
+          </li>
+        ))}
+      </ul>
+
+      {/* Botões */}
+      <div className="mt-6 flex justify-between">
+        <button
+          onClick={() => setTelaAtual("PCP")}
+          className="bg-gray-400 text-white px-4 py-2 rounded"
+        >
+          ← Voltar
+        </button>
+        <button
+          onClick={salvarPedidoRapido}
+          className="bg-green-600 text-white px-4 py-2 rounded"
+        >
+          💾 Salvar Pedido
+        </button>
+      </div>
+    </div>
   </div>
 )}
 {/* === FIM RT03 === */}
