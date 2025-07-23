@@ -498,6 +498,8 @@ return (
 
 {/* Tabela */}
 <div>
+{/* Tabela */}
+<div>
   <label className="block text-sm font-medium text-gray-700">Tabela</label>
   <select
     value={referenciaTabela}
@@ -516,7 +518,9 @@ return (
     <option value="">Selecione</option>
     {[...new Set(
       tabelaPreco
-        .filter((p) => p.cidade === cidade)
+        .filter(
+          (p) => p.cidade === cidade && p.produto === produtoSelecionado
+        )
         .map((p) => p.referencia)
     )].map((ref, i) => (
       <option key={i} value={ref}>
