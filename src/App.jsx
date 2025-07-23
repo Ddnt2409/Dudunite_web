@@ -498,8 +498,6 @@ return (
 
 {/* Tabela */}
 <div>
-{/* Tabela */}
-<div>
   <label className="block text-sm font-medium text-gray-700">Tabela</label>
   <select
     value={referenciaTabela}
