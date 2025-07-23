@@ -273,11 +273,16 @@ const carregarFormasPagamento = (setFormasPagamento) => {
   setFormasPagamento(formas);
 };
 // === FIM FN14 ===
-// === INÍCIO FN15 – Inicialização de dados ===
+// === INÍCIO FN15 – Atualizar valor ao mudar produto/cidade/tabela ===
 useEffect(() => {
-  carregarTabelaPrecoFirebase();
-  carregarFormasPagamento(setFormasPagamento);
-}, []);
+  ajustarValorProdutoAoSelecionar({
+    produtoSelecionado,
+    cidade,
+    tabelaPreco,
+    setValorUnitario,
+    referenciaTabela,
+  });
+}, [produtoSelecionado, cidade, referenciaTabela, tabelaPreco]);
 // === FIM FN15 ===
 // === RT99 – Return do Componente ===
 return (
