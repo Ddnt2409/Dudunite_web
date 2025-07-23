@@ -213,10 +213,10 @@ const carregarTabelaDePrecos = async () => {
 // === FIM FN10 ===
 
 // === FN11 – espaço vago
-// === INÍCIO FN12 – Carregar tabela de preços do Firebase ===
+// === INÍCIO FN12 – Carregar tabela de preços do Módulo 2 (revenda) ===
 const carregarTabelaPrecoFirebase = async () => {
   try {
-    const ref = collection(db, "tabela_precos");
+    const ref = collection(db, "tabela_precos_revenda"); // Agora consultando módulo 2
     const snapshot = await getDocs(ref);
 
     const precos = snapshot.docs.map((doc) => doc.data());
@@ -233,8 +233,9 @@ const carregarTabelaPrecoFirebase = async () => {
     });
 
     setTabelaPreco(Object.values(precosMaisRecentes));
+    console.log("📦 Tabela de preços carregada da coleção: tabela_precos_revenda");
   } catch (error) {
-    console.error("Erro ao carregar tabela de preços:", error);
+    console.error("Erro ao carregar tabela de preços do módulo 2:", error);
     setTabelaPreco([]);
   }
 };
