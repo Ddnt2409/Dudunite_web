@@ -297,15 +297,13 @@ useEffect(() => {
     referenciaTabela,
   });
 }, [produtoSelecionado, cidade, referenciaTabela, tabelaPreco]);
-// === FIM FN15 ===
-  {/* === INÍCIO DEBUG VISUAL TEMPORÁRIO – Exibir quantidade de preços carregados === */}
-<div style={{ padding: "10px", backgroundColor: "#ffe" }}>
-  <strong>Preços carregados:</strong> {tabelaPreco.length}
-</div>
-{/* === FIM DEBUG VISUAL TEMPORÁRIO === */}
-// === RT99 – Return do Componente ===
 return (
-  <>
+    <>
+      {/* === INÍCIO DEBUG VISUAL TEMPORÁRIO – Exibir quantidade de preços carregados === */}
+      <div style={{ padding: "10px", backgroundColor: "#ffe" }}>
+        <strong>Preços carregados:</strong> {tabelaPreco.length}
+      </div>
+      {/* === FIM DEBUG VISUAL TEMPORÁRIO === */}
     {/* === RT00a – Tela Inicial PCP === */}
     {telaAtual === "PCP" && (
       <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
