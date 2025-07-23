@@ -511,24 +511,25 @@ return (
         referenciaTabela: e.target.value,
       });
     }}
-    className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-    disabled={!cidade || !produtoSelecionado}
+    disabled={!produtoSelecionado || !cidade}
+    className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 bg-white text-gray-900"
   >
     <option value="">
-      {cidade && produtoSelecionado
-        ? "Selecione a tabela"
-        : "Selecione cidade e produto"}
+      {!produtoSelecionado || !cidade
+        ? "Selecione cidade e produto"
+        : "Selecione"}
     </option>
-    {tabelaPreco
-      .filter(
-        (p) =>
-          p.cidade === cidade && p.produto === produtoSelecionado
-      )
-      .map((p, i) => (
-        <option key={i} value={p.referencia}>
-          {p.referencia}
-        </option>
-      ))}
+    {[...new Set(
+      tabelaPreco
+        .filter(
+          (p) => p.cidade === cidade && p.produto === produtoSelecionado
+        )
+        .map((p) => p.referencia)
+    )].map((ref, i) => (
+      <option key={i} value={ref}>
+        {ref}
+      </option>
+    ))}
   </select>
 </div>
           {/* Vencimento */}
