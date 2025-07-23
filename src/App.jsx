@@ -1,4 +1,6 @@
 // === FN01 – Importações Gerais ===
+// forçar deploy
+
 import React, { useState, useEffect } from "react";
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from "firebase/firestore";
 import db from "./firebase";
