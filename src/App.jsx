@@ -213,10 +213,7 @@ const carregarTabelaDePrecos = async () => {
 // === FIM FN10 ===
 
 // === FN11 – espaço vago
-// === INÍCIO FN12 – Carregar tabela de preços do Firestore (módulo financeiro) ===
-import { collection, getDocs } from "firebase/firestore";
-import dbFinanceiro from "./firebaseFinanceiro"; // Verifique se está corretamente configurado
-
+// === INÍCIO FN12 – Carregar tabela de preços do Firestore (módulo financeiro) ==
 const carregarTabelaPrecos = async (setTabelaPreco, setReferenciasTabela) => {
   try {
     const ref = collection(dbFinanceiro, "tabela_precos_revenda");
@@ -227,16 +224,16 @@ const carregarTabelaPrecos = async (setTabelaPreco, setReferenciasTabela) => {
 
     snapshot.forEach((doc) => {
       const data = doc.data();
-      const referencia = doc.id; // ID do documento
+      const referencia = doc.id;
       referencias.push(referencia);
 
       const precosMap = data.precos || {};
       Object.entries(precosMap).forEach(([produto, valores]) => {
         precos.push({
           produto,
-          cidade: "", // Pode ser ajustado se quiser filtrar por cidade depois
+          cidade: "", // Placeholder, pode ser ajustado
           referencia,
-          valor: valores.rev2 || 0, // Rev2 é o valor final de revenda
+          valor: valores.rev2 || 0,
         });
       });
     });
