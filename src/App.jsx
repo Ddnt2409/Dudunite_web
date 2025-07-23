@@ -512,19 +512,23 @@ return (
       });
     }}
     className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+    disabled={!cidade || !produtoSelecionado}
   >
-    <option value="">Selecione</option>
-    {[...new Set(
-      tabelaPreco
-        .filter(
-          (p) => p.cidade === cidade && p.produto === produtoSelecionado
-        )
-        .map((p) => p.referencia)
-    )].map((ref, i) => (
-      <option key={i} value={ref}>
-        {ref}
-      </option>
-    ))}
+    <option value="">
+      {cidade && produtoSelecionado
+        ? "Selecione a tabela"
+        : "Selecione cidade e produto"}
+    </option>
+    {tabelaPreco
+      .filter(
+        (p) =>
+          p.cidade === cidade && p.produto === produtoSelecionado
+      )
+      .map((p, i) => (
+        <option key={i} value={p.referencia}>
+          {p.referencia}
+        </option>
+      ))}
   </select>
 </div>
           {/* Vencimento */}
