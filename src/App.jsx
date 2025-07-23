@@ -213,29 +213,40 @@ const carregarTabelaDePrecos = async () => {
 // === FIM FN10 ===
 
 // === FN11 – espaço vago
-// === INÍCIO FN12 – Carregar tabela de preços do Firebase (Módulo 2) ===
-const carregarTabelaPrecoFirebase = async () => {
+// === INÍCIO FN12 – Carregar tabela de preços do Firestore (módulo financeiro) ===
+import { collection, getDocs } from "firebase/firestore";
+import dbFinanceiro from "./firebaseFinanceiro"; // Verifique se está corretamente configurado
+
+const carregarTabelaPrecos = async (setTabelaPreco, setReferenciasTabela) => {
   try {
-    const ref = collection(db, "tabela_precos_revenda");
+    const ref = collection(dbFinanceiro, "tabela_precos_revenda");
     const snapshot = await getDocs(ref);
 
-    const precos = snapshot.docs.map((doc) => doc.data());
-    const precosMaisRecentes = {};
+    const precos = [];
+    const referencias = [];
 
-    precos.forEach((p) => {
-      const chave = `${p.cidade}-${p.produto}-${p.referencia}`;
-      if (
-        !precosMaisRecentes[chave] ||
-        (p.timestamp?.seconds || 0) > (precosMaisRecentes[chave].timestamp?.seconds || 0)
-      ) {
-        precosMaisRecentes[chave] = p;
-      }
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const referencia = doc.id; // ID do documento
+      referencias.push(referencia);
+
+      const precosMap = data.precos || {};
+      Object.entries(precosMap).forEach(([produto, valores]) => {
+        precos.push({
+          produto,
+          cidade: "", // Pode ser ajustado se quiser filtrar por cidade depois
+          referencia,
+          valor: valores.rev2 || 0, // Rev2 é o valor final de revenda
+        });
+      });
     });
 
-    setTabelaPreco(Object.values(precosMaisRecentes));
-  } catch (error) {
-    console.error("Erro ao carregar tabela de preços:", error);
+    setTabelaPreco(precos);
+    setReferenciasTabela(referencias);
+  } catch (erro) {
+    console.error("Erro ao carregar tabela de preços:", erro);
     setTabelaPreco([]);
+    setReferenciasTabela([]);
   }
 };
 // === FIM FN12 ===
