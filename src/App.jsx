@@ -211,8 +211,8 @@ const carregarTabelaDePrecos = async () => {
 // === FIM FN10 ===
 
 // === FN11 – espaço vago
-// === INÍCIO FN12 – Carregar tabela de preços do Firestore (módulo financeiro) ==
-const carregarTabelaPrecos = async (setTabelaPreco, setReferenciasTabela) => {
+// === INÍCIO FN12 – Carregar tabela de preços do Firestore (módulo financeiro) ===
+const carregarTabelaPrecos = async () => {
   try {
     const ref = collection(dbFinanceiro, "tabela_precos_revenda");
     const snapshot = await getDocs(ref);
