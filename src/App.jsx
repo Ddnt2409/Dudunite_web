@@ -40,6 +40,20 @@ const App = () => {
   // === FIM useStates da FN03 ===
 };
 // === FIM FN03 ===
+// === INÍCIO FN03a – Estados adicionais pendentes ===
+  const [telaAtual, setTelaAtual] = useState("PCP");
+  const [pedidosLancados, setPedidosLancados] = useState([]);
+  const [pedidosPendentes, setPedidosPendentes] = useState([]);
+  const [formasPagamento, setFormasPagamento] = useState([]);
+  const [dataVencimento, setDataVencimento] = useState("");
+  const [formaPagamento, setFormaPagamento] = useState("");
+  const [tabelaSelecionada, setTabelaSelecionada] = useState("");
+  const [itensPedido, setItensPedido] = useState([]);
+  const [produtos, setProdutos] = useState([]);
+  const [cidades, setCidades] = useState([]);
+  const [escolasFiltradas, setEscolasFiltradas] = useState([]);
+  const [saboresDisponiveis, setSaboresDisponiveis] = useState([]);
+  // === FIM FN03a ===
   // === FN04 – Carregar pedidos com status 'Lançado' ===
   const carregarPedidosLancados = async () => {
     try {
