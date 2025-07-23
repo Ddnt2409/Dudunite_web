@@ -284,6 +284,11 @@ useEffect(() => {
   });
 }, [produtoSelecionado, cidade, referenciaTabela, tabelaPreco]);
 // === FIM FN15 ===
+  {/* === INÍCIO DEBUG VISUAL TEMPORÁRIO – Exibir quantidade de preços carregados === */}
+<div style={{ padding: "10px", backgroundColor: "#ffe" }}>
+  <strong>Preços carregados:</strong> {tabelaPreco.length}
+</div>
+{/* === FIM DEBUG VISUAL TEMPORÁRIO === */}
 // === RT99 – Return do Componente ===
 return (
   <>
