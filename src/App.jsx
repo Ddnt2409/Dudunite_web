@@ -7,45 +7,38 @@ import dbFinanceiro from "./firebaseFinanceiro"; // ✅ Adicionado corretamente
 const corPrimaria = "#8c3b1b";
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
 
-// === FN03 – Componente App ===
-function App() {
-  const [telaAtual, setTelaAtual] = useState("PCP");
+// === INÍCIO FN03 – Componente Principal: App ===
+const App = () => {
+  // Estados principais
   const [cidade, setCidade] = useState("");
   const [escola, setEscola] = useState("");
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [quantidade, setQuantidade] = useState(1);
-  const [dataVencimento, setDataVencimento] = useState("");
-  const [formaPagamento, setFormaPagamento] = useState("");
-  const [referenciaTabela, setReferenciaTabela] = useState("");
-  const [valorUnitario, setValorUnitario] = useState("");
-  const [itensPedido, setItensPedido] = useState([]);
-  const [pedidosLancados, setPedidosLancados] = useState([]);
-  const [pedidosPendentes, setPedidosPendentes] = useState([]);
-  const [saboresDisponiveis, setSaboresDisponiveis] = useState([]);
-  const [formasPagamento, setFormasPagamento] = useState([]);
+  const [itens, setItens] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
+  const [dataSelecionada, setDataSelecionada] = useState("");
+  const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
+  const [mostrarPlanejamento, setMostrarPlanejamento] = useState(false);
+  const [mostrarListaCompras, setMostrarListaCompras] = useState(false);
+  const [mostrarFormularioPDV, setMostrarFormularioPDV] = useState(false);
+  const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
+  const [modoEdicaoPDV, setModoEdicaoPDV] = useState(false);
+  const [cidadeSelecionadaPDV, setCidadeSelecionadaPDV] = useState("");
+  const [novoPDV, setNovoPDV] = useState("");
+  const [pdvs, setPdvs] = useState([]);
+  const [mostrarRT03, setMostrarRT03] = useState(false);
+  const [modoAlimentarSabores, setModoAlimentarSabores] = useState(false);
+  const [statusEtapa, setStatusEtapa] = useState("Lançado");
+  const [filtrosData, setFiltrosData] = useState({ inicio: "", fim: "" });
+  const [mostrarRT06, setMostrarRT06] = useState(false);
+
+  // === INÍCIO useStates da FN03 – Tabela de Preço e Valor Unitário ===
   const [tabelaPreco, setTabelaPreco] = useState([]);
-
-  const cidades = ["Gravatá", "Recife", "Caruaru"];
-  const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
-
-  const escolasPorCidade = {
-    Gravatá: ["Pequeno Príncipe", "Salesianas", "Céu Azul", "Russas", "Bora Gastar", "Kaduh", "Society Show", "Degusty"],
-    Recife: ["Tio Valter", "Vera Cruz", "Pinheiros", "Dourado", "BMQ", "CFC", "Madre de Deus", "Saber Viver"],
-    Caruaru: ["Interativo", "Exato Sede", "Exato Anexo", "Sesi", "Motivo", "Jesus Salvador"],
-  };
-
-  const escolasFiltradas = cidade ? escolasPorCidade[cidade] || [] : [];
-
-  useEffect(() => {
-    if (telaAtual === "Sabores") {
-      carregarPedidosLancados();
-    }
-  }, [telaAtual]);
-
-  useEffect(() => {
-    carregarTabelaPrecoFirebase(setTabelaPreco);
-    carregarFormasPagamento(setFormasPagamento);
-  }, []);
+  const [referenciaTabela, setReferenciaTabela] = useState("");
+  const [referenciasTabela, setReferenciasTabela] = useState([]);
+  const [valorUnitario, setValorUnitario] = useState("");
+  // === FIM useStates da FN03 ===
+};
 // === FIM FN03 ===
   // === FN04 – Carregar pedidos com status 'Lançado' ===
   const carregarPedidosLancados = async () => {
@@ -212,7 +205,8 @@ const carregarTabelaDePrecos = async () => {
 
 // === FN11 – espaço vago
 // === INÍCIO FN12 – Carregar tabela de preços do Firestore (módulo financeiro) ===
-const carregarTabelaPrecos = async () => {
+// === INÍCIO FN12 – Carregar tabela de preços do Firestore (módulo financeiro) ===
+const carregarTabelaPrecos = async (setTabelaPreco, setReferenciasTabela) => {
   try {
     const ref = collection(dbFinanceiro, "tabela_precos_revenda");
     const snapshot = await getDocs(ref);
@@ -229,7 +223,7 @@ const carregarTabelaPrecos = async () => {
       Object.entries(precosMap).forEach(([produto, valores]) => {
         precos.push({
           produto,
-          cidade: "", // Placeholder, pode ser ajustado
+          cidade: "", // ainda não usamos cidade na base
           referencia,
           valor: valores.rev2 || 0,
         });
@@ -279,7 +273,7 @@ const carregarFormasPagamento = (setFormasPagamento) => {
   setFormasPagamento(formas);
 };
 // === FIM FN14 ===
-// === INÍCIO FN15 – Atualizar valor ao mudar produto/cidade/tabela ===
+// === INÍCIO FN15 – Atualizar valor unitário ao mudar cidade/produto/tabela ===
 useEffect(() => {
   ajustarValorProdutoAoSelecionar({
     produtoSelecionado,
@@ -508,35 +502,26 @@ return (
           </div>
 
 {/* Tabela */}
+{/* Tabela */}
 <div>
   <label className="block text-sm font-medium text-gray-700">Tabela</label>
   <select
     value={referenciaTabela}
     onChange={(e) => {
-      setReferenciaTabela(e.target.value);
+      const novaRef = e.target.value;
+      setReferenciaTabela(novaRef);
       ajustarValorProdutoAoSelecionar({
         produtoSelecionado,
         cidade,
         tabelaPreco,
         setValorUnitario,
-        referenciaTabela: e.target.value,
+        referenciaTabela: novaRef,
       });
     }}
-    disabled={!produtoSelecionado || !cidade}
-    className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 bg-white text-gray-900"
+    className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
   >
-    <option value="">
-      {!produtoSelecionado || !cidade
-        ? "Selecione cidade e produto"
-        : "Selecione"}
-    </option>
-    {[...new Set(
-      tabelaPreco
-        .filter(
-          (p) => p.cidade === cidade && p.produto === produtoSelecionado
-        )
-        .map((p) => p.referencia)
-    )].map((ref, i) => (
+    <option value="">Selecione</option>
+    {referenciasTabela.map((ref, i) => (
       <option key={i} value={ref}>
         {ref}
       </option>
