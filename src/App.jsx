@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from "firebase/firestore";
 import db from "./firebase";
-
+import dbFinanceiro from "./firebaseFinanceiro"; // ✅ Adicionado corretamente
 // === FN02 – Cores e Logomarca ===
 const corPrimaria = "#8c3b1b";
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
