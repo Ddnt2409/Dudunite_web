@@ -273,12 +273,13 @@ const ajustarValorProdutoAoSelecionar = ({
       p.referencia === referenciaTabela
   );
 
-  if (item && typeof item.valor === "number") {
+if (item && typeof item.valor === "number") {
     setValorUnitario(item.valor);
   } else {
     setValorUnitario("");
   }
-};
+}; // ✅ fecha apenas a função ajustarValorProdutoAoSelecionar
+
 // === FIM FN13 ===
 
 // === INÍCIO FN14 – Carregar formas de pagamento fixas ===
