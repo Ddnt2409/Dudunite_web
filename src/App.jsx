@@ -641,8 +641,7 @@ return (
       </div>
     </div>
   </div>  )}; {/* Linha 643 – último <div> da RT03 */}
-</>    );  {/* 👈 Adicione esta linha! Fecha o fragmento JSX */}
-)     // FIM do return
+</>    );  {/* 👈 Adicione esta linha! Fecha o fragmento JSX */}   // FIM do return
 };       // FIM da função App
 
 export default App;
