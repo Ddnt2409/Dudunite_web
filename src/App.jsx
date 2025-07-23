@@ -645,9 +645,8 @@ return (
   </div>
 )}
 {/* === FIM RT03 === */}
-</> // FIM do fragmento
-); // FIM do return
-
+</>
+  ); // FIM do return
 }; // FIM da função App
 
 export default App;
