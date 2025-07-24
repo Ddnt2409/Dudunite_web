@@ -538,7 +538,6 @@ return (
           </div>
 
 {/* Produto, Quantidade, Valor */}
-{/* Produto, Quantidade, Valor */}
 <div className="grid grid-cols-3 gap-2">
   <select
     value={produtoSelecionado}
@@ -546,7 +545,6 @@ return (
       setProdutoSelecionado(e.target.value);
       ajustarValorProdutoAoSelecionar({
         produtoSelecionado: e.target.value,
-        cidade,
         tabelaPreco,
         setValorUnitario,
       });
