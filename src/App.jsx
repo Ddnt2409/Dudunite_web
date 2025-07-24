@@ -362,86 +362,85 @@ return (
       </div>
     )}
     {/* === FIM RT00a === */}
+{/* === INÍCIO RT01 – Alimentar Sabores === */}
+{telaAtual === "Sabores" && (
+  <div className="p-4 bg-[#fdf8f5] min-h-screen">
+    <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Alimentar Sabores</h2>
 
-    {/* === INÍCIO RT01 – Alimentar Sabores === */}
-    {telaAtual === "Sabores" && (
-      <div className="p-4 bg-[#fdf8f5] min-h-screen">
-        <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Alimentar Sabores</h2>
+    {pedidosPendentes.length === 0 ? (
+      <p className="text-gray-600">Nenhum pedido pendente encontrado.</p>
+    ) : (
+      <div className="space-y-6">
+        {pedidosPendentes.map((pedido, index) => (
+          <div
+            key={index}
+            className="border border-gray-300 rounded p-4 bg-white shadow"
+          >
+            <p><strong>Cidade:</strong> {pedido.cidade}</p>
+            <p><strong>Escola:</strong> {pedido.escola}</p>
 
-        {pedidosPendentes.length === 0 ? (
-          <p className="text-gray-600">Nenhum pedido pendente encontrado.</p>
-        ) : (
-          <div className="space-y-6">
-            {pedidosPendentes.map((pedido, index) => (
-              <div
-                key={index}
-                className="border border-gray-300 rounded p-4 bg-white shadow"
-              >
-                <p><strong>Cidade:</strong> {pedido.cidade}</p>
-                <p><strong>Escola:</strong> {pedido.escola}</p>
+            <div className="mt-4 space-y-4">
+              {pedido.itens.map((item, itemIndex) => (
+                <div
+                  key={itemIndex}
+                  className="border p-3 rounded bg-gray-50"
+                >
+                  <p><strong>Produto:</strong> {item.produto}</p>
+                  <p><strong>Quantidade:</strong> {item.quantidade}</p>
 
-                <div className="mt-4 space-y-4">
-                  {pedido.itens.map((item, itemIndex) => (
-                    <div
-                      key={itemIndex}
-                      className="border p-3 rounded bg-gray-50"
-                    >
-                      <p><strong>Produto:</strong> {item.produto}</p>
-                      <p><strong>Quantidade:</strong> {item.quantidade}</p>
+                  <div className="mt-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Sabores:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">
+                      {saboresDisponiveis
+                        .filter((sabor) => sabor.produto === item.produto)
+                        .map((sabor, saborIndex) => (
+                          <label key={saborIndex} className="inline-flex items-center">
+                            <input
+                              type="checkbox"
+                              className="form-checkbox h-4 w-4 text-[#8c3b1b] transition duration-150 ease-in-out"
+                              checked={item.sabores?.includes(sabor.nome) || false}
+                              onChange={(e) => {
+                                const novosPedidos = [...pedidosPendentes];
+                                const saboresAtuais =
+                                  novosPedidos[index].itens[itemIndex].sabores || [];
 
-                      <div className="mt-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                          Sabores:
-                        </label>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">
-                          {saboresDisponiveis
-                            .filter((sabor) => sabor.produto === item.produto)
-                            .map((sabor, saborIndex) => (
-                              <label key={saborIndex} className="inline-flex items-center">
-                                <input
-                                  type="checkbox"
-                                  className="form-checkbox h-4 w-4 text-[#8c3b1b] transition duration-150 ease-in-out"
-                                  checked={item.sabores?.includes(sabor.nome) || false}
-                                  onChange={(e) => {
-                                    const novosPedidos = [...pedidosPendentes];
-                                    const saboresAtuais =
-                                      novosPedidos[index].itens[itemIndex].sabores || [];
+                                if (e.target.checked) {
+                                  saboresAtuais.push(sabor.nome);
+                                } else {
+                                  const idx = saboresAtuais.indexOf(sabor.nome);
+                                  if (idx > -1) saboresAtuais.splice(idx, 1);
+                                }
 
-                                    if (e.target.checked) {
-                                      saboresAtuais.push(sabor.nome);
-                                    } else {
-                                      const idx = saboresAtuais.indexOf(sabor.nome);
-                                      if (idx > -1) saboresAtuais.splice(idx, 1);
-                                    }
-
-                                    novosPedidos[index].itens[itemIndex].sabores = saboresAtuais;
-                                    setPedidosPendentes(novosPedidos);
-                                  }}
-                                />
-                                <span className="ml-2 text-sm">{sabor.nome}</span>
-                              </label>
-                            ))}
-                        </div>
-                      </div>
+                                novosPedidos[index].itens[itemIndex].sabores = saboresAtuais;
+                                setPedidosPendentes(novosPedidos);
+                              }}
+                            />
+                            <span className="ml-2 text-sm">{sabor.nome}</span>
+                          </label>
+                        ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                </div> // ✅ Fecha item individual
+              ))}
+            </div> {/* Fecha bloco de itens */}
 
-                <div className="mt-4 text-right">
-                  <button
-                    onClick={() => salvarSabores(pedido, index)}
-                    className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
-                  >
-                    💾 Salvar Pedido
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+            <div className="mt-4 text-right">
+              <button
+                onClick={() => salvarSabores(pedido, index)}
+                className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
+              >
+                💾 Salvar Pedido
+              </button>
+            </div>
+          </div> // ✅ Fecha pedido
+        ))}
+      </div> // ✅ Fecha lista de pedidos
     )}
-    {/* === FIM RT01 === */}
+  </div> // ✅ Fecha container principal de Sabores
+)}
+{/* === FIM RT01 === */}
 
     {/* === INÍCIO RT02 – Tela de Resumo de Pedidos === */}
     {telaAtual === "Resumo" && (
