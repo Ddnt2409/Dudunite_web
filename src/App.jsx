@@ -491,26 +491,6 @@ return (
             </select>
           </div>
 
-          {/* Tabela */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Tabela</label>
-            <input
-              type="text"
-              value={referenciaTabela}
-              onChange={(e) => {
-                setReferenciaTabela(e.target.value);
-                ajustarValorProdutoAoSelecionar({
-                  produtoSelecionado,
-                  cidade,
-                  tabelaPreco,
-                  setValorUnitario,
-                  referenciaTabela: e.target.value,
-                });
-              }}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-            />
-          </div>
-
           {/* Vencimento */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Vencimento</label>
