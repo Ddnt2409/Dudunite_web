@@ -517,7 +517,7 @@ return (
             </select>
           </div>
 
-{/* Produto, Quantidade, Valor */}
+{/* Produto, Quantidade, Valor Unitário */}
 <div className="grid grid-cols-3 gap-2">
   <select
     value={produtoSelecionado}
@@ -555,6 +555,7 @@ return (
   />
 </div>
 
+{/* Botão Adicionar Item */}
 <button
   onClick={adicionarItemAoPedido}
   className="mt-2 bg-[#8c3b1b] text-white py-2 px-4 rounded"
@@ -562,6 +563,7 @@ return (
   ➕ Adicionar Item
 </button>
 
+{/* Lista de Itens Adicionados */}
 <ul className="mt-4 space-y-2">
   {itensPedido.map((item, i) => (
     <li key={i} className="bg-white border p-2 rounded shadow text-sm">
@@ -570,23 +572,12 @@ return (
   ))}
 </ul>
 
+{/* Total */}
 {itensPedido.length > 0 && (
   <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2">
     Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
   </div>
 )}
-
-<div className="mt-6 flex justify-between">
-  <button
-    onClick={() => setTelaAtual("PCP")}
-    className="bg-gray-400 text-white px-4 py-2 rounded"
-  >
-    ← Voltar
-  </button>
-  <button
-    onClick={salvarPedidoRapido}
-    className="bg-green-600 text-white px-4 py-2 rounded"
-  >
     💾 Salvar Pedido
   </button>
 </div>
