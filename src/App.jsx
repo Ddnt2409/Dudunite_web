@@ -38,7 +38,6 @@ const App = () => {
   const [referenciasTabela, setReferenciasTabela] = useState([]);
   const [valorUnitario, setValorUnitario] = useState("");
   // === FIM useStates da FN03 ===
-};
 // === FIM FN03 ===
 // === INÍCIO FN03a – Estados adicionais pendentes ===
   const [telaAtual, setTelaAtual] = useState("PCP");
