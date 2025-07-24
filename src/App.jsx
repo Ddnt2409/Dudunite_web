@@ -642,6 +642,6 @@ return (
   )} {/* === FIM RT03 === */}
 </> // ✅ Fecha o React Fragment
 ) // ✅ Fecha o return
- // ✅ Fecha a função App
+} // ✅ Fecha a função App
 
 export default App;
