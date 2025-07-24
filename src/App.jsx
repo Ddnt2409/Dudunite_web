@@ -640,6 +640,7 @@ return (
         </button>
       </div>
     </div>
+    </>
 ); // ✅ Fecha o return
 }; // ✅ Fecha a função App
 
