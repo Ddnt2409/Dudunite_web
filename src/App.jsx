@@ -639,7 +639,7 @@ return (
           💾 Salvar Pedido
         </button>
       </div>
-); // ✅ Fecha o return
-}; // ✅ Fecha a função App
+);
+};
 
 export default App;
