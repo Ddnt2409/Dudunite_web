@@ -638,9 +638,8 @@ return (
           💾 Salvar Pedido
         </button>
       </div> {/* Fecha div dos botões */}
-
-    </div> {/* Fecha container geral da tela */}
-  </div> {/* ✅ Fecha o container de "telaAtual === 'Lancamento'" */}
+    </div>   {/* Fecha container geral da tela */}
+  </div>     {/* Fecha o bloco de telaAtual === "Lancamento" */}
 )} {/* === FIM RT03 === */}
 
 ); // ✅ Fecha o return
