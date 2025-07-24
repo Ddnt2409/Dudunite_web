@@ -536,6 +536,7 @@ return (
       <option key={i} value={p}>{p}</option>
     ))}
   </select>
+
   <input
     type="number"
     min="1"
@@ -544,6 +545,7 @@ return (
     className="border border-gray-300 rounded px-2 py-1"
     placeholder="Qtd"
   />
+
   <input
     type="number"
     min="0"
@@ -575,9 +577,24 @@ return (
 {/* Total */}
 {itensPedido.length > 0 && (
   <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2">
-    Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
+    Total: R$ {itensPedido
+      .reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0)
+      .toFixed(2)}
   </div>
 )}
+
+{/* Botões finais */}
+<div className="mt-6 flex justify-between">
+  <button
+    onClick={() => setTelaAtual("PCP")}
+    className="bg-gray-400 text-white px-4 py-2 rounded"
+  >
+    ← Voltar
+  </button>
+  <button
+    onClick={salvarPedidoRapido}
+    className="bg-green-600 text-white px-4 py-2 rounded"
+  >
     💾 Salvar Pedido
   </button>
 </div>
