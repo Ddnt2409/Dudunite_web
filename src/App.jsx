@@ -632,16 +632,16 @@ return (
         >
           ← Voltar
         </button>
-        <button
+<button
           onClick={salvarPedidoRapido}
           className="bg-green-600 text-white px-4 py-2 rounded"
         >
 💾 Salvar Pedido
-      </button>
-    </div> {/* Fecha div do botão */}
-  </div>   {/* Fecha container geral da tela */}
+        </button>
+      </div> {/* ✅ Fecha a div dos botões */}
+    </div>   {/* ✅ Fecha o container geral da tela */}
 
-); // ✅ Fecha o return
+  ); // ✅ Fecha o return
 }; // ✅ Fecha a função App
 
 export default App;
