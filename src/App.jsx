@@ -639,7 +639,6 @@ return (
           💾 Salvar Pedido
         </button>
       </div>
-    </div>
 ); // ✅ Fecha o return
 }; // ✅ Fecha a função App
 
