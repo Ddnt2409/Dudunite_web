@@ -635,12 +635,15 @@ return (
           onClick={salvarPedidoRapido}
           className="bg-green-600 text-white px-4 py-2 rounded"
         >
-💾 Salvar Pedido
+          💾 Salvar Pedido
         </button>
-      </div> {/* ✅ Fecha a div dos botões */}
-    </div>   {/* ✅ Fecha o container geral da tela */}
+      </div> {/* Fecha div dos botões */}
 
-  ); // ✅ Fecha o return
+    </div> {/* Fecha container geral da tela */}
+  </div> {/* ✅ Fecha o container de "telaAtual === 'Lancamento'" */}
+)} {/* === FIM RT03 === */}
+
+); // ✅ Fecha o return
 }; // ✅ Fecha a função App
 
 export default App;
