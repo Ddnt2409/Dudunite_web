@@ -584,6 +584,10 @@ return (
   >
     ← Voltar
   </button>
+  <button
+    onClick={salvarPedidoRapido}
+    className="bg-green-600 text-white px-4 py-2 rounded"
+  >
     💾 Salvar Pedido
   </button>
 </div>
