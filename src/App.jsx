@@ -518,10 +518,12 @@ return (
           </div>
 
 {/* Produto, Quantidade, Valor Unitário */}
-<div className="grid grid-cols-3 gap-2 mt-4">
+<div className="grid grid-cols-3 gap-2">
   <select
     value={produtoSelecionado}
-    onChange={(e) => setProdutoSelecionado(e.target.value)}
+    onChange={(e) => {
+      setProdutoSelecionado(e.target.value);
+    }}
     className="border border-gray-300 rounded px-2 py-1"
   >
     <option value="">Produto</option>
@@ -529,22 +531,20 @@ return (
       <option key={i} value={p}>{p}</option>
     ))}
   </select>
-
   <input
     type="number"
     min="1"
     value={quantidade}
-    onChange={(e) => setQuantidade(e.target.value)}
+    onChange={(e) => setQuantidade(Number(e.target.value))}
     className="border border-gray-300 rounded px-2 py-1"
     placeholder="Qtd"
   />
-
   <input
     type="number"
     min="0"
     step="0.01"
     value={valorUnitario}
-    onChange={(e) => setValorUnitario(e.target.value)}
+    onChange={(e) => setValorUnitario(Number(e.target.value))}
     className="border border-gray-300 rounded px-2 py-1"
     placeholder="R$"
   />
@@ -562,7 +562,7 @@ return (
 <ul className="mt-4 space-y-2">
   {itensPedido.map((item, i) => (
     <li key={i} className="bg-white border p-2 rounded shadow text-sm">
-      {item.quantidade}x {item.produto} – R$ {Number(item.valorUnitario).toFixed(2)}
+      {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
     </li>
   ))}
 </ul>
