@@ -576,7 +576,7 @@ return (
   </div>
 )}
 
-{/* Botões finais */}
+{/* Botões Voltar e Salvar */}
 <div className="mt-6 flex justify-between">
   <button
     onClick={() => setTelaAtual("PCP")}
@@ -584,10 +584,6 @@ return (
   >
     ← Voltar
   </button>
-  <button
-    onClick={salvarPedidoRapido}
-    className="bg-green-600 text-white px-4 py-2 rounded"
-  >
     💾 Salvar Pedido
   </button>
 </div>
