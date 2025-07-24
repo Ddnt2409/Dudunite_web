@@ -538,71 +538,73 @@ return (
           </div>
 
 {/* Produto, Quantidade, Valor */}
-      <div className="grid grid-cols-3 gap-2">
-        <select
-          value={produtoSelecionado}
-          onChange={(e) => {
-            setProdutoSelecionado(e.target.value);
-            ajustarValorProdutoAoSelecionar({
-              produtoSelecionado: e.target.value,
-              tabelaPreco,
-              setValorUnitario,
-            });
-          }}
-          className="border border-gray-300 rounded px-2 py-1"
-        >
-          <option value="">Produto</option>
-          {produtos.map((p, i) => (
-            <option key={i} value={p}>{p}</option>
-          ))}
-        </select>
-        <input
-          type="number"
-          min="1"
-          value={quantidade}
-          onChange={(e) => setQuantidade(e.target.value)}
-          className="border border-gray-300 rounded px-2 py-1"
-          placeholder="Qtd"
-        />
-        <input
-          type="number"
-          min="0"
-          step="0.01"
-          value={valorUnitario}
-          onChange={(e) => setValorUnitario(e.target.value)}
-          className="border border-gray-300 rounded px-2 py-1"
-          placeholder="R$"
-        />
-      </div>
+{/* Produto, Quantidade, Valor */}
+<div className="grid grid-cols-3 gap-2">
+  <select
+    value={produtoSelecionado}
+    onChange={(e) => {
+      setProdutoSelecionado(e.target.value);
+      ajustarValorProdutoAoSelecionar({
+        produtoSelecionado: e.target.value,
+        cidade,
+        tabelaPreco,
+        setValorUnitario,
+      });
+    }}
+    className="border border-gray-300 rounded px-2 py-1"
+  >
+    <option value="">Produto</option>
+    {produtos.map((p, i) => (
+      <option key={i} value={p}>{p}</option>
+    ))}
+  </select>
+  <input
+    type="number"
+    min="1"
+    value={quantidade}
+    onChange={(e) => setQuantidade(e.target.value)}
+    className="border border-gray-300 rounded px-2 py-1"
+    placeholder="Qtd"
+  />
+  <input
+    type="number"
+    min="0"
+    step="0.01"
+    value={valorUnitario}
+    onChange={(e) => setValorUnitario(e.target.value)}
+    className="border border-gray-300 rounded px-2 py-1"
+    placeholder="R$"
+  />
+</div>
 
-      <button
-        onClick={adicionarItemAoPedido}
-        className="mt-2 bg-[#8c3b1b] text-white py-2 px-4 rounded"
-      >
-        ➕ Adicionar Item
-      </button>
+<button
+  onClick={adicionarItemAoPedido}
+  className="mt-2 bg-[#8c3b1b] text-white py-2 px-4 rounded"
+>
+  ➕ Adicionar Item
+</button>
 
-      <ul className="mt-4 space-y-2">
-        {itensPedido.map((item, i) => (
-          <li key={i} className="bg-white border p-2 rounded shadow text-sm">
-            {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
-          </li>
-        ))}
-      </ul>
+<ul className="mt-4 space-y-2">
+  {itensPedido.map((item, i) => (
+    <li key={i} className="bg-white border p-2 rounded shadow text-sm">
+      {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
+    </li>
+  ))}
+</ul>
 
-      {itensPedido.length > 0 && (
-        <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2">
-          Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
-        </div>
-      )}
+{itensPedido.length > 0 && (
+  <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2">
+    Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
+  </div>
+)}
 
-      <div className="mt-6 flex justify-between">
-        <button
-          onClick={() => setTelaAtual("PCP")}
-          className="bg-gray-400 text-white px-4 py-2 rounded"
-        >
-          ← Voltar
-        </button>
+<div className="mt-6 flex justify-between">
+  <button
+    onClick={() => setTelaAtual("PCP")}
+    className="bg-gray-400 text-white px-4 py-2 rounded"
+  >
+    ← Voltar
+  </button>
   💾 Salvar Pedido
 </button>
       </div> {/* FIM dos botões */}
