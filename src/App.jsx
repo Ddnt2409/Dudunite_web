@@ -636,12 +636,12 @@ return (
         className="bg-green-600 text-white px-4 py-2 rounded"
       >
 💾 Salvar Pedido
-    </button>
-  </div> {/* Fecha div dos botões */}
-</div>   {/* Fecha container geral da tela */}
-</>      {/* Fecha o React Fragment */}
-)}       {/* Fecha a condicional telaAtual === 'Lancamento' */}
-);       {/* Fecha o return */}
-};       {/* Fecha a função App */}
+        </button>
+      </div> {/* Fecha div dos botões */}
+    </div>   {/* Fecha container geral da tela */}
+    )}       {/* ✅ Fecha a condicional telaAtual === 'Lancamento' */}
+  </>        {/* ✅ Fecha o React Fragment */}
+);           {/* ✅ Fecha o return */}
+};           {/* ✅ Fecha a função App */}
 
 export default App;
