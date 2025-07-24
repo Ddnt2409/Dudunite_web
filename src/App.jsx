@@ -553,13 +553,13 @@ return (
 {/* Botão Adicionar Item */}
 <button
   onClick={adicionarItemAoPedido}
-  className="mt-2 bg-[#8c3b1b] text-white py-2 px-4 rounded"
+  className="mt-2 mb-4 bg-[#8c3b1b] text-white py-2 px-4 rounded"
 >
   ➕ Adicionar Item
 </button>
 
 {/* Lista de Itens Adicionados */}
-<ul className="mt-4 space-y-2">
+<ul className="space-y-2">
   {itensPedido.map((item, i) => (
     <li key={i} className="bg-white border p-2 rounded shadow text-sm">
       {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
@@ -569,7 +569,7 @@ return (
 
 {/* Total */}
 {itensPedido.length > 0 && (
-  <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2">
+  <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2 mb-4">
     Total: R$ {itensPedido
       .reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0)
       .toFixed(2)}
@@ -585,7 +585,7 @@ return (
     ← Voltar
   </button>
   <button
-    onClick={salvarPedidoRapido}
+    onClick={salvarPedido}
     className="bg-green-600 text-white px-4 py-2 rounded"
   >
     💾 Salvar Pedido
