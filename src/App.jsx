@@ -219,20 +219,20 @@ const buscarValorUnitario = (produtoSelecionado) => {
   }
 };
 // === FIM FN11 ===
-  // === INÍCIO FN12 – Carregar tabela de preços do Firebase ===
+// === INÍCIO FN12 – Carregar tabela de preços da coleção 'tabela_precos_revenda' ===
 const carregarTabelaPrecoFirebase = async (setTabelaPreco) => {
   try {
-    const ref = collection(db, "tabela_precos");
+    const ref = collection(dbFinanceiro, "tabela_precos_revenda");
     const snapshot = await getDocs(ref);
 
     const precos = snapshot.docs.map((doc) => doc.data());
     const precosMaisRecentes = {};
 
     precos.forEach((p) => {
-      const chave = `${p.cidade}-${p.produto}`;
+      const chave = `${p.produto}-${p.referencia}`;
       if (
         !precosMaisRecentes[chave] ||
-        (p.timestamp?.seconds || 0) > (precosMaisRecentes[chave].timestamp?.seconds || 0)
+        (p.ultimaAlteracao || 0) > (precosMaisRecentes[chave].ultimaAlteracao || 0)
       ) {
         precosMaisRecentes[chave] = p;
       }
@@ -240,7 +240,7 @@ const carregarTabelaPrecoFirebase = async (setTabelaPreco) => {
 
     setTabelaPreco(Object.values(precosMaisRecentes));
   } catch (error) {
-    console.error("Erro ao carregar tabela de preços:", error);
+    console.error("Erro ao carregar tabela de preços de revenda:", error);
     setTabelaPreco([]);
   }
 };
