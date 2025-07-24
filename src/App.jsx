@@ -640,9 +640,8 @@ return (
       </div> {/* Fecha div dos botões */}
     </div>   {/* Fecha container geral da tela */}
   )} {/* === FIM RT03 === */}
-
-</> // Fecha o React Fragment
-); // Fecha o return
-}; // Fecha a função App
+</> // ✅ Fecha o React Fragment
+); // ✅ Fecha o return
+}; // ✅ Fecha a função App
 
 export default App;
