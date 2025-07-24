@@ -518,17 +518,10 @@ return (
           </div>
 
 {/* Produto, Quantidade, Valor Unitário */}
-<div className="grid grid-cols-3 gap-2">
+<div className="grid grid-cols-3 gap-2 mt-4">
   <select
     value={produtoSelecionado}
-    onChange={(e) => {
-      setProdutoSelecionado(e.target.value);
-      ajustarValorProdutoAoSelecionar({
-        produtoSelecionado: e.target.value,
-        tabelaPreco,
-        setValorUnitario,
-      });
-    }}
+    onChange={(e) => setProdutoSelecionado(e.target.value)}
     className="border border-gray-300 rounded px-2 py-1"
   >
     <option value="">Produto</option>
@@ -569,7 +562,7 @@ return (
 <ul className="mt-4 space-y-2">
   {itensPedido.map((item, i) => (
     <li key={i} className="bg-white border p-2 rounded shadow text-sm">
-      {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
+      {item.quantidade}x {item.produto} – R$ {Number(item.valorUnitario).toFixed(2)}
     </li>
   ))}
 </ul>
