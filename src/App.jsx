@@ -599,8 +599,10 @@ return (
     {/* O botão "Salvar Pedido" vem logo abaixo deste quadrante */}
   </div>
 </div>
-{/* === FIM QUADRANTE === */}
-{/* === FIM QUADRANTE === */}
+<button
+  onClick={salvarPedidoRapido}
+  className="bg-green-600 text-white px-4 py-2 rounded"
+>
   💾 Salvar Pedido
 </button>
       </div> {/* FIM dos botões */}
