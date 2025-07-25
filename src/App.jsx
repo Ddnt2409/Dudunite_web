@@ -518,18 +518,10 @@ return (
           </div>
 
 {/* Produto, Quantidade, Valor Unitário */}
-{/* Produto, Quantidade, Valor Unitário */}
 <div className="grid grid-cols-3 gap-2">
   <select
     value={produtoSelecionado}
-    onChange={(e) => {
-      setProdutoSelecionado(e.target.value);
-      ajustarValorProdutoAoSelecionar({
-        produtoSelecionado: e.target.value,
-        tabelaPreco,
-        setValorUnitario,
-      });
-    }}
+    onChange={(e) => setProdutoSelecionado(e.target.value)}
     className="border border-gray-300 rounded px-2 py-1"
   >
     <option value="">Produto</option>
