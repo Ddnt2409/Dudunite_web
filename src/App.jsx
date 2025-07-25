@@ -453,29 +453,20 @@ return (
 
         <div className="space-y-4 max-w-xl mx-auto">
           {/* Cidade */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Cidade</label>
-            <select
-              value={cidade}
-              onChange={(e) => {
-                setCidade(e.target.value);
-                ajustarValorProdutoAoSelecionar({
-                  produtoSelecionado,
-                  cidade: e.target.value,
-                  tabelaPreco,
-                  setValorUnitario,
-                  referenciaTabela,
-                });
-              }}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-            >
-              <option value="">Selecione</option>
-              {cidades.map((c, i) => (
-                <option key={i} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
+{/* Cidade */}
+<div>
+  <label className="block text-sm font-medium text-gray-700">Cidade</label>
+  <select
+    value={cidade}
+    onChange={(e) => setCidade(e.target.value)}
+    className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+  >
+    <option value="">Selecione</option>
+    {cidades.map((c, i) => (
+      <option key={i} value={c}>{c}</option>
+    ))}
+  </select>
+</div>
           {/* Escola */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Escola</label>
