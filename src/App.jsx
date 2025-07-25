@@ -570,12 +570,14 @@ return (
 {/* Total */}
 {itensPedido.length > 0 && (
   <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2 mb-4">
-    Total: R$ {itensPedido
-      .reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0)
-      .toFixed(2)}
+    Total: R$ {(
+      itensPedido.reduce(
+        (acc, item) => acc + item.quantidade * item.valorUnitario,
+        0
+      )
+    ).toFixed(2)}
   </div>
 )}
-
 {/* Botões Voltar e Salvar */}
 <div className="mt-6 flex justify-between">
   <button
