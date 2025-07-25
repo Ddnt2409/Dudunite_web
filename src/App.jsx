@@ -520,6 +520,7 @@ return (
 
 {/* === QUADRANTE – Produto, Quantidade, V. Unit, Total === */}
 <div className="space-y-2">
+  {/* Linha de Produto, Qtd, V. Unit */}
   <div className="grid grid-cols-3 gap-2">
     <select
       value={produtoSelecionado}
@@ -540,6 +541,7 @@ return (
         <option key={i} value={p}>{p}</option>
       ))}
     </select>
+
     <input
       type="number"
       min="1"
@@ -548,6 +550,7 @@ return (
       className="border border-gray-300 rounded px-2 py-1"
       placeholder="Qtd"
     />
+
     <input
       type="number"
       min="0"
@@ -559,6 +562,7 @@ return (
     />
   </div>
 
+  {/* Botão Adicionar Item */}
   <button
     onClick={adicionarItemAoPedido}
     className="bg-[#8c3b1b] text-white py-2 px-4 rounded"
@@ -566,6 +570,7 @@ return (
     ➕ Adicionar Item
   </button>
 
+  {/* Lista de Itens do Pedido */}
   <ul className="space-y-2 mt-2">
     {itensPedido.map((item, i) => (
       <li key={i} className="bg-white border p-2 rounded shadow text-sm">
@@ -574,6 +579,7 @@ return (
     ))}
   </ul>
 
+  {/* Total do Pedido */}
   {itensPedido.length > 0 && (
     <div className="text-right text-[#8c3b1b] font-bold text-lg mt-6">
       Total: R$ {itensPedido
@@ -581,7 +587,19 @@ return (
         .toFixed(2)}
     </div>
   )}
+
+  {/* Botões de ação */}
+  <div className="mt-6 flex justify-between">
+    <button
+      onClick={() => setTelaAtual("PCP")}
+      className="bg-gray-400 text-white px-4 py-2 rounded"
+    >
+      ← Voltar
+    </button>
+    {/* O botão "Salvar Pedido" vem logo abaixo deste quadrante */}
+  </div>
 </div>
+{/* === FIM QUADRANTE === */}
 {/* === FIM QUADRANTE === */}
   💾 Salvar Pedido
 </button>
