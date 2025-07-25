@@ -2,51 +2,57 @@
 import React, { useState, useEffect } from "react";
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from "firebase/firestore";
 import db from "./firebase";
-
+import dbFinanceiro from "./firebaseFinanceiro"; // ✅ Adicionado corretamente
 // === FN02 – Cores e Logomarca ===
 const corPrimaria = "#8c3b1b";
 const logoPath = "/LogomarcaDDnt2025Vazado.png";
 
-// === FN03 – Componente App ===
-function App() {
-  const [telaAtual, setTelaAtual] = useState("PCP");
+// === INÍCIO FN03 – Componente Principal: App ===
+const App = () => {
+  // Estados principais
   const [cidade, setCidade] = useState("");
   const [escola, setEscola] = useState("");
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [quantidade, setQuantidade] = useState(1);
-  const [dataVencimento, setDataVencimento] = useState("");
-  const [formaPagamento, setFormaPagamento] = useState("");
+  const [itens, setItens] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
+  const [dataSelecionada, setDataSelecionada] = useState("");
+  const [mostrarDadosMestres, setMostrarDadosMestres] = useState(false);
+  const [mostrarPlanejamento, setMostrarPlanejamento] = useState(false);
+  const [mostrarListaCompras, setMostrarListaCompras] = useState(false);
+  const [mostrarFormularioPDV, setMostrarFormularioPDV] = useState(false);
+  const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
+  const [modoEdicaoPDV, setModoEdicaoPDV] = useState(false);
+  const [cidadeSelecionadaPDV, setCidadeSelecionadaPDV] = useState("");
+  const [novoPDV, setNovoPDV] = useState("");
+  const [pdvs, setPdvs] = useState([]);
+  const [mostrarRT03, setMostrarRT03] = useState(false);
+  const [modoAlimentarSabores, setModoAlimentarSabores] = useState(false);
+  const [statusEtapa, setStatusEtapa] = useState("Lançado");
+  const [filtrosData, setFiltrosData] = useState({ inicio: "", fim: "" });
+  const [mostrarRT06, setMostrarRT06] = useState(false);
+
+  // === INÍCIO useStates da FN03 – Tabela de Preço e Valor Unitário ===
+  const [tabelaPreco, setTabelaPreco] = useState([]);
   const [referenciaTabela, setReferenciaTabela] = useState("");
+  const [referenciasTabela, setReferenciasTabela] = useState([]);
   const [valorUnitario, setValorUnitario] = useState("");
-  const [itensPedido, setItensPedido] = useState([]);
+  // === FIM useStates da FN03 ===
+// === FIM FN03 ===
+// === INÍCIO FN03a – Estados adicionais pendentes ===
+  const [telaAtual, setTelaAtual] = useState("PCP");
   const [pedidosLancados, setPedidosLancados] = useState([]);
   const [pedidosPendentes, setPedidosPendentes] = useState([]);
-  const [saboresDisponiveis, setSaboresDisponiveis] = useState([]);
   const [formasPagamento, setFormasPagamento] = useState([]);
-  const [tabelaPreco, setTabelaPreco] = useState([]);
-
-  const cidades = ["Gravatá", "Recife", "Caruaru"];
-  const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
-
-  const escolasPorCidade = {
-    Gravatá: ["Pequeno Príncipe", "Salesianas", "Céu Azul", "Russas", "Bora Gastar", "Kaduh", "Society Show", "Degusty"],
-    Recife: ["Tio Valter", "Vera Cruz", "Pinheiros", "Dourado", "BMQ", "CFC", "Madre de Deus", "Saber Viver"],
-    Caruaru: ["Interativo", "Exato Sede", "Exato Anexo", "Sesi", "Motivo", "Jesus Salvador"],
-  };
-
-  const escolasFiltradas = cidade ? escolasPorCidade[cidade] || [] : [];
-
-  useEffect(() => {
-    if (telaAtual === "Sabores") {
-      carregarPedidosLancados();
-    }
-  }, [telaAtual]);
-
-  useEffect(() => {
-    carregarTabelaPrecoFirebase(setTabelaPreco);
-    carregarFormasPagamento(setFormasPagamento);
-  }, []);
-// === FIM FN03 ===
+  const [dataVencimento, setDataVencimento] = useState("");
+  const [formaPagamento, setFormaPagamento] = useState("");
+  const [tabelaSelecionada, setTabelaSelecionada] = useState("");
+  const [itensPedido, setItensPedido] = useState([]);
+  const [produtos, setProdutos] = useState([]);
+  const [cidades, setCidades] = useState([]);
+  const [escolasFiltradas, setEscolasFiltradas] = useState([]);
+  const [saboresDisponiveis, setSaboresDisponiveis] = useState([]);
+  // === FIM FN03a ===
   // === FN04 – Carregar pedidos com status 'Lançado' ===
   const carregarPedidosLancados = async () => {
     try {
@@ -210,78 +216,94 @@ const carregarTabelaDePrecos = async () => {
 };  
 // === FIM FN10 ===
 
-// === FN11 – Buscar valor unitário na tabela ===
-const buscarValorUnitario = (produtoSelecionado) => {
-  if (tabelaPrecos && tabelaPrecos[produtoSelecionado]) {
-    setValorUnitario(tabelaPrecos[produtoSelecionado]);
-  } else {
-    setValorUnitario("");
-  }
-};
-// === FIM FN11 ===
-// === INÍCIO FN12 – Carregar tabela de preços (revenda padrão) ===
-const carregarTabelaPrecoFirebase = async (setTabelaPreco) => {
+// === FN11 – espaço vago
+// === INÍCIO FN12 – Carregar tabela de preços do Firestore (módulo financeiro) ===
+// === INÍCIO FN12 – Carregar tabela de preços do Firestore (módulo financeiro) ===
+const carregarTabelaPrecos = async (setTabelaPreco, setReferenciasTabela) => {
   try {
-    const ref = collection(db, "tabela_precos");
+    const ref = collection(dbFinanceiro, "tabela_precos_revenda");
     const snapshot = await getDocs(ref);
 
-    const precos = snapshot.docs.map((doc) => doc.data());
-    const precosMaisRecentes = {};
+    const precos = [];
+    const referencias = [];
 
-    precos.forEach((p) => {
-      const chave = `${p.produto}-revenda`.toLowerCase();
-      if (
-        p.tipo === "revenda" && (
-          !precosMaisRecentes[chave] ||
-          (p.timestamp?.seconds || 0) > (precosMaisRecentes[chave].timestamp?.seconds || 0)
-        )
-      ) {
-        precosMaisRecentes[chave] = p;
-      }
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const referencia = doc.id;
+      referencias.push(referencia);
+
+      const precosMap = data.precos || {};
+      Object.entries(precosMap).forEach(([produto, valores]) => {
+        precos.push({
+          produto,
+          cidade: "", // ainda não usamos cidade na base
+          referencia,
+          valor: valores.rev2 || 0,
+        });
+      });
     });
 
-    setTabelaPreco(Object.values(precosMaisRecentes));
-  } catch (error) {
-    console.error("Erro ao carregar tabela de preços:", error);
+    setTabelaPreco(precos);
+    setReferenciasTabela(referencias);
+  } catch (erro) {
+    console.error("Erro ao carregar tabela de preços:", erro);
     setTabelaPreco([]);
+    setReferenciasTabela([]);
   }
 };
 // === FIM FN12 ===
-
-// === INÍCIO FN13 – Buscar valor unitário ao selecionar produto ===
+// === INÍCIO FN13 – Ajustar valor unitário ao selecionar produto ===
 const ajustarValorProdutoAoSelecionar = ({
   produtoSelecionado,
+  cidade,
   tabelaPreco,
   setValorUnitario,
+  referenciaTabela,
 }) => {
+  if (!produtoSelecionado || !cidade || !referenciaTabela) {
+    setValorUnitario("");
+    return;
+  }
+
   const item = tabelaPreco.find(
     (p) =>
       p.produto === produtoSelecionado &&
-      p.tipo === "revenda"
+      p.cidade === cidade &&
+      p.referencia === referenciaTabela
   );
 
-  if (item) {
+if (item && typeof item.valor === "number") {
     setValorUnitario(item.valor);
   } else {
     setValorUnitario("");
   }
-};
+}; // ✅ fecha apenas a função ajustarValorProdutoAoSelecionar
+
 // === FIM FN13 ===
+
 // === INÍCIO FN14 – Carregar formas de pagamento fixas ===
 const carregarFormasPagamento = (setFormasPagamento) => {
   const formas = ["PIX", "Espécie", "Boleto"];
   setFormasPagamento(formas);
 };
 // === FIM FN14 ===
-  // === INÍCIO FN15 – Inicializar Formas de Pagamento ===
+// === INÍCIO FN15 – Atualizar valor unitário ao mudar cidade/produto/tabela ===
 useEffect(() => {
-  const formas = ["PIX", "Espécie", "Boleto"];
-  setFormasPagamento(formas);
-}, []);
-// === FIM FN15 ===
-// === RT99 – Return do Componente ===
+  ajustarValorProdutoAoSelecionar({
+    produtoSelecionado,
+    cidade,
+    tabelaPreco,
+    setValorUnitario,
+    referenciaTabela,
+  });
+}, [produtoSelecionado, cidade, referenciaTabela, tabelaPreco]);
 return (
-  <>
+    <>
+      {/* === INÍCIO DEBUG VISUAL TEMPORÁRIO – Exibir quantidade de preços carregados === */}
+      <div style={{ padding: "10px", backgroundColor: "#ffe" }}>
+        <strong>Preços carregados:</strong> {tabelaPreco.length}
+      </div>
+      {/* === FIM DEBUG VISUAL TEMPORÁRIO === */}
     {/* === RT00a – Tela Inicial PCP === */}
     {telaAtual === "PCP" && (
       <div className="min-h-screen bg-[#fdf8f5] flex flex-col items-center p-4">
@@ -340,86 +362,85 @@ return (
       </div>
     )}
     {/* === FIM RT00a === */}
+{/* === INÍCIO RT01 – Alimentar Sabores === */}
+{telaAtual === "Sabores" && (
+  <div className="p-4 bg-[#fdf8f5] min-h-screen">
+    <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Alimentar Sabores</h2>
 
-    {/* === INÍCIO RT01 – Alimentar Sabores === */}
-    {telaAtual === "Sabores" && (
-      <div className="p-4 bg-[#fdf8f5] min-h-screen">
-        <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Alimentar Sabores</h2>
+    {pedidosPendentes.length === 0 ? (
+      <p className="text-gray-600">Nenhum pedido pendente encontrado.</p>
+    ) : (
+      <div className="space-y-6">
+        {pedidosPendentes.map((pedido, index) => (
+          <div
+            key={index}
+            className="border border-gray-300 rounded p-4 bg-white shadow"
+          >
+            <p><strong>Cidade:</strong> {pedido.cidade}</p>
+            <p><strong>Escola:</strong> {pedido.escola}</p>
 
-        {pedidosPendentes.length === 0 ? (
-          <p className="text-gray-600">Nenhum pedido pendente encontrado.</p>
-        ) : (
-          <div className="space-y-6">
-            {pedidosPendentes.map((pedido, index) => (
-              <div
-                key={index}
-                className="border border-gray-300 rounded p-4 bg-white shadow"
-              >
-                <p><strong>Cidade:</strong> {pedido.cidade}</p>
-                <p><strong>Escola:</strong> {pedido.escola}</p>
+            <div className="mt-4 space-y-4">
+              {pedido.itens.map((item, itemIndex) => (
+                <div
+                  key={itemIndex}
+                  className="border p-3 rounded bg-gray-50"
+                >
+                  <p><strong>Produto:</strong> {item.produto}</p>
+                  <p><strong>Quantidade:</strong> {item.quantidade}</p>
 
-                <div className="mt-4 space-y-4">
-                  {pedido.itens.map((item, itemIndex) => (
-                    <div
-                      key={itemIndex}
-                      className="border p-3 rounded bg-gray-50"
-                    >
-                      <p><strong>Produto:</strong> {item.produto}</p>
-                      <p><strong>Quantidade:</strong> {item.quantidade}</p>
+                  <div className="mt-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Sabores:
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">
+                      {saboresDisponiveis
+                        .filter((sabor) => sabor.produto === item.produto)
+                        .map((sabor, saborIndex) => (
+                          <label key={saborIndex} className="inline-flex items-center">
+                            <input
+                              type="checkbox"
+                              className="form-checkbox h-4 w-4 text-[#8c3b1b] transition duration-150 ease-in-out"
+                              checked={item.sabores?.includes(sabor.nome) || false}
+                              onChange={(e) => {
+                                const novosPedidos = [...pedidosPendentes];
+                                const saboresAtuais =
+                                  novosPedidos[index].itens[itemIndex].sabores || [];
 
-                      <div className="mt-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                          Sabores:
-                        </label>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-1">
-                          {saboresDisponiveis
-                            .filter((sabor) => sabor.produto === item.produto)
-                            .map((sabor, saborIndex) => (
-                              <label key={saborIndex} className="inline-flex items-center">
-                                <input
-                                  type="checkbox"
-                                  className="form-checkbox h-4 w-4 text-[#8c3b1b] transition duration-150 ease-in-out"
-                                  checked={item.sabores?.includes(sabor.nome) || false}
-                                  onChange={(e) => {
-                                    const novosPedidos = [...pedidosPendentes];
-                                    const saboresAtuais =
-                                      novosPedidos[index].itens[itemIndex].sabores || [];
+                                if (e.target.checked) {
+                                  saboresAtuais.push(sabor.nome);
+                                } else {
+                                  const idx = saboresAtuais.indexOf(sabor.nome);
+                                  if (idx > -1) saboresAtuais.splice(idx, 1);
+                                }
 
-                                    if (e.target.checked) {
-                                      saboresAtuais.push(sabor.nome);
-                                    } else {
-                                      const idx = saboresAtuais.indexOf(sabor.nome);
-                                      if (idx > -1) saboresAtuais.splice(idx, 1);
-                                    }
-
-                                    novosPedidos[index].itens[itemIndex].sabores = saboresAtuais;
-                                    setPedidosPendentes(novosPedidos);
-                                  }}
-                                />
-                                <span className="ml-2 text-sm">{sabor.nome}</span>
-                              </label>
-                            ))}
-                        </div>
-                      </div>
+                                novosPedidos[index].itens[itemIndex].sabores = saboresAtuais;
+                                setPedidosPendentes(novosPedidos);
+                              }}
+                            />
+                            <span className="ml-2 text-sm">{sabor.nome}</span>
+                          </label>
+                        ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                </div> // ✅ Fecha item individual
+              ))}
+            </div> {/* Fecha bloco de itens */}
 
-                <div className="mt-4 text-right">
-                  <button
-                    onClick={() => salvarSabores(pedido, index)}
-                    className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
-                  >
-                    💾 Salvar Pedido
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+            <div className="mt-4 text-right">
+              <button
+                onClick={() => salvarSabores(pedido, index)}
+                className="bg-[#8c3b1b] hover:bg-[#6d2d14] text-white font-semibold py-2 px-4 rounded"
+              >
+                💾 Salvar Pedido
+              </button>
+            </div>
+          </div> // ✅ Fecha pedido
+        ))}
+      </div> // ✅ Fecha lista de pedidos
     )}
-    {/* === FIM RT01 === */}
+  </div> // ✅ Fecha container principal de Sabores
+)}
+{/* === FIM RT01 === */}
 
     {/* === INÍCIO RT02 – Tela de Resumo de Pedidos === */}
     {telaAtual === "Resumo" && (
@@ -446,151 +467,180 @@ return (
     )}
     {/* === FIM RT02 === */}
 
-    {/* === INÍCIO RT03 – Tela de Lançamento de Pedido === */}
-    {telaAtual === "Lancamento" && (
-      <div className="p-6 bg-[#fdf8f5] min-h-screen">
-        <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Lançamento de Pedido</h2>
+{/* === INÍCIO RT03 – Tela de Lançamento de Pedido === */}
+{telaAtual === "Lancamento" && (
+  <div className="p-6 bg-[#fdf8f5] min-h-screen">
+    <h2 className="text-2xl font-bold mb-4 text-[#8c3b1b]">Lançamento de Pedido</h2>
 
-        <div className="space-y-4 max-w-xl mx-auto">
-          {/* Cidade */}
-{/* Cidade */}
-<div>
-  <label className="block text-sm font-medium text-gray-700">Cidade</label>
-  <select
-    value={cidade}
-    onChange={(e) => setCidade(e.target.value)}
-    className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-  >
-    <option value="">Selecione</option>
-    {cidades.map((c, i) => (
-      <option key={i} value={c}>{c}</option>
-    ))}
-  </select>
-</div>
-          {/* Escola */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Escola</label>
-            <select
-              value={escola}
-              onChange={(e) => setEscola(e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-            >
-              <option value="">Selecione</option>
-              {escolasFiltradas.map((e, i) => (
-                <option key={i} value={e}>{e}</option>
-              ))}
-            </select>
-          </div>
+    <div className="space-y-4 max-w-xl mx-auto">
+      {/* Cidade */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Cidade</label>
+        <select
+          value={cidade}
+          onChange={(e) => {
+            setCidade(e.target.value);
+            ajustarValorProdutoAoSelecionar({
+              produtoSelecionado,
+              cidade: e.target.value,
+              tabelaPreco,
+              setValorUnitario,
+              referenciaTabela,
+            });
+          }}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        >
+          <option value="">Selecione</option>
+          {cidades.map((c, i) => (
+            <option key={i} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
 
-          {/* Vencimento */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Vencimento</label>
-            <input
-              type="date"
-              value={dataVencimento}
-              onChange={(e) => setDataVencimento(e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-            />
-          </div>
+      {/* Escola */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Escola</label>
+        <select
+          value={escola}
+          onChange={(e) => setEscola(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        >
+          <option value="">Selecione</option>
+          {escolasFiltradas.map((e, i) => (
+            <option key={i} value={e}>{e}</option>
+          ))}
+        </select>
+      </div>
 
-          {/* Forma de Pagamento */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Forma de Pagamento</label>
-            <select
-              value={formaPagamento}
-              onChange={(e) => setFormaPagamento(e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-            >
-              <option value="">Selecione</option>
-              {formasPagamento.map((f, i) => (
-                <option key={i} value={f}>{f}</option>
-              ))}
-            </select>
-          </div>
+      {/* Tabela */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Tabela</label>
+        <select
+          value={referenciaTabela}
+          onChange={(e) => {
+            const novaRef = e.target.value;
+            setReferenciaTabela(novaRef);
+            ajustarValorProdutoAoSelecionar({
+              produtoSelecionado,
+              cidade,
+              tabelaPreco,
+              setValorUnitario,
+              referenciaTabela: novaRef,
+            });
+          }}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        >
+          <option value="">Selecione</option>
+          {referenciasTabela.map((ref, i) => (
+            <option key={i} value={ref}>{ref}</option>
+          ))}
+        </select>
+      </div>
 
-{/* Produto, Quantidade, Valor Unitário */}
-<div className="grid grid-cols-3 gap-2">
-  <select
-    value={produtoSelecionado}
-    onChange={(e) => setProdutoSelecionado(e.target.value)}
-    className="border border-gray-300 rounded px-2 py-1"
-  >
-    <option value="">Produto</option>
-    {produtos.map((p, i) => (
-      <option key={i} value={p}>{p}</option>
-    ))}
-  </select>
+      {/* Vencimento */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Vencimento</label>
+        <input
+          type="date"
+          value={dataVencimento}
+          onChange={(e) => setDataVencimento(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        />
+      </div>
 
-  <input
-    type="number"
-    min="1"
-    value={quantidade}
-    onChange={(e) => setQuantidade(Number(e.target.value))}
-    className="border border-gray-300 rounded px-2 py-1"
-    placeholder="Qtd"
-  />
+      {/* Forma de Pagamento */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Forma de Pagamento</label>
+        <select
+          value={formaPagamento}
+          onChange={(e) => setFormaPagamento(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+        >
+          <option value="">Selecione</option>
+          {formasPagamento.map((f, i) => (
+            <option key={i} value={f}>{f}</option>
+          ))}
+        </select>
+      </div>
 
-  <input
-    type="number"
-    min="0"
-    step="0.01"
-    value={valorUnitario}
-    onChange={(e) => setValorUnitario(Number(e.target.value))}
-    className="border border-gray-300 rounded px-2 py-1"
-    placeholder="R$"
-  />
-</div>
-{/* Botão Adicionar Item */}
+      {/* Produto, Quantidade, Valor */}
+      <div className="grid grid-cols-3 gap-2">
+        <select
+          value={produtoSelecionado}
+          onChange={(e) => {
+            setProdutoSelecionado(e.target.value);
+            ajustarValorProdutoAoSelecionar({
+              produtoSelecionado: e.target.value,
+              cidade,
+              tabelaPreco,
+              setValorUnitario,
+              referenciaTabela,
+            });
+          }}
+          className="border border-gray-300 rounded px-2 py-1"
+        >
+          <option value="">Produto</option>
+          {produtos.map((p, i) => (
+            <option key={i} value={p}>{p}</option>
+          ))}
+        </select>
+        <input
+          type="number"
+          min="1"
+          value={quantidade}
+          onChange={(e) => setQuantidade(e.target.value)}
+          className="border border-gray-300 rounded px-2 py-1"
+          placeholder="Qtd"
+        />
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          value={valorUnitario}
+          onChange={(e) => setValorUnitario(e.target.value)}
+          className="border border-gray-300 rounded px-2 py-1"
+          placeholder="R$"
+        />
+      </div>
+
+      <button
+        onClick={adicionarItemAoPedido}
+        className="mt-2 bg-[#8c3b1b] text-white py-2 px-4 rounded"
+      >
+        ➕ Adicionar Item
+      </button>
+
+      <ul className="mt-4 space-y-2">
+        {itensPedido.map((item, i) => (
+          <li key={i} className="bg-white border p-2 rounded shadow text-sm">
+            {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
+          </li>
+        ))}
+      </ul>
+
+      {itensPedido.length > 0 && (
+        <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2">
+          Total: R$ {itensPedido.reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0).toFixed(2)}
+        </div>
+      )}
+
+      <div className="mt-6 flex justify-between">
+        <button
+          onClick={() => setTelaAtual("PCP")}
+          className="bg-gray-400 text-white px-4 py-2 rounded"
+        >
+          ← Voltar
+        </button>
 <button
-  onClick={adicionarItemAoPedido}
-  className="mt-2 mb-4 bg-[#8c3b1b] text-white py-2 px-4 rounded"
->
-  ➕ Adicionar Item
-</button>
-
-{/* Lista de Itens Adicionados */}
-<ul className="space-y-2">
-  {itensPedido.map((item, i) => (
-    <li key={i} className="bg-white border p-2 rounded shadow text-sm">
-      {item.quantidade}x {item.produto} – R$ {item.valorUnitario.toFixed(2)}
-    </li>
-  ))}
-</ul>
-
-{/* Total */}
-{itensPedido.length > 0 && (
-  <div className="text-right text-[#8c3b1b] font-bold text-lg mt-2 mb-4">
-    Total: R$ {(
-      itensPedido.reduce(
-        (acc, item) => acc + item.quantidade * item.valorUnitario,
-        0
-      )
-    ).toFixed(2)}
-  </div>
-)}
-{/* Botões Voltar e Salvar */}
-<div className="mt-6 flex justify-between">
-  <button
-    onClick={() => setTelaAtual("PCP")}
-    className="bg-gray-400 text-white px-4 py-2 rounded"
-  >
-    ← Voltar
-  </button>
-  <button
-    onClick={salvarPedido}
-    className="bg-green-600 text-white px-4 py-2 rounded"
-  >
-    💾 Salvar Pedido
-  </button>
-</div>
-    </div> {/* FIM do container interno */}
-  </div> 
-)} 
-{/* === FIM RT03 === */}
-</> // FIM do fragmento
-); // FIM do return
-// === FIM RT99 ===
-
-}; // FIM da função App
+        onClick={salvarPedidoRapido}
+        className="bg-green-600 text-white px-4 py-2 rounded"
+      >
+💾 Salvar Pedido
+</div> {/* Fecha div dos botões */}
+    </div>   {/* Fecha container geral da tela */}
+    )}       {/* Fecha a condicional telaAtual === 'Lancamento' */}
+  </>        {/* Fecha o React Fragment */}
+);           {/* Fecha o return */}
+};           {/* Fecha a função App */}
 
 export default App;
