@@ -518,11 +518,17 @@ return (
           </div>
 
 {/* Produto, Quantidade, Valor Unitário */}
+{/* Produto, Quantidade, Valor Unitário */}
 <div className="grid grid-cols-3 gap-2">
   <select
     value={produtoSelecionado}
     onChange={(e) => {
       setProdutoSelecionado(e.target.value);
+      ajustarValorProdutoAoSelecionar({
+        produtoSelecionado: e.target.value,
+        tabelaPreco,
+        setValorUnitario,
+      });
     }}
     className="border border-gray-300 rounded px-2 py-1"
   >
@@ -531,6 +537,7 @@ return (
       <option key={i} value={p}>{p}</option>
     ))}
   </select>
+
   <input
     type="number"
     min="1"
@@ -539,6 +546,7 @@ return (
     className="border border-gray-300 rounded px-2 py-1"
     placeholder="Qtd"
   />
+
   <input
     type="number"
     min="0"
@@ -549,7 +557,6 @@ return (
     placeholder="R$"
   />
 </div>
-
 {/* Botão Adicionar Item */}
 <button
   onClick={adicionarItemAoPedido}
