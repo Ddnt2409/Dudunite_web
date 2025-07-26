@@ -602,14 +602,15 @@ return (
     ← Voltar
   </button>
 
-  <button
-    onClick={salvarPedidoRapido}
-    className="bg-green-600 text-white px-4 py-2 rounded"
-  >
-    💾 Salvar Pedido
-  </button>
-</div> {/* FIM do container interno */}
-</div> {/* FIM do wrapper externo */}
+<button
+          onClick={salvarPedidoRapido}
+          className="bg-green-600 text-white px-4 py-2 rounded"
+        >
+          💾 Salvar Pedido
+        </button>
+      </div> {/* FIM do container de ações */}
+    </div> {/* FIM do container interno */}
+  </div> {/* FIM do wrapper externo */}
 </> {/* FIM do fragmento */}
 ); // FIM do return
 
