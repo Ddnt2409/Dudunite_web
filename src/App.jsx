@@ -606,13 +606,10 @@ return (
   💾 Salvar Pedido
 </button>
       </div> {/* FIM dos botões */}
-    </div> {/* FIM do container interno */}
-  </div> 
-)} {/* === FIM RT03 === */}
-</> // FIM do fragmento
+</div> {/* FIM do container interno */}
+    </div> {/* FIM do wrapper externo */}
+  </> // FIM do fragmento
 ); // FIM do return
-// === FIM RT99 ===
-
 }; // FIM da função App
 
 export default App;
