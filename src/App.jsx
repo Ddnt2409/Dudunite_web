@@ -594,24 +594,24 @@ return (
   </div>
 )}
         {/* Botões de ação */}
-        <div className="mt-6 flex justify-between">
-  <button
-    onClick={() => setTelaAtual("PCP")}
-    className="bg-gray-400 text-white px-4 py-2 rounded"
-  >
-    ← Voltar
-  </button>
+<div className="mt-6 flex justify-between">
+          <button
+            onClick={() => setTelaAtual("PCP")}
+            className="bg-gray-400 text-white px-4 py-2 rounded"
+          >
+            ← Voltar
+          </button>
 
-<button
-          onClick={salvarPedidoRapido}
-          className="bg-green-600 text-white px-4 py-2 rounded"
-        >
-          💾 Salvar Pedido
-        </button>
-      </div> {/* FIM do container de ações */}
-    </div> {/* FIM do container interno */}
-  </div> {/* FIM do wrapper externo */}
-</> {/* FIM do fragmento */}
+          <button
+            onClick={salvarPedidoRapido}
+            className="bg-green-600 text-white px-4 py-2 rounded"
+          >
+            💾 Salvar Pedido
+          </button>
+        </div> {/* FIM do container de ações */}
+      </div> {/* FIM do container interno */}
+    </div> {/* FIM do wrapper externo */}
+  </> {/* FIM do fragmento */}
 ); // FIM do return
 
 export default App;
