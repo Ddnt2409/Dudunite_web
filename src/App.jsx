@@ -610,7 +610,6 @@ return (
           </button>
         </div> {/* FIM do container de ações */}
       </div> {/* FIM do container interno */}
-    </div> {/* FIM do wrapper externo */}
   </> {/* FIM do fragmento */}
 ); // FIM do return
 
