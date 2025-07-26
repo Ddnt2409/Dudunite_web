@@ -605,9 +605,10 @@ return (
 >
   💾 Salvar Pedido
 </button>
-    </div> {/* FIM dos botões */}
-  </div>)} {/* FIM do container interno */}
-</div> {/* FIM do wrapper externo */}
-</> {/* FIM do fragmento */}
+</div> {/* FIM dos botões */}
+      </div> {/* FIM do container interno */}
+    </div> {/* FIM do wrapper externo */}
+  </> {/* FIM do fragmento */}
+); // FIM do return
 ); // FIM do return
 export default App;
