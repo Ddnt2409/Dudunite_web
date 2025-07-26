@@ -581,14 +581,18 @@ return (
         </ul>
 
         {/* Total do Pedido */}
-        {itensPedido.length > 0 && (
-          <div className="text-right text-[#8c3b1b] font-bold text-lg mt-6">
-            Total: R$ {itensPedido
-              .reduce((acc, item) => acc + item.quantidade * item.valorUnitario, 0)
-              .toFixed(2)}
-          </div>
-        )}
-
+{itensPedido.length > 0 && (
+  <div className="text-right text-[#8c3b1b] font-bold text-lg mt-6">
+    Total: R$ {
+      (
+        itensPedido.reduce(
+          (acc, item) => acc + item.quantidade * item.valorUnitario,
+          0
+        )
+      ).toFixed(2)
+    }
+  </div>
+)}
         {/* Botões de ação */}
         <div className="mt-6 flex justify-between">
           <button
@@ -600,14 +604,15 @@ return (
         </div>
       </div>
 
-      <button
+<button
         onClick={salvarPedidoRapido}
         className="bg-green-600 text-white px-4 py-2 rounded"
       >
         💾 Salvar Pedido
       </button>
-</div> {/* FIM do container interno */}
-</div> {/* FIM do wrapper externo */}
+    </div> {/* FIM do container interno */}
+  </div> {/* FIM do wrapper externo */}
 </> {/* FIM do fragmento */}
 ); // FIM do return
+
 export default App;
