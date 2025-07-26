@@ -606,7 +606,7 @@ return (
   💾 Salvar Pedido
 </button>
     </div> {/* FIM dos botões */}
-  </div> {/* FIM do container interno */}
+  </div>) {/* FIM do container interno */}
 </div> {/* FIM do wrapper externo */}
 </> {/* FIM do fragmento */}
 ); // FIM do return
