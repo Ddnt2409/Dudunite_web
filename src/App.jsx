@@ -602,15 +602,17 @@ return (
             ← Voltar
           </button>
 
-          <button
-            onClick={salvarPedidoRapido}
-            className="bg-green-600 text-white px-4 py-2 rounded"
-          >
-            💾 Salvar Pedido
-          </button>
-        </div> {/* FIM do container de ações */}
-      </div> {/* FIM do container interno */}
-  </> {/* FIM do fragmento */}
-); // FIM do return
+<div className="mt-4 text-right">
+    <button
+      onClick={salvarPedidoRapido}
+      className="bg-green-600 text-white px-4 py-2 rounded"
+    >
+      💾 Salvar Pedido
+    </button>
+  </div>
+</div> {/* FIM dos botões e salvar */}
+</div> {/* FIM do container interno */}
+</div> {/* FIM do wrapper externo */}
+</> {/* FIM do fragmento */}
 
 export default App;
