@@ -787,6 +787,6 @@ export default App;
 </div> {/* FIM do container interno */}
 </div> {/* FIM do wrapper externo */}
 </> {/* FIM do fragmento */}
-
+);
 };
 export default App;
