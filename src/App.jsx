@@ -601,12 +601,14 @@ useEffect(() => {
             >
               💾 Salvar Pedido
             </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )}
-  {/* === FIM RT03 === */}
-</>
-{/* === FIM RT99 === */}
+</div> {/* Botões Voltar e Salvar */}
+        </div> {/* QUADRANTE */}
+      </div> {/* CONTAINER INTERNO */}
+    </div> {/* WRAPPER EXTERNO */}
+  )} {/* === FIM RT03 === */}
+</> {/* === FIM RT99 === */}
+); // FECHAMENTO DO RETURN DA FUNÇÃO App
+
+} // FECHAMENTO DA FUNÇÃO App
+
 export default App;
