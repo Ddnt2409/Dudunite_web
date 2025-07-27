@@ -788,4 +788,5 @@ export default App;
 </div> {/* FIM do wrapper externo */}
 </> {/* FIM do fragmento */}
 
+}
 export default App;
