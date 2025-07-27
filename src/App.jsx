@@ -605,7 +605,6 @@ useEffect(() => {
         </div> {/* QUADRANTE */}
       </div> {/* CONTAINER INTERNO */}
     </div> {/* WRAPPER EXTERNO */}
-  )} {/* === FIM RT03 === */}
 </> {/* === FIM RT99 === */}
 ); // FECHAMENTO DO RETURN DA FUNÇÃO App
 
