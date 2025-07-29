@@ -1,9 +1,11 @@
-import React from 'react';
-import HomePCP from './components/HomePCP';
+import React from "react";
+import HomePCP from "./components/HomePCP"; // Certifique-se do caminho correto
 
 function App() {
   return (
-    <HomePCP />
+    <div>
+      <HomePCP />
+    </div>
   );
 }
 
