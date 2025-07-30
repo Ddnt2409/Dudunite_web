@@ -54,7 +54,7 @@ const HomePCP = () => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "0.5rem", // redução vertical real de ~30%
+              padding: "0.3rem 0.5rem", // reduzido
               backgroundColor: "rgba(255, 255, 255, 0.5)",
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
@@ -63,9 +63,9 @@ const HomePCP = () => {
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "96px", height: "auto" }}
+              style={{ width: "70px", height: "auto" }} // reduzido
             />
-            <h1 style={{ color: "#8c3b1b", fontSize: "1rem" }}>ERP DUDUNITÊ</h1>
+            <h1 style={{ color: "#8c3b1b", fontSize: "0.85rem" }}>ERP DUDUNITÊ</h1>
           </header>
 
           {/* === Bloco Central (subido 20%) === */}
