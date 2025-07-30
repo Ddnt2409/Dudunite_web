@@ -34,27 +34,30 @@ const HomePCP = () => {
             backgroundImage: "url('/bg001.png')",
             backgroundSize: "cover",
             backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
             minHeight: "100vh",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
-            backgroundRepeat: "no-repeat",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
           }}
         >
           {/* === Cabeçalho Translúcido === */}
           <header
             style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
               padding: "1rem",
-              backgroundColor: "rgba(255, 255, 255, 0.4)",
+              backgroundColor: "rgba(255, 255, 255, 0.5)",
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
-              height: "4rem",
-              position: "sticky",
-              top: 0,
-              zIndex: 10,
             }}
           >
             <img
@@ -65,12 +68,14 @@ const HomePCP = () => {
             <h1 style={{ color: "#8c3b1b", fontSize: "1.2rem" }}>ERP DUDUNITÊ</h1>
           </header>
 
-          {/* === Corpo Principal === */}
-          <main
+          {/* === Bloco Central Posicionado 30% mais acima === */}
+          <div
             style={{
-              padding: "1rem",
+              position: "absolute",
+              top: "25%",
+              width: "100%",
               textAlign: "center",
-              marginTop: "8vh", // sobe todos os botões e texto
+              padding: "1rem",
             }}
           >
             {/* === Botão PCP === */}
@@ -90,15 +95,15 @@ const HomePCP = () => {
               PCP
             </button>
 
-            {/* === Texto Planejamento === */}
+            {/* === Texto Planejamento e Controle === */}
             <div
               style={{
-                backgroundColor: "rgba(255, 255, 255, 0.4)",
-                margin: "0 auto",
+                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                margin: "0 auto 1.5rem auto",
                 padding: "0.4rem 1rem",
                 borderRadius: "8px",
                 maxWidth: "95%",
-                transform: "translateY(-20%)",
+                width: "95%",
               }}
             >
               <p
@@ -113,18 +118,17 @@ const HomePCP = () => {
                   textTransform: "capitalize",
                 }}
               >
-                Planejamento e controle de produção
+                Planejamento e Controle de Produção
               </p>
             </div>
 
-            {/* === Botões principais === */}
+            {/* === Botões === */}
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: "1rem",
                 alignItems: "center",
-                transform: "translateY(-10%)",
               }}
             >
               <button
@@ -157,16 +161,19 @@ const HomePCP = () => {
                 ALIMENTAR SABORES
               </button>
             </div>
-          </main>
+          </div>
 
           {/* === Rodapé Corrigido === */}
           <footer
             style={{
+              marginTop: "auto",
+              width: "100%",
               backgroundColor: "rgba(140, 59, 27, 0.4)",
               color: "white",
               padding: "0.8rem",
               fontSize: "0.9rem",
-              marginTop: "2rem", // garante que ele suba
+              position: "absolute",
+              bottom: 0,
             }}
           >
             <marquee behavior="scroll" direction="left">
