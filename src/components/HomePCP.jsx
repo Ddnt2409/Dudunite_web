@@ -62,38 +62,47 @@ const HomePCP = () => {
 
           {/* === Corpo Principal === */}
           <main style={{ padding: "1rem", textAlign: "center", marginTop: "4rem" }}>
+            {/* === Botão PCP === */}
+            <button
+              style={{
+                backgroundColor: "#8c3b1b",
+                color: "white",
+                padding: "1rem 2rem",
+                borderRadius: "0.5rem",
+                border: "none",
+                fontSize: "1rem",
+                marginBottom: "0.5rem",
+                boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+              }}
+              disabled
+            >
+              PCP
+            </button>
+
+            {/* === Texto “Planejamento...” === */}
             <div
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.4)",
                 marginBottom: "2rem",
-                marginTop: "2rem",
+                marginTop: "0.5rem",
                 display: "inline-block",
-                padding: "0.6rem 1.2rem",
+                padding: "0.4rem 1rem",
                 borderRadius: "8px",
               }}
             >
-              <h1
-                style={{
-                  color: "#8c3b1b",
-                  fontSize: "2rem",
-                  fontWeight: "bold",
-                  margin: 0,
-                }}
-              >
-                PCP
-              </h1>
               <p
                 style={{
                   color: "#8c3b1b",
                   fontWeight: "bold",
                   fontSize: "1rem",
-                  marginTop: "0.3rem",
+                  margin: 0,
                 }}
               >
                 PLANEJAMENTO E CONTROLE DE PRODUÇÃO
               </p>
             </div>
 
+            {/* === Botões principais === */}
             <div
               style={{
                 display: "flex",
