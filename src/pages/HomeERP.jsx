@@ -1,113 +1,114 @@
-// === HomeERP.jsx – Tela Principal do ERP Dudunitê ===
-import React, { useState, useRef } from 'react';
+// src/pages/HomeERP.jsx
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './HomeERP.css';
+
+const botoesMacro = [
+  {
+    titulo: "Produção",
+    rotas: [
+      { label: "Lançar Pedido", path: "/pcp" },
+      { label: "Alimentar Sabores", path: "/sabores" },
+      { label: "Cozinha", path: "/cozinha" },
+      { label: "Status dos pedidos", path: "/status" }
+    ]
+  },
+  {
+    titulo: "Financeiro",
+    rotas: [
+      { label: "Contas a Pagar", path: "/pagar" },
+      { label: "Contas a Receber", path: "/receber" },
+      { label: "Fluxo de Caixa", path: "/fluxo" }
+    ]
+  },
+  {
+    titulo: "Resultados",
+    rotas: [
+      { label: "Análise de Custos", path: "/custos" },
+      { label: "Lucro / Prejuízo", path: "/lucro" },
+      { label: "Ranking de vendas", path: "/ranking" }
+    ]
+  }
+];
 
 const HomeERP = () => {
-  const [moduloAtivo, setModuloAtivo] = useState(1);
-  const [mostrarFuncoes, setMostrarFuncoes] = useState(false);
-  const startX = useRef(null);
+  const [indiceAtivo, setIndiceAtivo] = useState(0);
+  const [expandido, setExpandido] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSwipe = (direcao) => {
+    if (direcao === 'esquerda' && indiceAtivo < botoesMacro.length - 1) {
+      setIndiceAtivo(indiceAtivo + 1);
+      setExpandido(false);
+    } else if (direcao === 'direita' && indiceAtivo > 0) {
+      setIndiceAtivo(indiceAtivo - 1);
+      setExpandido(false);
+    }
+  };
 
   const handleTouchStart = (e) => {
-    startX.current = e.touches[0].clientX;
+    setTouchStartX(e.touches[0].clientX);
   };
 
   const handleTouchMove = (e) => {
-    if (startX.current === null) return;
-    const currentX = e.touches[0].clientX;
-    const diffX = currentX - startX.current;
-
-    if (diffX > 60 && moduloAtivo > 1) {
-      setModuloAtivo(moduloAtivo - 1);
-      setMostrarFuncoes(false);
-      startX.current = null;
-    } else if (diffX < -60 && moduloAtivo < 3) {
-      setModuloAtivo(moduloAtivo + 1);
-      setMostrarFuncoes(false);
-      startX.current = null;
+    const deltaX = e.touches[0].clientX - touchStartX;
+    if (deltaX > 50) {
+      handleSwipe('direita');
+    } else if (deltaX < -50) {
+      handleSwipe('esquerda');
     }
   };
 
-  const getModuloNome = () => {
-    switch (moduloAtivo) {
-      case 1: return "Produção";
-      case 2: return "Financeiro";
-      case 3: return "Resultados";
-      default: return "";
-    }
-  };
-
-  const getModuloFuncoes = () => {
-    switch (moduloAtivo) {
-      case 1:
-        return ["Lançar Pedido", "Alimentar Sabores", "Cozinha", "Status dos pedidos"];
-      case 2:
-        return ["Contas a Pagar", "Contas a Receber", "Fluxo de Caixa"];
-      case 3:
-        return ["Custos", "Vendas", "Lucros"];
-      default:
-        return [];
-    }
-  };
+  const [touchStartX, setTouchStartX] = useState(0);
 
   return (
     <div
-      className="min-h-screen flex flex-col justify-between bg-cover bg-center"
-      style={{ backgroundImage: 'url("/bg002.png")' }}
+      className="homeerp-container"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
     >
-      {/* === Cabeçalho (igual ao HomePCP) === */}
-      <header className="bg-[#fff5ec] flex items-center justify-between px-4 py-3">
-        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logomarca" className="h-10" />
-        <h1 className="text-2xl font-bold text-[#8c3b1b]">ERP DUDUNITÊ</h1>
+      {/* === CABEÇALHO TRANSLÚCIDO === */}
+      <header className="homeerp-header">
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logomarca" className="logo-homeerp" />
+        <h1 className="titulo-erp">ERP DUDUNITÊ</h1>
       </header>
 
-      {/* === Conteúdo Central com Cartões === */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 relative overflow-hidden">
-        <div className="w-full flex justify-center items-center">
+      {/* === BOTÕES DESLIZANTES === */}
+      <div className="carousel">
+        {botoesMacro.map((botao, index) => (
           <div
-            className="w-72 bg-[#fff5ec] rounded-3xl shadow-lg p-6 text-center transition-transform duration-500"
-            style={{ transform: `translateX(${(1 - moduloAtivo) * 100}%)` }}
+            key={index}
+            className={`cartao ${index === indiceAtivo ? 'ativo' : ''}`}
+            onClick={() => setExpandido(!expandido)}
           >
-            <h2
-              className="text-2xl font-bold text-[#8c3b1b] mb-4"
-              onClick={() => setMostrarFuncoes(!mostrarFuncoes)}
-            >
-              {getModuloNome()}
-            </h2>
-            {mostrarFuncoes && (
-              <div className="flex flex-col gap-3">
-                {getModuloFuncoes().map((funcao, index) => (
+            <h2>{botao.titulo}</h2>
+            {expandido && indiceAtivo === index && (
+              <div className="subitens">
+                {botao.rotas.map((rota, i) => (
                   <button
-                    key={index}
-                    className="bg-white text-[#8c3b1b] border border-[#8c3b1b] py-2 rounded-xl shadow"
+                    key={i}
+                    onClick={() => navigate(rota.path)}
+                    className="botao-subitem"
                   >
-                    {funcao}
+                    {rota.label}
                   </button>
                 ))}
               </div>
             )}
           </div>
-        </div>
-      </main>
+        ))}
+      </div>
 
-      {/* === Rodapé animado com status dos PDVs === */}
-      <footer className="bg-[#8c3b1b] text-white text-sm p-2 overflow-hidden relative">
-        <div className="absolute whitespace-nowrap animate-marquee">
-          Russas • Society Show • Degusty • Tio Valter • Vera Cruz • Céu Azul • Pequeno Príncipe • Kaduh • Salesianas
+      {/* === RODAPÉ DE STATUS === */}
+      <footer className="rodape-status">
+        <div className="status-pedido">
+          <span className="bolinha lancado" /> Lançado
+          <span className="bolinha montando" /> Montando
+          <span className="bolinha finalizando" /> Finalizando
+          <span className="bolinha entregando" /> Entregando
         </div>
       </footer>
-
-      {/* === Estilos adicionais === */}
-      <style jsx>{`
-        @keyframes marquee {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
-        }
-        .animate-marquee {
-          display: inline-block;
-          animation: marquee 20s linear infinite;
-        }
-      `}</style>
     </div>
   );
 };
