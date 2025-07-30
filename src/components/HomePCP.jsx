@@ -55,39 +55,44 @@ const App = () => {
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "117px", height: "auto" }} // 84px + 40%
+              style={{ width: "117px", height: "auto" }}
             />
             <h1 style={{ color: "#8c3b1b", fontSize: "1.2rem" }}>ERP DUDUNITÊ</h1>
           </header>
 
-          <main style={{ padding: "1rem", textAlign: "center", marginTop: "3rem" }}>
-            <button
-              disabled
-              style={{
-                backgroundColor: "#8c3b1b",
-                color: "white",
-                padding: "1rem 2rem",
-                borderRadius: "0.5rem",
-                border: "none",
-                fontSize: "1.5rem",
-                fontWeight: "bold",
-                boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
-              }}
-            >
-              PCP
-            </button>
+          <main style={{ padding: "1rem", textAlign: "center", marginTop: "2rem" }}>
+            <div style={{ transform: "translateY(-1.2rem)" }}>
+              <button
+                disabled
+                style={{
+                  backgroundColor: "#8c3b1b",
+                  color: "white",
+                  padding: "0.85rem 2rem", // altura reduzida 15%
+                  borderRadius: "0.5rem",
+                  border: "none",
+                  fontSize: "1.5rem",
+                  fontWeight: "bold",
+                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
+                  marginBottom: "0.7rem", // espaço entre botão e tarja
+                }}
+              >
+                PCP
+              </button>
 
-            <div
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.4)",
-                padding: "0.5rem 1rem",
-                margin: "1rem auto 2rem auto",
-                display: "inline-block",
-                color: "#8c3b1b",
-                fontWeight: "bold",
-              }}
-            >
-              PLANEJAMENTO E CONTROLE DE PRODUÇÃO
+              <div
+                style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.4)",
+                  padding: "0.3rem 1rem", // altura reduzida
+                  margin: "0 auto 2rem auto",
+                  display: "inline-block",
+                  color: "#8c3b1b",
+                  fontWeight: "bold",
+                  fontSize: "1rem",
+                  whiteSpace: "nowrap", // força 1 linha
+                }}
+              >
+                PLANEJAMENTO E CONTROLE DE PRODUÇÃO
+              </div>
             </div>
 
             <div
@@ -96,7 +101,7 @@ const App = () => {
                 flexDirection: "column",
                 gap: "1.5rem",
                 alignItems: "center",
-                transform: "translateY(-50%)",
+                transform: "translateY(-0.5rem)",
               }}
             >
               <button
@@ -108,7 +113,7 @@ const App = () => {
                   borderRadius: "0.5rem",
                   border: "none",
                   fontSize: "1rem",
-                  boxShadow: "9px 9px 18px rgba(0, 0, 0, 0.4)", // +40% sombra
+                  boxShadow: "9px 9px 18px rgba(0, 0, 0, 0.4)",
                 }}
               >
                 LANÇAR PEDIDO
@@ -122,7 +127,7 @@ const App = () => {
                   borderRadius: "0.5rem",
                   border: "none",
                   fontSize: "1rem",
-                  boxShadow: "9px 9px 18px rgba(0, 0, 0, 0.4)", // +40% sombra
+                  boxShadow: "9px 9px 18px rgba(0, 0, 0, 0.4)",
                 }}
               >
                 ALIMENTAR SABORES
@@ -136,7 +141,7 @@ const App = () => {
               color: "white",
               padding: "0.8rem",
               fontSize: "0.9rem",
-              transform: "translateY(-0.8rem)", // subir 1 altura do rodapé
+              transform: "translateY(-0.8rem)",
             }}
           >
             <marquee behavior="scroll" direction="left">
