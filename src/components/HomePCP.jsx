@@ -63,7 +63,7 @@ const HomePCP = () => {
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "70px", height: "auto" }} // reduzido
+              style={{ width: "170px", height: "auto" }} // ALTERAÇÃO AQUI
             />
             <h1 style={{ color: "#8c3b1b", fontSize: "0.85rem" }}>ERP DUDUNITÊ</h1>
           </header>
