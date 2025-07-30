@@ -43,7 +43,7 @@ const HomePCP = () => {
             position: "relative",
           }}
         >
-          {/* === Cabeçalho (reduzido 50%) === */}
+          {/* === Cabeçalho (reduzido verticalmente em 50%) === */}
           <header
             style={{
               position: "fixed",
@@ -54,7 +54,8 @@ const HomePCP = () => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "0.15rem 0.5rem", // Reduzido 50%
+              height: "70px", // Redução vertical aplicada
+              padding: "0 0.5rem",
               backgroundColor: "rgba(255, 255, 255, 0.5)",
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
@@ -63,7 +64,7 @@ const HomePCP = () => {
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "170px", height: "auto" }}
+              style={{ width: "100px", height: "auto" }} // Reduzido proporcionalmente
             />
             <h1 style={{ color: "#8c3b1b", fontSize: "0.85rem" }}>ERP DUDUNITÊ</h1>
           </header>
