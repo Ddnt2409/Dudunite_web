@@ -1,74 +1,69 @@
-// HomePCP.jsx
-
+// === RT00 – Início – Página Inicial PCP ===
 import React from 'react';
+import logo from '/LogomarcaDDnt2025Vazado.png';
 
-// RT00 – Tela PCP (Homepage)
 const HomePCP = () => {
   return (
-    <>
-      {/* === INÍCIO RT00 – Tela PCP (Homepage) === */}
-      <div className="min-h-screen flex flex-col justify-between bg-cover bg-center" style={{ backgroundImage: `url('/bg001.png')` }}>
-        
-        {/* Cabeçalho translúcido com logomarca e título */}
-        <header className="bg-white bg-opacity-85 p-4 flex items-center justify-between shadow-md">
-          <img
-            src="/LogomarcaDDnt2025Vazado.png"
-            alt="Logomarca"
-            className="h-20 sm:h-24 md:h-28 lg:h-32" // aumento da logomarca em 40%
-          />
-          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-[#8c3b1b] tracking-widest">
-            ERP DUDUNITÊ
-          </h1>
-        </header>
-
-        {/* Nome da tela com tarja translúcida */}
-        <div className="mx-auto mt-4 bg-white bg-opacity-70 px-6 py-2 rounded-lg shadow">
-          <h2 className="text-center text-lg md:text-2xl font-bold text-[#8c3b1b]">
-            PLANEJAMENTO E CONTROLE DE PRODUÇÃO
-          </h2>
-        </div>
-
-        {/* Botões principais */}
-        <div className="flex flex-col items-center justify-center mt-10 space-y-6 px-4">
-          {/* Botão PCP central */}
-          <button
-            className="w-1/2 py-3 bg-[#8c3b1b] text-white font-bold text-lg rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300"
-          >
-            PCP
-          </button>
-
-          {/* Botão Lançar Pedido */}
-          <button
-            className="w-4/5 py-4 bg-[#8c3b1b] text-white font-bold text-xl rounded-xl shadow-xl hover:shadow-2xl uppercase"
-          >
-            LANÇAR PEDIDO
-          </button>
-
-          {/* Botão Alimentar Sabores */}
-          <button
-            className="w-4/5 py-4 bg-[#8c3b1b] text-white font-bold text-xl rounded-xl shadow-xl hover:shadow-2xl uppercase"
-          >
-            ALIMENTAR SABORES
-          </button>
-        </div>
-
-        {/* Rodapé com status */}
-        <footer className="bg-[#8c3b1b] text-white text-center py-2 mt-16">
-          <marquee behavior="scroll" direction="left" className="text-sm">
-            Status em tempo real: Russas • Degusty • Society Show • Kaduh
-          </marquee>
-        </footer>
+    <div className="min-h-screen bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/bg_dudus2.jpg')" }}>
+      {/* === INÍCIO RT00 – Cabeçalho === */}
+      <div className="flex justify-between items-center px-6 py-4"
+           style={{ backgroundColor: 'rgba(255, 245, 236, 0.6)', height: '60px' }}>
+        <img src={logo} alt="Logo" className="h-[48px]" />
+        <h1 className="text-xl font-bold text-[#8c3b1b]" style={{ fontSize: '1.125rem' }}>
+          ERP DUDUNITÊ
+        </h1>
       </div>
-      {/* === FIM RT00 === */}
+      {/* === FIM RT00 – Cabeçalho === */}
 
-      {/* === RESERVA RT01 === */}
-      {/* === RESERVA RT02 === */}
-      {/* === RESERVA RT03 === */}
-      {/* === RESERVA RT04 === */}
-      {/* === RESERVA RT05 === */}
-      {/* === RESERVA RT06 === */}
-    </>
+      {/* === INÍCIO RT00 – Título e Botões === */}
+      <div className="flex flex-col items-center justify-center mt-6 space-y-4 px-4">
+        <h2 className="text-2xl font-bold text-white py-1 px-4 rounded-lg"
+            style={{
+              backgroundColor: 'rgba(255, 245, 236, 0.6)',
+              fontSize: '1.75rem'
+            }}>
+          PCP
+        </h2>
+        <h3 className="text-md font-semibold text-[#8c3b1b] tracking-wide"
+            style={{
+              backgroundColor: 'rgba(255, 245, 236, 0.6)',
+              padding: '4px 12px',
+              borderRadius: '0.5rem',
+              fontSize: '0.875rem'
+            }}>
+          PLANEJAMENTO E CONTROLE DE PRODUÇÃO
+        </h3>
+
+        <button className="w-72 py-3 rounded-xl text-white font-bold shadow-2xl"
+                style={{
+                  backgroundColor: '#8c3b1b',
+                  boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.4)'
+                }}>
+          LANÇAR PEDIDO
+        </button>
+
+        <button className="w-72 py-3 rounded-xl text-white font-bold shadow-2xl"
+                style={{
+                  backgroundColor: '#8c3b1b',
+                  boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.4)'
+                }}>
+          ALIMENTAR SABORES
+        </button>
+      </div>
+      {/* === FIM RT00 – Título e Botões === */}
+
+      {/* === INÍCIO RT00 – Rodapé === */}
+      <div className="absolute bottom-0 w-full text-center py-3 text-white text-sm"
+           style={{
+             backgroundColor: 'rgba(140, 59, 27, 0.6)',
+             fontSize: '0.85rem'
+           }}>
+        • Degusty • Society Show • Kaduh
+      </div>
+      {/* === FIM RT00 – Rodapé === */}
+    </div>
   );
 };
 
 export default HomePCP;
+// === FIM RT00 – Página Inicial PCP ===
