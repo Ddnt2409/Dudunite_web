@@ -70,7 +70,7 @@ const HomePCP = () => {
                 padding: "1rem 2rem",
                 borderRadius: "0.5rem",
                 border: "none",
-                fontSize: "1rem",
+                fontSize: "1.5rem", // aumentado em 50%
                 marginBottom: "0.5rem",
                 boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
               }}
@@ -88,6 +88,7 @@ const HomePCP = () => {
                 display: "inline-block",
                 padding: "0.4rem 1rem",
                 borderRadius: "8px",
+                maxWidth: "90%",
               }}
             >
               <p
@@ -96,6 +97,9 @@ const HomePCP = () => {
                   fontWeight: "bold",
                   fontSize: "1rem",
                   margin: 0,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
               >
                 PLANEJAMENTO E CONTROLE DE PRODUÇÃO
@@ -119,7 +123,7 @@ const HomePCP = () => {
                   padding: "1rem 2rem",
                   borderRadius: "0.5rem",
                   border: "none",
-                  fontSize: "1rem",
+                  fontSize: "1.5rem", // aumentado em 50%
                   boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
                 }}
               >
@@ -134,7 +138,7 @@ const HomePCP = () => {
                   padding: "1rem 2rem",
                   borderRadius: "0.5rem",
                   border: "none",
-                  fontSize: "1rem",
+                  fontSize: "1.5rem", // aumentado em 50%
                   boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
                 }}
               >
@@ -150,7 +154,7 @@ const HomePCP = () => {
               color: "white",
               padding: "0.8rem",
               fontSize: "0.9rem",
-              marginTop: "3rem",
+              marginTop: "-0.8rem", // sobe 1x a altura do próprio rodapé
             }}
           >
             <marquee behavior="scroll" direction="left">
