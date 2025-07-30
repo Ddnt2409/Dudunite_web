@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 
 const HomeERP = () => {
-  const [moduloAtivo, setModuloAtivo] = useState(1); // Começa no PCP
+  const [moduloAtivo, setModuloAtivo] = useState(1);
   const startX = useRef(null);
 
   const handleTouchStart = (e) => {
@@ -14,56 +14,34 @@ const HomeERP = () => {
     const currentX = e.touches[0].clientX;
     const diffX = currentX - startX.current;
 
-    if (diffX > 50 && moduloAtivo > 1) {
+    if (diffX > 60 && moduloAtivo > 1) {
       setModuloAtivo(moduloAtivo - 1);
       startX.current = null;
-    } else if (diffX < -50 && moduloAtivo < 3) {
+    } else if (diffX < -60 && moduloAtivo < 3) {
       setModuloAtivo(moduloAtivo + 1);
       startX.current = null;
     }
   };
 
-  const renderModulo = () => {
+  const getModuloNome = () => {
+    switch (moduloAtivo) {
+      case 1: return "PRODUÇÃO";
+      case 2: return "FINANCEIRO";
+      case 3: return "RESULTADOS";
+      default: return "";
+    }
+  };
+
+  const getModuloFuncoes = () => {
     switch (moduloAtivo) {
       case 1:
-        return (
-          <div className="flex flex-col items-center mt-8">
-            <h1 className="text-4xl font-bold text-[#8c3b1b] mb-4">Produção</h1>
-            <div className="bg-[#f6e9df] rounded-2xl shadow-md p-6 text-center w-64">
-              <p className="font-semibold text-[#8c3b1b] mb-2">PCP</p>
-              <p className="text-[#8c3b1b]">Lançar Pedido</p>
-              <p className="text-[#8c3b1b]">Alimentar Sabores</p>
-              <p className="text-[#8c3b1b]">Cozinha</p>
-              <p className="text-[#8c3b1b]">Status dos pedidos</p>
-            </div>
-          </div>
-        );
+        return ["Lançar Pedido", "Alimentar Sabores", "Cozinha", "Status dos pedidos"];
       case 2:
-        return (
-          <div className="flex flex-col items-center mt-8">
-            <h1 className="text-4xl font-bold text-[#8c3b1b] mb-4">Financeiro</h1>
-            <div className="bg-[#f6e9df] rounded-2xl shadow-md p-6 text-center w-64">
-              <p className="font-semibold text-[#8c3b1b] mb-2">FinFlux</p>
-              <p className="text-[#8c3b1b]">Contas a Pagar</p>
-              <p className="text-[#8c3b1b]">Contas a Receber</p>
-              <p className="text-[#8c3b1b]">Fluxo de Caixa</p>
-            </div>
-          </div>
-        );
+        return ["Contas a Pagar", "Contas a Receber", "Fluxo de Caixa"];
       case 3:
-        return (
-          <div className="flex flex-col items-center mt-8">
-            <h1 className="text-4xl font-bold text-[#8c3b1b] mb-4">Resultados</h1>
-            <div className="bg-[#f6e9df] rounded-2xl shadow-md p-6 text-center w-64">
-              <p className="font-semibold text-[#8c3b1b] mb-2">Análise</p>
-              <p className="text-[#8c3b1b]">Custos</p>
-              <p className="text-[#8c3b1b]">Vendas</p>
-              <p className="text-[#8c3b1b]">Lucros</p>
-            </div>
-          </div>
-        );
+        return ["Custos", "Vendas", "Lucros"];
       default:
-        return null;
+        return [];
     }
   };
 
@@ -74,37 +52,47 @@ const HomeERP = () => {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
     >
-      {/* === Cabeçalho Translúcido === */}
-      <header className="bg-white bg-opacity-50 flex justify-between items-center p-4">
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logomarca Dudunitê"
-          className="h-12"
-        />
-        <h1 className="text-2xl font-bold text-[#8c3b1b]">ERP DUDUNITÊ</h1>
+      {/* === Cabeçalho === */}
+      <header className="bg-white bg-opacity-50 flex justify-between items-center px-4 py-2">
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logomarca" className="h-10" />
+        <h1 className="text-xl font-bold text-[#8c3b1b]">ERP DUDUNITÊ</h1>
       </header>
 
-      {/* === Conteúdo Central === */}
-      <main className="flex-1 flex items-center justify-center">
-        {renderModulo()}
+      {/* === Conteúdo === */}
+      <main className="flex-1 flex flex-col items-center justify-center px-4">
+        {/* Botão central quadrado */}
+        <div className="w-52 h-52 bg-[#fff5ec] rounded-2xl shadow-md flex items-center justify-center mb-4">
+          <h2 className="text-2xl font-bold text-[#8c3b1b] text-center">{getModuloNome()}</h2>
+        </div>
+
+        {/* Botões laterais das funções */}
+        <div className="flex gap-4 flex-wrap justify-center">
+          {getModuloFuncoes().map((funcao, index) => (
+            <button
+              key={index}
+              className="bg-white text-[#8c3b1b] border border-[#8c3b1b] px-4 py-2 rounded-xl text-sm shadow-md"
+            >
+              {funcao}
+            </button>
+          ))}
+        </div>
       </main>
 
-      {/* === Rodapé Status === */}
-      <footer className="bg-[#8c3b1b] text-white p-2 text-center text-sm animate-marquee whitespace-nowrap overflow-hidden">
-        <div className="inline-block animate-marquee-content">
+      {/* === Rodapé animado === */}
+      <footer className="bg-[#8c3b1b] text-white text-sm p-2 overflow-hidden relative">
+        <div className="absolute whitespace-nowrap animate-marquee">
           luh • Society Show • Degusty • Tio Valter • Vera Cruz • Pequeno Príncipe • Russas • Kaduh • Salesianas • Céu Azul
         </div>
       </footer>
 
-      {/* === Estilos Animados do Rodapé === */}
+      {/* === Estilo do rodapé === */}
       <style jsx>{`
         @keyframes marquee {
           0% { transform: translateX(100%); }
           100% { transform: translateX(-100%); }
         }
-        .animate-marquee-content {
+        .animate-marquee {
           display: inline-block;
-          padding-left: 100%;
           animation: marquee 20s linear infinite;
         }
       `}</style>
