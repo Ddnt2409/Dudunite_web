@@ -49,9 +49,12 @@ const HomePCP = () => {
               alignItems: "center",
               padding: "1rem",
               backgroundColor: "rgba(255, 255, 255, 0.4)",
-              backdropFilter: "blur(4px)",
-              WebkitBackdropFilter: "blur(4px)",
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
               height: "4rem",
+              position: "sticky",
+              top: 0,
+              zIndex: 10,
             }}
           >
             <img
@@ -63,8 +66,14 @@ const HomePCP = () => {
           </header>
 
           {/* === Corpo Principal === */}
-          <main style={{ padding: "1rem", textAlign: "center", marginTop: "1rem" }}>
-            {/* === Botão PCP (reduzido verticalmente, fonte mantida) === */}
+          <main
+            style={{
+              padding: "1rem",
+              textAlign: "center",
+              marginTop: "8vh", // sobe todos os botões e texto
+            }}
+          >
+            {/* === Botão PCP === */}
             <button
               style={{
                 backgroundColor: "#8c3b1b",
@@ -73,7 +82,7 @@ const HomePCP = () => {
                 borderRadius: "0.5rem",
                 border: "none",
                 fontSize: "2.25rem",
-                marginBottom: "0.3rem", // margem positiva agora
+                marginBottom: "0.3rem",
                 boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
               }}
               disabled
@@ -81,17 +90,15 @@ const HomePCP = () => {
               PCP
             </button>
 
-            {/* === Texto Planejamento e Controle === */}
+            {/* === Texto Planejamento === */}
             <div
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.4)",
-                margin: "0 auto 1.5rem auto",
+                margin: "0 auto",
                 padding: "0.4rem 1rem",
                 borderRadius: "8px",
                 maxWidth: "95%",
-                width: "95%",
-                marginBottom: "1rem",
-                transform: "translateY(-20%)", // leve subida
+                transform: "translateY(-20%)",
               }}
             >
               <p
@@ -110,14 +117,14 @@ const HomePCP = () => {
               </p>
             </div>
 
-            {/* === Botões === */}
+            {/* === Botões principais === */}
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: "1rem",
                 alignItems: "center",
-                transform: "translateY(-10%)", // leve ajuste
+                transform: "translateY(-10%)",
               }}
             >
               <button
@@ -152,15 +159,14 @@ const HomePCP = () => {
             </div>
           </main>
 
-          {/* === Rodapé Subido === */}
+          {/* === Rodapé Corrigido === */}
           <footer
             style={{
               backgroundColor: "rgba(140, 59, 27, 0.4)",
               color: "white",
               padding: "0.8rem",
               fontSize: "0.9rem",
-              position: "relative",
-              bottom: "-1.2rem", // força subida
+              marginTop: "2rem", // garante que ele suba
             }}
           >
             <marquee behavior="scroll" direction="left">
