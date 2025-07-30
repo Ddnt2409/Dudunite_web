@@ -1,129 +1,144 @@
-// === FN01 – Importações Gerais ===
-import React, { useState } from "react";
+// === RT00 – Início ===
+// TELA PCP – Planejamento e Controle de Produção (Mobile)
 
-// === FN02 – Componente Principal: App ===
-const App = () => {
-  const [tela, setTela] = useState("Home");
+import React, { useState, useEffect } from "react";
 
-  // === FN03 – Renderização por Tela ===
-  const renderizarTela = () => {
-    if (tela === "Lancamento") {
-      return (
-        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
-          <h2>LANÇAMENTO DE PEDIDO</h2>
-          <p>[Futura tela de Lançamento]</p>
-          <button onClick={() => setTela("Home")}>Voltar</button>
+// === INÍCIO RT00 – TELA PCP ===
+const HomePCP = ({ setPaginaAtual }) => {
+  const [pdvs, setPdvs] = useState([]);
+
+  useEffect(() => {
+    // Lista fixa de PDVs para o rodapé animado
+    setPdvs([
+      "Pequeno Príncipe", "Salesianas", "Céu Azul", "Russas", "Bora Gastar",
+      "Kaduh", "Society Show", "Degusty", "Tio Valter", "Vera Cruz", "Pinheiros",
+      "BMQ", "Dourado", "CFC", "Madre de Deus", "Saber Viver", "Interativo",
+      "Exato Sede", "Exato Anexo", "Sesi", "Motivo", "Jesus Salvador",
+    ]);
+  }, []);
+
+  return (
+    <div
+      style={{
+        backgroundImage: "url('/bg001.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      {/* Cabeçalho Translúcido */}
+      <header
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "10px 20px",
+          backgroundColor: "rgba(255, 255, 255, 0.4)",
+          height: "70px",
+        }}
+      >
+        <img
+          src="/LogomarcaDDnt2025Vazado.png"
+          alt="Logomarca Dudunitê"
+          style={{ height: "55px" }} // 30% maior
+        />
+        <h2 style={{ color: "#8c3b1b", fontWeight: "bold" }}>ERP DUDUNITÊ</h2>
+      </header>
+
+      {/* Conteúdo Central */}
+      <div
+        style={{
+          textAlign: "center",
+          padding: "20px",
+          marginTop: "-60px", // sobe os botões 50% da altura deles
+        }}
+      >
+        <h1 style={{ fontSize: "36px", color: "#fff", marginBottom: "10px" }}>
+          PCP
+        </h1>
+        <h3 style={{ color: "#8c3b1b", marginBottom: "30px" }}>
+          PLANEJAMENTO E CONTROLE DE PRODUÇÃO
+        </h3>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <button
+            onClick={() => setPaginaAtual("pedido")}
+            style={{
+              backgroundColor: "#8c3b1b",
+              color: "#fff",
+              border: "none",
+              padding: "15px 30px",
+              fontSize: "18px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              boxShadow: "4px 4px 0px rgba(0,0,0,0.6)", // 40% mais sombra
+              fontWeight: "bold",
+            }}
+          >
+            LANÇAR PEDIDO
+          </button>
+          <button
+            onClick={() => setPaginaAtual("sabores")}
+            style={{
+              backgroundColor: "#8c3b1b",
+              color: "#fff",
+              border: "none",
+              padding: "15px 30px",
+              fontSize: "18px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              boxShadow: "4px 4px 0px rgba(0,0,0,0.6)", // 40% mais sombra
+              fontWeight: "bold",
+            }}
+          >
+            ALIMENTAR SABORES
+          </button>
         </div>
-      );
-    }
+      </div>
 
-    if (tela === "Complemento") {
-      return (
-        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
-          <h2>ALIMENTAR SABORES</h2>
-          <p>[Futura tela de Complemento]</p>
-          <button onClick={() => setTela("Home")}>Voltar</button>
-        </div>
-      );
-    }
-
-    return (
-      <>
-        {/* === INÍCIO RT00 – Home PCP === */}
+      {/* Rodapé com rolagem */}
+      <div
+        style={{
+          backgroundColor: "#8c3b1b",
+          overflow: "hidden",
+          height: "30px",
+          marginBottom: "30px", // sobe o rodapé 1x sua altura
+        }}
+      >
         <div
           style={{
-            backgroundImage: "url('/bg001.png')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            minHeight: "100vh",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            backgroundRepeat: "no-repeat",
+            display: "inline-block",
+            whiteSpace: "nowrap",
+            animation: "scroll 20s linear infinite",
+            color: "#fff",
+            paddingLeft: "100%",
+            fontWeight: "bold",
           }}
         >
-          <header
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "1rem",
-              backgroundColor: "rgba(255, 255, 255, 0.4)",
-              height: "4rem",
-            }}
-          >
-            <img
-              src="/LogomarcaDDnt2025Vazado.png"
-              alt="Logo Dudunitê"
-              style={{ width: "84px", height: "auto" }}
-            />
-            <h1 style={{ color: "#8c3b1b", fontSize: "1.2rem" }}>ERP DUDUNITÊ</h1>
-          </header>
-
-          <main style={{ padding: "1rem", textAlign: "center", marginTop: "6rem" }}>
-            <h1 style={{ color: "white", fontSize: "2rem", fontWeight: "bold" }}>PCP</h1>
-            <p style={{ marginBottom: "1.5rem", marginTop: "0.5rem", color: "#8c3b1b", fontWeight: "bold" }}>
-              PLANEJAMENTO E CONTROLE DE PRODUÇÃO
-            </p>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "1.5rem",
-                alignItems: "center",
-              }}
-            >
-              <button
-                onClick={() => setTela("Lancamento")}
-                style={{
-                  backgroundColor: "#8c3b1b",
-                  color: "white",
-                  padding: "1rem 2rem",
-                  borderRadius: "0.5rem",
-                  border: "none",
-                  fontSize: "1rem",
-                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
-                }}
-              >
-                LANÇAR PEDIDO
-              </button>
-              <button
-                onClick={() => setTela("Complemento")}
-                style={{
-                  backgroundColor: "#8c3b1b",
-                  color: "white",
-                  padding: "1rem 2rem",
-                  borderRadius: "0.5rem",
-                  border: "none",
-                  fontSize: "1rem",
-                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
-                }}
-              >
-                ALIMENTAR SABORES
-              </button>
-            </div>
-          </main>
-
-          <footer
-            style={{
-              backgroundColor: "rgba(140, 59, 27, 0.4)",
-              color: "white",
-              padding: "0.8rem",
-              fontSize: "0.9rem",
-            }}
-          >
-            <marquee behavior="scroll" direction="left">
-              • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
-            </marquee>
-          </footer>
+          {pdvs.map((pdv, index) => (
+            <span key={index} style={{ marginRight: "50px" }}>
+              ● {pdv}
+            </span>
+          ))}
         </div>
-        {/* === FIM RT00 === */}
-      </>
-    );
-  };
+      </div>
 
-  return renderizarTela();
+      {/* Animação CSS */}
+      <style>
+        {`
+          @keyframes scroll {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-100%); }
+          }
+        `}
+      </style>
+    </div>
+  );
 };
 
-// === FN99 – Exportação Principal ===
-export default App;
+export default HomePCP;
+// === FIM RT00 ===
