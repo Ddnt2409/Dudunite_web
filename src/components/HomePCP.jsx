@@ -43,7 +43,7 @@ const HomePCP = () => {
             position: "relative",
           }}
         >
-          {/* === Cabeçalho Translúcido === */}
+          {/* === Cabeçalho (reduzido 30%) === */}
           <header
             style={{
               position: "fixed",
@@ -54,7 +54,7 @@ const HomePCP = () => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "1rem",
+              padding: "0.7rem", // reduzido
               backgroundColor: "rgba(255, 255, 255, 0.5)",
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
@@ -63,16 +63,16 @@ const HomePCP = () => {
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "112px", height: "auto" }}
+              style={{ width: "96px", height: "auto" }} // menor também
             />
-            <h1 style={{ color: "#8c3b1b", fontSize: "1.2rem" }}>ERP DUDUNITÊ</h1>
+            <h1 style={{ color: "#8c3b1b", fontSize: "1rem" }}>ERP DUDUNITÊ</h1>
           </header>
 
-          {/* === Bloco Central Posicionado 30% mais acima === */}
+          {/* === Bloco Central (subido 20%) === */}
           <div
             style={{
               position: "absolute",
-              top: "25%",
+              top: "15%", // estava 25%
               width: "100%",
               textAlign: "center",
               padding: "1rem",
@@ -95,7 +95,7 @@ const HomePCP = () => {
               PCP
             </button>
 
-            {/* === Texto Planejamento e Controle === */}
+            {/* === Subtítulo === */}
             <div
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.6)",
@@ -103,7 +103,6 @@ const HomePCP = () => {
                 padding: "0.4rem 1rem",
                 borderRadius: "8px",
                 maxWidth: "95%",
-                width: "95%",
               }}
             >
               <p
@@ -163,17 +162,16 @@ const HomePCP = () => {
             </div>
           </div>
 
-          {/* === Rodapé Corrigido === */}
+          {/* === Rodapé (subido 50%) === */}
           <footer
             style={{
-              marginTop: "auto",
+              position: "absolute",
+              bottom: "50px", // subido 50% em relação ao rodapé colado
               width: "100%",
               backgroundColor: "rgba(140, 59, 27, 0.4)",
               color: "white",
               padding: "0.8rem",
               fontSize: "0.9rem",
-              position: "absolute",
-              bottom: 0,
             }}
           >
             <marquee behavior="scroll" direction="left">
@@ -189,5 +187,4 @@ const HomePCP = () => {
   return renderizarTela();
 };
 
-// === Exportação ===
 export default HomePCP;
