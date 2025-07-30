@@ -55,33 +55,39 @@ const App = () => {
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "117.6px", height: "auto" }} // 84 * 1.4 = +40%
+              style={{ width: "117px", height: "auto" }} // 84px + 40%
             />
-            <h1 style={{ color: "#8c3b1b", fontSize: "0.96rem" }}>ERP DUDUNITÊ</h1> {/* -20% */}
+            <h1 style={{ color: "#8c3b1b", fontSize: "1.2rem" }}>ERP DUDUNITÊ</h1>
           </header>
 
-          <main style={{ padding: "1rem", textAlign: "center", marginTop: "6rem" }}>
-            <h1 style={{ color: "white", fontSize: "2rem", fontWeight: "bold" }}>PCP</h1>
+          <main style={{ padding: "1rem", textAlign: "center", marginTop: "3rem" }}>
+            <button
+              disabled
+              style={{
+                backgroundColor: "#8c3b1b",
+                color: "white",
+                padding: "1rem 2rem",
+                borderRadius: "0.5rem",
+                border: "none",
+                fontSize: "1.5rem",
+                fontWeight: "bold",
+                boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
+              }}
+            >
+              PCP
+            </button>
 
             <div
               style={{
-                margin: "0.5rem auto 1.5rem auto",
-                backgroundColor: "rgba(255,255,255,0.4)",
-                width: "fit-content",
-                padding: "0.3rem 1rem",
-                borderRadius: "0.4rem",
+                backgroundColor: "rgba(255, 255, 255, 0.4)",
+                padding: "0.5rem 1rem",
+                margin: "1rem auto 2rem auto",
+                display: "inline-block",
+                color: "#8c3b1b",
+                fontWeight: "bold",
               }}
             >
-              <p
-                style={{
-                  color: "#8c3b1b",
-                  fontWeight: "bold",
-                  fontSize: "0.8rem",
-                  margin: 0,
-                }}
-              >
-                PLANEJAMENTO E CONTROLE DE PRODUÇÃO
-              </p>
+              PLANEJAMENTO E CONTROLE DE PRODUÇÃO
             </div>
 
             <div
@@ -90,7 +96,7 @@ const App = () => {
                 flexDirection: "column",
                 gap: "1.5rem",
                 alignItems: "center",
-                marginTop: "-2rem", // sobe os botões 50% da altura deles (~4rem de altura → sobe 2rem)
+                transform: "translateY(-50%)",
               }}
             >
               <button
@@ -102,7 +108,7 @@ const App = () => {
                   borderRadius: "0.5rem",
                   border: "none",
                   fontSize: "1rem",
-                  boxShadow: "8px 8px 16px rgba(0, 0, 0, 0.4)", // +40% de sombra
+                  boxShadow: "9px 9px 18px rgba(0, 0, 0, 0.4)", // +40% sombra
                 }}
               >
                 LANÇAR PEDIDO
@@ -116,25 +122,10 @@ const App = () => {
                   borderRadius: "0.5rem",
                   border: "none",
                   fontSize: "1rem",
-                  boxShadow: "8px 8px 16px rgba(0, 0, 0, 0.4)", // +40% de sombra
+                  boxShadow: "9px 9px 18px rgba(0, 0, 0, 0.4)", // +40% sombra
                 }}
               >
                 ALIMENTAR SABORES
-              </button>
-              <button
-                disabled
-                style={{
-                  backgroundColor: "#8c3b1b",
-                  color: "white",
-                  padding: "1rem 2rem",
-                  borderRadius: "0.5rem",
-                  border: "none",
-                  fontSize: "1rem",
-                  boxShadow: "8px 8px 16px rgba(0, 0, 0, 0.4)", // +40% de sombra
-                  opacity: 0.7,
-                }}
-              >
-                PCP
               </button>
             </div>
           </main>
@@ -145,7 +136,7 @@ const App = () => {
               color: "white",
               padding: "0.8rem",
               fontSize: "0.9rem",
-              marginTop: "1.6rem", // sobe o rodapé 1x altura (~1.6rem aprox)
+              transform: "translateY(-0.8rem)", // subir 1 altura do rodapé
             }}
           >
             <marquee behavior="scroll" direction="left">
