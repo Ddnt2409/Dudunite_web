@@ -1,6 +1,6 @@
 // === FN01 – Importações Gerais ===
 import React, { useState } from "react";
-import HomePCP from "./pages/HomePCP";
+import HomePCP from "./components/HomePCP";
 import HomeERP from "./pages/HomeERP";
 
 // === FN02 – Componente Principal ===
@@ -15,13 +15,13 @@ const App = () => {
 
   return (
     <>
-      {/* === INÍCIO RT00 – HomePCP === */}
-      {telaAtual === "PCP" && <HomePCP />}
-      {/* === FIM RT00 === */}
-
       {/* === INÍCIO RT01 – HomeERP (Macro Módulos) === */}
       {telaAtual === "HomeERP" && <HomeERP />}
       {/* === FIM RT01 === */}
+
+      {/* === INÍCIO RT00 – HomePCP === */}
+      {telaAtual === "PCP" && <HomePCP />}
+      {/* === FIM RT00 === */}
     </>
   );
 };
