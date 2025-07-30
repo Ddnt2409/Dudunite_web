@@ -61,17 +61,17 @@ const HomePCP = () => {
           </header>
 
           {/* === Corpo Principal === */}
-          <main style={{ padding: "1rem", textAlign: "center", marginTop: "4rem" }}>
-            {/* === Botão PCP (Desabilitado) === */}
+          <main style={{ padding: "1rem", textAlign: "center", marginTop: "1rem" }}>
+            {/* === Botão PCP (Reduzido verticalmente, fonte mantida) === */}
             <button
               style={{
                 backgroundColor: "#8c3b1b",
                 color: "white",
-                padding: "1rem 2rem",
+                padding: "0.8rem 2rem", // reduzido 20% na vertical
                 borderRadius: "0.5rem",
                 border: "none",
-                fontSize: "2.25rem", // 50% maior que 1.5rem
-                marginBottom: "0.5rem",
+                fontSize: "2.25rem", // mantido
+                marginBottom: "-0.3rem", // sobe 30% da altura
                 boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
               }}
               disabled
@@ -86,8 +86,9 @@ const HomePCP = () => {
                 margin: "0 auto 1.5rem auto",
                 padding: "0.4rem 1rem",
                 borderRadius: "8px",
-                maxWidth: "95%", // Aumentado
+                maxWidth: "95%",
                 width: "95%",
+                transform: "translateY(-30%)", // sobe o retângulo
               }}
             >
               <p
@@ -99,7 +100,7 @@ const HomePCP = () => {
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  textTransform: "capitalize", // Apenas primeiras letras maiúsculas
+                  textTransform: "capitalize",
                 }}
               >
                 Planejamento e controle de produção
@@ -113,6 +114,7 @@ const HomePCP = () => {
                 flexDirection: "column",
                 gap: "1rem",
                 alignItems: "center",
+                transform: "translateY(-30%)", // sobe botões inferiores
               }}
             >
               <button
@@ -154,7 +156,7 @@ const HomePCP = () => {
               color: "white",
               padding: "0.8rem",
               fontSize: "0.9rem",
-              marginTop: "-0.8rem", // sobe a própria altura
+              marginTop: "-0.8rem",
             }}
           >
             <marquee behavior="scroll" direction="left">
