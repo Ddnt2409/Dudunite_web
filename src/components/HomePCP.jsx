@@ -55,22 +55,42 @@ const App = () => {
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "84px", height: "auto" }}
+              style={{ width: "117.6px", height: "auto" }} // 84 * 1.4 = +40%
             />
-            <h1 style={{ color: "#8c3b1b", fontSize: "1.2rem" }}>ERP DUDUNITÊ</h1>
+            <h1 style={{ color: "#8c3b1b", fontSize: "0.96rem" }}>ERP DUDUNITÊ</h1> {/* -20% */}
           </header>
 
           <main style={{ padding: "1rem", textAlign: "center", marginTop: "6rem" }}>
             <h1 style={{ color: "white", fontSize: "2rem", fontWeight: "bold" }}>PCP</h1>
-            <p style={{ marginBottom: "1.5rem", marginTop: "0.5rem", color: "#8c3b1b", fontWeight: "bold" }}>
-              PLANEJAMENTO E CONTROLE DE PRODUÇÃO
-            </p>
+
+            <div
+              style={{
+                margin: "0.5rem auto 1.5rem auto",
+                backgroundColor: "rgba(255,255,255,0.4)",
+                width: "fit-content",
+                padding: "0.3rem 1rem",
+                borderRadius: "0.4rem",
+              }}
+            >
+              <p
+                style={{
+                  color: "#8c3b1b",
+                  fontWeight: "bold",
+                  fontSize: "0.8rem",
+                  margin: 0,
+                }}
+              >
+                PLANEJAMENTO E CONTROLE DE PRODUÇÃO
+              </p>
+            </div>
+
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: "1.5rem",
                 alignItems: "center",
+                marginTop: "-2rem", // sobe os botões 50% da altura deles (~4rem de altura → sobe 2rem)
               }}
             >
               <button
@@ -82,7 +102,7 @@ const App = () => {
                   borderRadius: "0.5rem",
                   border: "none",
                   fontSize: "1rem",
-                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
+                  boxShadow: "8px 8px 16px rgba(0, 0, 0, 0.4)", // +40% de sombra
                 }}
               >
                 LANÇAR PEDIDO
@@ -96,10 +116,25 @@ const App = () => {
                   borderRadius: "0.5rem",
                   border: "none",
                   fontSize: "1rem",
-                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
+                  boxShadow: "8px 8px 16px rgba(0, 0, 0, 0.4)", // +40% de sombra
                 }}
               >
                 ALIMENTAR SABORES
+              </button>
+              <button
+                disabled
+                style={{
+                  backgroundColor: "#8c3b1b",
+                  color: "white",
+                  padding: "1rem 2rem",
+                  borderRadius: "0.5rem",
+                  border: "none",
+                  fontSize: "1rem",
+                  boxShadow: "8px 8px 16px rgba(0, 0, 0, 0.4)", // +40% de sombra
+                  opacity: 0.7,
+                }}
+              >
+                PCP
               </button>
             </div>
           </main>
@@ -110,6 +145,7 @@ const App = () => {
               color: "white",
               padding: "0.8rem",
               fontSize: "0.9rem",
+              marginTop: "1.6rem", // sobe o rodapé 1x altura (~1.6rem aprox)
             }}
           >
             <marquee behavior="scroll" direction="left">
