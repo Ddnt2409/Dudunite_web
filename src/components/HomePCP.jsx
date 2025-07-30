@@ -41,14 +41,14 @@ const HomePCP = () => {
             backgroundRepeat: "no-repeat",
           }}
         >
-          {/* === Cabeçalho === */}
+          {/* === Cabeçalho Translúcido === */}
           <header
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
               padding: "1rem",
-              backgroundColor: "rgba(255, 255, 255, 0.4)",
+              backgroundColor: "rgba(255, 255, 255, 0.4)", // 40%
               height: "4rem",
             }}
           >
@@ -62,7 +62,7 @@ const HomePCP = () => {
 
           {/* === Corpo Principal === */}
           <main style={{ padding: "1rem", textAlign: "center", marginTop: "4rem" }}>
-            {/* === Botão PCP === */}
+            {/* === Botão PCP (Desabilitado) === */}
             <button
               style={{
                 backgroundColor: "#8c3b1b",
@@ -70,7 +70,7 @@ const HomePCP = () => {
                 padding: "1rem 2rem",
                 borderRadius: "0.5rem",
                 border: "none",
-                fontSize: "1.5rem", // aumentado em 50%
+                fontSize: "1.5rem",
                 marginBottom: "0.5rem",
                 boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
               }}
@@ -83,19 +83,18 @@ const HomePCP = () => {
             <div
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.4)",
-                marginBottom: "2rem",
-                marginTop: "0.5rem",
-                display: "inline-block",
+                margin: "0 auto 1.5rem auto",
                 padding: "0.4rem 1rem",
                 borderRadius: "8px",
                 maxWidth: "90%",
+                width: "90%",
               }}
             >
               <p
                 style={{
                   color: "#8c3b1b",
                   fontWeight: "bold",
-                  fontSize: "1rem",
+                  fontSize: "0.9rem", // reduzido para caber em 1 linha
                   margin: 0,
                   whiteSpace: "nowrap",
                   overflow: "hidden",
@@ -106,12 +105,12 @@ const HomePCP = () => {
               </p>
             </div>
 
-            {/* === Botões principais === */}
+            {/* === Botões de ação === */}
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "1.5rem",
+                gap: "1rem", // reduzido ~30%
                 alignItems: "center",
               }}
             >
@@ -123,7 +122,7 @@ const HomePCP = () => {
                   padding: "1rem 2rem",
                   borderRadius: "0.5rem",
                   border: "none",
-                  fontSize: "1.5rem", // aumentado em 50%
+                  fontSize: "1.5rem",
                   boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
                 }}
               >
@@ -138,7 +137,7 @@ const HomePCP = () => {
                   padding: "1rem 2rem",
                   borderRadius: "0.5rem",
                   border: "none",
-                  fontSize: "1.5rem", // aumentado em 50%
+                  fontSize: "1.5rem",
                   boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
                 }}
               >
@@ -147,14 +146,14 @@ const HomePCP = () => {
             </div>
           </main>
 
-          {/* === Rodapé === */}
+          {/* === Rodapé com subida === */}
           <footer
             style={{
               backgroundColor: "rgba(140, 59, 27, 0.4)",
               color: "white",
               padding: "0.8rem",
               fontSize: "0.9rem",
-              marginTop: "-0.8rem", // sobe 1x a altura do próprio rodapé
+              marginTop: "-0.8rem", // sobe o próprio tamanho
             }}
           >
             <marquee behavior="scroll" direction="left">
