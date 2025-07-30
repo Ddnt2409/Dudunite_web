@@ -54,7 +54,7 @@ const HomePCP = () => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "0.7rem", // reduzido
+              padding: "0.5rem", // redução vertical real de ~30%
               backgroundColor: "rgba(255, 255, 255, 0.5)",
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
@@ -63,7 +63,7 @@ const HomePCP = () => {
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "96px", height: "auto" }} // menor também
+              style={{ width: "96px", height: "auto" }}
             />
             <h1 style={{ color: "#8c3b1b", fontSize: "1rem" }}>ERP DUDUNITÊ</h1>
           </header>
@@ -72,7 +72,7 @@ const HomePCP = () => {
           <div
             style={{
               position: "absolute",
-              top: "15%", // estava 25%
+              top: "15%",
               width: "100%",
               textAlign: "center",
               padding: "1rem",
@@ -166,7 +166,7 @@ const HomePCP = () => {
           <footer
             style={{
               position: "absolute",
-              bottom: "50px", // subido 50% em relação ao rodapé colado
+              bottom: "50px",
               width: "100%",
               backgroundColor: "rgba(140, 59, 27, 0.4)",
               color: "white",
