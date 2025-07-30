@@ -48,7 +48,7 @@ const App = () => {
               justifyContent: "space-between",
               alignItems: "center",
               padding: "1rem",
-              backgroundColor: "rgba(255, 255, 255, 0.4)",
+              backgroundColor: "rgba(255, 255, 255, 0.6)", // 40% translúcido
               height: "4rem",
             }}
           >
@@ -67,13 +67,13 @@ const App = () => {
                 style={{
                   backgroundColor: "#8c3b1b",
                   color: "white",
-                  padding: "0.85rem 2rem", // altura reduzida 15%
+                  padding: "0.85rem 2rem", // botão PCP reduzido
                   borderRadius: "0.5rem",
                   border: "none",
                   fontSize: "1.5rem",
                   fontWeight: "bold",
                   boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
-                  marginBottom: "0.7rem", // espaço entre botão e tarja
+                  marginBottom: "0.7rem",
                 }}
               >
                 PCP
@@ -82,13 +82,13 @@ const App = () => {
               <div
                 style={{
                   backgroundColor: "rgba(255, 255, 255, 0.4)",
-                  padding: "0.3rem 1rem", // altura reduzida
-                  margin: "0 auto 2rem auto",
+                  padding: "0.3rem 1rem",
                   display: "inline-block",
                   color: "#8c3b1b",
                   fontWeight: "bold",
                   fontSize: "1rem",
-                  whiteSpace: "nowrap", // força 1 linha
+                  whiteSpace: "nowrap",
+                  margin: "0 auto", // centralizado horizontalmente
                 }}
               >
                 PLANEJAMENTO E CONTROLE DE PRODUÇÃO
@@ -141,7 +141,7 @@ const App = () => {
               color: "white",
               padding: "0.8rem",
               fontSize: "0.9rem",
-              transform: "translateY(-0.8rem)",
+              transform: "translateY(-0.8rem)", // sobe 1x altura
             }}
           >
             <marquee behavior="scroll" direction="left">
