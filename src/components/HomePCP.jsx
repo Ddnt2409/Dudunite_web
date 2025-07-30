@@ -1,124 +1,161 @@
-// === INÍCIO HomePCP.jsx ===
+// === FN01 – Importações Gerais ===
+import React, { useState } from "react";
 
-import React from 'react'; import './HomePCP.css';
+// === FN02 – Componente Principal ===
+const HomePCP = () => {
+  const [tela, setTela] = useState("Home");
 
-const HomePCP = () => { return ( <div className="home-pcp" style={{ backgroundImage: 'url(/bg001.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', }} > {/* === INÍCIO CABEÇALHO === /} <header style={{ backgroundColor: 'rgba(255, 255, 255, 0.4)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', }} > <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo Dudunitê" style={{ height: '84px' }} /> <h2 style={{ margin: 0, color: '#8c3b1b' }}>ERP DUDUNITÊ</h2> </header> {/ === FIM CABEÇALHO === */}
-
-{/* === INÍCIO CONTEÚDO CENTRAL === */}
-  <main
-    style={{
-      textAlign: 'center',
-      color: '#8c3b1b',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexGrow: 1,
-    }}
-  >
-    <button
-      style={{
-        backgroundColor: '#8c3b1b',
-        color: 'white',
-        fontWeight: 'bold',
-        border: 'none',
-        borderRadius: '8px',
-        padding: '16px 32px',
-        fontSize: '24px',
-        boxShadow: '0px 8px 16px rgba(0,0,0,0.4)',
-        marginBottom: '32px',
-      }}
-    >
-      PCP
-    </button>
-
-    <div
-      style={{
-        backgroundColor: 'rgba(255,255,255,0.4)',
-        padding: '12px 24px',
-        borderRadius: '6px',
-        fontWeight: 'bold',
-        fontSize: '18px',
-      }}
-    >
-      PLANEJAMENTO E CONTROLE DE PRODUÇÃO
-    </div>
-  </main>
-  {/* === FIM CONTEÚDO CENTRAL === */}
-
-  {/* === INÍCIO BOTOES AÇÕES === */}
-  <div
-    style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '20px',
-      marginBottom: '36px',
-    }}
-  >
-    <button
-      style={{
-        backgroundColor: '#8c3b1b',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        padding: '14px 28px',
-        fontSize: '18px',
-        boxShadow: '0px 8px 16px rgba(0,0,0,0.4)',
-      }}
-    >
-      LANÇAR PEDIDO
-    </button>
-    <button
-      style={{
-        backgroundColor: '#8c3b1b',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        padding: '14px 28px',
-        fontSize: '18px',
-        boxShadow: '0px 8px 16px rgba(0,0,0,0.4)',
-      }}
-    >
-      ALIMENTAR SABORES
-    </button>
-  </div>
-  {/* === FIM BOTOES AÇÕES === */}
-
-  {/* === INÍCIO RODAPÉ === */}
-  <footer
-    style={{
-      overflow: 'hidden',
-      whiteSpace: 'nowrap',
-      width: '100%',
-      backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    }}
-  >
-    <div
-      style={{
-        display: 'inline-block',
-        paddingLeft: '100%',
-        animation: 'marquee 30s linear infinite',
-        fontWeight: 'bold',
-        color: '#8c3b1b',
-        fontSize: '16px',
-      }}
-    >
-      Russas • Bora Gastar • Kaduh • Society Show • Degusty • Pequeno Príncipe • Salesianas • Céu Azul • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
-    </div>
-  </footer>
-  <style>{`
-    @keyframes marquee {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-100%); }
+  const renderizarTela = () => {
+    if (tela === "Lancamento") {
+      return (
+        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
+          <h2>LANÇAMENTO DE PEDIDO</h2>
+          <p>[Futura tela de Lançamento]</p>
+          <button onClick={() => setTela("Home")}>Voltar</button>
+        </div>
+      );
     }
-  `}</style>
-  {/* === FIM RODAPÉ === */}
-</div>
 
-); };
+    if (tela === "Complemento") {
+      return (
+        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
+          <h2>ALIMENTAR SABORES</h2>
+          <p>[Futura tela de Complemento]</p>
+          <button onClick={() => setTela("Home")}>Voltar</button>
+        </div>
+      );
+    }
 
+    return (
+      <>
+        {/* === INÍCIO RT00 – Home PCP === */}
+        <div
+          style={{
+            backgroundImage: "url('/bg001.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            minHeight: "100vh",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            backgroundRepeat: "no-repeat",
+          }}
+        >
+          {/* === Cabeçalho === */}
+          <header
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "1rem",
+              backgroundColor: "rgba(255, 255, 255, 0.4)",
+              height: "4rem",
+            }}
+          >
+            <img
+              src="/LogomarcaDDnt2025Vazado.png"
+              alt="Logo Dudunitê"
+              style={{ width: "112px", height: "auto" }}
+            />
+            <h1 style={{ color: "#8c3b1b", fontSize: "1.2rem" }}>ERP DUDUNITÊ</h1>
+          </header>
+
+          {/* === Corpo Principal === */}
+          <main style={{ padding: "1rem", textAlign: "center", marginTop: "4rem" }}>
+            <div
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.4)",
+                marginBottom: "2rem",
+                marginTop: "2rem",
+                display: "inline-block",
+                padding: "0.6rem 1.2rem",
+                borderRadius: "8px",
+              }}
+            >
+              <h1
+                style={{
+                  color: "#8c3b1b",
+                  fontSize: "2rem",
+                  fontWeight: "bold",
+                  margin: 0,
+                }}
+              >
+                PCP
+              </h1>
+              <p
+                style={{
+                  color: "#8c3b1b",
+                  fontWeight: "bold",
+                  fontSize: "1rem",
+                  marginTop: "0.3rem",
+                }}
+              >
+                PLANEJAMENTO E CONTROLE DE PRODUÇÃO
+              </p>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "1.5rem",
+                alignItems: "center",
+              }}
+            >
+              <button
+                onClick={() => setTela("Lancamento")}
+                style={{
+                  backgroundColor: "#8c3b1b",
+                  color: "white",
+                  padding: "1rem 2rem",
+                  borderRadius: "0.5rem",
+                  border: "none",
+                  fontSize: "1rem",
+                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+                }}
+              >
+                LANÇAR PEDIDO
+              </button>
+
+              <button
+                onClick={() => setTela("Complemento")}
+                style={{
+                  backgroundColor: "#8c3b1b",
+                  color: "white",
+                  padding: "1rem 2rem",
+                  borderRadius: "0.5rem",
+                  border: "none",
+                  fontSize: "1rem",
+                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+                }}
+              >
+                ALIMENTAR SABORES
+              </button>
+            </div>
+          </main>
+
+          {/* === Rodapé === */}
+          <footer
+            style={{
+              backgroundColor: "rgba(140, 59, 27, 0.4)",
+              color: "white",
+              padding: "0.8rem",
+              fontSize: "0.9rem",
+              marginTop: "3rem",
+            }}
+          >
+            <marquee behavior="scroll" direction="left">
+              • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
+            </marquee>
+          </footer>
+        </div>
+        {/* === FIM RT00 === */}
+      </>
+    );
+  };
+
+  return renderizarTela();
+};
+
+// === Exportação ===
 export default HomePCP;
-
-// === FIM HomePCP.jsx ===
-
