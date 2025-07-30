@@ -41,14 +41,14 @@ const HomePCP = () => {
             backgroundRepeat: "no-repeat",
           }}
         >
-          {/* === Cabeçalho Translúcido === */}
+          {/* === Cabeçalho Translúcido 40% === */}
           <header
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
               padding: "1rem",
-              backgroundColor: "rgba(255, 255, 255, 0.4)", // 40%
+              backgroundColor: "rgba(255, 255, 255, 0.4)",
               height: "4rem",
             }}
           >
@@ -62,16 +62,16 @@ const HomePCP = () => {
 
           {/* === Corpo Principal === */}
           <main style={{ padding: "1rem", textAlign: "center", marginTop: "1rem" }}>
-            {/* === Botão PCP (Reduzido verticalmente, fonte mantida) === */}
+            {/* === Botão PCP com altura reduzida em 20% === */}
             <button
               style={{
                 backgroundColor: "#8c3b1b",
                 color: "white",
-                padding: "0.8rem 2rem", // reduzido 20% na vertical
+                padding: "0.8rem 2rem",
                 borderRadius: "0.5rem",
                 border: "none",
-                fontSize: "2.25rem", // mantido
-                marginBottom: "-0.3rem", // sobe 30% da altura
+                fontSize: "2.25rem",
+                marginBottom: "-0.3rem",
                 boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
               }}
               disabled
@@ -79,16 +79,16 @@ const HomePCP = () => {
               PCP
             </button>
 
-            {/* === Texto Planejamento e Controle === */}
+            {/* === Retângulo Translúcido Central === */}
             <div
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.4)",
                 margin: "0 auto 1.5rem auto",
-                padding: "0.4rem 1rem",
+                padding: "0.4rem 1.5rem",
                 borderRadius: "8px",
                 maxWidth: "95%",
                 width: "95%",
-                transform: "translateY(-30%)", // sobe o retângulo
+                transform: "translateY(-30%)",
               }}
             >
               <p
@@ -103,18 +103,18 @@ const HomePCP = () => {
                   textTransform: "capitalize",
                 }}
               >
-                Planejamento e controle de produção
+                Planejamento e Controle de Produção
               </p>
             </div>
 
-            {/* === Botões === */}
+            {/* === Botões Abaixo – Subidos em 30% === */}
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: "1rem",
                 alignItems: "center",
-                transform: "translateY(-30%)", // sobe botões inferiores
+                transform: "translateY(-30%)",
               }}
             >
               <button
@@ -149,7 +149,7 @@ const HomePCP = () => {
             </div>
           </main>
 
-          {/* === Rodapé Subido === */}
+          {/* === Rodapé Subido em 1x === */}
           <footer
             style={{
               backgroundColor: "rgba(140, 59, 27, 0.4)",
