@@ -1,56 +1,57 @@
-// src/components/HomePCP.jsx
+// === INÍCIO RT00 – Tela PCP (Homepage) ===
 import React from 'react';
+import logoPath from '../assets/LogomarcaDDnt2025Vazado.png';
+import bg001 from '../assets/bg001.png';
 
 const HomePCP = () => {
   return (
     <div
-      className="min-h-screen flex flex-col justify-start bg-cover bg-center"
-      style={{ backgroundImage: `url(/bg001.png)` }}
+      className="min-h-screen flex flex-col justify-between bg-cover bg-center"
+      style={{ backgroundImage: `url(${bg001})` }}
     >
-      {/* === INÍCIO RT00 – Tela PCP (Homepage) === */}
-
-      {/* Cabeçalho */}
-      <header className="w-full flex justify-between items-center px-4 py-2 bg-white/20 backdrop-brightness-90 rounded-b-md h-16">
-        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logomarca" className="h-[108px]" />
-        <h1 className="text-[1rem] font-bold text-[#8c3b1b] whitespace-nowrap">
+      {/* === Cabeçalho com lente translúcida === */}
+      <header className="flex items-center justify-between px-6 py-3 bg-white/35 backdrop-blur-sm shadow-md">
+        <img
+          src={logoPath}
+          alt="Logomarca"
+          className="h-16 md:h-20" // Aumento de 20%
+        />
+        <h1 className="text-2xl md:text-3xl font-bold text-[#8c3b1b] tracking-wide">
           ERP DUDUNITÊ
         </h1>
       </header>
 
-      {/* Botão PCP */}
-      <div className="flex justify-center mt-8">
-        <button className="bg-[#8c3b1b] text-white text-3xl font-bold py-3 px-6 rounded-xl w-1/2 transition duration-300 shadow-[0_8px_18px_rgba(0,0,0,0.5)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.6)]">
-          PCP
-        </button>
-      </div>
-
-      {/* Frase central */}
-      <div className="flex justify-center mt-4">
-        <div className="bg-white/20 backdrop-brightness-90 px-4 py-2 rounded-md">
-          <p className="text-lg text-[#8c3b1b] font-bold text-center">
-            Planejamento e Controle de Produção
-          </p>
+      {/* === Título da tela === */}
+      <div className="text-center mt-4">
+        <div className="bg-white/35 backdrop-blur-sm inline-block px-4 py-2 rounded-md">
+          <h2 className="text-4xl font-extrabold tracking-wide text-[#8c3b1b]">PCP</h2>
+          <p className="text-md font-semibold text-[#8c3b1b]">Planejamento e Controle de Produção</p>
         </div>
       </div>
 
-      {/* Botões principais */}
-      <div className="flex flex-col items-center gap-6 mt-[5rem] px-6 mb-10">
-        <button className="bg-[#8c3b1b] text-white py-4 w-full max-w-xs rounded-2xl text-xl font-semibold uppercase shadow-[0_8px_18px_rgba(0,0,0,0.5)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.6)] transition duration-300">
+      {/* === Botões principais === */}
+      <div className="flex flex-col items-center gap-6 mt-8">
+        <button
+          className="w-72 py-4 bg-[#8c3b1b] text-white font-bold rounded-xl uppercase shadow-[0_10px_30px_rgba(0,0,0,0.4)] hover:scale-105 transition"
+        >
           Lançar Pedido
         </button>
-        <button className="bg-[#8c3b1b] text-white py-4 w-full max-w-xs rounded-2xl text-xl font-semibold uppercase shadow-[0_8px_18px_rgba(0,0,0,0.5)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.6)] transition duration-300">
+        <button
+          className="w-72 py-4 bg-[#8c3b1b] text-white font-bold rounded-xl uppercase shadow-[0_10px_30px_rgba(0,0,0,0.4)] hover:scale-105 transition"
+        >
           Alimentar Sabores
         </button>
       </div>
 
-      {/* Rodapé */}
-      <footer className="text-center py-3 bg-white/20 backdrop-brightness-90">
-        <span className="text-[#8c3b1b] font-medium">Status de pedidos em tempo real</span>
+      {/* === Rodapé translúcido com status dos pedidos === */}
+      <footer className="mt-[6rem] bg-white/30 backdrop-blur-sm text-[#8c3b1b] text-sm py-3 px-6">
+        <div className="whitespace-nowrap animate-marquee">
+          Status dos pedidos em tempo real • Russas - ● PENDENTE • Bora Gastar - ● ENTREGUE • Kaduh - ● PRODUÇÃO
+        </div>
       </footer>
-
-      {/* === FIM RT00 === */}
     </div>
   );
 };
 
 export default HomePCP;
+// === FIM RT00 ===
