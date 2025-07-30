@@ -1,69 +1,75 @@
-// === RT00 – Início – Página Inicial PCP ===
-import React from 'react';
-import logo from '/LogomarcaDDnt2025Vazado.png';
+{/* === INÍCIO RT00 – Home PCP === */}
+<div
+  style={{
+    backgroundImage: "url('/bg001.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    backgroundRepeat: "no-repeat",
+  }}
+>
+  <header
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "1rem",
+      backgroundColor: "rgba(255, 255, 255, 0.4)",
+      height: "4rem",
+    }}
+  >
+    <img
+      src="/LogomarcaDDnt2025Vazado.png"
+      alt="Logo Dudunitê"
+      style={{ width: "84px", height: "auto" }}
+    />
+    <h1 style={{ color: "#8c3b1b", fontSize: "1.2rem" }}>ERP DUDUNITÊ</h1>
+  </header>
 
-const HomePCP = () => {
-  return (
-    <div className="min-h-screen bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/bg_dudus2.jpg')" }}>
-      {/* === INÍCIO RT00 – Cabeçalho === */}
-      <div className="flex justify-between items-center px-6 py-4"
-           style={{ backgroundColor: 'rgba(255, 245, 236, 0.6)', height: '60px' }}>
-        <img src={logo} alt="Logo" className="h-[48px]" />
-        <h1 className="text-xl font-bold text-[#8c3b1b]" style={{ fontSize: '1.125rem' }}>
-          ERP DUDUNITÊ
-        </h1>
-      </div>
-      {/* === FIM RT00 – Cabeçalho === */}
-
-      {/* === INÍCIO RT00 – Título e Botões === */}
-      <div className="flex flex-col items-center justify-center mt-6 space-y-4 px-4">
-        <h2 className="text-2xl font-bold text-white py-1 px-4 rounded-lg"
-            style={{
-              backgroundColor: 'rgba(255, 245, 236, 0.6)',
-              fontSize: '1.75rem'
-            }}>
-          PCP
-        </h2>
-        <h3 className="text-md font-semibold text-[#8c3b1b] tracking-wide"
-            style={{
-              backgroundColor: 'rgba(255, 245, 236, 0.6)',
-              padding: '4px 12px',
-              borderRadius: '0.5rem',
-              fontSize: '0.875rem'
-            }}>
-          PLANEJAMENTO E CONTROLE DE PRODUÇÃO
-        </h3>
-
-        <button className="w-72 py-3 rounded-xl text-white font-bold shadow-2xl"
-                style={{
-                  backgroundColor: '#8c3b1b',
-                  boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.4)'
-                }}>
-          LANÇAR PEDIDO
-        </button>
-
-        <button className="w-72 py-3 rounded-xl text-white font-bold shadow-2xl"
-                style={{
-                  backgroundColor: '#8c3b1b',
-                  boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.4)'
-                }}>
-          ALIMENTAR SABORES
-        </button>
-      </div>
-      {/* === FIM RT00 – Título e Botões === */}
-
-      {/* === INÍCIO RT00 – Rodapé === */}
-      <div className="absolute bottom-0 w-full text-center py-3 text-white text-sm"
-           style={{
-             backgroundColor: 'rgba(140, 59, 27, 0.6)',
-             fontSize: '0.85rem'
-           }}>
-        • Degusty • Society Show • Kaduh
-      </div>
-      {/* === FIM RT00 – Rodapé === */}
+  <main style={{ padding: "1rem", textAlign: "center", marginTop: "6rem" }}>
+    <h1 style={{ color: "white", fontSize: "2rem", fontWeight: "bold" }}>PCP</h1>
+    <p style={{ marginBottom: "1.5rem", marginTop: "0.5rem", color: "#8c3b1b", fontWeight: "bold" }}>
+      PLANEJAMENTO E CONTROLE DE PRODUÇÃO
+    </p>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", alignItems: "center" }}>
+      <button
+        onClick={() => setTela("Lancamento")}
+        style={{
+          backgroundColor: "#8c3b1b",
+          color: "white",
+          padding: "1rem 2rem",
+          borderRadius: "0.5rem",
+          border: "none",
+          fontSize: "1rem",
+          boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
+        }}
+      >
+        LANÇAR PEDIDO
+      </button>
+      <button
+        onClick={() => setTela("Complemento")}
+        style={{
+          backgroundColor: "#8c3b1b",
+          color: "white",
+          padding: "1rem 2rem",
+          borderRadius: "0.5rem",
+          border: "none",
+          fontSize: "1rem",
+          boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
+        }}
+      >
+        ALIMENTAR SABORES
+      </button>
     </div>
-  );
-};
+  </main>
 
-export default HomePCP;
-// === FIM RT00 – Página Inicial PCP ===
+  <footer style={{ backgroundColor: "rgba(140, 59, 27, 0.4)", color: "white", padding: "0.8rem", fontSize: "0.9rem" }}>
+    <marquee behavior="scroll" direction="left">
+      • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
+    </marquee>
+  </footer>
+</div>
+{/* === FIM RT00 === */}
