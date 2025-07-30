@@ -1,0 +1,115 @@
+/* src/pages/HomeERP.css */
+
+.homeerp-container {
+  background-image: url('/bg002.png');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  position: relative;
+  padding-top: 80px;
+}
+
+.homeerp-header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: rgba(255, 245, 236, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 16px;
+  z-index: 10;
+}
+
+.logo-homeerp {
+  height: 35px;
+  opacity: 0.9;
+}
+
+.titulo-erp {
+  color: #8c3b1b;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.carousel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 80px 0 120px;
+}
+
+.cartao {
+  background-color: rgba(255, 245, 236, 0.9);
+  color: #8c3b1b;
+  margin: 0 10px;
+  padding: 16px;
+  border-radius: 24px;
+  text-align: center;
+  width: 200px;
+  transition: all 0.3s ease;
+  transform: scale(0.8);
+}
+
+.cartao.ativo {
+  transform: scale(1.05) translateY(-10px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.subitens {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: slideDown 0.4s ease-in-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.botao-subitem {
+  background-color: white;
+  color: #8c3b1b;
+  border: none;
+  border-radius: 20px;
+  padding: 6px;
+  font-size: 0.9rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.rodape-status {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #fff5ec;
+  padding: 10px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #8c3b1b;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  z-index: 10;
+}
+
+.bolinha {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin: 0 6px;
+}
+
+.lancado { background-color: #bbb; }
+.montando { background-color: #d17f3a; }
+.finalizando { background-color: #8c3b1b; }
+.entregando { background-color: #4a90e2; }
