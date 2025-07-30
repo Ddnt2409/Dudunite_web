@@ -32,7 +32,7 @@ const App = () => {
         {/* === INÍCIO RT00 – Home PCP === */}
         <div
           style={{
-            backgroundImage: "url('/bg001.png')",
+            backgroundImage: "url('/bg001.png')", // Caminho correto para o BG
             backgroundSize: "cover",
             backgroundPosition: "center",
             minHeight: "100vh",
@@ -48,100 +48,106 @@ const App = () => {
               justifyContent: "space-between",
               alignItems: "center",
               padding: "1rem",
-              backgroundColor: "rgba(255, 255, 255, 0.6)", // 40% translúcido
+              backgroundColor: "rgba(255, 255, 255, 0.4)", // 40% translucidez
               height: "4rem",
             }}
           >
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "117px", height: "auto" }}
+              style={{ width: "117px", height: "auto" }} // 40% aumento na logomarca
             />
             <h1 style={{ color: "#8c3b1b", fontSize: "1.2rem" }}>ERP DUDUNITÊ</h1>
           </header>
 
-          <main style={{ padding: "1rem", textAlign: "center", marginTop: "2rem" }}>
-            <div style={{ transform: "translateY(-1.2rem)" }}>
-              <button
-                disabled
-                style={{
-                  backgroundColor: "#8c3b1b",
-                  color: "white",
-                  padding: "0.85rem 2rem", // botão PCP reduzido
-                  borderRadius: "0.5rem",
-                  border: "none",
-                  fontSize: "1.5rem",
-                  fontWeight: "bold",
-                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
-                  marginBottom: "0.7rem",
-                }}
-              >
-                PCP
-              </button>
-
-              <div
-                style={{
-                  backgroundColor: "rgba(255, 255, 255, 0.4)",
-                  padding: "0.3rem 1rem",
-                  display: "inline-block",
-                  color: "#8c3b1b",
-                  fontWeight: "bold",
-                  fontSize: "1rem",
-                  whiteSpace: "nowrap",
-                  margin: "0 auto", // centralizado horizontalmente
-                }}
-              >
-                PLANEJAMENTO E CONTROLE DE PRODUÇÃO
-              </div>
-            </div>
+          <main
+            style={{
+              flexGrow: 1,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "1.5rem",
+              padding: "1rem",
+            }}
+          >
+            <button
+              disabled
+              style={{
+                backgroundColor: "#8c3b1b",
+                color: "white",
+                padding: "0.85rem 2rem",
+                borderRadius: "0.5rem",
+                border: "none",
+                fontSize: "1.5rem",
+                fontWeight: "bold",
+                boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
+                marginBottom: "0.7rem",
+              }}
+            >
+              PCP
+            </button>
 
             <div
               style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "1.5rem",
-                alignItems: "center",
-                transform: "translateY(-0.5rem)",
+                backgroundColor: "rgba(255, 255, 255, 0.4)",
+                padding: "0.3rem 1.2rem",
+                color: "#8c3b1b",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                marginTop: "0.3rem",
+                width: "auto",
               }}
             >
-              <button
-                onClick={() => setTela("Lancamento")}
-                style={{
-                  backgroundColor: "#8c3b1b",
-                  color: "white",
-                  padding: "1rem 2rem",
-                  borderRadius: "0.5rem",
-                  border: "none",
-                  fontSize: "1rem",
-                  boxShadow: "9px 9px 18px rgba(0, 0, 0, 0.4)",
-                }}
-              >
-                LANÇAR PEDIDO
-              </button>
-              <button
-                onClick={() => setTela("Complemento")}
-                style={{
-                  backgroundColor: "#8c3b1b",
-                  color: "white",
-                  padding: "1rem 2rem",
-                  borderRadius: "0.5rem",
-                  border: "none",
-                  fontSize: "1rem",
-                  boxShadow: "9px 9px 18px rgba(0, 0, 0, 0.4)",
-                }}
-              >
-                ALIMENTAR SABORES
-              </button>
+              PLANEJAMENTO E CONTROLE DE PRODUÇÃO
             </div>
           </main>
 
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.5rem",
+              alignItems: "center",
+              marginTop: "-0.2rem",
+            }}
+          >
+            <button
+              onClick={() => setTela("Lancamento")}
+              style={{
+                backgroundColor: "#8c3b1b",
+                color: "white",
+                padding: "1rem 2rem",
+                borderRadius: "0.5rem",
+                border: "none",
+                fontSize: "1rem",
+                boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
+              }}
+            >
+              LANÇAR PEDIDO
+            </button>
+            <button
+              onClick={() => setTela("Complemento")}
+              style={{
+                backgroundColor: "#8c3b1b",
+                color: "white",
+                padding: "1rem 2rem",
+                borderRadius: "0.5rem",
+                border: "none",
+                fontSize: "1rem",
+                boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.4)",
+              }}
+            >
+              ALIMENTAR SABORES
+            </button>
+          </div>
+
           <footer
             style={{
-              backgroundColor: "rgba(140, 59, 27, 0.4)",
+              backgroundColor: "rgba(140, 59, 27, 0.4)", // 40% translucidez no rodapé
               color: "white",
               padding: "0.8rem",
               fontSize: "0.9rem",
-              transform: "translateY(-0.8rem)", // sobe 1x altura
             }}
           >
             <marquee behavior="scroll" direction="left">
