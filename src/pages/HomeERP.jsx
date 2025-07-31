@@ -8,7 +8,7 @@ const HomeERP = () => {
       {/* === INÍCIO RT00 – Home ERP === */}
       <div
         style={{
-          backgroundImage: "url('/bg001.png')",
+          backgroundImage: "url('/bg002.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
