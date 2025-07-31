@@ -53,7 +53,7 @@ const HomeERP = () => {
             position: "relative",
           }}
         >
-          {/* === Cabeçalho DOBRADO === */}
+          {/* === Cabeçalho com ajustes === */}
           <header
             style={{
               position: "fixed",
@@ -62,7 +62,7 @@ const HomeERP = () => {
               right: 0,
               zIndex: 10,
               display: "flex",
-              justifyContent: "space-between",
+              justifyContent: "center", // Centraliza logo
               alignItems: "center",
               height: "140px",
               padding: "0 1rem",
@@ -71,19 +71,23 @@ const HomeERP = () => {
               WebkitBackdropFilter: "blur(6px)",
             }}
           >
-            {/* === Logomarca TRIPLICADA === */}
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "300px", height: "auto" }}
+              style={{ width: "300px", height: "auto", marginRight: "12px" }} // Afastado do texto
             />
-            {/* === Título TRIPLICADO === */}
-            <h1 style={{ color: "#8c3b1b", fontSize: "2.6rem" }}>
+            <h1
+              style={{
+                color: "#8c3b1b",
+                fontSize: "2.6rem",
+                fontWeight: "bold", // Negrito
+              }}
+            >
               ERP DUDUNITÊ
             </h1>
           </header>
 
-          {/* === Bloco Central (sem botão ERP) === */}
+          {/* === Bloco Central === */}
           <div
             style={{
               position: "absolute",
@@ -149,11 +153,11 @@ const HomeERP = () => {
             </div>
           </div>
 
-          {/* === Rodapé DUPLICADO === */}
+          {/* === Rodapé subido 1x altura === */}
           <footer
             style={{
               position: "absolute",
-              bottom: "50px",
+              bottom: "100px", // Subido do fundo
               width: "100%",
               backgroundColor: "rgba(140, 59, 27, 0.4)",
               color: "white",
