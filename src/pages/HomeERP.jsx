@@ -1,4 +1,4 @@
-              // === FN01 – Importações Gerais ===
+// === FN01 – Importações Gerais ===
 import React from "react";
 
 // === FN02 – Componente HomeERP ===
@@ -58,7 +58,7 @@ const HomeERP = () => {
             padding: "1rem",
           }}
         >
-          {/* === Botão ERP === */}
+          {/* === Botão ERP (central) === */}
           <button
             style={{
               backgroundColor: "#8c3b1b",
