@@ -53,7 +53,7 @@ const HomeERP = () => {
             position: "relative",
           }}
         >
-          {/* === Cabeçalho === */}
+          {/* === Cabeçalho AJUSTADO === */}
           <header
             style={{
               position: "fixed",
@@ -63,7 +63,7 @@ const HomeERP = () => {
               zIndex: 10,
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center", // Centraliza VERTICALMENTE
+              alignItems: "center",
               height: "140px",
               padding: "0 1rem",
               backgroundColor: "rgba(255, 255, 255, 0.5)",
@@ -71,17 +71,23 @@ const HomeERP = () => {
               WebkitBackdropFilter: "blur(6px)",
             }}
           >
+            {/* === Logomarca CENTRALIZADA VERTICAL + DESCIDA 10% === */}
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "300px", height: "auto" }}
+              style={{
+                width: "300px",
+                height: "auto",
+                marginTop: "10%",
+              }}
             />
+            {/* === Título com NEGRITO e AFASTAMENTO === */}
             <h1
               style={{
                 color: "#8c3b1b",
                 fontSize: "2.6rem",
                 fontWeight: "bold",
-                marginRight: "1rem", // Distância de ~2 letras da lateral direita
+                marginRight: "2ch", // afastamento de ~2 letras
               }}
             >
               ERP DUDUNITÊ
@@ -154,11 +160,11 @@ const HomeERP = () => {
             </div>
           </div>
 
-          {/* === Rodapé AJUSTADO (50% mais alto) === */}
+          {/* === Rodapé SUBIDO 50% === */}
           <footer
             style={{
               position: "absolute",
-              bottom: "100px", // Subido 50% (antes era 50px)
+              bottom: "75px", // altura original: 50px → subida de 50%
               width: "100%",
               backgroundColor: "rgba(140, 59, 27, 0.4)",
               color: "white",
