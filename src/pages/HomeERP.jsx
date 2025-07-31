@@ -1,4 +1,4 @@
-// === FN01 – Importações Gerais ===
+ // === FN01 – Importações Gerais ===
 import React, { useState } from "react";
 
 // === FN02 – Componente Principal ===
@@ -53,7 +53,7 @@ const HomeERP = () => {
             position: "relative",
           }}
         >
-          {/* === Cabeçalho com ajustes === */}
+          {/* === Cabeçalho com alinhamento ajustado === */}
           <header
             style={{
               position: "fixed",
@@ -62,25 +62,28 @@ const HomeERP = () => {
               right: 0,
               zIndex: 10,
               display: "flex",
-              justifyContent: "center", // Centraliza logo
-              alignItems: "center",
+              justifyContent: "space-between",
+              alignItems: "center", // Verticalmente centralizado
               height: "140px",
-              padding: "0 1rem",
+              padding: "0 12px", // Afasta texto da borda
               backgroundColor: "rgba(255, 255, 255, 0.5)",
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
             }}
           >
+            {/* === Logomarca === */}
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "300px", height: "auto", marginRight: "12px" }} // Afastado do texto
+              style={{ width: "300px", height: "auto" }}
             />
+
+            {/* === Título alinhado à direita === */}
             <h1
               style={{
                 color: "#8c3b1b",
                 fontSize: "2.6rem",
-                fontWeight: "bold", // Negrito
+                fontWeight: "bold",
               }}
             >
               ERP DUDUNITÊ
@@ -153,11 +156,11 @@ const HomeERP = () => {
             </div>
           </div>
 
-          {/* === Rodapé subido 1x altura === */}
+          {/* === Rodapé posicionado corretamente === */}
           <footer
             style={{
               position: "absolute",
-              bottom: "100px", // Subido do fundo
+              bottom: "100px",
               width: "100%",
               backgroundColor: "rgba(140, 59, 27, 0.4)",
               color: "white",
