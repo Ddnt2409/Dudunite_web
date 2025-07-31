@@ -1,182 +1,195 @@
-// === FN01 – Importações Gerais ===
-import React from "react";
+ // === FN01 – Importações Gerais ===
+import React, { useState } from "react";
 
-// === FN02 – Componente HomeERP ===
+// === FN02 – Componente Principal ===
 const HomeERP = () => {
-  return (
-    <>
-      {/* === INÍCIO RT00 – Home ERP === */}
-      <div
-        style={{
-          backgroundImage: "url('/bg002.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative",
-        }}
-      >
-        {/* === Cabeçalho === */}
-        <header
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 10,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            height: "70px",
-            padding: "0 0.5rem",
-            backgroundColor: "rgba(255, 255, 255, 0.5)",
-            backdropFilter: "blur(6px)",
-            WebkitBackdropFilter: "blur(6px)",
-          }}
-        >
-          <img
-            src="/LogomarcaDDnt2025Vazado.png"
-            alt="Logo Dudunitê"
-            style={{ width: "100px", height: "auto" }}
-          />
-          <h1 style={{ color: "#8c3b1b", fontSize: "0.85rem" }}>
-            ERP DUDUNITÊ
-          </h1>
-        </header>
+  const [tela, setTela] = useState("Home");
 
-        {/* === Bloco Central === */}
+  const renderizarTela = () => {
+    // Telas futuras
+    if (tela === "Producao") {
+      return (
+        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
+          <h2>PRODUÇÃO (PCP)</h2>
+          <p>[Futura tela de Produção]</p>
+          <button onClick={() => setTela("Home")}>Voltar</button>
+        </div>
+      );
+    }
+
+    if (tela === "Financeiro") {
+      return (
+        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
+          <h2>FINANCEIRO (FinFlux)</h2>
+          <p>[Futura tela do Financeiro]</p>
+          <button onClick={() => setTela("Home")}>Voltar</button>
+        </div>
+      );
+    }
+
+    if (tela === "Custos") {
+      return (
+        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
+          <h2>ANÁLISE DE CUSTOS</h2>
+          <p>[Futura tela de Análise de Custos]</p>
+          <button onClick={() => setTela("Home")}>Voltar</button>
+        </div>
+      );
+    }
+
+    // Tela Principal
+    return (
+      <>
+        {/* === INÍCIO RT00 – Home ERP === */}
         <div
           style={{
-            position: "absolute",
-            top: "15%",
-            width: "100%",
-            textAlign: "center",
-            padding: "1rem",
+            backgroundImage: "url('/bg002.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            minHeight: "100vh",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
           }}
         >
-          {/* === Botão ERP (central) === */}
-          <button
+          {/* === Cabeçalho === */}
+          <header
             style={{
-              backgroundColor: "#8c3b1b",
-              color: "white",
-              padding: "0.8rem 2rem",
-              borderRadius: "0.5rem",
-              border: "none",
-              fontSize: "2.25rem",
-              marginBottom: "0.3rem",
-              boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
-            }}
-            disabled
-          >
-            ERP
-          </button>
-
-          {/* === Subtítulo === */}
-          <div
-            style={{
-              backgroundColor: "rgba(255, 255, 255, 0.6)",
-              margin: "0 auto 1.5rem auto",
-              padding: "0.4rem 1rem",
-              borderRadius: "8px",
-              maxWidth: "95%",
-            }}
-          >
-            <p
-              style={{
-                color: "#8c3b1b",
-                fontWeight: "bold",
-                fontSize: "1rem",
-                margin: 0,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                textTransform: "capitalize",
-              }}
-            >
-              Sistema De Gestão Dudunitê
-            </p>
-          </div>
-
-          {/* === Botões === */}
-          <div
-            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10,
               display: "flex",
-              flexDirection: "column",
-              gap: "1rem",
+              justifyContent: "space-between",
               alignItems: "center",
+              height: "70px",
+              padding: "0 0.5rem",
+              backgroundColor: "rgba(255, 255, 255, 0.5)",
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
             }}
           >
+            <img
+              src="/LogomarcaDDnt2025Vazado.png"
+              alt="Logo Dudunitê"
+              style={{ width: "100px", height: "auto" }}
+            />
+            <h1 style={{ color: "#8c3b1b", fontSize: "0.85rem" }}>
+              ERP DUDUNITÊ
+            </h1>
+          </header>
+
+          {/* === Bloco Central === */}
+          <div
+            style={{
+              position: "absolute",
+              top: "15%",
+              width: "100%",
+              textAlign: "center",
+              padding: "1rem",
+            }}
+          >
+            {/* === Botão ERP === */}
             <button
               style={{
                 backgroundColor: "#8c3b1b",
                 color: "white",
-                padding: "1rem 2rem",
+                padding: "0.8rem 2rem",
                 borderRadius: "0.5rem",
                 border: "none",
-                fontSize: "1.2rem",
+                fontSize: "2.25rem",
+                marginBottom: "0.3rem",
                 boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
               }}
+              disabled
             >
-              PRODUÇÃO
+              ERP
             </button>
 
-            <button
+            {/* === Botões dos Módulos === */}
+            <div
               style={{
-                backgroundColor: "#8c3b1b",
-                color: "white",
-                padding: "1rem 2rem",
-                borderRadius: "0.5rem",
-                border: "none",
-                fontSize: "1.2rem",
-                boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "1rem",
+                alignItems: "center",
+                marginTop: "1.5rem",
               }}
             >
-              FINANCEIRO
-            </button>
+              <button
+                onClick={() => setTela("Producao")}
+                style={{
+                  backgroundColor: "#8c3b1b",
+                  color: "white",
+                  padding: "1rem 2rem",
+                  borderRadius: "0.5rem",
+                  border: "none",
+                  fontSize: "1.5rem",
+                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+                }}
+              >
+                Produção (PCP)
+              </button>
 
-            <button
-              style={{
-                backgroundColor: "#8c3b1b",
-                color: "white",
-                padding: "1rem 2rem",
-                borderRadius: "0.5rem",
-                border: "none",
-                fontSize: "1.2rem",
-                boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
-              }}
-            >
-              RESULTADOS
-            </button>
+              <button
+                onClick={() => setTela("Financeiro")}
+                style={{
+                  backgroundColor: "#8c3b1b",
+                  color: "white",
+                  padding: "1rem 2rem",
+                  borderRadius: "0.5rem",
+                  border: "none",
+                  fontSize: "1.5rem",
+                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+                }}
+              >
+                Financeiro (FinFlux)
+              </button>
+
+              <button
+                onClick={() => setTela("Custos")}
+                style={{
+                  backgroundColor: "#8c3b1b",
+                  color: "white",
+                  padding: "1rem 2rem",
+                  borderRadius: "0.5rem",
+                  border: "none",
+                  fontSize: "1.5rem",
+                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+                }}
+              >
+                Análise de Custos
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* === Rodapé === */}
-        <footer
-          style={{
-            position: "absolute",
-            bottom: "50px",
-            width: "100%",
-            backgroundColor: "rgba(140, 59, 27, 0.4)",
-            color: "white",
-            padding: "0.8rem",
-            fontSize: "0.9rem",
-          }}
-        >
-          <marquee behavior="scroll" direction="left">
-            • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
-            Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros
-            • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo •
-            Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
-          </marquee>
-        </footer>
-      </div>
-      {/* === FIM RT00 === */}
-    </>
-  );
+          {/* === Rodapé === */}
+          <footer
+            style={{
+              position: "absolute",
+              bottom: "50px",
+              width: "100%",
+              backgroundColor: "rgba(140, 59, 27, 0.4)",
+              color: "white",
+              padding: "0.8rem",
+              fontSize: "0.9rem",
+            }}
+          >
+            <marquee behavior="scroll" direction="left">
+              • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
+            </marquee>
+          </footer>
+        </div>
+        {/* === FIM RT00 === */}
+      </>
+    );
+  };
+
+  return renderizarTela();
 };
 
-export default HomeERP;
+export default HomeERP; 
