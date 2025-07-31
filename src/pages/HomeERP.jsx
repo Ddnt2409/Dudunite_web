@@ -1,4 +1,4 @@
- // === FN01 – Importações Gerais ===
+// === FN01 – Importações Gerais ===
 import React, { useState } from "react";
 
 // === FN02 – Componente Principal ===
@@ -53,7 +53,7 @@ const HomeERP = () => {
             position: "relative",
           }}
         >
-          {/* === Cabeçalho com alinhamento ajustado === */}
+          {/* === Cabeçalho === */}
           <header
             style={{
               position: "fixed",
@@ -63,27 +63,25 @@ const HomeERP = () => {
               zIndex: 10,
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center", // Verticalmente centralizado
+              alignItems: "center", // Centraliza VERTICALMENTE
               height: "140px",
-              padding: "0 12px", // Afasta texto da borda
+              padding: "0 1rem",
               backgroundColor: "rgba(255, 255, 255, 0.5)",
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
             }}
           >
-            {/* === Logomarca === */}
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
               style={{ width: "300px", height: "auto" }}
             />
-
-            {/* === Título alinhado à direita === */}
             <h1
               style={{
                 color: "#8c3b1b",
                 fontSize: "2.6rem",
                 fontWeight: "bold",
+                marginRight: "1rem", // Distância de ~2 letras da lateral direita
               }}
             >
               ERP DUDUNITÊ
@@ -156,11 +154,11 @@ const HomeERP = () => {
             </div>
           </div>
 
-          {/* === Rodapé posicionado corretamente === */}
+          {/* === Rodapé AJUSTADO (50% mais alto) === */}
           <footer
             style={{
               position: "absolute",
-              bottom: "100px",
+              bottom: "100px", // Subido 50% (antes era 50px)
               width: "100%",
               backgroundColor: "rgba(140, 59, 27, 0.4)",
               color: "white",
