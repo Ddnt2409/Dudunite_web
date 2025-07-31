@@ -1,42 +1,39 @@
 // src/pages/HomeERP.jsx
-//forçar deploy
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import './HomeERP.css';
 
 const botoesMacro = [
   {
     titulo: "Produção",
     rotas: [
-      { label: "Lançar Pedido", path: "/pcp" },
-      { label: "Alimentar Sabores", path: "/sabores" },
-      { label: "Cozinha", path: "/cozinha" },
-      { label: "Status dos pedidos", path: "/status" }
+      { label: "Lançar Pedido", rota: "HomePCP" },
+      { label: "Alimentar Sabores", rota: "HomeSabores" },
+      { label: "Cozinha", rota: "HomeCozinha" },
+      { label: "Status dos pedidos", rota: "HomeStatus" }
     ]
   },
   {
     titulo: "Financeiro",
     rotas: [
-      { label: "Contas a Pagar", path: "/pagar" },
-      { label: "Contas a Receber", path: "/receber" },
-      { label: "Fluxo de Caixa", path: "/fluxo" }
+      { label: "Contas a Pagar", rota: "HomePagar" },
+      { label: "Contas a Receber", rota: "HomeReceber" },
+      { label: "Fluxo de Caixa", rota: "HomeFluxo" }
     ]
   },
   {
     titulo: "Resultados",
     rotas: [
-      { label: "Análise de Custos", path: "/custos" },
-      { label: "Lucro / Prejuízo", path: "/lucro" },
-      { label: "Ranking de vendas", path: "/ranking" }
+      { label: "Análise de Custos", rota: "HomeCustos" },
+      { label: "Lucro / Prejuízo", rota: "HomeLucro" },
+      { label: "Ranking de vendas", rota: "HomeRanking" }
     ]
   }
 ];
 
-const HomeERP = () => {
+const HomeERP = ({ navegarPara }) => {
   const [indiceAtivo, setIndiceAtivo] = useState(0);
   const [expandido, setExpandido] = useState(false);
-  const navigate = useNavigate();
+  const [touchStartX, setTouchStartX] = useState(0);
 
   const handleSwipe = (direcao) => {
     if (direcao === 'esquerda' && indiceAtivo < botoesMacro.length - 1) {
@@ -60,8 +57,6 @@ const HomeERP = () => {
       handleSwipe('esquerda');
     }
   };
-
-  const [touchStartX, setTouchStartX] = useState(0);
 
   return (
     <div
@@ -89,7 +84,7 @@ const HomeERP = () => {
                 {botao.rotas.map((rota, i) => (
                   <button
                     key={i}
-                    onClick={() => navigate(rota.path)}
+                    onClick={() => navegarPara(rota.rota)}
                     className="botao-subitem"
                   >
                     {rota.label}
