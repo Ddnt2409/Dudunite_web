@@ -1,5 +1,4 @@
-// src/pages/HomeERP.jsx
-
+// === FN01 – Importações Gerais ===
 import React, { useState } from "react";
 
 // === FN02 – Componente Principal ===
@@ -7,12 +6,42 @@ const HomeERP = () => {
   const [tela, setTela] = useState("Home");
 
   const renderizarTela = () => {
+    if (tela === "Producao") {
+      return (
+        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
+          <h2>PRODUÇÃO</h2>
+          <p>[Futura tela de Produção]</p>
+          <button onClick={() => setTela("Home")}>Voltar</button>
+        </div>
+      );
+    }
+
+    if (tela === "Financeiro") {
+      return (
+        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
+          <h2>FINANCEIRO</h2>
+          <p>[Futura tela Financeira]</p>
+          <button onClick={() => setTela("Home")}>Voltar</button>
+        </div>
+      );
+    }
+
+    if (tela === "Resultados") {
+      return (
+        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
+          <h2>RESULTADOS</h2>
+          <p>[Futura tela de Resultados]</p>
+          <button onClick={() => setTela("Home")}>Voltar</button>
+        </div>
+      );
+    }
+
     return (
       <>
         {/* === INÍCIO RT00 – Home ERP === */}
         <div
           style={{
-            backgroundImage: "url('/bg001.png')",
+            backgroundImage: "url('/bg002.png')",
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
@@ -60,6 +89,7 @@ const HomeERP = () => {
               padding: "1rem",
             }}
           >
+            {/* === Botão ERP === */}
             <button
               style={{
                 backgroundColor: "#8c3b1b",
@@ -76,6 +106,7 @@ const HomeERP = () => {
               ERP
             </button>
 
+            {/* === Subtítulo === */}
             <div
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.6)",
@@ -97,11 +128,11 @@ const HomeERP = () => {
                   textTransform: "capitalize",
                 }}
               >
-                Sistema de Gestão Dudunitê
+                Sistema De Gestão Dudunitê
               </p>
             </div>
 
-            {/* === Botões macrogrupos === */}
+            {/* === Botões === */}
             <div
               style={{
                 display: "flex",
@@ -111,7 +142,7 @@ const HomeERP = () => {
               }}
             >
               <button
-                onClick={() => setTela("HomePCP")}
+                onClick={() => setTela("Producao")}
                 style={{
                   backgroundColor: "#8c3b1b",
                   color: "white",
@@ -126,6 +157,7 @@ const HomeERP = () => {
               </button>
 
               <button
+                onClick={() => setTela("Financeiro")}
                 style={{
                   backgroundColor: "#8c3b1b",
                   color: "white",
@@ -140,6 +172,7 @@ const HomeERP = () => {
               </button>
 
               <button
+                onClick={() => setTela("Resultados")}
                 style={{
                   backgroundColor: "#8c3b1b",
                   color: "white",
