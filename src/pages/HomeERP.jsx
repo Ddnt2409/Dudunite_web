@@ -1,4 +1,4 @@
- // === FN01 – Importações Gerais ===
+// === FN01 – Importações Gerais ===
 import React, { useState } from "react";
 
 // === FN02 – Componente Principal ===
@@ -6,7 +6,6 @@ const HomeERP = () => {
   const [tela, setTela] = useState("Home");
 
   const renderizarTela = () => {
-    // Telas futuras
     if (tela === "Producao") {
       return (
         <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
@@ -37,7 +36,6 @@ const HomeERP = () => {
       );
     }
 
-    // Tela Principal
     return (
       <>
         {/* === INÍCIO RT00 – Home ERP === */}
@@ -55,7 +53,7 @@ const HomeERP = () => {
             position: "relative",
           }}
         >
-          {/* === Cabeçalho === */}
+          {/* === Cabeçalho DOBRADO === */}
           <header
             style={{
               position: "fixed",
@@ -66,56 +64,40 @@ const HomeERP = () => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              height: "70px",
-              padding: "0 0.5rem",
+              height: "140px",
+              padding: "0 1rem",
               backgroundColor: "rgba(255, 255, 255, 0.5)",
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
             }}
           >
+            {/* === Logomarca TRIPLICADA === */}
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "100px", height: "auto" }}
+              style={{ width: "300px", height: "auto" }}
             />
-            <h1 style={{ color: "#8c3b1b", fontSize: "0.85rem" }}>
+            {/* === Título TRIPLICADO === */}
+            <h1 style={{ color: "#8c3b1b", fontSize: "2.6rem" }}>
               ERP DUDUNITÊ
             </h1>
           </header>
 
-          {/* === Bloco Central === */}
+          {/* === Bloco Central (sem botão ERP) === */}
           <div
             style={{
               position: "absolute",
-              top: "15%",
+              top: "20%",
               width: "100%",
               textAlign: "center",
               padding: "1rem",
             }}
           >
-            {/* === Botão ERP === */}
-            <button
-              style={{
-                backgroundColor: "#8c3b1b",
-                color: "white",
-                padding: "0.8rem 2rem",
-                borderRadius: "0.5rem",
-                border: "none",
-                fontSize: "2.25rem",
-                marginBottom: "0.3rem",
-                boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
-              }}
-              disabled
-            >
-              ERP
-            </button>
-
-            {/* === Botões dos Módulos === */}
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "1rem",
+                gap: "1.5rem",
                 alignItems: "center",
                 marginTop: "1.5rem",
               }}
@@ -125,10 +107,10 @@ const HomeERP = () => {
                 style={{
                   backgroundColor: "#8c3b1b",
                   color: "white",
-                  padding: "1rem 2rem",
+                  padding: "1.2rem 2.5rem",
                   borderRadius: "0.5rem",
                   border: "none",
-                  fontSize: "1.5rem",
+                  fontSize: "1.8rem",
                   boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
                 }}
               >
@@ -140,10 +122,10 @@ const HomeERP = () => {
                 style={{
                   backgroundColor: "#8c3b1b",
                   color: "white",
-                  padding: "1rem 2rem",
+                  padding: "1.2rem 2.5rem",
                   borderRadius: "0.5rem",
                   border: "none",
-                  fontSize: "1.5rem",
+                  fontSize: "1.8rem",
                   boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
                 }}
               >
@@ -155,10 +137,10 @@ const HomeERP = () => {
                 style={{
                   backgroundColor: "#8c3b1b",
                   color: "white",
-                  padding: "1rem 2rem",
+                  padding: "1.2rem 2.5rem",
                   borderRadius: "0.5rem",
                   border: "none",
-                  fontSize: "1.5rem",
+                  fontSize: "1.8rem",
                   boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
                 }}
               >
@@ -167,7 +149,7 @@ const HomeERP = () => {
             </div>
           </div>
 
-          {/* === Rodapé === */}
+          {/* === Rodapé DUPLICADO === */}
           <footer
             style={{
               position: "absolute",
@@ -175,8 +157,9 @@ const HomeERP = () => {
               width: "100%",
               backgroundColor: "rgba(140, 59, 27, 0.4)",
               color: "white",
-              padding: "0.8rem",
-              fontSize: "0.9rem",
+              padding: "1.6rem",
+              fontSize: "1.8rem",
+              textAlign: "center",
             }}
           >
             <marquee behavior="scroll" direction="left">
@@ -192,4 +175,4 @@ const HomeERP = () => {
   return renderizarTela();
 };
 
-export default HomeERP; 
+export default HomeERP;
