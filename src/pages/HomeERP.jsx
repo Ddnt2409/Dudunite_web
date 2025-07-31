@@ -1,110 +1,178 @@
-// src/pages/HomeERP.jsx
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import './HomeERP.css';
+ // === FN01 – Importações Gerais ===
+import React from "react";
 
-const HomeERP = () => {
-  const navigate = useNavigate();
-
+// === FN02 – Componente Principal ===
+const HomeERP = ({ navegarPara }) => {
   return (
-    <div
-      className="homeerp-container"
-      style={{
-        backgroundImage: 'url("/BG002.png")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        minHeight: '100vh',
-      }}
-    >
-      {/* === CABEÇALHO TRANSLÚCIDO === */}
-      <header
-        style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.5)',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '10px 20px',
-        }}
-      >
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logomarca"
-          style={{ height: '40px' }}
-        />
-        <h1 style={{ color: '#8C3B1B', fontSize: '14px' }}>ERP DUDUNITÊ</h1>
-      </header>
-
-      {/* === CENTRO === */}
+    <>
+      {/* === INÍCIO RT00 – Home ERP === */}
       <div
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingTop: '40px',
+          backgroundImage: "url('/bg002.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
         }}
       >
-        <button style={estiloBotaoTitulo}>ERP</button>
-        <div style={{ fontSize: '12px', margin: '10px', color: '#8C3B1B' }}>
-          Sistema De Gestão Dudunitê
+        {/* === Cabeçalho === */}
+        <header
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            height: "70px",
+            padding: "0 0.5rem",
+            backgroundColor: "rgba(255, 255, 255, 0.5)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+          }}
+        >
+          <img
+            src="/LogomarcaDDnt2025Vazado.png"
+            alt="Logo Dudunitê"
+            style={{ width: "100px", height: "auto" }}
+          />
+          <h1 style={{ color: "#8c3b1b", fontSize: "0.85rem" }}>ERP DUDUNITÊ</h1>
+        </header>
+
+        {/* === Bloco Central === */}
+        <div
+          style={{
+            position: "absolute",
+            top: "15%",
+            width: "100%",
+            textAlign: "center",
+            padding: "1rem",
+          }}
+        >
+          <button
+            style={{
+              backgroundColor: "#8c3b1b",
+              color: "white",
+              padding: "0.8rem 2rem",
+              borderRadius: "0.5rem",
+              border: "none",
+              fontSize: "2.25rem",
+              marginBottom: "0.3rem",
+              boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+            }}
+            disabled
+          >
+            ERP
+          </button>
+
+          <div
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.6)",
+              margin: "0 auto 1.5rem auto",
+              padding: "0.4rem 1rem",
+              borderRadius: "8px",
+              maxWidth: "95%",
+            }}
+          >
+            <p
+              style={{
+                color: "#8c3b1b",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                margin: 0,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                textTransform: "capitalize",
+              }}
+            >
+              Painel Principal do Sistema ERP
+            </p>
+          </div>
+
+          {/* === Botões === */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+              alignItems: "center",
+            }}
+          >
+            <button
+              onClick={() => navegarPara("HomePCP")}
+              style={{
+                backgroundColor: "#8c3b1b",
+                color: "white",
+                padding: "1rem 2rem",
+                borderRadius: "0.5rem",
+                border: "none",
+                fontSize: "1.5rem",
+                boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+              }}
+            >
+              PRODUÇÃO
+            </button>
+
+            <button
+              onClick={() => alert("Módulo Financeiro em construção")}
+              style={{
+                backgroundColor: "#8c3b1b",
+                color: "white",
+                padding: "1rem 2rem",
+                borderRadius: "0.5rem",
+                border: "none",
+                fontSize: "1.5rem",
+                boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+              }}
+            >
+              FINANCEIRO
+            </button>
+
+            <button
+              onClick={() => alert("Módulo de Resultados em construção")}
+              style={{
+                backgroundColor: "#8c3b1b",
+                color: "white",
+                padding: "1rem 2rem",
+                borderRadius: "0.5rem",
+                border: "none",
+                fontSize: "1.5rem",
+                boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+              }}
+            >
+              RESULTADOS
+            </button>
+          </div>
         </div>
 
-        <button style={estiloBotao} onClick={() => navigate('/pcp')}>
-          Produção
-        </button>
-        <button style={estiloBotao} onClick={() => navigate('/receber')}>
-          Financeiro
-        </button>
-        <button style={estiloBotao} onClick={() => navigate('/custos')}>
-          Resultados
-        </button>
+        {/* === Rodapé === */}
+        <footer
+          style={{
+            position: "absolute",
+            bottom: "50px",
+            width: "100%",
+            backgroundColor: "rgba(140, 59, 27, 0.4)",
+            color: "white",
+            padding: "0.8rem",
+            fontSize: "0.9rem",
+          }}
+        >
+          <marquee behavior="scroll" direction="left">
+            • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
+          </marquee>
+        </footer>
       </div>
-
-      {/* === RODAPÉ COM MARQUEE === */}
-      <footer
-        style={{
-          backgroundColor: 'rgba(140, 59, 27, 0.4)',
-          position: 'fixed',
-          bottom: 0,
-          width: '100%',
-          padding: '6px 0',
-          textAlign: 'center',
-          color: '#fff',
-          fontSize: '11px',
-        }}
-      >
-        <marquee behavior="scroll" direction="left" scrollamount="4">
-          Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
-        </marquee>
-      </footer>
-    </div>
+      {/* === FIM RT00 === */}
+    </>
   );
-};
-
-const estiloBotaoTitulo = {
-  backgroundColor: '#8C3B1B',
-  color: 'white',
-  padding: '10px 24px',
-  margin: '6px',
-  borderRadius: '8px',
-  border: 'none',
-  fontSize: '18px',
-  fontWeight: 'bold',
-  boxShadow: '2px 2px 4px rgba(0,0,0,0.3)',
-};
-
-const estiloBotao = {
-  backgroundColor: '#8C3B1B',
-  color: 'white',
-  padding: '10px 24px',
-  margin: '6px',
-  borderRadius: '8px',
-  border: 'none',
-  fontSize: '16px',
-  fontWeight: 'bold',
-  width: '160px',
-  boxShadow: '2px 2px 4px rgba(0,0,0,0.3)',
 };
 
 export default HomeERP;
