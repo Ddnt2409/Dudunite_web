@@ -11,7 +11,7 @@ const HomeERP = () => {
     { label: "Análise de Custos", action: () => setTela("Custos") },
   ];
 
-  // === FN – Detectar botão mais central com base no centro da tela
+  // Detectar botão central e aplicar escala
   useEffect(() => {
     const container = carrosselRef.current;
     if (!container) return;
@@ -28,7 +28,6 @@ const HomeERP = () => {
         const rect = btn.getBoundingClientRect();
         const btnCenterX = rect.left + rect.width / 2;
         const distance = Math.abs(centerX - btnCenterX);
-
         if (distance < minDistance) {
           minDistance = distance;
           closestIdx = idx;
@@ -38,15 +37,13 @@ const HomeERP = () => {
       setFocusIndex(closestIdx);
 
       buttons.forEach((btn, idx) => {
-        let scale = 1;
-        if (idx === closestIdx) {
-          scale = 2.0; // botão central 100%
-        } else {
-          scale = 1.2; // laterais 20%
-        }
-        btn.style.transform = `scale(${scale})`;
+        const isFocused = idx === closestIdx;
+        btn.style.transform = `scale(${isFocused ? 2.0 : 1.2})`;
         btn.style.transition = "transform 0.3s ease";
-        btn.style.zIndex = idx === closestIdx ? 2 : 1;
+        btn.style.zIndex = isFocused ? 2 : 1;
+        btn.style.boxShadow = isFocused
+          ? "8px 8px 16px rgba(0, 0, 0, 0.5)"
+          : "4px 4px 8px rgba(0, 0, 0, 0.3)";
       });
     };
 
@@ -58,7 +55,7 @@ const HomeERP = () => {
     };
   }, []);
 
-  // === FN – Ao voltar para tela inicial, centralizar botão do meio
+  // Recentralizar botão do meio
   useEffect(() => {
     if (tela === "Home" && carrosselRef.current) {
       const centralBtn = carrosselRef.current.querySelectorAll(".carousel-button")[1];
@@ -77,7 +74,6 @@ const HomeERP = () => {
     }
   }, [tela]);
 
-  // === FN – Render principal
   const renderizarTela = () => {
     if (tela === "Producao") return <Tela titulo="PRODUÇÃO (PCP)" />;
     if (tela === "Financeiro") return <Tela titulo="FINANCEIRO (FinFlux)" />;
@@ -120,7 +116,7 @@ const HomeERP = () => {
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "300px", marginTop: "8.5%" }}
+              style={{ width: "300px", marginTop: "6%" }} // Subiu 2%
             />
             <h1
               style={{
@@ -164,17 +160,21 @@ const HomeERP = () => {
                   className="carousel-button"
                   onClick={btn.action}
                   style={{
-                    backgroundColor: focusIndex === idx ? "#8c3b1b" : "#dcbba3",
+                    backgroundColor: focusIndex === idx ? "#8c3b1b" : "#e6cfc2",
                     color: "white",
-                    width: "200px",
-                    height: "200px",
+                    width: "160px", // quadrado
+                    height: "160px", // quadrado
                     borderRadius: "1rem",
                     border: "none",
                     fontSize: "1.5rem",
                     fontWeight: "bold",
-                    boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.5)",
+                    boxShadow:
+                      idx === focusIndex
+                        ? "8px 8px 16px rgba(0, 0, 0, 0.5)"
+                        : "4px 4px 8px rgba(0, 0, 0, 0.3)",
                     flexShrink: 0,
-                    transition: "background-color 0.3s",
+                    transition: "background-color 0.3s, box-shadow 0.3s",
+                    scrollSnapAlign: "center",
                   }}
                 >
                   {btn.label}
@@ -210,7 +210,6 @@ const HomeERP = () => {
     );
   };
 
-  // === FN – Tela de placeholder
   const Tela = ({ titulo }) => (
     <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
       <h2>{titulo}</h2>
