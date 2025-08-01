@@ -3,39 +3,71 @@ import React, { useEffect, useRef, useState } from "react";
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
   const carrosselRef = useRef(null);
+  const [focusIndex, setFocusIndex] = useState(1); // começa com botão central em foco
 
-  // === FN – Animação do foco central ===
+  const botoes = [
+    { label: "Produção (PCP)", action: () => setTela("Producao") },
+    { label: "Financeiro (FinFlux)", action: () => setTela("Financeiro") },
+    { label: "Análise de Custos", action: () => setTela("Custos") },
+  ];
+
+  // === FN – Aplica Zoom e Cor ao Botão Central ===
   useEffect(() => {
-    const handleScroll = () => {
-      const container = carrosselRef.current;
-      if (!container) return;
+    const container = carrosselRef.current;
+    if (!container) return;
 
+    const handleScroll = () => {
       const buttons = container.querySelectorAll(".carousel-button");
       const containerCenter = container.scrollLeft + container.offsetWidth / 2;
 
-      buttons.forEach((btn) => {
+      let minDist = Infinity;
+      let newFocus = 0;
+
+      buttons.forEach((btn, idx) => {
         const btnCenter =
           btn.offsetLeft + btn.offsetWidth / 2 - container.scrollLeft;
         const distance = Math.abs(container.offsetWidth / 2 - btnCenter);
-        const scale = Math.max(1, 1.3 - distance / 300);
+
+        if (distance < minDist) {
+          minDist = distance;
+          newFocus = idx;
+        }
+
+        const scale = Math.max(1, 1.2 - distance / 400);
         btn.style.transform = `scale(${scale})`;
         btn.style.transition = "transform 0.3s ease-out";
-        btn.style.zIndex = scale > 1.1 ? 2 : 1;
+        btn.style.zIndex = scale > 1.05 ? 2 : 1;
       });
+
+      setFocusIndex(newFocus);
     };
 
-    const container = carrosselRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll);
-      handleScroll(); // aplica na inicialização
-    }
+    container.addEventListener("scroll", handleScroll);
+    handleScroll(); // aplica ao abrir
 
     return () => {
-      if (container) {
-        container.removeEventListener("scroll", handleScroll);
-      }
+      container.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  // === FN – Recentra botão central ao voltar ===
+  useEffect(() => {
+    if (tela === "Home" && carrosselRef.current) {
+      const centralBtn = carrosselRef.current.querySelectorAll(
+        ".carousel-button"
+      )[1];
+      if (centralBtn) {
+        const container = carrosselRef.current;
+        container.scrollTo({
+          left:
+            centralBtn.offsetLeft -
+            container.offsetWidth / 2 +
+            centralBtn.offsetWidth / 2,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [tela]);
 
   // === FN – Tela Inicial ===
   const renderizarTela = () => {
@@ -94,7 +126,7 @@ const HomeERP = () => {
             </h1>
           </header>
 
-          {/* Carrossel com Foco Dinâmico */}
+          {/* Carrossel com Movimento Real */}
           <div
             ref={carrosselRef}
             style={{
@@ -106,6 +138,8 @@ const HomeERP = () => {
               display: "flex",
               justifyContent: "center",
               scrollSnapType: "x mandatory",
+              touchAction: "pan-x",
+              WebkitOverflowScrolling: "touch",
             }}
           >
             <div
@@ -116,23 +150,14 @@ const HomeERP = () => {
                 minWidth: "max-content",
               }}
             >
-              {[
-                { label: "Produção (PCP)", action: () => setTela("Producao") },
-                {
-                  label: "Financeiro (FinFlux)",
-                  action: () => setTela("Financeiro"),
-                },
-                {
-                  label: "Análise de Custos",
-                  action: () => setTela("Custos"),
-                },
-              ].map((btn, idx) => (
+              {botoes.map((btn, idx) => (
                 <button
                   key={idx}
                   className="carousel-button"
                   onClick={btn.action}
                   style={{
-                    backgroundColor: "#8c3b1b",
+                    backgroundColor:
+                      focusIndex === idx ? "#8c3b1b" : "#dcbba3", // foco: terracota escuro, fora: bege claro
                     color: "white",
                     width: "200px",
                     height: "200px",
@@ -142,6 +167,7 @@ const HomeERP = () => {
                     fontWeight: "bold",
                     boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.5)",
                     flexShrink: 0,
+                    transition: "background-color 0.3s",
                   }}
                 >
                   {btn.label}
@@ -164,7 +190,11 @@ const HomeERP = () => {
             }}
           >
             <marquee behavior="scroll" direction="left">
-              • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
+              • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar
+              • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz •
+              Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
+              Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus
+              Salvador
             </marquee>
           </footer>
         </div>
