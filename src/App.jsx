@@ -2,7 +2,7 @@
 // FN01 – Importações Gerais
 import React, { useState } from 'react';
 import HomeERP from './pages/HomeERP';
-import HomePCP from './components/HomePCP';
+import HomePCP from './pages/HomePCP'; // Corrigido: antes estava apontando para components
 
 // === FN02 – Componente Principal ===
 function App() {
