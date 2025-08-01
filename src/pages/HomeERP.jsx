@@ -1,5 +1,7 @@
+// === FN01 – Importações Gerais ===
 import React, { useEffect, useRef, useState } from "react";
 
+// === FN02 – Componente Principal ===
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
   const carrosselRef = useRef(null);
@@ -11,7 +13,7 @@ const HomeERP = () => {
     { label: "Análise de Custos", action: () => setTela("Custos") },
   ];
 
-  // Detectar botão central e aplicar escala
+  // === FN03 – Aplicar escala ao botão central ===
   useEffect(() => {
     const container = carrosselRef.current;
     if (!container) return;
@@ -41,9 +43,7 @@ const HomeERP = () => {
         btn.style.transform = `scale(${isFocused ? 2.0 : 1.2})`;
         btn.style.transition = "transform 0.3s ease";
         btn.style.zIndex = isFocused ? 2 : 1;
-        btn.style.boxShadow = isFocused
-          ? "8px 8px 16px rgba(0, 0, 0, 0.5)"
-          : "4px 4px 8px rgba(0, 0, 0, 0.3)";
+        btn.style.boxShadow = "8px 8px 16px rgba(0, 0, 0, 0.5)";
       });
     };
 
@@ -55,7 +55,7 @@ const HomeERP = () => {
     };
   }, []);
 
-  // Recentralizar botão do meio
+  // === FN04 – Centralizar botão do meio ao iniciar ===
   useEffect(() => {
     if (tela === "Home" && carrosselRef.current) {
       const centralBtn = carrosselRef.current.querySelectorAll(".carousel-button")[1];
@@ -74,6 +74,7 @@ const HomeERP = () => {
     }
   }, [tela]);
 
+  // === FN05 – Renderizar Tela Principal ===
   const renderizarTela = () => {
     if (tela === "Producao") return <Tela titulo="PRODUÇÃO (PCP)" />;
     if (tela === "Financeiro") return <Tela titulo="FINANCEIRO (FinFlux)" />;
@@ -81,7 +82,7 @@ const HomeERP = () => {
 
     return (
       <>
-        {/* === INÍCIO RT00 – Tela Inicial com Carrossel === */}
+        {/* === INÍCIO RT00 – Tela HOME ERP === */}
         <div
           style={{
             backgroundImage: "url('/bg002.png')",
@@ -95,7 +96,7 @@ const HomeERP = () => {
             position: "relative",
           }}
         >
-          {/* Cabeçalho */}
+          {/* === Cabeçalho com logomarca subida 2% === */}
           <header
             style={{
               position: "fixed",
@@ -116,7 +117,7 @@ const HomeERP = () => {
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "300px", marginTop: "6%" }} // Subiu 2%
+              style={{ width: "300px", marginTop: "4%" }}
             />
             <h1
               style={{
@@ -130,7 +131,7 @@ const HomeERP = () => {
             </h1>
           </header>
 
-          {/* Carrossel */}
+          {/* === Carrossel com movimento lateral === */}
           <div
             ref={carrosselRef}
             style={{
@@ -162,18 +163,14 @@ const HomeERP = () => {
                   style={{
                     backgroundColor: focusIndex === idx ? "#8c3b1b" : "#e6cfc2",
                     color: "white",
-                    width: "160px", // quadrado
-                    height: "160px", // quadrado
+                    width: "160px", // Quadrado
+                    height: "160px", // Quadrado
                     borderRadius: "1rem",
                     border: "none",
                     fontSize: "1.5rem",
                     fontWeight: "bold",
-                    boxShadow:
-                      idx === focusIndex
-                        ? "8px 8px 16px rgba(0, 0, 0, 0.5)"
-                        : "4px 4px 8px rgba(0, 0, 0, 0.3)",
+                    boxShadow: "8px 8px 16px rgba(0, 0, 0, 0.5)",
                     flexShrink: 0,
-                    transition: "background-color 0.3s, box-shadow 0.3s",
                     scrollSnapAlign: "center",
                   }}
                 >
@@ -183,7 +180,7 @@ const HomeERP = () => {
             </div>
           </div>
 
-          {/* Rodapé */}
+          {/* === Rodapé com nomes das escolas === */}
           <footer
             style={{
               position: "absolute",
@@ -197,11 +194,7 @@ const HomeERP = () => {
             }}
           >
             <marquee behavior="scroll" direction="left">
-              • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar
-              • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz •
-              Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
-              Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus
-              Salvador
+              • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
             </marquee>
           </footer>
         </div>
@@ -210,6 +203,7 @@ const HomeERP = () => {
     );
   };
 
+  // === FN06 – Tela temporária para cada módulo ===
   const Tela = ({ titulo }) => (
     <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
       <h2>{titulo}</h2>
