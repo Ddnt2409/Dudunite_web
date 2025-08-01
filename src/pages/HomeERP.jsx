@@ -71,14 +71,14 @@ const HomeERP = () => {
               WebkitBackdropFilter: "blur(6px)",
             }}
           >
-            {/* === Logomarca CENTRALIZADA VERTICAL + DESCIDA 10% === */}
+            {/* === Logomarca CENTRALIZADA VERTICAL + SUBIDA 5% === */}
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
               style={{
                 width: "300px",
                 height: "auto",
-                marginTop: "10%",
+                marginTop: "5%",
               }}
             />
             {/* === Título com NEGRITO e AFASTAMENTO === */}
@@ -87,7 +87,7 @@ const HomeERP = () => {
                 color: "#8c3b1b",
                 fontSize: "2.6rem",
                 fontWeight: "bold",
-                marginRight: "2ch", // afastamento de ~2 letras
+                marginRight: "2ch",
               }}
             >
               ERP DUDUNITÊ
@@ -164,7 +164,7 @@ const HomeERP = () => {
           <footer
             style={{
               position: "absolute",
-              bottom: "75px", // altura original: 50px → subida de 50%
+              bottom: "75px",
               width: "100%",
               backgroundColor: "rgba(140, 59, 27, 0.4)",
               color: "white",
