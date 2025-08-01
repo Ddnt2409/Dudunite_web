@@ -1,18 +1,40 @@
+// === INÍCIO HomeERP.jsx ===
 import React, { useEffect, useRef, useState } from "react";
+import HomePCP from "./HomePCP";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
   const carrosselRef = useRef(null);
   const [focusIndex, setFocusIndex] = useState(1);
-  const [botaoExpandido, setBotaoExpandido] = useState(null);
 
   const botoes = [
-    { label: "Produção (PCP)", action: () => setTela("Producao") },
-    { label: "Financeiro (FinFlux)", action: () => setTela("Financeiro") },
-    { label: "Análise de Custos", action: () => setTela("Custos") },
+    {
+      label: "Produção (PCP)",
+      action: () => setTela("PCP"),
+      dropdown: [
+        { nome: "Ir para Produção", acao: () => setTela("PCP") },
+      ],
+    },
+    {
+      label: "Financeiro (FinFlux)",
+      action: () => {},
+      dropdown: [
+        { nome: "Contas a Receber", acao: () => alert("Em breve") },
+        { nome: "Contas a Pagar", acao: () => alert("Em breve") },
+        { nome: "Fluxo de Caixa", acao: () => alert("Em breve") },
+      ],
+    },
+    {
+      label: "Análise de Custos",
+      action: () => {},
+      dropdown: [
+        { nome: "Custos por Produto", acao: () => alert("Em breve") },
+        { nome: "Custos Fixos", acao: () => alert("Em breve") },
+        { nome: "Custos Variáveis", acao: () => alert("Em breve") },
+      ],
+    },
   ];
 
-  // Detectar botão central e aplicar escala
   useEffect(() => {
     const container = carrosselRef.current;
     if (!container) return;
@@ -36,21 +58,6 @@ const HomeERP = () => {
       });
 
       setFocusIndex(closestIdx);
-
-      // Recolher automaticamente se perdeu o foco
-      if (botaoExpandido !== null && botaoExpandido !== closestIdx) {
-        setBotaoExpandido(null);
-      }
-
-      buttons.forEach((btn, idx) => {
-        const isFocused = idx === closestIdx;
-        btn.style.transform = `scale(${isFocused ? 1.6 : 1.3})`;
-        btn.style.transition = "transform 0.3s ease";
-        btn.style.zIndex = isFocused ? 2 : 1;
-        btn.style.boxShadow = isFocused
-          ? "8px 8px 16px rgba(0, 0, 0, 0.5)"
-          : "4px 4px 8px rgba(0, 0, 0, 0.3)";
-      });
     };
 
     container.addEventListener("scroll", handleScroll);
@@ -59,7 +66,7 @@ const HomeERP = () => {
     return () => {
       container.removeEventListener("scroll", handleScroll);
     };
-  }, [botaoExpandido]);
+  }, []);
 
   useEffect(() => {
     if (tela === "Home" && carrosselRef.current) {
@@ -80,13 +87,17 @@ const HomeERP = () => {
   }, [tela]);
 
   const renderizarTela = () => {
-    if (tela === "Producao") return <Tela titulo="PRODUÇÃO (PCP)" />;
-    if (tela === "Financeiro") return <Tela titulo="FINANCEIRO (FinFlux)" />;
-    if (tela === "Custos") return <Tela titulo="ANÁLISE DE CUSTOS" />;
+    if (tela === "PCP") {
+      return (
+        <div style={{ animation: "fadein 0.8s ease-in-out" }}>
+          <HomePCP />
+        </div>
+      );
+    }
 
     return (
       <>
-        {/* === INÍCIO RT00 – Tela Inicial com Carrossel === */}
+        {/* === INÍCIO RT00 – Tela Inicial ERP === */}
         <div
           style={{
             backgroundImage: "url('/bg002.png')",
@@ -121,7 +132,7 @@ const HomeERP = () => {
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "300px", marginTop: "4%" }}
+              style={{ width: "300px", marginTop: "4%" }} // Subiu 2%
             />
             <h1
               style={{
@@ -131,7 +142,7 @@ const HomeERP = () => {
                 marginRight: "2ch",
               }}
             >
-              ERP DUDUNITÊ
+              <strong>ERP DUDUNITÊ</strong>
             </h1>
           </header>
 
@@ -140,7 +151,7 @@ const HomeERP = () => {
             ref={carrosselRef}
             style={{
               position: "absolute",
-              top: "25%",
+              top: "30%",
               width: "100%",
               overflowX: "auto",
               padding: "2rem 0",
@@ -159,57 +170,68 @@ const HomeERP = () => {
                 minWidth: "max-content",
               }}
             >
-              {botoes.map((btn, idx) => (
-                <div key={idx} style={{ textAlign: "center" }}>
-                  <button
-                    className="carousel-button"
-                    onClick={() =>
-                      idx === focusIndex
-                        ? setBotaoExpandido((prev) => (prev === idx ? null : idx))
-                        : null
-                    }
-                    style={{
-                      backgroundColor: focusIndex === idx ? "#8c3b1b" : "#e6cfc2",
-                      color: "white",
-                      width: "160px",
-                      height: "160px",
-                      borderRadius: "1rem",
-                      border: "none",
-                      fontSize: "1.2rem",
-                      fontWeight: "bold",
-                      boxShadow:
-                        idx === focusIndex
-                          ? "8px 8px 16px rgba(0, 0, 0, 0.5)"
-                          : "4px 4px 8px rgba(0, 0, 0, 0.3)",
-                      flexShrink: 0,
-                      transition: "background-color 0.3s, box-shadow 0.3s",
-                      scrollSnapAlign: "center",
-                    }}
-                  >
-                    {btn.label}
-                  </button>
-
-                  {/* Bloco interno expansível */}
-                  {focusIndex === idx && botaoExpandido === idx && (
-                    <div
+              {botoes.map((btn, idx) => {
+                const isFocused = idx === focusIndex;
+                return (
+                  <div key={idx} style={{ textAlign: "center" }}>
+                    <button
+                      className="carousel-button"
+                      onClick={btn.action}
                       style={{
-                        marginTop: "1rem",
-                        backgroundColor: "#fff",
-                        color: "#333",
-                        borderRadius: "0.5rem",
-                        padding: "1rem",
-                        boxShadow: "2px 2px 8px rgba(0,0,0,0.2)",
+                        backgroundColor: isFocused ? "#8c3b1b" : "#e6cfc2",
+                        color: "white",
+                        width: "200px",
+                        height: "200px",
+                        borderRadius: "1rem",
+                        border: "none",
+                        fontSize: "1.6rem",
+                        fontWeight: "bold",
+                        boxShadow: "6px 6px 12px rgba(0,0,0,0.4)",
+                        flexShrink: 0,
                         transition: "all 0.3s ease",
-                        width: "160px",
+                        zIndex: isFocused ? 2 : 1,
+                        scrollSnapAlign: "center",
                       }}
                     >
-                      <p>Item A</p>
-                      <p>Item B</p>
-                      <p>Item C</p>
+                      {btn.label}
+                    </button>
+
+                    {/* Botões Internos */}
+                    <div
+                      style={{
+                        marginTop: "0.5rem",
+                        opacity: isFocused ? 1 : 0,
+                        maxHeight: isFocused ? "300px" : "0px",
+                        overflow: "hidden",
+                        transition: "opacity 0.4s ease, max-height 0.5s ease",
+                      }}
+                    >
+                      {isFocused &&
+                        btn.dropdown.map((item, i) => (
+                          <button
+                            key={i}
+                            onClick={item.acao}
+                            style={{
+                              marginTop: "0.5rem",
+                              padding: "0.6rem 1.2rem",
+                              backgroundColor: "#fff",
+                              color: "#8c3b1b",
+                              borderRadius: "0.6rem",
+                              border: "1px solid #8c3b1b",
+                              fontWeight: "bold",
+                              cursor: "pointer",
+                              fontSize: "1rem",
+                              boxShadow: "2px 2px 6px rgba(0,0,0,0.2)",
+                              transition: "all 0.2s ease-in-out",
+                            }}
+                          >
+                            {item.nome}
+                          </button>
+                        ))}
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -217,12 +239,12 @@ const HomeERP = () => {
           <footer
             style={{
               position: "absolute",
-              bottom: "75px",
+              bottom: "70px",
               width: "100%",
               backgroundColor: "rgba(140, 59, 27, 0.4)",
               color: "white",
-              padding: "1.6rem",
-              fontSize: "1.8rem",
+              padding: "1.4rem",
+              fontSize: "1.6rem",
               textAlign: "center",
             }}
           >
@@ -240,15 +262,8 @@ const HomeERP = () => {
     );
   };
 
-  const Tela = ({ titulo }) => (
-    <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
-      <h2>{titulo}</h2>
-      <p>[Futura tela funcional]</p>
-      <button onClick={() => setTela("Home")}>Voltar</button>
-    </div>
-  );
-
   return renderizarTela();
 };
 
 export default HomeERP;
+// === FIM HomeERP.jsx ===
