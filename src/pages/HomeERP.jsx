@@ -71,17 +71,16 @@ const HomeERP = () => {
               WebkitBackdropFilter: "blur(6px)",
             }}
           >
-            {/* === Logomarca CENTRALIZADA VERTICAL + SUBIDA 5% === */}
+            {/* === Logomarca com subida de 1.5% === */}
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
               style={{
                 width: "300px",
                 height: "auto",
-                marginTop: "5%",
+                marginTop: "8.5%", // antes 10%
               }}
             />
-            {/* === Título com NEGRITO e AFASTAMENTO === */}
             <h1
               style={{
                 color: "#8c3b1b",
@@ -94,73 +93,58 @@ const HomeERP = () => {
             </h1>
           </header>
 
-          {/* === Bloco Central === */}
+          {/* === Bloco Central – Carrossel horizontal === */}
           <div
             style={{
               position: "absolute",
-              top: "20%",
+              top: "25%",
               width: "100%",
-              textAlign: "center",
-              padding: "1rem",
+              overflowX: "auto",
+              padding: "1rem 0",
             }}
           >
             <div
               style={{
                 display: "flex",
-                flexDirection: "column",
-                gap: "1.5rem",
-                alignItems: "center",
-                marginTop: "1.5rem",
+                gap: "2rem",
+                padding: "1rem",
+                width: "max-content",
               }}
             >
-              <button
-                onClick={() => setTela("Producao")}
-                style={{
-                  backgroundColor: "#8c3b1b",
-                  color: "white",
-                  padding: "1.2rem 2.5rem",
-                  borderRadius: "0.5rem",
-                  border: "none",
-                  fontSize: "1.8rem",
-                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
-                }}
-              >
-                Produção (PCP)
-              </button>
-
-              <button
-                onClick={() => setTela("Financeiro")}
-                style={{
-                  backgroundColor: "#8c3b1b",
-                  color: "white",
-                  padding: "1.2rem 2.5rem",
-                  borderRadius: "0.5rem",
-                  border: "none",
-                  fontSize: "1.8rem",
-                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
-                }}
-              >
-                Financeiro (FinFlux)
-              </button>
-
-              <button
-                onClick={() => setTela("Custos")}
-                style={{
-                  backgroundColor: "#8c3b1b",
-                  color: "white",
-                  padding: "1.2rem 2.5rem",
-                  borderRadius: "0.5rem",
-                  border: "none",
-                  fontSize: "1.8rem",
-                  boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
-                }}
-              >
-                Análise de Custos
-              </button>
+              {[
+                { label: "Produção (PCP)", action: () => setTela("Producao") },
+                {
+                  label: "Financeiro (FinFlux)",
+                  action: () => setTela("Financeiro"),
+                },
+                {
+                  label: "Análise de Custos",
+                  action: () => setTela("Custos"),
+                },
+              ].map((btn, idx) => (
+                <button
+                  key={idx}
+                  onClick={btn.action}
+                  style={{
+                    backgroundColor: "#8c3b1b",
+                    color: "white",
+                    width: "200px",
+                    height: "200px", // quadrado
+                    borderRadius: "1rem",
+                    border: "none",
+                    fontSize: "1.6rem",
+                    fontWeight: "bold",
+                    boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+                    flexShrink: 0,
+                  }}
+                >
+                  {btn.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* === Rodapé SUBIDO 50% === */}
+          {/* === Rodapé com todos os pontos de venda === */}
           <footer
             style={{
               position: "absolute",
