@@ -1,44 +1,51 @@
-// === FN01 – Importações Gerais ===
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-// === FN02 – Componente Principal ===
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
+  const carrosselRef = useRef(null);
 
+  // === FN – Animação do foco central ===
+  useEffect(() => {
+    const handleScroll = () => {
+      const container = carrosselRef.current;
+      if (!container) return;
+
+      const buttons = container.querySelectorAll(".carousel-button");
+      const containerCenter = container.scrollLeft + container.offsetWidth / 2;
+
+      buttons.forEach((btn) => {
+        const btnCenter =
+          btn.offsetLeft + btn.offsetWidth / 2 - container.scrollLeft;
+        const distance = Math.abs(container.offsetWidth / 2 - btnCenter);
+        const scale = Math.max(1, 1.3 - distance / 300);
+        btn.style.transform = `scale(${scale})`;
+        btn.style.transition = "transform 0.3s ease-out";
+        btn.style.zIndex = scale > 1.1 ? 2 : 1;
+      });
+    };
+
+    const container = carrosselRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      handleScroll(); // aplica na inicialização
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, []);
+
+  // === FN – Tela Inicial ===
   const renderizarTela = () => {
-    if (tela === "Producao") {
-      return (
-        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
-          <h2>PRODUÇÃO (PCP)</h2>
-          <p>[Futura tela de Produção]</p>
-          <button onClick={() => setTela("Home")}>Voltar</button>
-        </div>
-      );
-    }
-
-    if (tela === "Financeiro") {
-      return (
-        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
-          <h2>FINANCEIRO (FinFlux)</h2>
-          <p>[Futura tela do Financeiro]</p>
-          <button onClick={() => setTela("Home")}>Voltar</button>
-        </div>
-      );
-    }
-
-    if (tela === "Custos") {
-      return (
-        <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
-          <h2>ANÁLISE DE CUSTOS</h2>
-          <p>[Futura tela de Análise de Custos]</p>
-          <button onClick={() => setTela("Home")}>Voltar</button>
-        </div>
-      );
-    }
+    if (tela === "Producao") return <Tela titulo="PRODUÇÃO (PCP)" />;
+    if (tela === "Financeiro") return <Tela titulo="FINANCEIRO (FinFlux)" />;
+    if (tela === "Custos") return <Tela titulo="ANÁLISE DE CUSTOS" />;
 
     return (
       <>
-        {/* === INÍCIO RT00 – Home ERP === */}
+        {/* === INÍCIO RT00 – Tela Inicial com Carrossel === */}
         <div
           style={{
             backgroundImage: "url('/bg002.png')",
@@ -49,11 +56,10 @@ const HomeERP = () => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
             position: "relative",
           }}
         >
-          {/* === Cabeçalho AJUSTADO === */}
+          {/* Cabeçalho */}
           <header
             style={{
               position: "fixed",
@@ -71,15 +77,10 @@ const HomeERP = () => {
               WebkitBackdropFilter: "blur(6px)",
             }}
           >
-            {/* === Logomarca com subida de 1.5% === */}
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{
-                width: "300px",
-                height: "auto",
-                marginTop: "8.5%", // antes 10%
-              }}
+              style={{ width: "300px", marginTop: "8.5%" }}
             />
             <h1
               style={{
@@ -93,14 +94,18 @@ const HomeERP = () => {
             </h1>
           </header>
 
-          {/* === Bloco Central – Carrossel horizontal === */}
+          {/* Carrossel com Foco Dinâmico */}
           <div
+            ref={carrosselRef}
             style={{
               position: "absolute",
               top: "25%",
               width: "100%",
               overflowX: "auto",
-              padding: "1rem 0",
+              padding: "2rem 0",
+              display: "flex",
+              justifyContent: "center",
+              scrollSnapType: "x mandatory",
             }}
           >
             <div
@@ -108,7 +113,7 @@ const HomeERP = () => {
                 display: "flex",
                 gap: "2rem",
                 padding: "1rem",
-                width: "max-content",
+                minWidth: "max-content",
               }}
             >
               {[
@@ -124,17 +129,18 @@ const HomeERP = () => {
               ].map((btn, idx) => (
                 <button
                   key={idx}
+                  className="carousel-button"
                   onClick={btn.action}
                   style={{
                     backgroundColor: "#8c3b1b",
                     color: "white",
                     width: "200px",
-                    height: "200px", // quadrado
+                    height: "200px",
                     borderRadius: "1rem",
                     border: "none",
-                    fontSize: "1.6rem",
+                    fontSize: "1.5rem",
                     fontWeight: "bold",
-                    boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.6)",
+                    boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.5)",
                     flexShrink: 0,
                   }}
                 >
@@ -144,7 +150,7 @@ const HomeERP = () => {
             </div>
           </div>
 
-          {/* === Rodapé com todos os pontos de venda === */}
+          {/* Rodapé com PDVs */}
           <footer
             style={{
               position: "absolute",
@@ -166,6 +172,15 @@ const HomeERP = () => {
       </>
     );
   };
+
+  // === FN – Tela Intermediária ===
+  const Tela = ({ titulo }) => (
+    <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
+      <h2>{titulo}</h2>
+      <p>[Futura tela funcional]</p>
+      <button onClick={() => setTela("Home")}>Voltar</button>
+    </div>
+  );
 
   return renderizarTela();
 };
