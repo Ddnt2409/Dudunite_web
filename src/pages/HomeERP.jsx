@@ -1,11 +1,10 @@
-// === FN01 – Importações Gerais ===
 import React, { useEffect, useRef, useState } from "react";
 
-// === FN02 – Componente Principal ===
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
   const carrosselRef = useRef(null);
   const [focusIndex, setFocusIndex] = useState(1);
+  const [botaoExpandido, setBotaoExpandido] = useState(null);
 
   const botoes = [
     { label: "Produção (PCP)", action: () => setTela("Producao") },
@@ -13,7 +12,7 @@ const HomeERP = () => {
     { label: "Análise de Custos", action: () => setTela("Custos") },
   ];
 
-  // === FN03 – Aplicar escala ao botão central ===
+  // Detectar botão central e aplicar escala
   useEffect(() => {
     const container = carrosselRef.current;
     if (!container) return;
@@ -38,12 +37,19 @@ const HomeERP = () => {
 
       setFocusIndex(closestIdx);
 
+      // Recolher automaticamente se perdeu o foco
+      if (botaoExpandido !== null && botaoExpandido !== closestIdx) {
+        setBotaoExpandido(null);
+      }
+
       buttons.forEach((btn, idx) => {
         const isFocused = idx === closestIdx;
-        btn.style.transform = `scale(${isFocused ? 2.0 : 1.2})`;
+        btn.style.transform = `scale(${isFocused ? 1.6 : 1.3})`;
         btn.style.transition = "transform 0.3s ease";
         btn.style.zIndex = isFocused ? 2 : 1;
-        btn.style.boxShadow = "8px 8px 16px rgba(0, 0, 0, 0.5)";
+        btn.style.boxShadow = isFocused
+          ? "8px 8px 16px rgba(0, 0, 0, 0.5)"
+          : "4px 4px 8px rgba(0, 0, 0, 0.3)";
       });
     };
 
@@ -53,9 +59,8 @@ const HomeERP = () => {
     return () => {
       container.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [botaoExpandido]);
 
-  // === FN04 – Centralizar botão do meio ao iniciar ===
   useEffect(() => {
     if (tela === "Home" && carrosselRef.current) {
       const centralBtn = carrosselRef.current.querySelectorAll(".carousel-button")[1];
@@ -74,7 +79,6 @@ const HomeERP = () => {
     }
   }, [tela]);
 
-  // === FN05 – Renderizar Tela Principal ===
   const renderizarTela = () => {
     if (tela === "Producao") return <Tela titulo="PRODUÇÃO (PCP)" />;
     if (tela === "Financeiro") return <Tela titulo="FINANCEIRO (FinFlux)" />;
@@ -82,7 +86,7 @@ const HomeERP = () => {
 
     return (
       <>
-        {/* === INÍCIO RT00 – Tela HOME ERP === */}
+        {/* === INÍCIO RT00 – Tela Inicial com Carrossel === */}
         <div
           style={{
             backgroundImage: "url('/bg002.png')",
@@ -96,7 +100,7 @@ const HomeERP = () => {
             position: "relative",
           }}
         >
-          {/* === Cabeçalho com logomarca subida 2% === */}
+          {/* Cabeçalho */}
           <header
             style={{
               position: "fixed",
@@ -131,7 +135,7 @@ const HomeERP = () => {
             </h1>
           </header>
 
-          {/* === Carrossel com movimento lateral === */}
+          {/* Carrossel */}
           <div
             ref={carrosselRef}
             style={{
@@ -156,31 +160,60 @@ const HomeERP = () => {
               }}
             >
               {botoes.map((btn, idx) => (
-                <button
-                  key={idx}
-                  className="carousel-button"
-                  onClick={btn.action}
-                  style={{
-                    backgroundColor: focusIndex === idx ? "#8c3b1b" : "#e6cfc2",
-                    color: "white",
-                    width: "160px", // Quadrado
-                    height: "160px", // Quadrado
-                    borderRadius: "1rem",
-                    border: "none",
-                    fontSize: "1.5rem",
-                    fontWeight: "bold",
-                    boxShadow: "8px 8px 16px rgba(0, 0, 0, 0.5)",
-                    flexShrink: 0,
-                    scrollSnapAlign: "center",
-                  }}
-                >
-                  {btn.label}
-                </button>
+                <div key={idx} style={{ textAlign: "center" }}>
+                  <button
+                    className="carousel-button"
+                    onClick={() =>
+                      idx === focusIndex
+                        ? setBotaoExpandido((prev) => (prev === idx ? null : idx))
+                        : null
+                    }
+                    style={{
+                      backgroundColor: focusIndex === idx ? "#8c3b1b" : "#e6cfc2",
+                      color: "white",
+                      width: "160px",
+                      height: "160px",
+                      borderRadius: "1rem",
+                      border: "none",
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      boxShadow:
+                        idx === focusIndex
+                          ? "8px 8px 16px rgba(0, 0, 0, 0.5)"
+                          : "4px 4px 8px rgba(0, 0, 0, 0.3)",
+                      flexShrink: 0,
+                      transition: "background-color 0.3s, box-shadow 0.3s",
+                      scrollSnapAlign: "center",
+                    }}
+                  >
+                    {btn.label}
+                  </button>
+
+                  {/* Bloco interno expansível */}
+                  {focusIndex === idx && botaoExpandido === idx && (
+                    <div
+                      style={{
+                        marginTop: "1rem",
+                        backgroundColor: "#fff",
+                        color: "#333",
+                        borderRadius: "0.5rem",
+                        padding: "1rem",
+                        boxShadow: "2px 2px 8px rgba(0,0,0,0.2)",
+                        transition: "all 0.3s ease",
+                        width: "160px",
+                      }}
+                    >
+                      <p>Item A</p>
+                      <p>Item B</p>
+                      <p>Item C</p>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
 
-          {/* === Rodapé com nomes das escolas === */}
+          {/* Rodapé */}
           <footer
             style={{
               position: "absolute",
@@ -194,7 +227,11 @@ const HomeERP = () => {
             }}
           >
             <marquee behavior="scroll" direction="left">
-              • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
+              • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar
+              • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz •
+              Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
+              Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus
+              Salvador
             </marquee>
           </footer>
         </div>
@@ -203,7 +240,6 @@ const HomeERP = () => {
     );
   };
 
-  // === FN06 – Tela temporária para cada módulo ===
   const Tela = ({ titulo }) => (
     <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
       <h2>{titulo}</h2>
