@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
   const carrosselRef = useRef(null);
-  const [focusIndex, setFocusIndex] = useState(1); // começa com botão central em foco
+  const [focusIndex, setFocusIndex] = useState(1);
 
   const botoes = [
     { label: "Produção (PCP)", action: () => setTela("Producao") },
@@ -11,65 +11,73 @@ const HomeERP = () => {
     { label: "Análise de Custos", action: () => setTela("Custos") },
   ];
 
-  // === FN – Aplica Zoom e Cor ao Botão Central ===
+  // === FN – Detectar botão mais central com base no centro da tela
   useEffect(() => {
     const container = carrosselRef.current;
     if (!container) return;
 
     const handleScroll = () => {
       const buttons = container.querySelectorAll(".carousel-button");
-      const containerCenter = container.scrollLeft + container.offsetWidth / 2;
+      const containerRect = container.getBoundingClientRect();
+      const centerX = containerRect.left + containerRect.width / 2;
 
-      let minDist = Infinity;
-      let newFocus = 0;
+      let closestIdx = 0;
+      let minDistance = Infinity;
 
       buttons.forEach((btn, idx) => {
-        const btnCenter =
-          btn.offsetLeft + btn.offsetWidth / 2 - container.scrollLeft;
-        const distance = Math.abs(container.offsetWidth / 2 - btnCenter);
+        const rect = btn.getBoundingClientRect();
+        const btnCenterX = rect.left + rect.width / 2;
+        const distance = Math.abs(centerX - btnCenterX);
 
-        if (distance < minDist) {
-          minDist = distance;
-          newFocus = idx;
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestIdx = idx;
         }
-
-        const scale = Math.max(1, 1.2 - distance / 400);
-        btn.style.transform = `scale(${scale})`;
-        btn.style.transition = "transform 0.3s ease-out";
-        btn.style.zIndex = scale > 1.05 ? 2 : 1;
       });
 
-      setFocusIndex(newFocus);
+      setFocusIndex(closestIdx);
+
+      buttons.forEach((btn, idx) => {
+        let scale = 1;
+        if (idx === closestIdx) {
+          scale = 2.0; // botão central 100%
+        } else {
+          scale = 1.2; // laterais 20%
+        }
+        btn.style.transform = `scale(${scale})`;
+        btn.style.transition = "transform 0.3s ease";
+        btn.style.zIndex = idx === closestIdx ? 2 : 1;
+      });
     };
 
     container.addEventListener("scroll", handleScroll);
-    handleScroll(); // aplica ao abrir
+    handleScroll();
 
     return () => {
       container.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
-  // === FN – Recentra botão central ao voltar ===
+  // === FN – Ao voltar para tela inicial, centralizar botão do meio
   useEffect(() => {
     if (tela === "Home" && carrosselRef.current) {
-      const centralBtn = carrosselRef.current.querySelectorAll(
-        ".carousel-button"
-      )[1];
+      const centralBtn = carrosselRef.current.querySelectorAll(".carousel-button")[1];
       if (centralBtn) {
         const container = carrosselRef.current;
+        const scrollLeft =
+          centralBtn.offsetLeft -
+          container.offsetWidth / 2 +
+          centralBtn.offsetWidth / 2;
+
         container.scrollTo({
-          left:
-            centralBtn.offsetLeft -
-            container.offsetWidth / 2 +
-            centralBtn.offsetWidth / 2,
+          left: scrollLeft,
           behavior: "smooth",
         });
       }
     }
   }, [tela]);
 
-  // === FN – Tela Inicial ===
+  // === FN – Render principal
   const renderizarTela = () => {
     if (tela === "Producao") return <Tela titulo="PRODUÇÃO (PCP)" />;
     if (tela === "Financeiro") return <Tela titulo="FINANCEIRO (FinFlux)" />;
@@ -126,7 +134,7 @@ const HomeERP = () => {
             </h1>
           </header>
 
-          {/* Carrossel com Movimento Real */}
+          {/* Carrossel */}
           <div
             ref={carrosselRef}
             style={{
@@ -156,8 +164,7 @@ const HomeERP = () => {
                   className="carousel-button"
                   onClick={btn.action}
                   style={{
-                    backgroundColor:
-                      focusIndex === idx ? "#8c3b1b" : "#dcbba3", // foco: terracota escuro, fora: bege claro
+                    backgroundColor: focusIndex === idx ? "#8c3b1b" : "#dcbba3",
                     color: "white",
                     width: "200px",
                     height: "200px",
@@ -176,7 +183,7 @@ const HomeERP = () => {
             </div>
           </div>
 
-          {/* Rodapé com PDVs */}
+          {/* Rodapé */}
           <footer
             style={{
               position: "absolute",
@@ -203,7 +210,7 @@ const HomeERP = () => {
     );
   };
 
-  // === FN – Tela Intermediária ===
+  // === FN – Tela de placeholder
   const Tela = ({ titulo }) => (
     <div style={{ padding: "2rem", textAlign: "center", color: "#8c3b1b" }}>
       <h2>{titulo}</h2>
