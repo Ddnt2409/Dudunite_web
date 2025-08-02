@@ -1,6 +1,7 @@
 // === INÍCIO HomeERP.jsx ===
 import React, { useEffect, useRef, useState } from "react";
 import HomePCP from "./HomePCP";
+import "./HomeERP.css";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
@@ -40,7 +41,7 @@ const HomeERP = () => {
     if (!container) return;
 
     const handleScroll = () => {
-      const buttons = container.querySelectorAll(".carousel-button");
+      const buttons = container.querySelectorAll(".botao-wrapper");
       const containerRect = container.getBoundingClientRect();
       const centerX = containerRect.left + containerRect.width / 2;
 
@@ -70,7 +71,7 @@ const HomeERP = () => {
 
   useEffect(() => {
     if (tela === "Home" && carrosselRef.current) {
-      const centralBtn = carrosselRef.current.querySelectorAll(".carousel-button")[1];
+      const centralBtn = carrosselRef.current.querySelectorAll(".botao-wrapper")[1];
       if (centralBtn) {
         const container = carrosselRef.current;
         const scrollLeft =
@@ -98,137 +99,44 @@ const HomeERP = () => {
     return (
       <>
         {/* === INÍCIO RT00 – Tela Inicial ERP === */}
-        <div
-          style={{
-            backgroundImage: "url('/bg002.png')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-            minHeight: "100vh",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            position: "relative",
-          }}
-        >
+        <div className="fundo-home">
           {/* Cabeçalho */}
-          <header
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 10,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              height: "140px",
-              padding: "0 1rem",
-              backgroundColor: "rgba(255, 255, 255, 0.5)",
-              backdropFilter: "blur(6px)",
-              WebkitBackdropFilter: "blur(6px)",
-            }}
-          >
+          <header className="cabecalho">
             <img
               src="/LogomarcaDDnt2025Vazado.png"
               alt="Logo Dudunitê"
-              style={{ width: "300px", marginTop: "4%" }} // Subiu 2%
+              className="logo-home"
             />
-            <h1
-              style={{
-                color: "#8c3b1b",
-                fontSize: "2.6rem",
-                fontWeight: "bold",
-                marginRight: "2ch",
-              }}
-            >
-              <strong>ERP DUDUNITÊ</strong>
-            </h1>
+            <h1 className="titulo-erp"><strong>ERP DUDUNITÊ</strong></h1>
           </header>
 
           {/* Carrossel */}
-          <div
-            ref={carrosselRef}
-            style={{
-              position: "absolute",
-              top: "30%",
-              width: "100%",
-              overflowX: "auto",
-              padding: "2rem 0",
-              display: "flex",
-              justifyContent: "center",
-              scrollSnapType: "x mandatory",
-              touchAction: "pan-x",
-              WebkitOverflowScrolling: "touch",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                gap: "2rem",
-                padding: "1rem",
-                minWidth: "max-content",
-              }}
-            >
+          <div ref={carrosselRef} className="carrossel">
+            <div className="carrossel-interno">
               {botoes.map((btn, idx) => {
-                const isFocused = idx === focusIndex;
+                const isCentral = idx === focusIndex;
                 return (
-                  <div key={idx} style={{ textAlign: "center" }}>
-                    <button
-                      className="carousel-button"
-                      onClick={btn.action}
-                      style={{
-                        backgroundColor: isFocused ? "#8c3b1b" : "#e6cfc2",
-                        color: "white",
-                        width: "200px",
-                        height: "200px",
-                        borderRadius: "1rem",
-                        border: "none",
-                        fontSize: "1.6rem",
-                        fontWeight: "bold",
-                        boxShadow: "6px 6px 12px rgba(0,0,0,0.4)",
-                        flexShrink: 0,
-                        transition: "all 0.3s ease",
-                        zIndex: isFocused ? 2 : 1,
-                        scrollSnapAlign: "center",
-                      }}
-                    >
+                  <div
+                    key={idx}
+                    className={`botao-wrapper ${isCentral ? "central" : "lateral"}`}
+                  >
+                    <button className="botao" onClick={btn.action}>
                       {btn.label}
                     </button>
 
-                    {/* Botões Internos */}
-                    <div
-                      style={{
-                        marginTop: "0.5rem",
-                        opacity: isFocused ? 1 : 0,
-                        maxHeight: isFocused ? "300px" : "0px",
-                        overflow: "hidden",
-                        transition: "opacity 0.4s ease, max-height 0.5s ease",
-                      }}
-                    >
-                      {isFocused &&
-                        btn.dropdown.map((item, i) => (
+                    {isCentral && (
+                      <div className="bloco-opcoes">
+                        {btn.dropdown.map((item, i) => (
                           <button
                             key={i}
                             onClick={item.acao}
-                            style={{
-                              marginTop: "0.5rem",
-                              padding: "0.6rem 1.2rem",
-                              backgroundColor: "#fff",
-                              color: "#8c3b1b",
-                              borderRadius: "0.6rem",
-                              border: "1px solid #8c3b1b",
-                              fontWeight: "bold",
-                              cursor: "pointer",
-                              fontSize: "1rem",
-                              boxShadow: "2px 2px 6px rgba(0,0,0,0.2)",
-                              transition: "all 0.2s ease-in-out",
-                            }}
+                            className="botao-interno"
                           >
                             {item.nome}
                           </button>
                         ))}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -236,18 +144,7 @@ const HomeERP = () => {
           </div>
 
           {/* Rodapé */}
-          <footer
-            style={{
-              position: "absolute",
-              bottom: "70px",
-              width: "100%",
-              backgroundColor: "rgba(140, 59, 27, 0.4)",
-              color: "white",
-              padding: "1.4rem",
-              fontSize: "1.6rem",
-              textAlign: "center",
-            }}
-          >
+          <footer className="rodape">
             <marquee behavior="scroll" direction="left">
               • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar
               • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz •
