@@ -1,123 +1,76 @@
 // === INÍCIO HomeERP.jsx ===
-import React, { useRef, useState, useEffect } from "react";
-import HomePCP from "./HomePCP";
-import "../styles/HomeERP.css"; // Certifique-se de que o caminho está correto
+import { useState, useEffect } from "react";
+import "./HomeERP.css";
 
-const HomeERP = () => {
-  const [tela, setTela] = useState("Home");
-  const [focusIndex, setFocusIndex] = useState(1);
-  const carrosselRef = useRef(null);
+export default function HomeERP({ navegarPara }) {
+  const [posicao, setPosicao] = useState(1); // botão central inicialmente no meio
 
   const botoes = [
     {
-      label: "Produção (PCP)",
-      action: () => setTela("PCP"),
-      dropdown: [{ nome: "Ir para Produção", acao: () => setTela("PCP") }],
+      id: 0,
+      titulo: "Finanças",
+      subtitulos: ["Contas", "Caixa", "Relatórios"],
+      cor: "secundario",
     },
     {
-      label: "Financeiro (FinFlux)",
-      action: () => {},
-      dropdown: [
-        { nome: "Contas a Receber", acao: () => alert("Em breve") },
-        { nome: "Contas a Pagar", acao: () => alert("Em breve") },
-        { nome: "Fluxo de Caixa", acao: () => alert("Em breve") },
-      ],
+      id: 1,
+      titulo: "PCP",
+      subtitulos: ["Lançar Pedido", "Alimentar Sabores"],
+      cor: "primario",
     },
     {
-      label: "Análise de Custos",
-      action: () => {},
-      dropdown: [
-        { nome: "Custos por Produto", acao: () => alert("Em breve") },
-        { nome: "Custos Fixos", acao: () => alert("Em breve") },
-        { nome: "Custos Variáveis", acao: () => alert("Em breve") },
-      ],
+      id: 2,
+      titulo: "Custos",
+      subtitulos: ["Matéria-prima", "Produção", "Rentabilidade"],
+      cor: "secundario",
     },
   ];
 
-  useEffect(() => {
-    const container = carrosselRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      const buttons = container.querySelectorAll(".botao-wrapper");
-      const containerRect = container.getBoundingClientRect();
-      const centerX = containerRect.left + containerRect.width / 2;
-
-      let closestIdx = 0;
-      let minDistance = Infinity;
-
-      buttons.forEach((btn, idx) => {
-        const rect = btn.getBoundingClientRect();
-        const btnCenterX = rect.left + rect.width / 2;
-        const distance = Math.abs(centerX - btnCenterX);
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestIdx = idx;
-        }
-      });
-
-      setFocusIndex(closestIdx);
-    };
-
-    container.addEventListener("scroll", handleScroll);
-    handleScroll();
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    if (tela === "Home" && carrosselRef.current) {
-      const centralBtn = carrosselRef.current.querySelectorAll(".botao-wrapper")[1];
-      if (centralBtn) {
-        const container = carrosselRef.current;
-        const scrollLeft =
-          centralBtn.offsetLeft -
-          container.offsetWidth / 2 +
-          centralBtn.offsetWidth / 2;
-
-        container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+  const moverCarrossel = (direcao) => {
+    setPosicao((prev) => {
+      if (direcao === "esquerda") {
+        return prev === 0 ? botoes.length - 1 : prev - 1;
+      } else {
+        return prev === botoes.length - 1 ? 0 : prev + 1;
       }
-    }
-  }, [tela]);
+    });
+  };
 
-  if (tela === "PCP") {
-    return (
-      <div style={{ animation: "fadein 0.8s ease-in-out" }}>
-        <HomePCP />
-      </div>
-    );
-  }
+  const handleClickPrincipal = () => {
+    const item = botoes[posicao];
+    if (item.titulo === "PCP") {
+      const fundo = document.querySelector(".container-geral");
+      fundo.classList.add("fade-out");
+      setTimeout(() => navegarPara("HomePCP"), 300);
+    }
+  };
 
   return (
-    <div className="fundo-home">
-      {/* Cabeçalho */}
-      <header className="cabecalho">
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logo Dudunitê"
-          className="logo-home"
-        />
-        <h1 className="titulo-erp"><strong>ERP DUDUNITÊ</strong></h1>
-      </header>
+    <div className="container-geral">
+      <img
+        src="/LogomarcaDDnt2025Vazado.png"
+        alt="Logo"
+        className="logo-erp"
+      />
+      <div className="carrossel">
+        <button className="seta" onClick={() => moverCarrossel("esquerda")}>
+          ◀
+        </button>
 
-      {/* Carrossel */}
-      <div className="carrossel" ref={carrosselRef}>
-        <div className="carrossel-interno">
-          {botoes.map((btn, idx) => {
-            const isCentral = idx === focusIndex;
-            const wrapperClass = isCentral ? "central" : "lateral";
-
+        <div className="botoes-centrais">
+          {botoes.map((btn, index) => {
+            const isCentral = index === posicao;
             return (
-              <div className={`botao-wrapper ${wrapperClass}`} key={idx}>
-                <button className="botao" onClick={btn.action}>
-                  {btn.label}
-                </button>
-
+              <div
+                key={btn.id}
+                className={`botao-erp ${isCentral ? "central" : "lateral"} ${btn.cor}`}
+                onClick={isCentral ? handleClickPrincipal : null}
+              >
+                <div className="titulo-principal">{btn.titulo}</div>
                 {isCentral && (
-                  <div className="bloco-opcoes">
-                    {btn.dropdown.map((item, i) => (
-                      <button key={i} className="botao-interno" onClick={item.acao}>
-                        {item.nome}
-                      </button>
+                  <div className="subitens">
+                    {btn.subtitulos.map((sub, i) => (
+                      <div key={i} className="subitem">{sub}</div>
                     ))}
                   </div>
                 )}
@@ -125,20 +78,12 @@ const HomeERP = () => {
             );
           })}
         </div>
-      </div>
 
-      {/* Rodapé */}
-      <footer className="rodape">
-        <marquee behavior="scroll" direction="left">
-          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
-          Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
-          BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
-          Exato Anexo • Sesi • Motivo • Jesus Salvador
-        </marquee>
-      </footer>
+        <button className="seta" onClick={() => moverCarrossel("direita")}>
+          ▶
+        </button>
+      </div>
     </div>
   );
-};
-
-export default HomeERP;
+}
 // === FIM HomeERP.jsx ===
