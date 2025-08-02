@@ -1,11 +1,10 @@
-/* === HomeERP.css – Estilo completo com carrossel animado === */
+/* === HomeERP.css – Estilo completo com carrossel animado e foco === */
 
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Fundo da página */
 .fundo-home {
   background-image: url('/bg002.png');
   background-size: cover;
@@ -35,13 +34,11 @@ body {
   -webkit-backdrop-filter: blur(6px);
 }
 
-/* Logomarca ajustada com 2% de subida */
 .logo-home {
   width: 300px;
   margin-top: 4%;
 }
 
-/* Título ERP */
 .titulo-erp {
   color: #8c3b1b;
   font-size: 2.6rem;
@@ -64,7 +61,7 @@ body {
 /* Carrossel */
 .carrossel {
   position: absolute;
-  top: 25%;
+  top: 28%;
   width: 100%;
   overflow-x: auto;
   padding: 2rem 0;
@@ -82,17 +79,17 @@ body {
   min-width: max-content;
 }
 
-/* Wrapper para detectar o foco do botão central */
+/* Wrapper do botão */
 .botao-wrapper {
   flex-shrink: 0;
   scroll-snap-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s ease;
 }
 
-/* Botão principal */
+/* Botão base */
 .botao {
   background-color: #e6cfc2;
   color: white;
@@ -103,57 +100,74 @@ body {
   font-size: 1.5rem;
   font-weight: bold;
   box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  transition: transform 0.4s ease, background-color 0.4s ease, box-shadow 0.4s ease;
 }
 
-/* Botão central com destaque (zoom 100%) */
+/* Central com zoom */
 .botao-wrapper.central .botao {
-  transform: scale(2.0);
+  transform: scale(1.6);
   background-color: #8c3b1b;
-  box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 10px 10px 18px rgba(0, 0, 0, 0.6);
   z-index: 2;
 }
 
-/* Botão lateral (zoom 20%) */
+/* Laterais */
 .botao-wrapper.lateral .botao {
-  transform: scale(1.2);
+  transform: scale(1.0);
   background-color: #e6cfc2;
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
   z-index: 1;
 }
 
-/* Efeito de zoom no botão central ao passar o dedo/mouse */
+/* Botão central hover */
 .botao-wrapper.central .botao:hover {
-  transform: scale(2.3);
-  box-shadow: 10px 10px 18px rgba(0,0,0,0.5);
+  transform: scale(1.8);
+  box-shadow: 12px 12px 20px rgba(0, 0, 0, 0.5);
 }
 
-/* Bloco de opções internas */
+/* Bloco com botões internos */
 .bloco-opcoes {
   margin-top: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  animation: surgir 0.4s ease-in-out;
+  animation: surgir 0.5s ease-in-out;
 }
 
-/* Estilo dos botões internos */
+/* Estilo botões internos */
 .botao-interno {
-  padding: 0.8rem 1rem;
-  font-size: 1rem;
+  padding: 0.9rem 1.3rem;
+  font-size: 1.2rem;
   background-color: white;
   color: #8c3b1b;
   border: 2px solid #8c3b1b;
-  border-radius: 0.5rem;
-  font-weight: 600;
+  border-radius: 0.6rem;
+  font-weight: bold;
   cursor: pointer;
+  transform: scale(1.2);
+  transition: all 0.3s ease;
 }
 
-/* Fade-in para botões internos */
+/* Fade surgimento */
 @keyframes surgir {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-10px) scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1.2);
+  }
+}
+
+/* Transição de tela */
+.tela-fade {
+  animation: fadein 0.6s ease-in-out;
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
