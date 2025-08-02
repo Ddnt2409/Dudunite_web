@@ -1,176 +1,124 @@
-/* === HomeERP.css – Estilo completo com carrossel animado e foco === */
-
-body {
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.fundo-home {
-  background-image: url('/bg002.png');
+.homeerp-container {
+  background-image: url('/bg006.png');
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   position: relative;
+  animation: fadeIn 0.4s ease-in;
 }
 
-/* Cabeçalho */
-.cabecalho {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
+#fade-wrapper.fade-out {
+  animation: fadeOut 0.3s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.homeerp-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  height: 140px;
-  padding: 0 1rem;
-  background-color: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 8px 20px;
+  border-bottom: 2px solid #94482c;
 }
 
-.logo-home {
-  width: 300px;
-  margin-top: 4%;
+.homeerp-logo {
+  height: 40px;
 }
 
-.titulo-erp {
-  color: #8c3b1b;
-  font-size: 2.6rem;
+.homeerp-titulo {
+  font-size: 1.4rem;
   font-weight: bold;
-  margin-right: 2ch;
+  color: #94482c;
 }
 
-/* Rodapé */
-.rodape {
-  position: absolute;
-  bottom: 75px;
-  width: 100%;
-  background-color: rgba(140, 59, 27, 0.4);
-  color: white;
-  padding: 1.6rem;
-  font-size: 1.8rem;
-  text-align: center;
-}
-
-/* Carrossel */
-.carrossel {
-  position: absolute;
-  top: 28%;
-  width: 100%;
-  overflow-x: auto;
-  padding: 2rem 0;
-  display: flex;
-  justify-content: center;
-  scroll-snap-type: x mandatory;
-  touch-action: pan-x;
-  -webkit-overflow-scrolling: touch;
+.carrossel-externo {
+  overflow: hidden;
+  padding: 20px 0;
 }
 
 .carrossel-interno {
   display: flex;
-  gap: 2rem;
-  padding: 1rem;
-  min-width: max-content;
+  justify-content: center;
+  transition: transform 0.4s ease;
+  gap: 18px;
 }
 
-/* Wrapper do botão */
 .botao-wrapper {
-  flex-shrink: 0;
-  scroll-snap-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: transform 0.4s ease;
 }
 
-/* Botão base */
 .botao {
-  background-color: #e6cfc2;
-  color: white;
-  width: 180px;
-  height: 180px;
-  border-radius: 1rem;
+  background-color: #f9e7e1;
+  color: #94482c;
+  font-weight: bold;
+  padding: 18px;
+  border-radius: 18px;
   border: none;
-  font-size: 1.5rem;
-  font-weight: bold;
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
-  transition: transform 0.4s ease, background-color 0.4s ease, box-shadow 0.4s ease;
-}
-
-/* Central com zoom */
-.botao-wrapper.central .botao {
-  transform: scale(1.6);
-  background-color: #8c3b1b;
-  box-shadow: 10px 10px 18px rgba(0, 0, 0, 0.6);
-  z-index: 2;
-}
-
-/* Laterais */
-.botao-wrapper.lateral .botao {
-  transform: scale(1.0);
-  background-color: #e6cfc2;
-  z-index: 1;
-}
-
-/* Botão central hover */
-.botao-wrapper.central .botao:hover {
-  transform: scale(1.8);
-  box-shadow: 12px 12px 20px rgba(0, 0, 0, 0.5);
-}
-
-/* Bloco com botões internos */
-.bloco-opcoes {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  animation: surgir 0.5s ease-in-out;
-}
-
-/* Estilo botões internos */
-.botao-interno {
-  padding: 0.9rem 1.3rem;
-  font-size: 1.2rem;
-  background-color: white;
-  color: #8c3b1b;
-  border: 2px solid #8c3b1b;
-  border-radius: 0.6rem;
-  font-weight: bold;
   cursor: pointer;
-  transform: scale(1.2);
+  text-align: center;
+  white-space: pre-line;
+  font-size: 1rem;
+  width: 140px;
+  height: 140px;
   transition: all 0.3s ease;
 }
 
-/* Fade surgimento */
-@keyframes surgir {
-  from {
-    opacity: 0;
-    transform: translateY(-10px) scale(1);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1.2);
-  }
+.botao-central {
+  background-color: #94482c;
+  color: white;
+  width: 182px;
+  height: 182px;
+  font-size: 1.2rem;
+  box-shadow: 0 0 20px rgba(0,0,0,0.25);
 }
 
-/* Transição de tela */
-.tela-fade {
-  animation: fadein 0.6s ease-in-out;
+.opcoes-container {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: aparecer 0.3s ease-out;
 }
 
-@keyframes fadein {
+@keyframes aparecer {
   from {
+    transform: translateY(-10px);
     opacity: 0;
-    transform: translateY(20px);
   }
   to {
-    opacity: 1;
     transform: translateY(0);
+    opacity: 1;
   }
+}
+
+.opcao-botao {
+  background-color: #fff;
+  color: #94482c;
+  border: 1px solid #94482c;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  transform: scale(1.2);
+}
+
+.homeerp-rodape {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  background-color: rgba(148, 72, 44, 0.7);
+  color: white;
+  padding: 6px;
+  font-size: 0.9rem;
 }
