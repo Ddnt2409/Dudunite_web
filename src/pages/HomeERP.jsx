@@ -1,4 +1,3 @@
-// === INÍCIO HomeERP.jsx ===
 import React, { useEffect, useRef, useState } from "react";
 import HomePCP from "./HomePCP";
 import "./HomeERP.css";
@@ -13,25 +12,25 @@ const HomeERP = () => {
       label: "Produção (PCP)",
       action: () => setTela("PCP"),
       dropdown: [
-        { nome: "Ir para Produção", acao: () => setTela("PCP") },
+        { nome: "Ir para Produção", acao: () => {} },
       ],
     },
     {
       label: "Financeiro (FinFlux)",
       action: () => {},
       dropdown: [
-        { nome: "Contas a Receber", acao: () => alert("Em breve") },
-        { nome: "Contas a Pagar", acao: () => alert("Em breve") },
-        { nome: "Fluxo de Caixa", acao: () => alert("Em breve") },
+        { nome: "Contas a Receber", acao: () => {} },
+        { nome: "Contas a Pagar", acao: () => {} },
+        { nome: "Fluxo de Caixa", acao: () => {} },
       ],
     },
     {
       label: "Análise de Custos",
       action: () => {},
       dropdown: [
-        { nome: "Custos por Produto", acao: () => alert("Em breve") },
-        { nome: "Custos Fixos", acao: () => alert("Em breve") },
-        { nome: "Custos Variáveis", acao: () => alert("Em breve") },
+        { nome: "Custos por Produto", acao: () => {} },
+        { nome: "Custos Fixos", acao: () => {} },
+        { nome: "Custos Variáveis", acao: () => {} },
       ],
     },
   ];
@@ -41,7 +40,7 @@ const HomeERP = () => {
     if (!container) return;
 
     const handleScroll = () => {
-      const buttons = container.querySelectorAll(".botao-wrapper");
+      const buttons = container.querySelectorAll(".carousel-button");
       const containerRect = container.getBoundingClientRect();
       const centerX = containerRect.left + containerRect.width / 2;
 
@@ -71,7 +70,7 @@ const HomeERP = () => {
 
   useEffect(() => {
     if (tela === "Home" && carrosselRef.current) {
-      const centralBtn = carrosselRef.current.querySelectorAll(".botao-wrapper")[1];
+      const centralBtn = carrosselRef.current.querySelectorAll(".carousel-button")[1];
       if (centralBtn) {
         const container = carrosselRef.current;
         const scrollLeft =
@@ -90,7 +89,7 @@ const HomeERP = () => {
   const renderizarTela = () => {
     if (tela === "PCP") {
       return (
-        <div style={{ animation: "fadein 0.8s ease-in-out" }}>
+        <div className="tela-fade">
           <HomePCP />
         </div>
       );
@@ -107,7 +106,9 @@ const HomeERP = () => {
               alt="Logo Dudunitê"
               className="logo-home"
             />
-            <h1 className="titulo-erp"><strong>ERP DUDUNITÊ</strong></h1>
+            <h1 className="titulo-erp">
+              <strong>ERP DUDUNITÊ</strong>
+            </h1>
           </header>
 
           {/* Carrossel */}
@@ -120,7 +121,10 @@ const HomeERP = () => {
                     key={idx}
                     className={`botao-wrapper ${isCentral ? "central" : "lateral"}`}
                   >
-                    <button className="botao" onClick={btn.action}>
+                    <button
+                      className="botao carousel-button"
+                      onClick={btn.action}
+                    >
                       {btn.label}
                     </button>
 
@@ -163,4 +167,3 @@ const HomeERP = () => {
 };
 
 export default HomeERP;
-// === FIM HomeERP.jsx ===
