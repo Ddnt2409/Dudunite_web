@@ -1,70 +1,91 @@
-// === INÍCIO HomeERP.jsx ===
-import React, { useState, useEffect } from 'react';
-import './HomeERP.css';
+// === HomeERP.jsx ===
+import React, { useEffect, useState } from 'react';
+import './styles/HomeERP.css';
 
 function HomeERP({ navegarPara }) {
-  const [posicao, setPosicao] = useState(1); // 0 = esquerda, 1 = centro, 2 = direita
-  const [fadeIn, setFadeIn] = useState(false);
+  const [paginaCarregada, setPaginaCarregada] = useState(false);
+  const [botaoCentral, setBotaoCentral] = useState('FinFlux');
 
   useEffect(() => {
-    setFadeIn(true);
+    setTimeout(() => setPaginaCarregada(true), 50);
   }, []);
 
   const botoes = [
-    {
-      id: 0,
-      titulo: 'Produção (PCP)',
-      aoClicar: () => navegarPara('HomePCP')
-    },
-    {
-      id: 1,
-      titulo: 'Financeiro\n(FinFlux)',
-      subbotoes: ['Contas a Receber', 'Contas a Pagar', 'Fluxo de Caixa']
-    },
-    {
-      id: 2,
-      titulo: 'Análise de\nCustos',
-      aoClicar: () => alert('Em breve')
-    }
+    { id: 'PCP', texto: 'Produção (PCP)' },
+    { id: 'FinFlux', texto: 'Financeiro\n(FinFlux)' },
+    { id: 'Custos', texto: 'Análise de\nCustos' },
   ];
 
-  const mover = (direcao) => {
-    setPosicao((prev) => {
-      if (direcao === 'esquerda') return prev === 0 ? 2 : prev - 1;
-      if (direcao === 'direita') return prev === 2 ? 0 : prev + 1;
-    });
+  const rotacionarCarrossel = (direcao) => {
+    const ordem = ['PCP', 'FinFlux', 'Custos'];
+    const atual = ordem.indexOf(botaoCentral);
+    const proximo =
+      direcao === 'esquerda'
+        ? (atual + 2) % 3
+        : (atual + 1) % 3;
+    setBotaoCentral(ordem[proximo]);
+  };
+
+  const renderConteudoCentral = () => {
+    switch (botaoCentral) {
+      case 'PCP':
+        return (
+          <>
+            <button className="botao-central" onClick={() => navegarPara('HomePCP')}>
+              Produção (PCP)
+            </button>
+          </>
+        );
+      case 'FinFlux':
+        return (
+          <>
+            <button className="botao-central">Financeiro<br/>(FinFlux)</button>
+            <div className="submenu">
+              <button>Contas a Receber</button>
+              <button>Contas a Pagar</button>
+              <button>Fluxo de Caixa</button>
+            </div>
+          </>
+        );
+      case 'Custos':
+        return (
+          <>
+            <button className="botao-central">Análise de<br/>Custos</button>
+          </>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className={`tela-home ${fadeIn ? 'fade-in' : ''}`}>
+    <div className={`home-container ${paginaCarregada ? 'fade-in' : ''}`}>
       <div className="topo">
-        <img src="/logo.png" alt="Logo" className="logo" />
-        <h1>ERP DUDUNITÊ</h1>
+        <img src="/logo_dudunite.png" alt="Logo" className="logo" />
+        <h1 className="titulo">ERP DUDUNITÊ</h1>
       </div>
 
       <div className="carrossel">
-        {botoes.map((btn, index) => (
-          <div
-            key={index}
-            className={`botao ${index === posicao ? 'centro' : index === (posicao + 2) % 3 ? 'esquerda' : 'direita'}`}
-            onClick={() => {
-              if (index !== posicao) {
-                mover(index === (posicao + 1) % 3 ? 'direita' : 'esquerda');
-              } else if (btn.aoClicar) {
-                btn.aoClicar();
-              }
-            }}
-          >
-            <span>{btn.titulo}</span>
-            {index === posicao && btn.subbotoes && (
-              <div className="subbotoes">
-                {btn.subbotoes.map((sub, idx) => (
-                  <button key={idx} className="btn-sub">{sub}</button>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+        <button className="seta" onClick={() => rotacionarCarrossel('esquerda')}>◀</button>
+
+        <div className="botoes-carrossel">
+          {botoes.map((btn) => (
+            <div
+              key={btn.id}
+              className={`botao-wrapper ${btn.id === botaoCentral ? 'central' : 'lateral'}`}
+            >
+              {btn.id === botaoCentral ? (
+                renderConteudoCentral()
+              ) : (
+                <button className="botao-lateral" onClick={() => setBotaoCentral(btn.id)}>
+                  {btn.texto}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <button className="seta" onClick={() => rotacionarCarrossel('direita')}>▶</button>
       </div>
 
       <div className="rodape">
@@ -75,4 +96,3 @@ function HomeERP({ navegarPara }) {
 }
 
 export default HomeERP;
-// === FIM HomeERP.jsx ===
