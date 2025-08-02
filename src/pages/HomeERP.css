@@ -1,115 +1,162 @@
-/* src/pages/HomeERP.css */
+/* === HomeERP.css – Estilo completo com carrossel animado === */
 
-.homeerp-container {
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Fundo da página */
+.fundo-home {
   background-image: url('/bg002.png');
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   min-height: 100vh;
-  position: relative;
-  padding-top: 80px;
-}
-
-.homeerp-header {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  background-color: rgba(255, 245, 236, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 5px 16px;
-  z-index: 10;
-}
-
-.logo-homeerp {
-  height: 35px;
-  opacity: 0.9;
-}
-
-.titulo-erp {
-  color: #8c3b1b;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.carousel {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  padding: 80px 0 120px;
-}
-
-.cartao {
-  background-color: rgba(255, 245, 236, 0.9);
-  color: #8c3b1b;
-  margin: 0 10px;
-  padding: 16px;
-  border-radius: 24px;
-  text-align: center;
-  width: 200px;
-  transition: all 0.3s ease;
-  transform: scale(0.8);
-}
-
-.cartao.ativo {
-  transform: scale(1.05) translateY(-10px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-}
-
-.subitens {
-  margin-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  animation: slideDown 0.4s ease-in-out;
+  align-items: center;
+  position: relative;
 }
 
-@keyframes slideDown {
+/* Cabeçalho */
+.cabecalho {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 140px;
+  padding: 0 1rem;
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Logomarca ajustada com 2% de subida */
+.logo-home {
+  width: 300px;
+  margin-top: 4%;
+}
+
+/* Título ERP */
+.titulo-erp {
+  color: #8c3b1b;
+  font-size: 2.6rem;
+  font-weight: bold;
+  margin-right: 2ch;
+}
+
+/* Rodapé */
+.rodape {
+  position: absolute;
+  bottom: 75px;
+  width: 100%;
+  background-color: rgba(140, 59, 27, 0.4);
+  color: white;
+  padding: 1.6rem;
+  font-size: 1.8rem;
+  text-align: center;
+}
+
+/* Carrossel */
+.carrossel {
+  position: absolute;
+  top: 25%;
+  width: 100%;
+  overflow-x: auto;
+  padding: 2rem 0;
+  display: flex;
+  justify-content: center;
+  scroll-snap-type: x mandatory;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+}
+
+.carrossel-interno {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem;
+  min-width: max-content;
+}
+
+/* Wrapper para detectar o foco do botão central */
+.botao-wrapper {
+  flex-shrink: 0;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+/* Botão principal */
+.botao {
+  background-color: #e6cfc2;
+  color: white;
+  width: 180px;
+  height: 180px;
+  border-radius: 1rem;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+/* Botão central com destaque (zoom 100%) */
+.botao-wrapper.central .botao {
+  transform: scale(2.0);
+  background-color: #8c3b1b;
+  box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+/* Botão lateral (zoom 20%) */
+.botao-wrapper.lateral .botao {
+  transform: scale(1.2);
+  background-color: #e6cfc2;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+/* Efeito de zoom no botão central ao passar o dedo/mouse */
+.botao-wrapper.central .botao:hover {
+  transform: scale(2.3);
+  box-shadow: 10px 10px 18px rgba(0,0,0,0.5);
+}
+
+/* Bloco de opções internas */
+.bloco-opcoes {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  animation: surgir 0.4s ease-in-out;
+}
+
+/* Estilo dos botões internos */
+.botao-interno {
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  background-color: white;
+  color: #8c3b1b;
+  border: 2px solid #8c3b1b;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Fade-in para botões internos */
+@keyframes surgir {
   from {
     opacity: 0;
-    transform: translateY(-10%);
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-
-.botao-subitem {
-  background-color: white;
-  color: #8c3b1b;
-  border: none;
-  border-radius: 20px;
-  padding: 6px;
-  font-size: 0.9rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.rodape-status {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background-color: #fff5ec;
-  padding: 10px;
-  text-align: center;
-  font-size: 0.85rem;
-  color: #8c3b1b;
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  z-index: 10;
-}
-
-.bolinha {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin: 0 6px;
-}
-
-.lancado { background-color: #bbb; }
-.montando { background-color: #d17f3a; }
-.finalizando { background-color: #8c3b1b; }
-.entregando { background-color: #4a90e2; }
