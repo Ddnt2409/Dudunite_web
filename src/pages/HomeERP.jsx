@@ -1,14 +1,19 @@
 import React, { useState } from "react";
 import HomePCP from "./HomePCP";
+import "./fade.css";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
   const [zoomIndex, setZoomIndex] = useState(null);
+  const [fadeState, setFadeState] = useState("fade-in");
 
   const botoes = [
     {
       label: "📦\nProdução (PCP)",
-      action: () => setTela("PCP"),
+      action: () => {
+        setFadeState("fade-out");
+        setTimeout(() => setTela("PCP"), 300);
+      },
       dropdown: [
         { nome: "Lançar Pedido", acao: () => setTela("PCP") },
         { nome: "Alimentar Sabores", acao: () => alert("Em breve") },
@@ -16,7 +21,7 @@ const HomeERP = () => {
     },
     {
       label: "💰\nFinanceiro (FinFlux)",
-      action: () => {},
+      action: () => alert("Em breve"),
       dropdown: [
         { nome: "Contas a Receber", acao: () => alert("Em breve") },
         { nome: "Contas a Pagar", acao: () => alert("Em breve") },
@@ -24,7 +29,7 @@ const HomeERP = () => {
     },
     {
       label: "📊\nAnálise de Custos",
-      action: () => {},
+      action: () => alert("Em breve"),
       dropdown: [
         { nome: "Custos por Produto", acao: () => alert("Em breve") },
         { nome: "Custos Fixos", acao: () => alert("Em breve") },
@@ -35,7 +40,7 @@ const HomeERP = () => {
 
   const handleClick = (index, action) => {
     if (zoomIndex === index) {
-      action(); // Executa ação final ao clicar de novo
+      action(); // Executa ação ao clicar de novo
     } else {
       setZoomIndex(index); // Ativa o zoom
     }
@@ -45,6 +50,7 @@ const HomeERP = () => {
 
   return (
     <div
+      className={fadeState}
       style={{
         backgroundImage: "url('/bg002.png')",
         backgroundSize: "cover",
@@ -112,9 +118,9 @@ const HomeERP = () => {
               <button
                 onClick={() => handleClick(idx, btn.action)}
                 style={{
-                  width: isZoomed ? "290px" : "220px",
-                  height: isZoomed ? "290px" : "220px",
-                  fontSize: isZoomed ? "2.4rem" : "1.8rem",
+                  width: isZoomed ? "286px" : "253px", // 30% vs 15%
+                  height: isZoomed ? "286px" : "253px",
+                  fontSize: isZoomed ? "2.4rem" : "2rem",
                   whiteSpace: "pre-line",
                   backgroundColor: isZoomed ? "#8c3b1b" : "#e6cfc2",
                   color: isZoomed ? "#fff" : "#8c3b1b",
@@ -174,6 +180,7 @@ const HomeERP = () => {
           padding: "1.4rem",
           fontSize: "1.4rem",
           textAlign: "center",
+          marginTop: "auto",
         }}
       >
         <marquee behavior="scroll" direction="left">
