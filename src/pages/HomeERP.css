@@ -1,16 +1,73 @@
-/* === BOTÕES PRINCIPAIS === */
+/* === FUNDO GERAL === */
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #fff5ec;
+  background-image: url('/background.jpg'); /* ajuste conforme necessário */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
+
+/* === CABEÇALHO === */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff5ec;
+  padding: 0.8rem 1.5rem;
+  border-bottom: 1px solid #ccc;
+}
+
+.logo {
+  height: 48px;
+}
+
+.titulo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #8c3b1b;
+}
+
+/* === CONTAINER CENTRAL ERP === */
+.container-central {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 2rem;
+  min-height: calc(100vh - 140px); /* espaço para header e footer */
+}
+
+/* === CONTAINER PCP (centralização vertical) === */
+.tela-pcp {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap: 2rem;
+  height: 100vh; /* centraliza verticalmente */
+}
+
+/* === BOTÃO PRINCIPAL – ESTILO PADRÃO (ERP) === */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
-  font-size: 1.5rem;
+  font-size: 1.95rem;       /* 30% maior que o original */
+  width: 234px;
+  height: 234px;
   font-weight: bold;
-  width: 180px;
-  height: 180px;
   border-radius: 1rem;
   border: none;
   transition: transform 0.3s ease, background-color 0.3s ease;
   white-space: pre-line;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .botao-principal:hover {
@@ -18,97 +75,22 @@
   background-color: #a3471f;
 }
 
-/* === PCP – TAMANHO DOBRADO E CENTRALIZADO === */
-.container-pcp {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  gap: 2rem;
-  flex-wrap: wrap;
-  flex-direction: row;
-}
-
-.botao-pcp {
+/* === BOTÃO MAIOR – USADO NA PCP === */
+.tela-pcp .botao-principal {
+  font-size: 3rem;          /* dobro do original */
   width: 360px;
   height: 360px;
-  font-size: 2rem;
-  border-radius: 1rem;
+  box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* === ERP – TAMANHO AUMENTADO 30% === */
-.container-erp {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2rem;
-}
-
-.linha-erp {
-  display: flex;
-  flex-direction: row;
-  gap: 1.5rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.botao-erp {
-  width: 234px;
-  height: 234px;
-  font-size: 1.8rem;
-  border-radius: 1rem;
-}
-
-/* === COZINHA – BOTÃO COM MARGEM ADICIONAL === */
-.botao-cozinha {
-  margin-top: 1.5rem;
-}
-
-/* === BOTÕES ATIVO/INATIVO === */
-.botao-ativo {
-  transform: scale(1.2);
-  background-color: #a3471f;
-}
-
-.botao-inativo {
-  opacity: 0.7;
-  background-color: #8c3b1b;
-}
-
-/* === DROPDOWN INTERNO === */
-.dropdown-interno {
-  margin-top: 0.8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.dropdown-interno button {
-  background-color: #fff;
-  color: #8c3b1b;
-  font-weight: bold;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  border: 2px solid #8c3b1b;
-  transition: background-color 0.3s;
-}
-
-.dropdown-interno button:hover {
+/* === RODAPÉ === */
+footer {
   background-color: #8c3b1b;
   color: white;
-}
-
-/* === FADE === */
-.fade-out {
-  animation: fadeOut 0.5s ease forwards;
-}
-
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+  text-align: center;
+  padding: 0.8rem;
+  font-size: 0.85rem;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
 }
