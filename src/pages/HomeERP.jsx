@@ -39,6 +39,11 @@ const HomeERP = () => {
         { nome: "Custos Variáveis", acao: () => alert("Em breve") },
       ],
     },
+    {
+      label: "👨‍🍳\nCozinha",
+      action: () => alert("Em breve"),
+      dropdown: [],
+    },
   ];
 
   const handleClick = (index, action) => {
@@ -114,7 +119,6 @@ const HomeERP = () => {
 
       {/* === INÍCIO CONTEÚDO PRINCIPAL === */}
       <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        {/* Botões Superiores */}
         <div
           style={{
             flexGrow: 1,
@@ -158,7 +162,7 @@ const HomeERP = () => {
                   {btn.label}
                 </button>
 
-                {isZoomed && mostrarDropdown && (
+                {isZoomed && mostrarDropdown && btn.dropdown.length > 0 && (
                   <div className="dropdown-interno">
                     {btn.dropdown.map((op, i) => (
                       <button key={i} onClick={op.acao}>
@@ -170,30 +174,6 @@ const HomeERP = () => {
               </div>
             );
           })}
-        </div>
-
-        {/* Botão Inferior (Cozinha) */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "2rem",
-            marginBottom: "2rem",
-          }}
-        >
-          <button
-            className="botao-principal botao-inativo"
-            style={{
-              backgroundColor: "#e6cfc2",
-              color: "#8c3b1b",
-              width: "220px",
-              height: "220px",
-              fontSize: "1.6rem",
-            }}
-            onClick={() => alert("Em breve")}
-          >
-            👨‍🍳{`\n`}Cozinha
-          </button>
         </div>
       </main>
       {/* === FIM CONTEÚDO PRINCIPAL === */}
