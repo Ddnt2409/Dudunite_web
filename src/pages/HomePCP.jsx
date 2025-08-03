@@ -1,19 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import "./HomeERP.css";
 
-const HomePCP = () => {
-  const [fadeOut, setFadeOut] = useState(false);
-
-  const voltar = () => {
-    setFadeOut(true);
-    setTimeout(() => {
-      window.location.reload(); // volta para HomeERP reinicializando
-    }, 500);
-  };
-
+const HomePCP = ({ voltar }) => {
   return (
     <div
-      className={fadeOut ? "fade-out" : ""}
       style={{
         backgroundImage: "url('/bg002.png')",
         backgroundSize: "cover",
@@ -22,10 +12,9 @@ const HomePCP = () => {
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-start",
-        overflowY: "auto",
+        alignItems: "center",
       }}
     >
-      {/* === INÍCIO HEADER === */}
       <header
         style={{
           height: "100px",
@@ -35,6 +24,7 @@ const HomePCP = () => {
           padding: "0 1rem",
           backgroundColor: "rgba(255,255,255,0.5)",
           backdropFilter: "blur(6px)",
+          width: "100%",
         }}
       >
         <img
@@ -50,59 +40,37 @@ const HomePCP = () => {
             marginRight: "2ch",
           }}
         >
-          Produção (PCP)
+          Planejamento de Produção
         </h1>
       </header>
-      {/* === FIM HEADER === */}
 
-      {/* === INÍCIO CONTEÚDO PRINCIPAL === */}
-      <main
+      <div
         style={{
-          flex: 1,
-          padding: "2rem 1rem",
           display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
           gap: "2rem",
+          marginTop: "5rem",
+          flexWrap: "wrap",
+          justifyContent: "center",
         }}
       >
-        <button className="botao-principal botao-ativo" onClick={() => alert("Lançar Pedido")}>
-          ➕ Lançar Pedido
-        </button>
+        <button className="botao-principal botao-inativo">Lançar Pedido</button>
+        <button className="botao-principal botao-ativo">Alimentar Sabores</button>
+      </div>
 
-        <button className="botao-principal botao-inativo" onClick={() => alert("Alimentar Sabores")}>
-          🍫 Alimentar Sabores
-        </button>
-
-        <button
-          className="botao-principal botao-inativo"
-          onClick={voltar}
-          style={{ marginTop: "3rem" }}
-        >
-          🔙 Voltar ao Início
-        </button>
-      </main>
-      {/* === FIM CONTEÚDO PRINCIPAL === */}
-
-      {/* === INÍCIO RODAPÉ === */}
-      <footer
+      <button
         style={{
-          backgroundColor: "rgba(140, 59, 27, 0.4)",
-          color: "#ffffff",
-          padding: "1rem",
-          fontSize: "1.2rem",
-          textAlign: "center",
-          marginTop: "2rem",
+          marginTop: "4rem",
+          backgroundColor: "#8c3b1b",
+          color: "#fff",
+          padding: "0.7rem 2rem",
+          borderRadius: "10px",
+          border: "none",
+          fontSize: "1.1rem",
         }}
+        onClick={voltar}
       >
-        <marquee behavior="scroll" direction="left">
-          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
-          Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros •
-          Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo •
-          Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
-        </marquee>
-      </footer>
-      {/* === FIM RODAPÉ === */}
+        Voltar
+      </button>
     </div>
   );
 };
