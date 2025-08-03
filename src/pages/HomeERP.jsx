@@ -1,17 +1,22 @@
 import React, { useState, useRef } from "react";
 import HomePCP from "./HomePCP";
 import "./HomeERP.css";
+import "./Fade.css";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
   const [zoomIndex, setZoomIndex] = useState(1);
   const touchStartX = useRef(null);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
 
   const botoes = [
     {
       label: "📦\nProdução (PCP)",
-      action: () => setTela("PCP"),
+      action: () => {
+        setFadeOut(true);
+        setTimeout(() => setTela("PCP"), 500);
+      },
       dropdown: [
         { nome: "Lançar Pedido", acao: () => setTela("PCP") },
         { nome: "Alimentar Sabores", acao: () => alert("Em breve") },
@@ -34,16 +39,11 @@ const HomeERP = () => {
         { nome: "Custos Variáveis", acao: () => alert("Em breve") },
       ],
     },
-    {
-      label: "👨‍🍳\nCozinha",
-      action: () => alert("Módulo Cozinha em breve"),
-      dropdown: [],
-    },
   ];
 
   const handleClick = (index, action) => {
     if (zoomIndex === index) {
-      if (mostrarDropdown && botoes[index].dropdown.length > 0) {
+      if (mostrarDropdown) {
         action();
       } else {
         setMostrarDropdown(true);
@@ -70,6 +70,7 @@ const HomeERP = () => {
 
   return (
     <div
+      className={fadeOut ? "fade-out" : ""}
       style={{
         backgroundImage: "url('/bg002.png')",
         backgroundSize: "cover",
@@ -113,6 +114,7 @@ const HomeERP = () => {
 
       {/* === INÍCIO CONTEÚDO PRINCIPAL === */}
       <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        {/* Botões Superiores */}
         <div
           style={{
             flexGrow: 1,
@@ -122,7 +124,7 @@ const HomeERP = () => {
             overflowX: "auto",
             scrollSnapType: "x mandatory",
             gap: "3rem",
-            padding: "1rem 1rem 0.5rem",
+            padding: "2rem 1rem 0",
             width: "100%",
           }}
           onTouchStart={(e) =>
@@ -145,64 +147,53 @@ const HomeERP = () => {
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  transform: isZoomed ? "scale(1.3)" : "scale(1)",
-                  transition: "transform 0.3s ease",
-                  overflow: "visible",
                 }}
               >
                 <button
                   onClick={() => handleClick(idx, btn.action)}
-                  style={{
-                    width: "220px",
-                    height: "154px", // 30% mais alto
-                    fontSize: "1.5rem",
-                    whiteSpace: "pre-line",
-                    backgroundColor: isZoomed ? "#8c3b1b" : "#e6cfc2",
-                    color: isZoomed ? "#fff" : "#8c3b1b",
-                    border: "none",
-                    borderRadius: "2rem",
-                    boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
-                    fontWeight: "bold",
-                  }}
+                  className={`botao-principal ${
+                    isZoomed ? "botao-ativo" : "botao-inativo"
+                  }`}
                 >
                   {btn.label}
                 </button>
 
-                {isZoomed &&
-                  mostrarDropdown &&
-                  btn.dropdown.length > 0 && (
-                    <div
-                      style={{
-                        marginTop: "1.5rem",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "1rem",
-                        alignItems: "center",
-                      }}
-                    >
-                      {btn.dropdown.map((op, i) => (
-                        <button
-                          key={i}
-                          onClick={op.acao}
-                          style={{
-                            padding: "1rem 2rem",
-                            fontSize: "1.4rem",
-                            borderRadius: "1rem",
-                            backgroundColor: "#fff",
-                            color: "#8c3b1b",
-                            border: "2px solid #8c3b1b",
-                            fontWeight: "bold",
-                            width: "200px",
-                          }}
-                        >
-                          {op.nome}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                {isZoomed && mostrarDropdown && (
+                  <div className="dropdown-interno">
+                    {btn.dropdown.map((op, i) => (
+                      <button key={i} onClick={op.acao}>
+                        {op.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
+        </div>
+
+        {/* Botão Inferior (Cozinha) */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "2rem",
+            marginBottom: "2rem",
+          }}
+        >
+          <button
+            className="botao-principal botao-inativo"
+            style={{
+              backgroundColor: "#e6cfc2",
+              color: "#8c3b1b",
+              width: "220px",
+              height: "220px",
+              fontSize: "1.6rem",
+            }}
+            onClick={() => alert("Em breve")}
+          >
+            👨‍🍳{`\n`}Cozinha
+          </button>
         </div>
       </main>
       {/* === FIM CONTEÚDO PRINCIPAL === */}
