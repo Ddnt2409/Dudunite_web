@@ -1,31 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+// === INÍCIO HomeERP.jsx Corrigido ===
+
+import React, { useState, useRef } from "react";
 import HomePCP from "./HomePCP";
-import "./fade.css";
+import "./HomeERP.css";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
   const [zoomIndex, setZoomIndex] = useState(1);
-  const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const touchStartX = useRef(null);
-  const botoesRef = useRef([]);
-
-  useEffect(() => {
-    const elementos = document.querySelectorAll(".fade-zoom");
-    elementos.forEach((el) => {
-      el.classList.remove("fade-in");
-      void el.offsetWidth;
-      el.classList.add("fade-in");
-    });
-
-    // Scroll automático para o botão central
-    if (botoesRef.current[zoomIndex]) {
-      botoesRef.current[zoomIndex].scrollIntoView({
-        behavior: "smooth",
-        inline: "center",
-        block: "nearest",
-      });
-    }
-  }, [zoomIndex]);
+  const [mostrarDropdown, setMostrarDropdown] = useState(false);
 
   const botoes = [
     {
@@ -57,8 +40,11 @@ const HomeERP = () => {
 
   const handleClick = (index, action) => {
     if (zoomIndex === index) {
-      if (mostrarDropdown) action();
-      else setMostrarDropdown(true);
+      if (mostrarDropdown) {
+        action();
+      } else {
+        setMostrarDropdown(true);
+      }
     } else {
       setZoomIndex(index);
       setMostrarDropdown(false);
@@ -89,6 +75,7 @@ const HomeERP = () => {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
+        overflow: "hidden",
       }}
     >
       {/* === INÍCIO HEADER === */}
@@ -130,8 +117,7 @@ const HomeERP = () => {
           overflowX: "auto",
           scrollSnapType: "x mandatory",
           gap: "3rem",
-          padding: "2rem 1rem 4rem",
-          minHeight: "320px",
+          padding: "2rem 1rem",
         }}
         onTouchStart={(e) => (touchStartX.current = e.changedTouches[0].clientX)}
         onTouchEnd={(e) => {
@@ -145,22 +131,22 @@ const HomeERP = () => {
           return (
             <div
               key={idx}
-              className="fade-zoom"
-              ref={(el) => (botoesRef.current[idx] = el)}
               style={{
                 flex: "0 0 auto",
                 scrollSnapAlign: "center",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
+                transform: isZoomed ? "scale(1.3)" : "scale(1)",
+                transition: "transform 0.3s ease",
               }}
             >
               <button
                 onClick={() => handleClick(idx, btn.action)}
                 style={{
-                  width: isZoomed ? "220px" : "200px",
-                  height: isZoomed ? "220px" : "200px",
-                  fontSize: isZoomed ? "1.6rem" : "1.4rem",
+                  width: "220px",
+                  height: "220px",
+                  fontSize: "1.6rem",
                   whiteSpace: "pre-line",
                   backgroundColor: isZoomed ? "#8c3b1b" : "#e6cfc2",
                   color: isZoomed ? "#fff" : "#8c3b1b",
@@ -168,7 +154,6 @@ const HomeERP = () => {
                   borderRadius: "2rem",
                   boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
                   fontWeight: "bold",
-                  transition: "all 0.3s ease",
                 }}
               >
                 {btn.label}
@@ -233,3 +218,5 @@ const HomeERP = () => {
 };
 
 export default HomeERP;
+
+// === FIM HomeERP.jsx Corrigido ===
