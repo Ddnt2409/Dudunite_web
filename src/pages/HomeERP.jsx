@@ -1,4 +1,4 @@
-// === INÍCIO HomeERP.jsx Corrigido e Completo ===
+// === INÍCIO HomeERP.jsx Corrigido com Rodapé e Botões Rebaixados ===
 
 import React, { useState, useRef } from "react";
 import HomePCP from "./HomePCP";
@@ -118,7 +118,7 @@ const HomeERP = () => {
             overflowY: "visible",
             scrollSnapType: "x mandatory",
             gap: "3rem",
-            padding: "8rem 1rem 6rem", // desce os botões
+            padding: "13.6rem 1rem 6rem", // 30% de 220px = 66px -> 8rem + 66px ≈ 13.6rem
           }}
           onTouchStart={(e) =>
             (touchStartX.current = e.changedTouches[0].clientX)
@@ -224,4 +224,4 @@ const HomeERP = () => {
 
 export default HomeERP;
 
-// === FIM HomeERP.jsx Corrigido e Completo ===
+// === FIM HomeERP.jsx Corrigido com Rodapé e Botões Rebaixados ===
