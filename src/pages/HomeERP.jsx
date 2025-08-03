@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import HomePCP from "./HomePCP";
 import "./HomeERP.css";
-import "./Fade.css";
+import "./fade.css";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
