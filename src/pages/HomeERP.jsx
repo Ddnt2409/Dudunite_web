@@ -1,95 +1,144 @@
-import React, { useState } from 'react';
-import './HomeERP.css';
+// === INÍCIO HomeERP.jsx ===
+import React, { useRef, useState, useEffect } from "react";
+import HomePCP from "./HomePCP";
+import "../pages/HomeERP.css"; // Certifique-se de que o caminho está correto
 
-function HomeERP() {
-  const modulos = [
+const HomeERP = () => {
+  const [tela, setTela] = useState("Home");
+  const [focusIndex, setFocusIndex] = useState(1);
+  const carrosselRef = useRef(null);
+
+  const botoes = [
     {
-      id: 0,
-      nome: 'Produção (PCP)',
-      botao: 'PCP',
-      opcoes: ['Lançar Pedido', 'Alimentar Sabores'],
+      label: "Produção (PCP)",
+      action: () => setTela("PCP"),
+      dropdown: [{ nome: "Ir para Produção", acao: () => setTela("PCP") }],
     },
     {
-      id: 1,
-      nome: 'Financeiro (FinFlux)',
-      botao: 'Finanças',
-      opcoes: ['Contas a Pagar', 'Fluxo de Caixa'],
+      label: "Financeiro (FinFlux)",
+      action: () => {},
+      dropdown: [
+        { nome: "Contas a Receber", acao: () => alert("Em breve") },
+        { nome: "Contas a Pagar", acao: () => alert("Em breve") },
+        { nome: "Fluxo de Caixa", acao: () => alert("Em breve") },
+      ],
     },
     {
-      id: 2,
-      nome: 'Análise de Custos',
-      botao: 'Custos',
-      opcoes: ['Mão de Obra', 'Matéria-prima'],
+      label: "Análise de Custos",
+      action: () => {},
+      dropdown: [
+        { nome: "Custos por Produto", acao: () => alert("Em breve") },
+        { nome: "Custos Fixos", acao: () => alert("Em breve") },
+        { nome: "Custos Variáveis", acao: () => alert("Em breve") },
+      ],
     },
   ];
 
-  const [indiceAtivo, setIndiceAtivo] = useState(0);
+  useEffect(() => {
+    const container = carrosselRef.current;
+    if (!container) return;
 
-  const moverEsquerda = () => {
-    setIndiceAtivo((prev) => (prev - 1 + modulos.length) % modulos.length);
-  };
+    const handleScroll = () => {
+      const buttons = container.querySelectorAll(".botao-wrapper");
+      const containerRect = container.getBoundingClientRect();
+      const centerX = containerRect.left + containerRect.width / 2;
 
-  const moverDireita = () => {
-    setIndiceAtivo((prev) => (prev + 1) % modulos.length);
-  };
+      let closestIdx = 0;
+      let minDistance = Infinity;
 
-  const getModulo = (index) => modulos[index % modulos.length];
+      buttons.forEach((btn, idx) => {
+        const rect = btn.getBoundingClientRect();
+        const btnCenterX = rect.left + rect.width / 2;
+        const distance = Math.abs(centerX - btnCenterX);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestIdx = idx;
+        }
+      });
 
-  const anterior = getModulo(indiceAtivo - 1 + modulos.length);
-  const atual = getModulo(indiceAtivo);
-  const proximo = getModulo(indiceAtivo + 1);
+      setFocusIndex(closestIdx);
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    handleScroll();
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (tela === "Home" && carrosselRef.current) {
+      const centralBtn = carrosselRef.current.querySelectorAll(".botao-wrapper")[1];
+      if (centralBtn) {
+        const container = carrosselRef.current;
+        const scrollLeft =
+          centralBtn.offsetLeft -
+          container.offsetWidth / 2 +
+          centralBtn.offsetWidth / 2;
+
+        container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+      }
+    }
+  }, [tela]);
+
+  if (tela === "PCP") {
+    return (
+      <div style={{ animation: "fadein 0.8s ease-in-out" }}>
+        <HomePCP />
+      </div>
+    );
+  }
 
   return (
-    <div className="homeerp-container">
-      {/* === INÍCIO RT01 – Cabeçalho com logo e título === */}
-      <div className="homeerp-header">
+    <div className="fundo-home">
+      {/* Cabeçalho */}
+      <header className="cabecalho">
         <img
-          src="LogomarcaDDnt2025Vazado.png"
+          src="/LogomarcaDDnt2025Vazado.png"
           alt="Logo Dudunitê"
-          className="homeerp-logo"
+          className="logo-home"
         />
-        <h1 className="homeerp-titulo">ERP DUDUNITÊ</h1>
-      </div>
-      {/* === FIM RT01 === */}
+        <h1 className="titulo-erp"><strong>ERP DUDUNITÊ</strong></h1>
+      </header>
 
-      {/* === INÍCIO RT02 – Carrossel Central === */}
-      <div className="homeerp-carrossel">
-        <button className="seta" onClick={moverEsquerda}>
-          ◀
-        </button>
+      {/* Carrossel */}
+      <div className="carrossel" ref={carrosselRef}>
+        <div className="carrossel-interno">
+          {botoes.map((btn, idx) => {
+            const isCentral = idx === focusIndex;
+            const wrapperClass = isCentral ? "central" : "lateral";
 
-        <div className="modulo modulo-anterior">
-          <div className="modulo-botao">{anterior.botao}</div>
-        </div>
+            return (
+              <div className={`botao-wrapper ${wrapperClass}`} key={idx}>
+                <button className="botao" onClick={btn.action}>
+                  {btn.label}
+                </button>
 
-        <div className="modulo modulo-central">
-          <div className="modulo-botao ativo">{atual.botao}</div>
-          <div className="modulo-opcoes">
-            {atual.opcoes.map((opcao, index) => (
-              <div key={index} className="modulo-opcao">
-                {opcao}
+                {isCentral && (
+                  <div className="bloco-opcoes">
+                    {btn.dropdown.map((item, i) => (
+                      <button key={i} className="botao-interno" onClick={item.acao}>
+                        {item.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
-
-        <div className="modulo modulo-posterior">
-          <div className="modulo-botao">{proximo.botao}</div>
-        </div>
-
-        <button className="seta" onClick={moverDireita}>
-          ▶
-        </button>
       </div>
-      {/* === FIM RT02 === */}
 
-      {/* === INÍCIO RT03 – Rodapé com escolas === */}
-      <div className="homeerp-rodape">
-        Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty
-      </div>
-      {/* === FIM RT03 === */}
+      {/* Rodapé */}
+      <footer className="rodape">
+        <marquee behavior="scroll" direction="left">
+          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
+          Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
+          BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
+          Exato Anexo • Sesi • Motivo • Jesus Salvador
+        </marquee>
+      </footer>
     </div>
   );
-}
+};
 
 export default HomeERP;
+// === FIM HomeERP.jsx ===
