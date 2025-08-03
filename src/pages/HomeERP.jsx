@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+// === INÍCIO HomeERP.jsx Corrigido ===
+
+import React, { useState, useRef } from "react";
 import HomePCP from "./HomePCP";
 import "./HomeERP.css";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
-  const [zoomIndex, setZoomIndex] = useState(1); // Começa com o botão central em destaque
+  const [zoomIndex, setZoomIndex] = useState(1);
+  const touchStartX = useRef(null);
+  const [mostrarDropdown, setMostrarDropdown] = useState(false);
 
   const botoes = [
     {
@@ -36,18 +40,26 @@ const HomeERP = () => {
 
   const handleClick = (index, action) => {
     if (zoomIndex === index) {
-      action();
+      if (mostrarDropdown) {
+        action();
+      } else {
+        setMostrarDropdown(true);
+      }
     } else {
       setZoomIndex(index);
+      setMostrarDropdown(false);
     }
   };
 
   const deslizar = (direcao) => {
     setZoomIndex((prev) => {
       const total = botoes.length;
-      if (direcao === "esquerda") return (prev - 1 + total) % total;
-      if (direcao === "direita") return (prev + 1) % total;
-      return prev;
+      const novoIndex =
+        direcao === "esquerda"
+          ? (prev - 1 + total) % total
+          : (prev + 1) % total;
+      setMostrarDropdown(false);
+      return novoIndex;
     });
   };
 
@@ -63,6 +75,7 @@ const HomeERP = () => {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
+        overflow: "hidden",
       }}
     >
       {/* === INÍCIO HEADER === */}
@@ -106,9 +119,9 @@ const HomeERP = () => {
           gap: "3rem",
           padding: "2rem 1rem",
         }}
-        onTouchStart={(e) => (this.touchStartX = e.changedTouches[0].clientX)}
+        onTouchStart={(e) => (touchStartX.current = e.changedTouches[0].clientX)}
         onTouchEnd={(e) => {
-          const diff = e.changedTouches[0].clientX - this.touchStartX;
+          const diff = e.changedTouches[0].clientX - touchStartX.current;
           if (diff > 50) deslizar("esquerda");
           else if (diff < -50) deslizar("direita");
         }}
@@ -146,7 +159,7 @@ const HomeERP = () => {
                 {btn.label}
               </button>
 
-              {isZoomed && (
+              {isZoomed && mostrarDropdown && (
                 <div
                   style={{
                     marginTop: "1.5rem",
@@ -205,3 +218,5 @@ const HomeERP = () => {
 };
 
 export default HomeERP;
+
+// === FIM HomeERP.jsx Corrigido ===
