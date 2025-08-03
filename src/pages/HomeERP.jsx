@@ -1,14 +1,21 @@
-// === INÍCIO HomeERP.jsx Corrigido com Zoom 1.4 ===
-
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import HomePCP from "./HomePCP";
-import "./HomeERP.css";
+import "./fade.css"; // fade restaurado
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
   const [zoomIndex, setZoomIndex] = useState(1);
-  const touchStartX = useRef(null);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
+  const touchStartX = useRef(null);
+
+  useEffect(() => {
+    const elementos = document.querySelectorAll(".fade-zoom");
+    elementos.forEach((el) => {
+      el.classList.remove("fade-in");
+      void el.offsetWidth;
+      el.classList.add("fade-in");
+    });
+  }, [zoomIndex]);
 
   const botoes = [
     {
@@ -40,11 +47,8 @@ const HomeERP = () => {
 
   const handleClick = (index, action) => {
     if (zoomIndex === index) {
-      if (mostrarDropdown) {
-        action();
-      } else {
-        setMostrarDropdown(true);
-      }
+      if (mostrarDropdown) action();
+      else setMostrarDropdown(true);
     } else {
       setZoomIndex(index);
       setMostrarDropdown(false);
@@ -75,7 +79,7 @@ const HomeERP = () => {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        overflow: "hidden",
+        overflow: "visible",
       }}
     >
       {/* === INÍCIO HEADER === */}
@@ -117,7 +121,7 @@ const HomeERP = () => {
           overflowX: "auto",
           scrollSnapType: "x mandatory",
           gap: "3rem",
-          padding: "2rem 1rem",
+          padding: "2rem 1rem 5rem",
         }}
         onTouchStart={(e) => (touchStartX.current = e.changedTouches[0].clientX)}
         onTouchEnd={(e) => {
@@ -131,14 +135,14 @@ const HomeERP = () => {
           return (
             <div
               key={idx}
+              className={`fade-zoom`}
               style={{
                 flex: "0 0 auto",
                 scrollSnapAlign: "center",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                transform: isZoomed ? "scale(1.4)" : "scale(1)",
-                transformOrigin: "center",
+                transform: isZoomed ? "scale(1.35) translateY(10px)" : "scale(1)",
                 transition: "transform 0.3s ease",
               }}
             >
@@ -219,5 +223,3 @@ const HomeERP = () => {
 };
 
 export default HomeERP;
-
-// === FIM HomeERP.jsx Corrigido com Zoom 1.4 ===
