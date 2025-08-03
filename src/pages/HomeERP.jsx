@@ -22,7 +22,6 @@ const HomeERP = () => {
       dropdown: [
         { nome: "Contas a Receber", acao: () => alert("Em breve") },
         { nome: "Contas a Pagar", acao: () => alert("Em breve") },
-        { nome: "Fluxo de Caixa", acao: () => alert("Em breve") },
       ],
     },
     {
@@ -36,10 +35,13 @@ const HomeERP = () => {
     },
   ];
 
-  const moverCarrossel = (direcao) => {
-    const novoIndex = focusIndex + direcao;
-    if (novoIndex >= 0 && novoIndex < botoes.length) {
-      setFocusIndex(novoIndex);
+  const handleSwipe = (e) => {
+    const scrollWidth = carrosselRef.current.scrollWidth;
+    const clientWidth = carrosselRef.current.clientWidth;
+    const scrollLeft = carrosselRef.current.scrollLeft;
+    const idx = Math.round((scrollLeft / scrollWidth) * botoes.length);
+    if (idx !== focusIndex) {
+      setFocusIndex(idx);
       setAberto(false);
     }
   };
@@ -69,7 +71,8 @@ const HomeERP = () => {
         backgroundPosition: "center",
         minHeight: "100vh",
         position: "relative",
-        overflowX: "hidden",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* Cabeçalho */}
@@ -102,127 +105,97 @@ const HomeERP = () => {
         </h1>
       </header>
 
-      {/* Setas */}
-      <button
-        onClick={() => moverCarrossel(-1)}
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: "2%",
-          fontSize: "3rem",
-          background: "none",
-          border: "none",
-          color: "#fff",
-          zIndex: 10,
-        }}
-      >
-        ←
-      </button>
-      <button
-        onClick={() => moverCarrossel(1)}
-        style={{
-          position: "absolute",
-          top: "50%",
-          right: "2%",
-          fontSize: "3rem",
-          background: "none",
-          border: "none",
-          color: "#fff",
-          zIndex: 10,
-        }}
-      >
-        →
-      </button>
-
-      {/* Carrossel */}
+      {/* Carrossel por swipe */}
       <div
         ref={carrosselRef}
+        onScroll={handleSwipe}
         style={{
           display: "flex",
-          justifyContent: "center",
-          overflowX: "auto",
+          overflowX: "scroll",
           scrollSnapType: "x mandatory",
-          marginTop: "160px",
-          padding: "2rem 0",
+          padding: "3rem 2rem",
+          gap: "3rem",
+          WebkitOverflowScrolling: "touch",
         }}
       >
-        <div style={{ display: "flex", gap: "3rem", minWidth: "max-content" }}>
-          {botoes.map((btn, idx) => {
-            const isFocused = idx === focusIndex;
-            return (
-              <div
-                key={idx}
-                className="carousel-button"
+        {botoes.map((btn, idx) => {
+          const isFocused = idx === focusIndex;
+          return (
+            <div
+              key={idx}
+              className="carousel-button"
+              style={{
+                scrollSnapAlign: "center",
+                flex: "0 0 auto",
+                textAlign: "center",
+                transform: isFocused ? "scale(1.3)" : "scale(1)",
+                transition: "transform 0.4s ease",
+              }}
+            >
+              <button
+                onClick={() => {
+                  btn.action();
+                  if (isFocused) setAberto(true);
+                }}
                 style={{
-                  scrollSnapAlign: "center",
-                  textAlign: "center",
-                  transform: isFocused ? "scale(1.3)" : "scale(1)",
-                  transition: "transform 0.4s ease",
+                  width: isFocused ? "390px" : "260px",
+                  height: isFocused ? "390px" : "260px",
+                  fontSize: isFocused ? "2.2rem" : "1.8rem",
+                  backgroundColor: isFocused ? "#8c3b1b" : "#e6cfc2",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "1.5rem",
+                  boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
+                  fontWeight: "bold",
+                  transition: "all 0.4s ease",
+                  whiteSpace: "normal",
+                  padding: "1rem",
                 }}
               >
-                <button
-                  onClick={() => {
-                    btn.action();
-                    if (isFocused) setAberto(true);
-                  }}
+                {btn.label}
+              </button>
+
+              {/* Submenu visível ao clicar */}
+              {isFocused && aberto && (
+                <div
                   style={{
-                    width: isFocused ? "390px" : "260px",
-                    height: isFocused ? "390px" : "260px",
-                    fontSize: isFocused ? "2.2rem" : "1.8rem",
-                    backgroundColor: isFocused ? "#8c3b1b" : "#e6cfc2",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "1.5rem",
-                    boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
-                    fontWeight: "bold",
-                    transition: "all 0.4s ease",
+                    marginTop: "2.5rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1.5rem",
+                    alignItems: "center",
                   }}
                 >
-                  {btn.label}
-                </button>
-
-                {/* Submenu visível ao clicar */}
-                {isFocused && aberto && (
-                  <div
-                    style={{
-                      marginTop: "2.5rem",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "1rem",
-                      alignItems: "center",
-                    }}
-                  >
-                    {btn.dropdown.map((op, i) => (
-                      <button
-                        key={i}
-                        onClick={op.acao}
-                        style={{
-                          padding: "0.9rem 1.5rem",
-                          fontSize: "1.4rem",
-                          borderRadius: "0.6rem",
-                          backgroundColor: "#fff",
-                          color: "#8c3b1b",
-                          border: "2px solid #8c3b1b",
-                          boxShadow: "2px 2px 6px rgba(0,0,0,0.2)",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {op.nome}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  {btn.dropdown.map((op, i) => (
+                    <button
+                      key={i}
+                      onClick={op.acao}
+                      style={{
+                        padding: "1.2rem 2rem",
+                        fontSize: "1.6rem",
+                        borderRadius: "0.8rem",
+                        backgroundColor: "#fff",
+                        color: "#8c3b1b",
+                        border: "2px solid #8c3b1b",
+                        boxShadow: "2px 2px 6px rgba(0,0,0,0.2)",
+                        fontWeight: "bold",
+                        width: "240px",
+                      }}
+                    >
+                      {op.nome}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Rodapé */}
       <footer
         style={{
-          position: "relative",
-          marginTop: "60px",
+          marginTop: "auto",
           backgroundColor: "rgba(140, 59, 27, 0.4)",
           color: "white",
           padding: "1.4rem",
