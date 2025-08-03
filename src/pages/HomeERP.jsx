@@ -1,89 +1,95 @@
-// === INÍCIO HomeERP.jsx ===
-import { useState, useEffect } from "react";
-import "./HomeERP.css";
+import React, { useState } from 'react';
+import './HomeERP.css';
 
-export default function HomeERP({ navegarPara }) {
-  const [posicao, setPosicao] = useState(1); // botão central inicialmente no meio
-
-  const botoes = [
+function HomeERP() {
+  const modulos = [
     {
       id: 0,
-      titulo: "Finanças",
-      subtitulos: ["Contas", "Caixa", "Relatórios"],
-      cor: "secundario",
+      nome: 'Produção (PCP)',
+      botao: 'PCP',
+      opcoes: ['Lançar Pedido', 'Alimentar Sabores'],
     },
     {
       id: 1,
-      titulo: "PCP",
-      subtitulos: ["Lançar Pedido", "Alimentar Sabores"],
-      cor: "primario",
+      nome: 'Financeiro (FinFlux)',
+      botao: 'Finanças',
+      opcoes: ['Contas a Pagar', 'Fluxo de Caixa'],
     },
     {
       id: 2,
-      titulo: "Custos",
-      subtitulos: ["Matéria-prima", "Produção", "Rentabilidade"],
-      cor: "secundario",
+      nome: 'Análise de Custos',
+      botao: 'Custos',
+      opcoes: ['Mão de Obra', 'Matéria-prima'],
     },
   ];
 
-  const moverCarrossel = (direcao) => {
-    setPosicao((prev) => {
-      if (direcao === "esquerda") {
-        return prev === 0 ? botoes.length - 1 : prev - 1;
-      } else {
-        return prev === botoes.length - 1 ? 0 : prev + 1;
-      }
-    });
+  const [indiceAtivo, setIndiceAtivo] = useState(0);
+
+  const moverEsquerda = () => {
+    setIndiceAtivo((prev) => (prev - 1 + modulos.length) % modulos.length);
   };
 
-  const handleClickPrincipal = () => {
-    const item = botoes[posicao];
-    if (item.titulo === "PCP") {
-      const fundo = document.querySelector(".container-geral");
-      fundo.classList.add("fade-out");
-      setTimeout(() => navegarPara("HomePCP"), 300);
-    }
+  const moverDireita = () => {
+    setIndiceAtivo((prev) => (prev + 1) % modulos.length);
   };
+
+  const getModulo = (index) => modulos[index % modulos.length];
+
+  const anterior = getModulo(indiceAtivo - 1 + modulos.length);
+  const atual = getModulo(indiceAtivo);
+  const proximo = getModulo(indiceAtivo + 1);
 
   return (
-    <div className="container-geral">
-      <img
-        src="/LogomarcaDDnt2025Vazado.png"
-        alt="Logo"
-        className="logo-erp"
-      />
-      <div className="carrossel">
-        <button className="seta" onClick={() => moverCarrossel("esquerda")}>
+    <div className="homeerp-container">
+      {/* === INÍCIO RT01 – Cabeçalho com logo e título === */}
+      <div className="homeerp-header">
+        <img
+          src="LogomarcaDDnt2025Vazado.png"
+          alt="Logo Dudunitê"
+          className="homeerp-logo"
+        />
+        <h1 className="homeerp-titulo">ERP DUDUNITÊ</h1>
+      </div>
+      {/* === FIM RT01 === */}
+
+      {/* === INÍCIO RT02 – Carrossel Central === */}
+      <div className="homeerp-carrossel">
+        <button className="seta" onClick={moverEsquerda}>
           ◀
         </button>
 
-        <div className="botoes-centrais">
-          {botoes.map((btn, index) => {
-            const isCentral = index === posicao;
-            return (
-              <div
-                key={btn.id}
-                className={`botao-erp ${isCentral ? "central" : "lateral"} ${btn.cor}`}
-                onClick={isCentral ? handleClickPrincipal : null}
-              >
-                <div className="titulo-principal">{btn.titulo}</div>
-                {isCentral && (
-                  <div className="subitens">
-                    {btn.subtitulos.map((sub, i) => (
-                      <div key={i} className="subitem">{sub}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+        <div className="modulo modulo-anterior">
+          <div className="modulo-botao">{anterior.botao}</div>
         </div>
 
-        <button className="seta" onClick={() => moverCarrossel("direita")}>
+        <div className="modulo modulo-central">
+          <div className="modulo-botao ativo">{atual.botao}</div>
+          <div className="modulo-opcoes">
+            {atual.opcoes.map((opcao, index) => (
+              <div key={index} className="modulo-opcao">
+                {opcao}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="modulo modulo-posterior">
+          <div className="modulo-botao">{proximo.botao}</div>
+        </div>
+
+        <button className="seta" onClick={moverDireita}>
           ▶
         </button>
       </div>
+      {/* === FIM RT02 === */}
+
+      {/* === INÍCIO RT03 – Rodapé com escolas === */}
+      <div className="homeerp-rodape">
+        Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty
+      </div>
+      {/* === FIM RT03 === */}
     </div>
   );
 }
-// === FIM HomeERP.jsx ===
+
+export default HomeERP;
