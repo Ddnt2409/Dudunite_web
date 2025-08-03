@@ -1,14 +1,13 @@
-// === INÍCIO HomeERP.jsx Corrigido com Transição ===
-
 import React, { useState, useRef, useEffect } from "react";
 import HomePCP from "./HomePCP";
-import "./fade.css"; // fade restaurado
+import "./fade.css";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
   const [zoomIndex, setZoomIndex] = useState(1);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const touchStartX = useRef(null);
+  const botoesRef = useRef([]);
 
   useEffect(() => {
     const elementos = document.querySelectorAll(".fade-zoom");
@@ -17,6 +16,15 @@ const HomeERP = () => {
       void el.offsetWidth;
       el.classList.add("fade-in");
     });
+
+    // Scroll automático para o botão central
+    if (botoesRef.current[zoomIndex]) {
+      botoesRef.current[zoomIndex].scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
   }, [zoomIndex]);
 
   const botoes = [
@@ -69,167 +77,159 @@ const HomeERP = () => {
     });
   };
 
+  if (tela === "PCP") return <HomePCP />;
+
   return (
-    <>
-      {tela === "PCP" ? (
-        <div style={{ animation: "fadein 0.4s" }}>
-          <HomePCP />
-        </div>
-      ) : (
-        <div
+    <div
+      style={{
+        backgroundImage: "url('/bg002.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+      }}
+    >
+      {/* === INÍCIO HEADER === */}
+      <header
+        style={{
+          height: "100px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0 1rem",
+          backgroundColor: "rgba(255,255,255,0.5)",
+          backdropFilter: "blur(6px)",
+        }}
+      >
+        <img
+          src="/LogomarcaDDnt2025Vazado.png"
+          alt="Logo"
+          style={{ width: "200px", marginTop: "2%" }}
+        />
+        <h1
           style={{
-            backgroundImage: "url('/bg002.png')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            minHeight: "100vh",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            overflow: "visible",
+            fontSize: "2rem",
+            fontWeight: "bold",
+            color: "#8c3b1b",
+            marginRight: "2ch",
           }}
         >
-          {/* === INÍCIO HEADER === */}
-          <header
-            style={{
-              height: "100px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "0 1rem",
-              backgroundColor: "rgba(255,255,255,0.5)",
-              backdropFilter: "blur(6px)",
-            }}
-          >
-            <img
-              src="/LogomarcaDDnt2025Vazado.png"
-              alt="Logo"
-              style={{ width: "200px", marginTop: "2%" }}
-            />
-            <h1
+          ERP DUDUNITÊ
+        </h1>
+      </header>
+      {/* === FIM HEADER === */}
+
+      {/* === INÍCIO BOTÕES === */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          overflowX: "auto",
+          scrollSnapType: "x mandatory",
+          gap: "3rem",
+          padding: "2rem 1rem 4rem",
+          minHeight: "320px",
+        }}
+        onTouchStart={(e) => (touchStartX.current = e.changedTouches[0].clientX)}
+        onTouchEnd={(e) => {
+          const diff = e.changedTouches[0].clientX - touchStartX.current;
+          if (diff > 50) deslizar("esquerda");
+          else if (diff < -50) deslizar("direita");
+        }}
+      >
+        {botoes.map((btn, idx) => {
+          const isZoomed = idx === zoomIndex;
+          return (
+            <div
+              key={idx}
+              className="fade-zoom"
+              ref={(el) => (botoesRef.current[idx] = el)}
               style={{
-                fontSize: "2rem",
-                fontWeight: "bold",
-                color: "#8c3b1b",
-                marginRight: "2ch",
+                flex: "0 0 auto",
+                scrollSnapAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
               }}
             >
-              ERP DUDUNITÊ
-            </h1>
-          </header>
-          {/* === FIM HEADER === */}
+              <button
+                onClick={() => handleClick(idx, btn.action)}
+                style={{
+                  width: isZoomed ? "220px" : "200px",
+                  height: isZoomed ? "220px" : "200px",
+                  fontSize: isZoomed ? "1.6rem" : "1.4rem",
+                  whiteSpace: "pre-line",
+                  backgroundColor: isZoomed ? "#8c3b1b" : "#e6cfc2",
+                  color: isZoomed ? "#fff" : "#8c3b1b",
+                  border: "none",
+                  borderRadius: "2rem",
+                  boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
+                  fontWeight: "bold",
+                  transition: "all 0.3s ease",
+                }}
+              >
+                {btn.label}
+              </button>
 
-          {/* === INÍCIO BOTÕES === */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              overflowX: "auto",
-              scrollSnapType: "x mandatory",
-              gap: "3rem",
-              padding: "2rem 1rem 5rem",
-            }}
-            onTouchStart={(e) => (touchStartX.current = e.changedTouches[0].clientX)}
-            onTouchEnd={(e) => {
-              const diff = e.changedTouches[0].clientX - touchStartX.current;
-              if (diff > 50) deslizar("esquerda");
-              else if (diff < -50) deslizar("direita");
-            }}
-          >
-            {botoes.map((btn, idx) => {
-              const isZoomed = idx === zoomIndex;
-              return (
+              {isZoomed && mostrarDropdown && (
                 <div
-                  key={idx}
-                  className={`fade-zoom`}
                   style={{
-                    flex: "0 0 auto",
-                    scrollSnapAlign: "center",
+                    marginTop: "1.5rem",
                     display: "flex",
                     flexDirection: "column",
+                    gap: "1rem",
                     alignItems: "center",
-                    transform: isZoomed ? "scale(1.35) translateY(10px)" : "scale(1)",
-                    transition: "transform 0.3s ease",
                   }}
                 >
-                  <button
-                    onClick={() => handleClick(idx, btn.action)}
-                    style={{
-                      width: "220px",
-                      height: "220px",
-                      fontSize: "1.6rem",
-                      whiteSpace: "pre-line",
-                      backgroundColor: isZoomed ? "#8c3b1b" : "#e6cfc2",
-                      color: isZoomed ? "#fff" : "#8c3b1b",
-                      border: "none",
-                      borderRadius: "2rem",
-                      boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {btn.label}
-                  </button>
-
-                  {isZoomed && mostrarDropdown && (
-                    <div
+                  {btn.dropdown.map((op, i) => (
+                    <button
+                      key={i}
+                      onClick={op.acao}
                       style={{
-                        marginTop: "1.5rem",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "1rem",
-                        alignItems: "center",
+                        padding: "1rem 2rem",
+                        fontSize: "1.4rem",
+                        borderRadius: "1rem",
+                        backgroundColor: "#fff",
+                        color: "#8c3b1b",
+                        border: "2px solid #8c3b1b",
+                        fontWeight: "bold",
+                        width: "200px",
                       }}
                     >
-                      {btn.dropdown.map((op, i) => (
-                        <button
-                          key={i}
-                          onClick={op.acao}
-                          style={{
-                            padding: "1rem 2rem",
-                            fontSize: "1.4rem",
-                            borderRadius: "1rem",
-                            backgroundColor: "#fff",
-                            color: "#8c3b1b",
-                            border: "2px solid #8c3b1b",
-                            fontWeight: "bold",
-                            width: "200px",
-                          }}
-                        >
-                          {op.nome}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                      {op.nome}
+                    </button>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-          {/* === FIM BOTÕES === */}
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {/* === FIM BOTÕES === */}
 
-          {/* === INÍCIO RODAPÉ === */}
-          <footer
-            style={{
-              backgroundColor: "rgba(140, 59, 27, 0.4)",
-              color: "white",
-              padding: "1rem",
-              fontSize: "1.2rem",
-              textAlign: "center",
-            }}
-          >
-            <marquee behavior="scroll" direction="left">
-              • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
-              Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros •
-              Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo •
-              Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
-            </marquee>
-          </footer>
-          {/* === FIM RODAPÉ === */}
-        </div>
-      )}
-    </>
+      {/* === INÍCIO RODAPÉ === */}
+      <footer
+        style={{
+          backgroundColor: "rgba(140, 59, 27, 0.4)",
+          color: "white",
+          padding: "1rem",
+          fontSize: "1.2rem",
+          textAlign: "center",
+        }}
+      >
+        <marquee behavior="scroll" direction="left">
+          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
+          Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros •
+          Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo •
+          Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
+        </marquee>
+      </footer>
+      {/* === FIM RODAPÉ === */}
+    </div>
   );
 };
 
 export default HomeERP;
-
-// === FIM HomeERP.jsx Corrigido com Transição ===
