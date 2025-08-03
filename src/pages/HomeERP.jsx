@@ -1,4 +1,4 @@
-// === INÍCIO HomeERP.jsx Corrigido com Rodapé e Botões Rebaixados ===
+// === INÍCIO HomeERP.jsx Corrigido e Completo ===
 
 import React, { useState, useRef } from "react";
 import HomePCP from "./HomePCP";
@@ -74,7 +74,6 @@ const HomeERP = () => {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        overflow: "hidden",
       }}
     >
       {/* === INÍCIO HEADER === */}
@@ -107,18 +106,18 @@ const HomeERP = () => {
       </header>
       {/* === FIM HEADER === */}
 
-      <main style={{ flexGrow: 1 }}>
-        {/* === INÍCIO BOTÕES === */}
+      {/* === INÍCIO CONTEÚDO PRINCIPAL === */}
+      <main style={{ flex: 1, display: "flex", alignItems: "center" }}>
         <div
           style={{
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
             overflowX: "auto",
-            overflowY: "visible",
             scrollSnapType: "x mandatory",
             gap: "3rem",
-            padding: "13.6rem 1rem 6rem", // 30% de 220px = 66px -> 8rem + 66px ≈ 13.6rem
+            padding: "10rem 1rem 6rem", // 30% maior para descer botões
+            width: "100%",
           }}
           onTouchStart={(e) =>
             (touchStartX.current = e.changedTouches[0].clientX)
@@ -197,8 +196,8 @@ const HomeERP = () => {
             );
           })}
         </div>
-        {/* === FIM BOTÕES === */}
       </main>
+      {/* === FIM CONTEÚDO PRINCIPAL === */}
 
       {/* === INÍCIO RODAPÉ === */}
       <footer
@@ -224,4 +223,4 @@ const HomeERP = () => {
 
 export default HomeERP;
 
-// === FIM HomeERP.jsx Corrigido com Rodapé e Botões Rebaixados ===
+// === FIM HomeERP.jsx Corrigido e Completo ===
