@@ -1,4 +1,4 @@
-// === INÍCIO HomeERP.jsx Corrigido ===
+// === INÍCIO HomeERP.jsx Corrigido e Completo ===
 
 import React, { useState, useRef } from "react";
 import HomePCP from "./HomePCP";
@@ -118,8 +118,7 @@ const HomeERP = () => {
           overflowY: "visible",
           scrollSnapType: "x mandatory",
           gap: "3rem",
-          padding: "2rem 1rem 6rem",
-          marginTop: "88px", // ⬅⬅⬅ Desloca os botões 40% para baixo
+          padding: "8rem 1rem 6rem", // AUMENTADO PARA DESCER 40% DO TAMANHO DOS BOTÕES
         }}
         onTouchStart={(e) => (touchStartX.current = e.changedTouches[0].clientX)}
         onTouchEnd={(e) => {
@@ -202,7 +201,7 @@ const HomeERP = () => {
       <footer
         style={{
           backgroundColor: "rgba(140, 59, 27, 0.4)",
-          color: "white",
+          color: "#ffffff",
           padding: "1rem",
           fontSize: "1.2rem",
           textAlign: "center",
@@ -222,4 +221,4 @@ const HomeERP = () => {
 
 export default HomeERP;
 
-// === FIM HomeERP.jsx Corrigido ===
+// === FIM HomeERP.jsx Corrigido e Completo ===
