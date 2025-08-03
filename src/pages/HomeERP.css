@@ -13,6 +13,54 @@
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+.botao-principal:hover {
+  transform: scale(1.15);
+  background-color: #a3471f;
+}
+
+/* === ERPs – TAMANHO AUMENTADO EM 30% === */
+.botao-erp {
+  width: 234px;  /* 180 * 1.3 */
+  height: 234px; /* 180 * 1.3 */
+}
+
+/* === PCP – TAMANHO DOBRADO + CENTRALIZADO VERTICALMENTE === */
+.container-pcp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 2rem;
+}
+
+.botao-pcp {
+  width: 360px;   /* 180 * 2 */
+  height: 360px;  /* 180 * 2 */
+  font-size: 2rem;
+}
+
+/* === DIVISÃO DOS BOTÕES DO ERP === */
+.container-erp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.linha-erp {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.botao-cozinha {
+  margin-top: 1.5rem;
+}
+
+/* === BOTÕES ATIVO/INATIVO === */
 .botao-ativo {
   transform: scale(1.2);
   background-color: #a3471f;
