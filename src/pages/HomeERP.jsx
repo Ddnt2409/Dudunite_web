@@ -36,14 +36,6 @@ const HomeERP = () => {
     },
   ];
 
-  const moverCarrossel = (direcao) => {
-    const novoIndex = focusIndex + direcao;
-    if (novoIndex >= 0 && novoIndex < botoes.length) {
-      setFocusIndex(novoIndex);
-      setAberto(false);
-    }
-  };
-
   useEffect(() => {
     if (carrosselRef.current) {
       const btns = carrosselRef.current.querySelectorAll(".carousel-button");
@@ -58,6 +50,29 @@ const HomeERP = () => {
       }
     }
   }, [focusIndex]);
+
+  const handleScroll = () => {
+    if (!carrosselRef.current) return;
+    const buttons = carrosselRef.current.querySelectorAll(".carousel-button");
+    const containerRect = carrosselRef.current.getBoundingClientRect();
+    const centerX = containerRect.left + containerRect.width / 2;
+
+    let closestIdx = 0;
+    let minDistance = Infinity;
+
+    buttons.forEach((btn, idx) => {
+      const rect = btn.getBoundingClientRect();
+      const btnCenterX = rect.left + rect.width / 2;
+      const distance = Math.abs(centerX - btnCenterX);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIdx = idx;
+      }
+    });
+
+    setFocusIndex(closestIdx);
+    setAberto(false);
+  };
 
   if (tela === "PCP") return <HomePCP />;
 
@@ -102,41 +117,10 @@ const HomeERP = () => {
         </h1>
       </header>
 
-      {/* Setas de navegação */}
-      <button
-        onClick={() => moverCarrossel(-1)}
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: "2%",
-          fontSize: "4rem",
-          background: "none",
-          border: "none",
-          color: "#fff",
-          zIndex: 10,
-        }}
-      >
-        ←
-      </button>
-      <button
-        onClick={() => moverCarrossel(1)}
-        style={{
-          position: "absolute",
-          top: "50%",
-          right: "2%",
-          fontSize: "4rem",
-          background: "none",
-          border: "none",
-          color: "#fff",
-          zIndex: 10,
-        }}
-      >
-        →
-      </button>
-
-      {/* Carrossel */}
+      {/* Carrossel com scroll */}
       <div
         ref={carrosselRef}
+        onScroll={handleScroll}
         style={{
           display: "flex",
           justifyContent: "center",
@@ -144,6 +128,7 @@ const HomeERP = () => {
           scrollSnapType: "x mandatory",
           marginTop: "160px",
           padding: "2rem 0",
+          WebkitOverflowScrolling: "touch",
         }}
       >
         <div
@@ -151,6 +136,7 @@ const HomeERP = () => {
             display: "flex",
             gap: "3rem",
             minWidth: "max-content",
+            padding: "0 2rem",
           }}
         >
           {botoes.map((btn, idx) => {
@@ -162,7 +148,7 @@ const HomeERP = () => {
                 style={{
                   scrollSnapAlign: "center",
                   textAlign: "center",
-                  transform: isFocused ? "scale(1.3)" : "scale(1)",
+                  transform: isFocused ? "scale(1.3)" : "scale(1.0)",
                   transition: "transform 0.4s ease",
                 }}
               >
@@ -172,9 +158,9 @@ const HomeERP = () => {
                     if (isFocused) setAberto(true);
                   }}
                   style={{
-                    width: isFocused ? "390px" : "240px",
-                    height: isFocused ? "390px" : "240px",
-                    fontSize: isFocused ? "2.2rem" : "1.8rem",
+                    width: isFocused ? "390px" : "260px",
+                    height: isFocused ? "390px" : "260px",
+                    fontSize: isFocused ? "2.2rem" : "1.6rem",
                     backgroundColor: isFocused ? "#8c3b1b" : "#e6cfc2",
                     color: "#fff",
                     border: "none",
@@ -187,7 +173,6 @@ const HomeERP = () => {
                   {btn.label}
                 </button>
 
-                {/* Botões internos – só aparecem se clicado */}
                 {isFocused && aberto && (
                   <div
                     style={{
