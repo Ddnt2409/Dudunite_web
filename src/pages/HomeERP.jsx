@@ -9,7 +9,7 @@ const HomeERP = () => {
 
   const botoes = [
     {
-      label: "Produção (PCP)",
+      label: "📦 Produção (PCP)",
       action: () => setTela("PCP"),
       dropdown: [
         { nome: "Lançar Pedido", acao: () => setTela("PCP") },
@@ -17,7 +17,7 @@ const HomeERP = () => {
       ],
     },
     {
-      label: "Financeiro (FinFlux)",
+      label: "💰 Financeiro (FinFlux)",
       action: () => {},
       dropdown: [
         { nome: "Contas a Receber", acao: () => alert("Em breve") },
@@ -26,7 +26,7 @@ const HomeERP = () => {
       ],
     },
     {
-      label: "Análise de Custos",
+      label: "📊 Análise de Custos",
       action: () => {},
       dropdown: [
         { nome: "Custos por Produto", acao: () => alert("Em breve") },
@@ -35,6 +35,14 @@ const HomeERP = () => {
       ],
     },
   ];
+
+  const moverCarrossel = (direcao) => {
+    const novoIndex = focusIndex + direcao;
+    if (novoIndex >= 0 && novoIndex < botoes.length) {
+      setFocusIndex(novoIndex);
+      setAberto(false);
+    }
+  };
 
   useEffect(() => {
     if (carrosselRef.current) {
@@ -50,29 +58,6 @@ const HomeERP = () => {
       }
     }
   }, [focusIndex]);
-
-  const handleScroll = () => {
-    if (!carrosselRef.current) return;
-    const buttons = carrosselRef.current.querySelectorAll(".carousel-button");
-    const containerRect = carrosselRef.current.getBoundingClientRect();
-    const centerX = containerRect.left + containerRect.width / 2;
-
-    let closestIdx = 0;
-    let minDistance = Infinity;
-
-    buttons.forEach((btn, idx) => {
-      const rect = btn.getBoundingClientRect();
-      const btnCenterX = rect.left + rect.width / 2;
-      const distance = Math.abs(centerX - btnCenterX);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestIdx = idx;
-      }
-    });
-
-    setFocusIndex(closestIdx);
-    setAberto(false);
-  };
 
   if (tela === "PCP") return <HomePCP />;
 
@@ -117,10 +102,41 @@ const HomeERP = () => {
         </h1>
       </header>
 
-      {/* Carrossel com scroll */}
+      {/* Setas */}
+      <button
+        onClick={() => moverCarrossel(-1)}
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "2%",
+          fontSize: "3rem",
+          background: "none",
+          border: "none",
+          color: "#fff",
+          zIndex: 10,
+        }}
+      >
+        ←
+      </button>
+      <button
+        onClick={() => moverCarrossel(1)}
+        style={{
+          position: "absolute",
+          top: "50%",
+          right: "2%",
+          fontSize: "3rem",
+          background: "none",
+          border: "none",
+          color: "#fff",
+          zIndex: 10,
+        }}
+      >
+        →
+      </button>
+
+      {/* Carrossel */}
       <div
         ref={carrosselRef}
-        onScroll={handleScroll}
         style={{
           display: "flex",
           justifyContent: "center",
@@ -128,17 +144,9 @@ const HomeERP = () => {
           scrollSnapType: "x mandatory",
           marginTop: "160px",
           padding: "2rem 0",
-          WebkitOverflowScrolling: "touch",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            gap: "3rem",
-            minWidth: "max-content",
-            padding: "0 2rem",
-          }}
-        >
+        <div style={{ display: "flex", gap: "3rem", minWidth: "max-content" }}>
           {botoes.map((btn, idx) => {
             const isFocused = idx === focusIndex;
             return (
@@ -148,7 +156,7 @@ const HomeERP = () => {
                 style={{
                   scrollSnapAlign: "center",
                   textAlign: "center",
-                  transform: isFocused ? "scale(1.3)" : "scale(1.0)",
+                  transform: isFocused ? "scale(1.3)" : "scale(1)",
                   transition: "transform 0.4s ease",
                 }}
               >
@@ -160,11 +168,11 @@ const HomeERP = () => {
                   style={{
                     width: isFocused ? "390px" : "260px",
                     height: isFocused ? "390px" : "260px",
-                    fontSize: isFocused ? "2.2rem" : "1.6rem",
+                    fontSize: isFocused ? "2.2rem" : "1.8rem",
                     backgroundColor: isFocused ? "#8c3b1b" : "#e6cfc2",
                     color: "#fff",
                     border: "none",
-                    borderRadius: "1rem",
+                    borderRadius: "1.5rem",
                     boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
                     fontWeight: "bold",
                     transition: "all 0.4s ease",
@@ -173,15 +181,15 @@ const HomeERP = () => {
                   {btn.label}
                 </button>
 
+                {/* Submenu visível ao clicar */}
                 {isFocused && aberto && (
                   <div
                     style={{
-                      marginTop: "195px",
+                      marginTop: "2.5rem",
                       display: "flex",
                       flexDirection: "column",
                       gap: "1rem",
                       alignItems: "center",
-                      transition: "all 0.5s ease-in-out",
                     }}
                   >
                     {btn.dropdown.map((op, i) => (
@@ -189,12 +197,12 @@ const HomeERP = () => {
                         key={i}
                         onClick={op.acao}
                         style={{
-                          padding: "0.8rem 1.2rem",
-                          fontSize: "1.2rem",
+                          padding: "0.9rem 1.5rem",
+                          fontSize: "1.4rem",
                           borderRadius: "0.6rem",
                           backgroundColor: "#fff",
                           color: "#8c3b1b",
-                          border: "1px solid #8c3b1b",
+                          border: "2px solid #8c3b1b",
                           boxShadow: "2px 2px 6px rgba(0,0,0,0.2)",
                           fontWeight: "bold",
                         }}
@@ -213,13 +221,12 @@ const HomeERP = () => {
       {/* Rodapé */}
       <footer
         style={{
-          position: "absolute",
-          bottom: "70px",
-          width: "100%",
+          position: "relative",
+          marginTop: "60px",
           backgroundColor: "rgba(140, 59, 27, 0.4)",
           color: "white",
           padding: "1.4rem",
-          fontSize: "1.6rem",
+          fontSize: "1.4rem",
           textAlign: "center",
         }}
       >
