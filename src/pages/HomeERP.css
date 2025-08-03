@@ -18,29 +18,25 @@
   background-color: #a3471f;
 }
 
-/* === ERPs – TAMANHO AUMENTADO EM 30% === */
-.botao-erp {
-  width: 234px;  /* 180 * 1.3 */
-  height: 234px; /* 180 * 1.3 */
-}
-
-/* === PCP – TAMANHO DOBRADO + CENTRALIZADO VERTICALMENTE === */
+/* === PCP – TAMANHO DOBRADO E CENTRALIZADO === */
 .container-pcp {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   height: 100vh;
   gap: 2rem;
+  flex-wrap: wrap;
+  flex-direction: row;
 }
 
 .botao-pcp {
-  width: 360px;   /* 180 * 2 */
-  height: 360px;  /* 180 * 2 */
+  width: 360px;
+  height: 360px;
   font-size: 2rem;
+  border-radius: 1rem;
 }
 
-/* === DIVISÃO DOS BOTÕES DO ERP === */
+/* === ERP – TAMANHO AUMENTADO 30% === */
 .container-erp {
   display: flex;
   flex-direction: column;
@@ -52,10 +48,19 @@
 .linha-erp {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+  gap: 1.5rem;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
+.botao-erp {
+  width: 234px;
+  height: 234px;
+  font-size: 1.8rem;
+  border-radius: 1rem;
+}
+
+/* === COZINHA – BOTÃO COM MARGEM ADICIONAL === */
 .botao-cozinha {
   margin-top: 1.5rem;
 }
