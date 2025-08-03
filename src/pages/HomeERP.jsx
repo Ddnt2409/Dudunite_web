@@ -1,4 +1,4 @@
-// === INÍCIO HomeERP.jsx Corrigido (Zoom 40% e Rodapé devolvido) ===
+// === INÍCIO HomeERP.jsx Corrigido com Zoom 1.4 ===
 
 import React, { useState, useRef } from "react";
 import HomePCP from "./HomePCP";
@@ -74,6 +74,8 @@ const HomeERP = () => {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
+        justifyContent: "space-between",
+        overflow: "hidden",
       }}
     >
       {/* === INÍCIO HEADER === */}
@@ -116,7 +118,6 @@ const HomeERP = () => {
           scrollSnapType: "x mandatory",
           gap: "3rem",
           padding: "2rem 1rem",
-          flexWrap: "nowrap",
         }}
         onTouchStart={(e) => (touchStartX.current = e.changedTouches[0].clientX)}
         onTouchEnd={(e) => {
@@ -137,8 +138,8 @@ const HomeERP = () => {
                 flexDirection: "column",
                 alignItems: "center",
                 transform: isZoomed ? "scale(1.4)" : "scale(1)",
+                transformOrigin: "center",
                 transition: "transform 0.3s ease",
-                zIndex: isZoomed ? 10 : 1,
               }}
             >
               <button
@@ -198,7 +199,6 @@ const HomeERP = () => {
       {/* === INÍCIO RODAPÉ === */}
       <footer
         style={{
-          marginTop: "auto",
           backgroundColor: "rgba(140, 59, 27, 0.4)",
           color: "white",
           padding: "1rem",
@@ -220,4 +220,4 @@ const HomeERP = () => {
 
 export default HomeERP;
 
-// === FIM HomeERP.jsx Corrigido ===
+// === FIM HomeERP.jsx Corrigido com Zoom 1.4 ===
