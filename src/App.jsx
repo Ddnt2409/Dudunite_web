@@ -1,32 +1,17 @@
-// === BLOCO 1 – Início ===
-// FN01 – Importações Gerais
-import React, { useState } from 'react';
-import HomeERP from './pages/HomeERP';
-import HomePCP from './pages/HomePCP'; // Corrigido: antes estava apontando para components
+// === FN01 – Importações Gerais ===
+import React, { useState } from "react";
+import HomeERP from "./pages/HomeERP";
+import HomePCP from "./pages/HomePCP";
 
 // === FN02 – Componente Principal ===
 function App() {
-  const [telaAtual, setTelaAtual] = useState('HomeERP');
+  const [telaAtual, setTelaAtual] = useState("Home");
 
-  const navegarPara = (novaTela) => {
-    setTelaAtual(novaTela);
-  };
+  // Redirecionamento interno entre telas
+  if (telaAtual === "PCP") return <HomePCP voltar={() => setTelaAtual("Home")} />;
 
-  return (
-    <>
-      {/* === INÍCIO RT00 – HomeERP === */}
-      {telaAtual === 'HomeERP' && (
-        <HomeERP navegarPara={navegarPara} />
-      )}
-      {/* === FIM RT00 === */}
-
-      {/* === INÍCIO RT01 – HomePCP === */}
-      {telaAtual === 'HomePCP' && (
-        <HomePCP navegarPara={navegarPara} />
-      )}
-      {/* === FIM RT01 === */}
-    </>
-  );
+  return <HomeERP irParaPCP={() => setTelaAtual("PCP")} />;
 }
 
+// === FIM DO COMPONENTE ===
 export default App;
