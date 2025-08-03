@@ -4,7 +4,7 @@ import "./HomeERP.css";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
-  const [zoomIndex, setZoomIndex] = useState(1);
+  const [zoomIndex, setZoomIndex] = useState(0);
   const touchStartX = useRef(null);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
@@ -38,12 +38,13 @@ const HomeERP = () => {
         { nome: "Custos Variáveis", acao: () => alert("Em breve") },
       ],
     },
-    {
-      label: "👨‍🍳\nCozinha",
-      action: () => alert("Em breve"),
-      dropdown: [],
-    },
   ];
+
+  const botaoCozinha = {
+    label: "👨‍🍳\nCozinha",
+    action: () => alert("Em breve"),
+    dropdown: [],
+  };
 
   const handleClick = (index, action) => {
     if (zoomIndex === index) {
@@ -173,6 +174,22 @@ const HomeERP = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Botão Cozinha fora do carrossel */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "2rem",
+          }}
+        >
+          <button
+            onClick={botaoCozinha.action}
+            className="botao-principal botao-inativo"
+          >
+            {botaoCozinha.label}
+          </button>
         </div>
       </main>
       {/* === FIM CONTEÚDO PRINCIPAL === */}
