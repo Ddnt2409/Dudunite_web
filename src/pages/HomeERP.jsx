@@ -4,7 +4,7 @@ import "./fade.css";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
-  const [zoomIndex, setZoomIndex] = useState(null);
+  const [zoomIndex, setZoomIndex] = useState(1); // começa com o botão central
 
   const botoes = [
     {
@@ -46,12 +46,12 @@ const HomeERP = () => {
 
   return (
     <div
-      className="fade"
       style={{
         backgroundImage: "url('/bg002.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
-        height: "100vh",
+        minHeight: "100vh",
+        maxHeight: "100vh",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -61,7 +61,7 @@ const HomeERP = () => {
       {/* === INÍCIO HEADER === */}
       <header
         style={{
-          height: "120px",
+          height: "100px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -74,11 +74,11 @@ const HomeERP = () => {
         <img
           src="/LogomarcaDDnt2025Vazado.png"
           alt="Logo"
-          style={{ width: "240px", marginTop: "3%" }}
+          style={{ width: "200px", marginTop: "1%" }}
         />
         <h1
           style={{
-            fontSize: "2.4rem",
+            fontSize: "2rem",
             fontWeight: "bold",
             color: "#8c3b1b",
             marginRight: "2ch",
@@ -89,62 +89,68 @@ const HomeERP = () => {
       </header>
       {/* === FIM HEADER === */}
 
-      {/* === INÍCIO BOTÕES === */}
+      {/* === INÍCIO BOTÕES CENTRAIS COM SCROLL SNAP === */}
       <div
         style={{
           display: "flex",
+          overflowX: "auto",
+          scrollSnapType: "x mandatory",
+          padding: "2rem 0",
           justifyContent: "center",
           alignItems: "center",
-          gap: "4rem",
-          flexWrap: "nowrap",
-          padding: "2rem 2rem",
-          position: "relative",
+          gap: "3rem",
+          scrollBehavior: "smooth",
         }}
       >
         {botoes.map((btn, idx) => {
-          const isZoomed = idx === zoomIndex;
+          const isActive = idx === zoomIndex;
           return (
             <div
               key={idx}
+              onClick={() => handleClick(idx, btn.action)}
               style={{
-                position: "relative",
-                zIndex: isZoomed ? 10 : 1,
-                transform: isZoomed ? "scale(1.3)" : "scale(1)",
-                transition: "transform 0.3s ease",
+                scrollSnapAlign: "center",
+                flex: "0 0 auto",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
+                transform: isActive ? "scale(1.3)" : "scale(1)",
+                transition: "transform 0.3s ease",
               }}
             >
               <button
-                onClick={() => handleClick(idx, btn.action)}
                 style={{
-                  width: "250px",
-                  height: "250px",
-                  fontSize: "1.9rem",
+                  width: "220px",
+                  height: "220px",
+                  fontSize: "1.8rem",
                   whiteSpace: "pre-line",
-                  backgroundColor: isZoomed ? "#8c3b1b" : "#e6cfc2",
-                  color: isZoomed ? "#fff" : "#8c3b1b",
+                  backgroundColor: isActive ? "#8c3b1b" : "#e6cfc2",
+                  color: isActive ? "#fff" : "#8c3b1b",
                   border: "none",
                   borderRadius: "2rem",
                   boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
                   fontWeight: "bold",
-                  transition: "all 0.3s ease",
                 }}
               >
                 {btn.label}
               </button>
 
-              {isZoomed && (
+              {isActive && (
                 <div
+                  className="fade"
                   style={{
-                    position: "absolute",
-                    top: "110%",
+                    marginTop: "1.5rem",
                     display: "flex",
                     flexDirection: "column",
-                    gap: "1.5rem",
+                    gap: "1rem",
                     alignItems: "center",
-                    transition: "opacity 0.5s ease",
+                    position: "absolute",
+                    zIndex: 5,
+                    background: "rgba(255,255,255,0.9)",
+                    padding: "1rem",
+                    borderRadius: "1rem",
+                    boxShadow: "0 0 10px rgba(0,0,0,0.2)",
+                    top: "60%",
                   }}
                 >
                   {btn.dropdown.map((op, i) => (
@@ -152,15 +158,15 @@ const HomeERP = () => {
                       key={i}
                       onClick={op.acao}
                       style={{
-                        padding: "1.2rem 2rem",
-                        fontSize: "1.6rem",
-                        borderRadius: "1.2rem",
+                        padding: "1rem 2rem",
+                        fontSize: "1.4rem",
+                        borderRadius: "1rem",
                         backgroundColor: "#fff",
                         color: "#8c3b1b",
                         border: "2px solid #8c3b1b",
                         boxShadow: "2px 2px 6px rgba(0,0,0,0.2)",
                         fontWeight: "bold",
-                        width: "240px",
+                        width: "200px",
                       }}
                     >
                       {op.nome}
@@ -172,15 +178,15 @@ const HomeERP = () => {
           );
         })}
       </div>
-      {/* === FIM BOTÕES === */}
+      {/* === FIM BOTÕES CENTRAIS === */}
 
       {/* === INÍCIO RODAPÉ === */}
       <footer
         style={{
           backgroundColor: "rgba(140, 59, 27, 0.4)",
           color: "white",
-          padding: "1.2rem",
-          fontSize: "1.3rem",
+          padding: "1rem",
+          fontSize: "1.2rem",
           textAlign: "center",
         }}
       >
