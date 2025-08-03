@@ -34,11 +34,16 @@ const HomeERP = () => {
         { nome: "Custos Variáveis", acao: () => alert("Em breve") },
       ],
     },
+    {
+      label: "👨‍🍳\nCozinha",
+      action: () => alert("Módulo Cozinha em breve"),
+      dropdown: [],
+    },
   ];
 
   const handleClick = (index, action) => {
     if (zoomIndex === index) {
-      if (mostrarDropdown) {
+      if (mostrarDropdown && botoes[index].dropdown.length > 0) {
         action();
       } else {
         setMostrarDropdown(true);
@@ -117,7 +122,7 @@ const HomeERP = () => {
             overflowX: "auto",
             scrollSnapType: "x mandatory",
             gap: "3rem",
-            padding: "2rem 1rem",
+            padding: "1rem 1rem 0.5rem",
             width: "100%",
           }}
           onTouchStart={(e) =>
@@ -149,8 +154,8 @@ const HomeERP = () => {
                   onClick={() => handleClick(idx, btn.action)}
                   style={{
                     width: "220px",
-                    height: "220px",
-                    fontSize: "1.6rem",
+                    height: "154px", // 30% mais alto
+                    fontSize: "1.5rem",
                     whiteSpace: "pre-line",
                     backgroundColor: isZoomed ? "#8c3b1b" : "#e6cfc2",
                     color: isZoomed ? "#fff" : "#8c3b1b",
@@ -163,36 +168,38 @@ const HomeERP = () => {
                   {btn.label}
                 </button>
 
-                {isZoomed && mostrarDropdown && (
-                  <div
-                    style={{
-                      marginTop: "1.5rem",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "1rem",
-                      alignItems: "center",
-                    }}
-                  >
-                    {btn.dropdown.map((op, i) => (
-                      <button
-                        key={i}
-                        onClick={op.acao}
-                        style={{
-                          padding: "1rem 2rem",
-                          fontSize: "1.4rem",
-                          borderRadius: "1rem",
-                          backgroundColor: "#fff",
-                          color: "#8c3b1b",
-                          border: "2px solid #8c3b1b",
-                          fontWeight: "bold",
-                          width: "200px",
-                        }}
-                      >
-                        {op.nome}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                {isZoomed &&
+                  mostrarDropdown &&
+                  btn.dropdown.length > 0 && (
+                    <div
+                      style={{
+                        marginTop: "1.5rem",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "1rem",
+                        alignItems: "center",
+                      }}
+                    >
+                      {btn.dropdown.map((op, i) => (
+                        <button
+                          key={i}
+                          onClick={op.acao}
+                          style={{
+                            padding: "1rem 2rem",
+                            fontSize: "1.4rem",
+                            borderRadius: "1rem",
+                            backgroundColor: "#fff",
+                            color: "#8c3b1b",
+                            border: "2px solid #8c3b1b",
+                            fontWeight: "bold",
+                            width: "200px",
+                          }}
+                        >
+                          {op.nome}
+                        </button>
+                      ))}
+                    </div>
+                  )}
               </div>
             );
           })}
