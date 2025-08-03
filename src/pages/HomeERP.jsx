@@ -1,11 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import HomePCP from "./HomePCP";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
-  const [focusIndex, setFocusIndex] = useState(0);
-  const [zoomAtivo, setZoomAtivo] = useState(false);
-  const carrosselRef = useRef(null);
+  const [zoomIndex, setZoomIndex] = useState(null);
 
   const botoes = [
     {
@@ -35,30 +33,11 @@ const HomeERP = () => {
     },
   ];
 
-  const handleScroll = () => {
-    const container = carrosselRef.current;
-    const scrollLeft = container.scrollLeft;
-    const width = container.clientWidth;
-    const idx = Math.round(scrollLeft / (width * 0.6));
-    if (idx !== focusIndex) {
-      setFocusIndex(idx);
-      setZoomAtivo(false);
-    }
-  };
-
-  useEffect(() => {
-    const container = carrosselRef.current;
-    if (!container) return;
-    const scrollTo = focusIndex * (container.clientWidth * 0.6);
-    container.scrollTo({ left: scrollTo, behavior: "smooth" });
-  }, [focusIndex]);
-
-  const handleBotaoMacro = (idx) => {
-    if (idx === focusIndex) {
-      setZoomAtivo(!zoomAtivo);
+  const handleClick = (index, action) => {
+    if (zoomIndex === index) {
+      action(); // Executa ação final ao clicar de novo
     } else {
-      setFocusIndex(idx);
-      setZoomAtivo(false);
+      setZoomIndex(index); // Ativa o zoom
     }
   };
 
@@ -73,6 +52,7 @@ const HomeERP = () => {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
+        justifyContent: "space-between",
       }}
     >
       {/* === INÍCIO HEADER === */}
@@ -106,46 +86,38 @@ const HomeERP = () => {
       </header>
       {/* === FIM HEADER === */}
 
-      {/* === INÍCIO CARROSSEL === */}
+      {/* === INÍCIO BOTÕES === */}
       <div
-        ref={carrosselRef}
-        onScroll={handleScroll}
         style={{
           display: "flex",
-          flexDirection: "row",
-          overflowX: "scroll",
-          scrollSnapType: "x mandatory",
-          padding: "4rem 0",
-          scrollBehavior: "smooth",
-          gap: "3rem",
           justifyContent: "center",
+          gap: "4rem",
+          flexWrap: "wrap",
+          padding: "3rem 2rem",
+          alignItems: "flex-start",
         }}
       >
         {botoes.map((btn, idx) => {
-          const isFocused = idx === focusIndex;
-          const isZoom = isFocused && zoomAtivo;
-
+          const isZoomed = idx === zoomIndex;
           return (
             <div
               key={idx}
-              onClick={() => handleBotaoMacro(idx)}
               style={{
-                flex: "0 0 auto",
-                scrollSnapAlign: "center",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "center",
+                transition: "all 0.3s ease",
               }}
             >
               <button
+                onClick={() => handleClick(idx, btn.action)}
                 style={{
-                  width: isFocused ? "300px" : "220px",
-                  height: isFocused ? "300px" : "220px",
-                  fontSize: isFocused ? "2.4rem" : "1.6rem",
+                  width: isZoomed ? "290px" : "220px",
+                  height: isZoomed ? "290px" : "220px",
+                  fontSize: isZoomed ? "2.4rem" : "1.8rem",
                   whiteSpace: "pre-line",
-                  backgroundColor: isFocused ? "#8c3b1b" : "#e6cfc2",
-                  color: isFocused ? "white" : "#8c3b1b",
+                  backgroundColor: isZoomed ? "#8c3b1b" : "#e6cfc2",
+                  color: isZoomed ? "#fff" : "#8c3b1b",
                   border: "none",
                   borderRadius: "2rem",
                   boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
@@ -156,7 +128,7 @@ const HomeERP = () => {
                 {btn.label}
               </button>
 
-              {isZoom && (
+              {isZoomed && (
                 <div
                   style={{
                     marginTop: "2rem",
@@ -164,6 +136,7 @@ const HomeERP = () => {
                     flexDirection: "column",
                     gap: "1.5rem",
                     alignItems: "center",
+                    transition: "opacity 0.5s ease",
                   }}
                 >
                   {btn.dropdown.map((op, i) => (
@@ -171,7 +144,7 @@ const HomeERP = () => {
                       key={i}
                       onClick={op.acao}
                       style={{
-                        padding: "1.4rem 2rem",
+                        padding: "1.2rem 2rem",
                         fontSize: "1.6rem",
                         borderRadius: "1.2rem",
                         backgroundColor: "#fff",
@@ -191,7 +164,7 @@ const HomeERP = () => {
           );
         })}
       </div>
-      {/* === FIM CARROSSEL === */}
+      {/* === FIM BOTÕES === */}
 
       {/* === INÍCIO RODAPÉ === */}
       <footer
