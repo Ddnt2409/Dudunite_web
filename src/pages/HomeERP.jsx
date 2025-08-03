@@ -1,5 +1,3 @@
-// === INÍCIO HomeERP.jsx Corrigido e Completo ===
-
 import React, { useState, useRef } from "react";
 import HomePCP from "./HomePCP";
 import "./HomeERP.css";
@@ -71,9 +69,11 @@ const HomeERP = () => {
         backgroundImage: "url('/bg002.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
-        minHeight: "100vh",
+        minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
+        justifyContent: "flex-start",
+        overflowY: "auto",
       }}
     >
       {/* === INÍCIO HEADER === */}
@@ -106,120 +106,121 @@ const HomeERP = () => {
       </header>
       {/* === FIM HEADER === */}
 
-{/* === INÍCIO CONTEÚDO PRINCIPAL === */}
-<main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-  <div
-    style={{
-      flexGrow: 1,
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      overflowX: "auto",
-      scrollSnapType: "x mandatory",
-      gap: "3rem",
-      padding: "2rem 1rem",
-      width: "100%",
-    }}
-    onTouchStart={(e) =>
-      (touchStartX.current = e.changedTouches[0].clientX)
-    }
-    onTouchEnd={(e) => {
-      const diff = e.changedTouches[0].clientX - touchStartX.current;
-      if (diff > 50) deslizar("esquerda");
-      else if (diff < -50) deslizar("direita");
-    }}
-  >
-    {botoes.map((btn, idx) => {
-      const isZoomed = idx === zoomIndex;
-      return (
+      {/* === INÍCIO CONTEÚDO PRINCIPAL === */}
+      <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <div
-          key={idx}
           style={{
-            flex: "0 0 auto",
-            scrollSnapAlign: "center",
+            flexGrow: 1,
             display: "flex",
-            flexDirection: "column",
+            justifyContent: "center",
             alignItems: "center",
-            transform: isZoomed ? "scale(1.3)" : "scale(1)",
-            transition: "transform 0.3s ease",
-            overflow: "visible",
+            overflowX: "auto",
+            scrollSnapType: "x mandatory",
+            gap: "3rem",
+            padding: "2rem 1rem",
+            width: "100%",
+          }}
+          onTouchStart={(e) =>
+            (touchStartX.current = e.changedTouches[0].clientX)
+          }
+          onTouchEnd={(e) => {
+            const diff = e.changedTouches[0].clientX - touchStartX.current;
+            if (diff > 50) deslizar("esquerda");
+            else if (diff < -50) deslizar("direita");
           }}
         >
-          <button
-            onClick={() => handleClick(idx, btn.action)}
-            style={{
-              width: "220px",
-              height: "220px",
-              fontSize: "1.6rem",
-              whiteSpace: "pre-line",
-              backgroundColor: isZoomed ? "#8c3b1b" : "#e6cfc2",
-              color: isZoomed ? "#fff" : "#8c3b1b",
-              border: "none",
-              borderRadius: "2rem",
-              boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
-              fontWeight: "bold",
-            }}
-          >
-            {btn.label}
-          </button>
-
-          {isZoomed && mostrarDropdown && (
-            <div
-              style={{
-                marginTop: "1.5rem",
-                display: "flex",
-                flexDirection: "column",
-                gap: "1rem",
-                alignItems: "center",
-              }}
-            >
-              {btn.dropdown.map((op, i) => (
+          {botoes.map((btn, idx) => {
+            const isZoomed = idx === zoomIndex;
+            return (
+              <div
+                key={idx}
+                style={{
+                  flex: "0 0 auto",
+                  scrollSnapAlign: "center",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  transform: isZoomed ? "scale(1.3)" : "scale(1)",
+                  transition: "transform 0.3s ease",
+                  overflow: "visible",
+                }}
+              >
                 <button
-                  key={i}
-                  onClick={op.acao}
+                  onClick={() => handleClick(idx, btn.action)}
                   style={{
-                    padding: "1rem 2rem",
-                    fontSize: "1.4rem",
-                    borderRadius: "1rem",
-                    backgroundColor: "#fff",
-                    color: "#8c3b1b",
-                    border: "2px solid #8c3b1b",
+                    width: "220px",
+                    height: "220px",
+                    fontSize: "1.6rem",
+                    whiteSpace: "pre-line",
+                    backgroundColor: isZoomed ? "#8c3b1b" : "#e6cfc2",
+                    color: isZoomed ? "#fff" : "#8c3b1b",
+                    border: "none",
+                    borderRadius: "2rem",
+                    boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
                     fontWeight: "bold",
-                    width: "200px",
                   }}
                 >
-                  {op.nome}
+                  {btn.label}
                 </button>
-              ))}
-            </div>
-          )}
-        </div>
-      );
-    })}
-  </div>
-</main>
-{/* === FIM CONTEÚDO PRINCIPAL === */}
 
-{/* === INÍCIO RODAPÉ === */}
-<footer
-  style={{
-    backgroundColor: "rgba(140, 59, 27, 0.4)",
-    color: "#ffffff",
-    padding: "1rem",
-    fontSize: "1.2rem",
-    textAlign: "center",
-    marginTop: "auto",
-  }}
->
-  <marquee behavior="scroll" direction="left">
-    • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
-  </marquee>
-</footer>
-{/* === FIM RODAPÉ === */}
+                {isZoomed && mostrarDropdown && (
+                  <div
+                    style={{
+                      marginTop: "1.5rem",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "1rem",
+                      alignItems: "center",
+                    }}
+                  >
+                    {btn.dropdown.map((op, i) => (
+                      <button
+                        key={i}
+                        onClick={op.acao}
+                        style={{
+                          padding: "1rem 2rem",
+                          fontSize: "1.4rem",
+                          borderRadius: "1rem",
+                          backgroundColor: "#fff",
+                          color: "#8c3b1b",
+                          border: "2px solid #8c3b1b",
+                          fontWeight: "bold",
+                          width: "200px",
+                        }}
+                      >
+                        {op.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </main>
+      {/* === FIM CONTEÚDO PRINCIPAL === */}
+
+      {/* === INÍCIO RODAPÉ === */}
+      <footer
+        style={{
+          backgroundColor: "rgba(140, 59, 27, 0.4)",
+          color: "#ffffff",
+          padding: "1rem",
+          fontSize: "1.2rem",
+          textAlign: "center",
+          marginTop: "2rem",
+        }}
+      >
+        <marquee behavior="scroll" direction="left">
+          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
+          Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros •
+          Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo •
+          Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
+        </marquee>
+      </footer>
+      {/* === FIM RODAPÉ === */}
     </div>
   );
 };
 
 export default HomeERP;
-
-// === FIM HomeERP.jsx Corrigido e Completo ===
