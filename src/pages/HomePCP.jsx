@@ -1,52 +1,110 @@
-// === INÍCIO HomePCP.jsx ===
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import "./HomeERP.css";
 
 const HomePCP = () => {
-  const navigate = useNavigate();
+  const [tela, setTela] = useState("Home");
 
-  const botoes = [
-    { id: 1, titulo: "Lançar Pedido", destino: "/lancar-pedido" },
-    { id: 2, titulo: "Alimentar Sabores", destino: "/alimentar-sabores" },
-    { id: 3, titulo: "Planejamento de Produção", destino: "/planejamento" },
-    { id: 4, titulo: "Lista de Compras", destino: "/lista-compras" },
-    { id: 5, titulo: "Cozinha", destino: "/cozinha" },
-  ];
-
-  const [botaoAtivo, setBotaoAtivo] = React.useState(3); // default: botão do meio
-
-  const handleScroll = (event) => {
-    const container = event.target;
-    const larguraBotao = 220;
-    const scrollPosition = container.scrollLeft + container.offsetWidth / 2;
-    const index = Math.round(scrollPosition / larguraBotao);
-    setBotaoAtivo(index);
-  };
-
-  return (
-    <div className="tela-pcp">
-      <h1 className="titulo-pcp">PCP – Planejamento e Controle de Produção</h1>
-
+  if (tela === "Home") {
+    return (
       <div
-        className="container-botoes"
-        onScroll={handleScroll}
+        style={{
+          backgroundImage: "url('/bg002.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          minHeight: "100dvh",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-start",
+          overflowY: "auto",
+        }}
       >
-        {botoes.map((botao, index) => (
-          <button
-            key={botao.id}
-            className={`botao-principal ${
-              index === botaoAtivo ? "botao-ativo" : ""
-            }`}
-            onClick={() => navigate(botao.destino)}
+        {/* === INÍCIO HEADER === */}
+        <header
+          style={{
+            height: "100px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "0 1rem",
+            backgroundColor: "rgba(255,255,255,0.5)",
+            backdropFilter: "blur(6px)",
+          }}
+        >
+          <img
+            src="/LogomarcaDDnt2025Vazado.png"
+            alt="Logo"
+            style={{ width: "200px", marginTop: "2%" }}
+          />
+          <h1
+            style={{
+              fontSize: "2rem",
+              fontWeight: "bold",
+              color: "#8c3b1b",
+              marginRight: "2ch",
+            }}
           >
-            {botao.titulo}
-          </button>
-        ))}
+            Planejamento de Produção
+          </h1>
+        </header>
+        {/* === FIM HEADER === */}
+
+        {/* === INÍCIO CONTEÚDO PRINCIPAL === */}
+        <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          {/* Botões Centrais */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "3rem",
+              marginTop: "4rem",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              className="botao-principal botao-inativo"
+              onClick={() => alert("Abrir tela Lançar Pedido")}
+            >
+              📝
+              <br />
+              Lançar Pedido
+            </button>
+
+            <button
+              className="botao-principal botao-inativo"
+              onClick={() => alert("Abrir tela Alimentar Sabores")}
+            >
+              🍫
+              <br />
+              Alimentar Sabores
+            </button>
+          </div>
+        </main>
+        {/* === FIM CONTEÚDO PRINCIPAL === */}
+
+        {/* === INÍCIO RODAPÉ === */}
+        <footer
+          style={{
+            backgroundColor: "rgba(140, 59, 27, 0.4)",
+            color: "#ffffff",
+            padding: "1rem",
+            fontSize: "1.2rem",
+            textAlign: "center",
+            marginTop: "4rem",
+          }}
+        >
+          <marquee behavior="scroll" direction="left">
+            • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
+            Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros
+            • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo •
+            Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
+          </marquee>
+        </footer>
+        {/* === FIM RODAPÉ === */}
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 };
 
 export default HomePCP;
-// === FIM HomePCP.jsx ===
