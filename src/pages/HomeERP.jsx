@@ -35,11 +35,12 @@ const HomeERP = () => {
     },
   ];
 
-  const handleSwipe = (e) => {
-    const scrollWidth = carrosselRef.current.scrollWidth;
-    const clientWidth = carrosselRef.current.clientWidth;
-    const scrollLeft = carrosselRef.current.scrollLeft;
-    const idx = Math.round((scrollLeft / scrollWidth) * botoes.length);
+  const handleScroll = () => {
+    if (!carrosselRef.current) return;
+    const container = carrosselRef.current;
+    const scrollLeft = container.scrollLeft;
+    const width = container.clientWidth;
+    const idx = Math.round(scrollLeft / width);
     if (idx !== focusIndex) {
       setFocusIndex(idx);
       setAberto(false);
@@ -47,18 +48,10 @@ const HomeERP = () => {
   };
 
   useEffect(() => {
-    if (carrosselRef.current) {
-      const btns = carrosselRef.current.querySelectorAll(".carousel-button");
-      const centralBtn = btns[focusIndex];
-      if (centralBtn) {
-        const container = carrosselRef.current;
-        const scrollLeft =
-          centralBtn.offsetLeft -
-          container.offsetWidth / 2 +
-          centralBtn.offsetWidth / 2;
-        container.scrollTo({ left: scrollLeft, behavior: "smooth" });
-      }
-    }
+    const container = carrosselRef.current;
+    if (!container) return;
+    const scrollTo = container.clientWidth * focusIndex;
+    container.scrollTo({ left: scrollTo, behavior: "smooth" });
   }, [focusIndex]);
 
   if (tela === "PCP") return <HomePCP />;
@@ -105,17 +98,17 @@ const HomeERP = () => {
         </h1>
       </header>
 
-      {/* Carrossel por swipe */}
+      {/* Carrossel */}
       <div
         ref={carrosselRef}
-        onScroll={handleSwipe}
+        onScroll={handleScroll}
         style={{
           display: "flex",
+          flexDirection: "row",
           overflowX: "scroll",
           scrollSnapType: "x mandatory",
-          padding: "3rem 2rem",
-          gap: "3rem",
-          WebkitOverflowScrolling: "touch",
+          width: "100vw",
+          flexGrow: 1,
         }}
       >
         {botoes.map((btn, idx) => {
@@ -123,13 +116,14 @@ const HomeERP = () => {
           return (
             <div
               key={idx}
-              className="carousel-button"
               style={{
                 scrollSnapAlign: "center",
-                flex: "0 0 auto",
-                textAlign: "center",
-                transform: isFocused ? "scale(1.3)" : "scale(1)",
-                transition: "transform 0.4s ease",
+                flex: "0 0 100vw",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                paddingBottom: "3rem",
               }}
             >
               <button
@@ -138,24 +132,22 @@ const HomeERP = () => {
                   if (isFocused) setAberto(true);
                 }}
                 style={{
-                  width: isFocused ? "390px" : "260px",
-                  height: isFocused ? "390px" : "260px",
-                  fontSize: isFocused ? "2.2rem" : "1.8rem",
+                  width: isFocused ? "360px" : "260px",
+                  height: isFocused ? "360px" : "260px",
+                  fontSize: isFocused ? "2.4rem" : "1.8rem",
                   backgroundColor: isFocused ? "#8c3b1b" : "#e6cfc2",
                   color: "#fff",
                   border: "none",
-                  borderRadius: "1.5rem",
+                  borderRadius: "1.8rem",
                   boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
                   fontWeight: "bold",
                   transition: "all 0.4s ease",
                   whiteSpace: "normal",
-                  padding: "1rem",
                 }}
               >
                 {btn.label}
               </button>
 
-              {/* Submenu visível ao clicar */}
               {isFocused && aberto && (
                 <div
                   style={{
@@ -195,7 +187,6 @@ const HomeERP = () => {
       {/* Rodapé */}
       <footer
         style={{
-          marginTop: "auto",
           backgroundColor: "rgba(140, 59, 27, 0.4)",
           color: "white",
           padding: "1.4rem",
