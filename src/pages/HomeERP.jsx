@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import HomePCP from "./HomePCP";
-import "./fade.css";
+import "./HomeERP.css";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
-  const [zoomIndex, setZoomIndex] = useState(1); // começa com o botão central
+  const [zoomIndex, setZoomIndex] = useState(1); // Começa com o botão central em destaque
 
   const botoes = [
     {
@@ -42,6 +42,15 @@ const HomeERP = () => {
     }
   };
 
+  const deslizar = (direcao) => {
+    setZoomIndex((prev) => {
+      const total = botoes.length;
+      if (direcao === "esquerda") return (prev - 1 + total) % total;
+      if (direcao === "direita") return (prev + 1) % total;
+      return prev;
+    });
+  };
+
   if (tela === "PCP") return <HomePCP />;
 
   return (
@@ -51,8 +60,6 @@ const HomeERP = () => {
         backgroundSize: "cover",
         backgroundPosition: "center",
         minHeight: "100vh",
-        maxHeight: "100vh",
-        overflow: "hidden",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -68,13 +75,12 @@ const HomeERP = () => {
           padding: "0 1rem",
           backgroundColor: "rgba(255,255,255,0.5)",
           backdropFilter: "blur(6px)",
-          WebkitBackdropFilter: "blur(6px)",
         }}
       >
         <img
           src="/LogomarcaDDnt2025Vazado.png"
           alt="Logo"
-          style={{ width: "200px", marginTop: "1%" }}
+          style={{ width: "200px", marginTop: "2%" }}
         />
         <h1
           style={{
@@ -89,43 +95,48 @@ const HomeERP = () => {
       </header>
       {/* === FIM HEADER === */}
 
-      {/* === INÍCIO BOTÕES CENTRAIS COM SCROLL SNAP === */}
+      {/* === INÍCIO BOTÕES === */}
       <div
         style={{
           display: "flex",
-          overflowX: "auto",
-          scrollSnapType: "x mandatory",
-          padding: "2rem 0",
           justifyContent: "center",
           alignItems: "center",
+          overflowX: "auto",
+          scrollSnapType: "x mandatory",
           gap: "3rem",
-          scrollBehavior: "smooth",
+          padding: "2rem 1rem",
+        }}
+        onTouchStart={(e) => (this.touchStartX = e.changedTouches[0].clientX)}
+        onTouchEnd={(e) => {
+          const diff = e.changedTouches[0].clientX - this.touchStartX;
+          if (diff > 50) deslizar("esquerda");
+          else if (diff < -50) deslizar("direita");
         }}
       >
         {botoes.map((btn, idx) => {
-          const isActive = idx === zoomIndex;
+          const isZoomed = idx === zoomIndex;
           return (
             <div
               key={idx}
-              onClick={() => handleClick(idx, btn.action)}
               style={{
-                scrollSnapAlign: "center",
                 flex: "0 0 auto",
+                scrollSnapAlign: "center",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                transform: isActive ? "scale(1.3)" : "scale(1)",
+                transform: isZoomed ? "scale(1.3)" : "scale(1)",
                 transition: "transform 0.3s ease",
               }}
             >
               <button
+                onClick={() => handleClick(idx, btn.action)}
                 style={{
                   width: "220px",
                   height: "220px",
-                  fontSize: "1.8rem",
+                  fontSize: "1.6rem",
                   whiteSpace: "pre-line",
-                  backgroundColor: isActive ? "#8c3b1b" : "#e6cfc2",
-                  color: isActive ? "#fff" : "#8c3b1b",
+                  backgroundColor: isZoomed ? "#8c3b1b" : "#e6cfc2",
+                  color: isZoomed ? "#fff" : "#8c3b1b",
                   border: "none",
                   borderRadius: "2rem",
                   boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
@@ -135,22 +146,14 @@ const HomeERP = () => {
                 {btn.label}
               </button>
 
-              {isActive && (
+              {isZoomed && (
                 <div
-                  className="fade"
                   style={{
                     marginTop: "1.5rem",
                     display: "flex",
                     flexDirection: "column",
                     gap: "1rem",
                     alignItems: "center",
-                    position: "absolute",
-                    zIndex: 5,
-                    background: "rgba(255,255,255,0.9)",
-                    padding: "1rem",
-                    borderRadius: "1rem",
-                    boxShadow: "0 0 10px rgba(0,0,0,0.2)",
-                    top: "60%",
                   }}
                 >
                   {btn.dropdown.map((op, i) => (
@@ -164,7 +167,6 @@ const HomeERP = () => {
                         backgroundColor: "#fff",
                         color: "#8c3b1b",
                         border: "2px solid #8c3b1b",
-                        boxShadow: "2px 2px 6px rgba(0,0,0,0.2)",
                         fontWeight: "bold",
                         width: "200px",
                       }}
@@ -178,7 +180,7 @@ const HomeERP = () => {
           );
         })}
       </div>
-      {/* === FIM BOTÕES CENTRAIS === */}
+      {/* === FIM BOTÕES === */}
 
       {/* === INÍCIO RODAPÉ === */}
       <footer
