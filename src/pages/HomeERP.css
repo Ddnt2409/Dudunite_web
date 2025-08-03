@@ -70,6 +70,13 @@ header {
   align-items: center;
 }
 
+/* === BOTÃO INATIVO – Translúcido === */
+.botao-inativo {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* === BOTÃO HOVER === */
 .botao-principal:hover {
   transform: scale(1.15);
   background-color: #a3471f;
