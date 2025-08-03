@@ -74,8 +74,8 @@ const HomeERP = () => {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between",
-        overflow: "hidden",
+        justifyContent: "flex-start",
+        overflow: "auto", // Corrigido para permitir rolagem
       }}
     >
       {/* === INÍCIO HEADER === */}
@@ -200,11 +200,15 @@ const HomeERP = () => {
       {/* === INÍCIO RODAPÉ === */}
       <footer
         style={{
+          position: "fixed",
+          bottom: 0,
+          width: "100%",
           backgroundColor: "rgba(140, 59, 27, 0.4)",
           color: "white",
           padding: "1rem",
           fontSize: "1.2rem",
           textAlign: "center",
+          zIndex: 9999,
         }}
       >
         <marquee behavior="scroll" direction="left">
