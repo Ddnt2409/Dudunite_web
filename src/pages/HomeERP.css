@@ -1,14 +1,23 @@
-/* === CONTAINER PCP === */
+/* === AJUSTE GLOBAL PARA ALTURA === */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* === CONTAINER PCP CENTRALIZADO === */
 .container-pcp {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  justify-content: center;   /* Centraliza vertical */
+  align-items: center;       /* Centraliza horizontal */
+  min-height: 100vh;         /* Garante altura total da tela */
   gap: 2rem;
+  position: relative;
+  z-index: 1;
 }
 
-/* === CONTAINER ERP === (opcional para controle de layout, se quiser ajustar posição dos blocos) */
+/* === CONTAINER ERP === */
 .container-erp {
   display: flex;
   flex-direction: column;
@@ -21,9 +30,9 @@
 .botao-principal-erp {
   background-color: #8c3b1b;
   color: white;
-  font-size: 1.8rem; /* 1.5rem → 20% maior */
+  font-size: 1.8rem;
   font-weight: bold;
-  width: 234px;  /* 180 + 30% */
+  width: 234px;
   height: 234px;
   border-radius: 1rem;
   border: none;
@@ -32,13 +41,13 @@
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* === BOTÕES PCP – 100% maiores (dobro) === */
+/* === BOTÕES PCP – 100% maiores === */
 .botao-principal-pcp {
   background-color: #8c3b1b;
   color: white;
-  font-size: 2rem; /* dobro do ERP original */
+  font-size: 2rem;
   font-weight: bold;
-  width: 360px;  /* 180 x 2 */
+  width: 360px;
   height: 360px;
   border-radius: 1rem;
   border: none;
@@ -47,19 +56,19 @@
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* === EFEITO ZOOM APLICADO AO CLICAR === */
+/* === ZOOM AO CLICAR === */
 .botao-ativo {
   transform: scale(1.2);
   background-color: #a3471f;
 }
 
-/* === INATIVO (APLICADO POR LÓGICA DINÂMICA CASO EXISTA) === */
+/* === INATIVO === */
 .botao-inativo {
   opacity: 0.7;
   background-color: #8c3b1b;
 }
 
-/* === DROPDOWN INTERNO (SE FOR USADO DENTRO DOS BOTÕES) === */
+/* === DROPDOWN INTERNO (se aplicável) === */
 .dropdown-interno {
   margin-top: 0.8rem;
   display: flex;
