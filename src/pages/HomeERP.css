@@ -1,11 +1,30 @@
-/* === BOTÕES PRINCIPAIS === */
-.botao-principal {
+/* === CONTAINER PCP === */
+.container-pcp {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  gap: 2rem;
+}
+
+/* === CONTAINER ERP === (opcional para controle de layout, se quiser ajustar posição dos blocos) */
+.container-erp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding-top: 3rem;
+}
+
+/* === BOTÕES ERP – 30% maiores === */
+.botao-principal-erp {
   background-color: #8c3b1b;
   color: white;
-  font-size: 1.5rem;
+  font-size: 1.8rem; /* 1.5rem → 20% maior */
   font-weight: bold;
-  width: 180px;
-  height: 180px;
+  width: 234px;  /* 180 + 30% */
+  height: 234px;
   border-radius: 1rem;
   border: none;
   transition: transform 0.3s ease, background-color 0.3s ease;
@@ -13,17 +32,34 @@
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* === BOTÕES PCP – 100% maiores (dobro) === */
+.botao-principal-pcp {
+  background-color: #8c3b1b;
+  color: white;
+  font-size: 2rem; /* dobro do ERP original */
+  font-weight: bold;
+  width: 360px;  /* 180 x 2 */
+  height: 360px;
+  border-radius: 1rem;
+  border: none;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+  white-space: pre-line;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* === EFEITO ZOOM APLICADO AO CLICAR === */
 .botao-ativo {
   transform: scale(1.2);
   background-color: #a3471f;
 }
 
+/* === INATIVO (APLICADO POR LÓGICA DINÂMICA CASO EXISTA) === */
 .botao-inativo {
   opacity: 0.7;
   background-color: #8c3b1b;
 }
 
-/* === DROPDOWN INTERNO === */
+/* === DROPDOWN INTERNO (SE FOR USADO DENTRO DOS BOTÕES) === */
 .dropdown-interno {
   margin-top: 0.8rem;
   display: flex;
@@ -46,7 +82,7 @@
   color: white;
 }
 
-/* === FADE === */
+/* === ANIMAÇÃO DE FADE === */
 .fade-out {
   animation: fadeOut 0.5s ease forwards;
 }
