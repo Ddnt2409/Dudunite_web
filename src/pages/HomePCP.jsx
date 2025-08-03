@@ -2,35 +2,18 @@ import React, { useState } from "react";
 import "./HomeERP.css";
 
 const HomePCP = () => {
-  const [zoomIndex, setZoomIndex] = useState(null);
+  const [fadeOut, setFadeOut] = useState(false);
 
-  const botoes = [
-    {
-      nome: "Lançar Pedido",
-      emoji: "📝",
-      acao: () => {
-        window.location.href = "/LancamentoPedido";
-      },
-    },
-    {
-      nome: "Alimentar Sabores",
-      emoji: "🍫",
-      acao: () => {
-        window.location.href = "/AlimentarSabores";
-      },
-    },
-  ];
-
-  const handleClick = (index, acao) => {
-    if (zoomIndex === index) {
-      acao();
-    } else {
-      setZoomIndex(index);
-    }
+  const voltar = () => {
+    setFadeOut(true);
+    setTimeout(() => {
+      window.location.reload(); // volta para HomeERP reinicializando
+    }, 500);
   };
 
   return (
     <div
+      className={fadeOut ? "fade-out" : ""}
       style={{
         backgroundImage: "url('/bg002.png')",
         backgroundSize: "cover",
@@ -38,6 +21,8 @@ const HomePCP = () => {
         minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
+        justifyContent: "flex-start",
+        overflowY: "auto",
       }}
     >
       {/* === INÍCIO HEADER === */}
@@ -65,48 +50,39 @@ const HomePCP = () => {
             marginRight: "2ch",
           }}
         >
-          Planejamento de Produção
+          Produção (PCP)
         </h1>
       </header>
       {/* === FIM HEADER === */}
 
-      {/* === INÍCIO BOTÕES PRINCIPAIS === */}
+      {/* === INÍCIO CONTEÚDO PRINCIPAL === */}
       <main
         style={{
-          flexGrow: 1,
+          flex: 1,
+          padding: "2rem 1rem",
           display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
           flexDirection: "column",
-          gap: "3rem",
-          paddingTop: "3rem",
+          alignItems: "center",
+          gap: "2rem",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            gap: "3rem",
-            flexWrap: "wrap",
-            justifyContent: "center",
-          }}
+        <button className="botao-principal botao-ativo" onClick={() => alert("Lançar Pedido")}>
+          ➕ Lançar Pedido
+        </button>
+
+        <button className="botao-principal botao-inativo" onClick={() => alert("Alimentar Sabores")}>
+          🍫 Alimentar Sabores
+        </button>
+
+        <button
+          className="botao-principal botao-inativo"
+          onClick={voltar}
+          style={{ marginTop: "3rem" }}
         >
-          {botoes.map((btn, index) => {
-            const isZoomed = zoomIndex === index;
-            return (
-              <button
-                key={index}
-                className={`botao-principal ${isZoomed ? "botao-ativo" : "botao-inativo"}`}
-                onClick={() => handleClick(index, btn.acao)}
-              >
-                {btn.emoji}
-                <br />
-                {btn.nome}
-              </button>
-            );
-          })}
-        </div>
+          🔙 Voltar ao Início
+        </button>
       </main>
-      {/* === FIM BOTÕES PRINCIPAIS === */}
+      {/* === FIM CONTEÚDO PRINCIPAL === */}
 
       {/* === INÍCIO RODAPÉ === */}
       <footer
