@@ -1,23 +1,21 @@
 import React, { useState, useRef } from "react";
-import HomePCP from "./HomePCP";
 import "./HomeERP.css";
 
-const HomeERP = () => {
-  const [tela, setTela] = useState("Home");
-  const [zoomIndex, setZoomIndex] = useState(0);
-  const touchStartX = useRef(null);
+const HomeERP = ({ irParaPCP }) => {
+  const [zoomIndex, setZoomIndex] = useState(1);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
+  const touchStartX = useRef(null);
 
   const botoes = [
     {
       label: "📦\nProdução (PCP)",
       action: () => {
         setFadeOut(true);
-        setTimeout(() => setTela("PCP"), 500);
+        setTimeout(() => irParaPCP(), 500);
       },
       dropdown: [
-        { nome: "Lançar Pedido", acao: () => setTela("PCP") },
+        { nome: "Lançar Pedido", acao: () => irParaPCP() },
         { nome: "Alimentar Sabores", acao: () => alert("Em breve") },
       ],
     },
@@ -38,13 +36,12 @@ const HomeERP = () => {
         { nome: "Custos Variáveis", acao: () => alert("Em breve") },
       ],
     },
+    {
+      label: "👨‍🍳\nCozinha",
+      action: () => alert("Em breve"),
+      dropdown: [],
+    },
   ];
-
-  const botaoCozinha = {
-    label: "👨‍🍳\nCozinha",
-    action: () => alert("Em breve"),
-    dropdown: [],
-  };
 
   const handleClick = (index, action) => {
     if (zoomIndex === index) {
@@ -70,8 +67,6 @@ const HomeERP = () => {
       return novoIndex;
     });
   };
-
-  if (tela === "PCP") return <HomePCP />;
 
   return (
     <div
@@ -174,22 +169,6 @@ const HomeERP = () => {
               </div>
             );
           })}
-        </div>
-
-        {/* Botão Cozinha fora do carrossel */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "2rem",
-          }}
-        >
-          <button
-            onClick={botaoCozinha.action}
-            className="botao-principal botao-inativo"
-          >
-            {botaoCozinha.label}
-          </button>
         </div>
       </main>
       {/* === FIM CONTEÚDO PRINCIPAL === */}
