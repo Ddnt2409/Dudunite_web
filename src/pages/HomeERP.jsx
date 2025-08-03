@@ -9,8 +9,7 @@ const HomeERP = () => {
 
   const botoes = [
     {
-      label: "Produção (PCP)",
-      icone: "📦",
+      label: "📦\nProdução (PCP)",
       action: () => setTela("PCP"),
       dropdown: [
         { nome: "Lançar Pedido", acao: () => setTela("PCP") },
@@ -18,8 +17,7 @@ const HomeERP = () => {
       ],
     },
     {
-      label: "Financeiro (FinFlux)",
-      icone: "💰",
+      label: "💰\nFinanceiro (FinFlux)",
       action: () => {},
       dropdown: [
         { nome: "Contas a Receber", acao: () => alert("Em breve") },
@@ -27,8 +25,7 @@ const HomeERP = () => {
       ],
     },
     {
-      label: "Análise de Custos",
-      icone: "📊",
+      label: "📊\nAnálise de Custos",
       action: () => {},
       dropdown: [
         { nome: "Custos por Produto", acao: () => alert("Em breve") },
@@ -42,7 +39,7 @@ const HomeERP = () => {
     const container = carrosselRef.current;
     const scrollLeft = container.scrollLeft;
     const width = container.clientWidth;
-    const idx = Math.round(scrollLeft / width);
+    const idx = Math.round(scrollLeft / (width * 0.6));
     if (idx !== focusIndex) {
       setFocusIndex(idx);
       setZoomAtivo(false);
@@ -52,18 +49,16 @@ const HomeERP = () => {
   useEffect(() => {
     const container = carrosselRef.current;
     if (!container) return;
-    const scrollTo = container.clientWidth * focusIndex;
+    const scrollTo = focusIndex * (container.clientWidth * 0.6);
     container.scrollTo({ left: scrollTo, behavior: "smooth" });
   }, [focusIndex]);
 
   const handleBotaoMacro = (idx) => {
-    if (idx !== focusIndex) {
+    if (idx === focusIndex) {
+      setZoomAtivo(!zoomAtivo);
+    } else {
       setFocusIndex(idx);
       setZoomAtivo(false);
-    } else if (!zoomAtivo) {
-      setZoomAtivo(true);
-    } else {
-      botoes[idx].action();
     }
   };
 
@@ -120,23 +115,23 @@ const HomeERP = () => {
           flexDirection: "row",
           overflowX: "scroll",
           scrollSnapType: "x mandatory",
-          width: "100vw",
-          flexGrow: 1,
+          padding: "4rem 0",
+          scrollBehavior: "smooth",
+          gap: "3rem",
+          justifyContent: "center",
         }}
       >
         {botoes.map((btn, idx) => {
           const isFocused = idx === focusIndex;
           const isZoom = isFocused && zoomAtivo;
 
-          const baseSize = 390;
-          const zoomSize = baseSize * 1.2;
-
           return (
             <div
               key={idx}
+              onClick={() => handleBotaoMacro(idx)}
               style={{
+                flex: "0 0 auto",
                 scrollSnapAlign: "center",
-                flex: "0 0 100vw",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -144,37 +139,27 @@ const HomeERP = () => {
               }}
             >
               <button
-                onClick={() => handleBotaoMacro(idx)}
                 style={{
-                  width: isZoom ? `${zoomSize}px` : `${baseSize}px`,
-                  height: isZoom ? `${zoomSize}px` : `${baseSize}px`,
-                  fontSize: isZoom ? "2.6rem" : "2.2rem",
-                  backgroundColor: isZoom ? "#8c3b1b" : "#e6cfc2",
-                  color: isZoom ? "white" : "#8c3b1b",
+                  width: isFocused ? "300px" : "220px",
+                  height: isFocused ? "300px" : "220px",
+                  fontSize: isFocused ? "2.4rem" : "1.6rem",
+                  whiteSpace: "pre-line",
+                  backgroundColor: isFocused ? "#8c3b1b" : "#e6cfc2",
+                  color: isFocused ? "white" : "#8c3b1b",
                   border: "none",
                   borderRadius: "2rem",
                   boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
                   fontWeight: "bold",
                   transition: "all 0.3s ease",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textAlign: "center",
-                  lineHeight: "1.4",
-                  padding: "1.4rem",
                 }}
               >
-                <div style={{ fontSize: "3.2rem", marginBottom: "0.5rem" }}>
-                  {btn.icone}
-                </div>
                 {btn.label}
               </button>
 
               {isZoom && (
                 <div
                   style={{
-                    marginTop: "2.8rem",
+                    marginTop: "2rem",
                     display: "flex",
                     flexDirection: "column",
                     gap: "1.5rem",
@@ -186,15 +171,15 @@ const HomeERP = () => {
                       key={i}
                       onClick={op.acao}
                       style={{
-                        padding: "1.3rem 2.2rem",
-                        fontSize: "1.8rem",
-                        borderRadius: "1.4rem",
+                        padding: "1.4rem 2rem",
+                        fontSize: "1.6rem",
+                        borderRadius: "1.2rem",
                         backgroundColor: "#fff",
                         color: "#8c3b1b",
                         border: "2px solid #8c3b1b",
                         boxShadow: "2px 2px 6px rgba(0,0,0,0.2)",
                         fontWeight: "bold",
-                        width: "260px",
+                        width: "240px",
                       }}
                     >
                       {op.nome}
