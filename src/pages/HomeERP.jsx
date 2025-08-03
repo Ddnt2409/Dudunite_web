@@ -5,15 +5,11 @@ import "./fade.css";
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
   const [zoomIndex, setZoomIndex] = useState(null);
-  const [fadeState, setFadeState] = useState("fade-in");
 
   const botoes = [
     {
       label: "📦\nProdução (PCP)",
-      action: () => {
-        setFadeState("fade-out");
-        setTimeout(() => setTela("PCP"), 300);
-      },
+      action: () => setTela("PCP"),
       dropdown: [
         { nome: "Lançar Pedido", acao: () => setTela("PCP") },
         { nome: "Alimentar Sabores", acao: () => alert("Em breve") },
@@ -21,7 +17,7 @@ const HomeERP = () => {
     },
     {
       label: "💰\nFinanceiro (FinFlux)",
-      action: () => alert("Em breve"),
+      action: () => {},
       dropdown: [
         { nome: "Contas a Receber", acao: () => alert("Em breve") },
         { nome: "Contas a Pagar", acao: () => alert("Em breve") },
@@ -29,7 +25,7 @@ const HomeERP = () => {
     },
     {
       label: "📊\nAnálise de Custos",
-      action: () => alert("Em breve"),
+      action: () => {},
       dropdown: [
         { nome: "Custos por Produto", acao: () => alert("Em breve") },
         { nome: "Custos Fixos", acao: () => alert("Em breve") },
@@ -40,9 +36,9 @@ const HomeERP = () => {
 
   const handleClick = (index, action) => {
     if (zoomIndex === index) {
-      action(); // Executa ação ao clicar de novo
+      action();
     } else {
-      setZoomIndex(index); // Ativa o zoom
+      setZoomIndex(index);
     }
   };
 
@@ -50,12 +46,13 @@ const HomeERP = () => {
 
   return (
     <div
-      className={fadeState}
+      className="fade"
       style={{
         backgroundImage: "url('/bg002.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
-        minHeight: "100vh",
+        height: "100vh",
+        overflow: "hidden",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -64,7 +61,7 @@ const HomeERP = () => {
       {/* === INÍCIO HEADER === */}
       <header
         style={{
-          height: "140px",
+          height: "120px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -77,11 +74,11 @@ const HomeERP = () => {
         <img
           src="/LogomarcaDDnt2025Vazado.png"
           alt="Logo"
-          style={{ width: "280px", marginTop: "3%" }}
+          style={{ width: "240px", marginTop: "3%" }}
         />
         <h1
           style={{
-            fontSize: "2.6rem",
+            fontSize: "2.4rem",
             fontWeight: "bold",
             color: "#8c3b1b",
             marginRight: "2ch",
@@ -97,10 +94,11 @@ const HomeERP = () => {
         style={{
           display: "flex",
           justifyContent: "center",
+          alignItems: "center",
           gap: "4rem",
-          flexWrap: "wrap",
-          padding: "3rem 2rem",
-          alignItems: "flex-start",
+          flexWrap: "nowrap",
+          padding: "2rem 2rem",
+          position: "relative",
         }}
       >
         {botoes.map((btn, idx) => {
@@ -109,18 +107,21 @@ const HomeERP = () => {
             <div
               key={idx}
               style={{
+                position: "relative",
+                zIndex: isZoomed ? 10 : 1,
+                transform: isZoomed ? "scale(1.3)" : "scale(1)",
+                transition: "transform 0.3s ease",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                transition: "all 0.3s ease",
               }}
             >
               <button
                 onClick={() => handleClick(idx, btn.action)}
                 style={{
-                  width: isZoomed ? "286px" : "253px", // 30% vs 15%
-                  height: isZoomed ? "286px" : "253px",
-                  fontSize: isZoomed ? "2.4rem" : "2rem",
+                  width: "250px",
+                  height: "250px",
+                  fontSize: "1.9rem",
                   whiteSpace: "pre-line",
                   backgroundColor: isZoomed ? "#8c3b1b" : "#e6cfc2",
                   color: isZoomed ? "#fff" : "#8c3b1b",
@@ -137,7 +138,8 @@ const HomeERP = () => {
               {isZoomed && (
                 <div
                   style={{
-                    marginTop: "2rem",
+                    position: "absolute",
+                    top: "110%",
                     display: "flex",
                     flexDirection: "column",
                     gap: "1.5rem",
@@ -177,10 +179,9 @@ const HomeERP = () => {
         style={{
           backgroundColor: "rgba(140, 59, 27, 0.4)",
           color: "white",
-          padding: "1.4rem",
-          fontSize: "1.4rem",
+          padding: "1.2rem",
+          fontSize: "1.3rem",
           textAlign: "center",
-          marginTop: "auto",
         }}
       >
         <marquee behavior="scroll" direction="left">
