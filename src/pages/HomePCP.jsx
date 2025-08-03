@@ -1,67 +1,52 @@
-/* === BOTÕES PRINCIPAIS === */
-.botao-principal {
-  width: 200px;
-  height: 200px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  border-radius: 20px;
-  border: none;
-  white-space: pre-wrap;
-  text-align: center;
-  padding: 1rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-}
+// === INÍCIO HomePCP.jsx ===
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import "./HomeERP.css";
 
-/* === ATIVO: Zoom e destaque === */
-.botao-ativo {
-  background-color: #8c3b1b;
-  color: #ffffff;
-  transform: scale(1.2);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-}
+const HomePCP = () => {
+  const navigate = useNavigate();
 
-/* === INATIVO: Sem destaque === */
-.botao-inativo {
-  background-color: #e6cfc2;
-  color: #8c3b1b;
-  opacity: 0.85;
-  transform: scale(1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+  const botoes = [
+    { id: 1, titulo: "Lançar Pedido", destino: "/lancar-pedido" },
+    { id: 2, titulo: "Alimentar Sabores", destino: "/alimentar-sabores" },
+    { id: 3, titulo: "Planejamento de Produção", destino: "/planejamento" },
+    { id: 4, titulo: "Lista de Compras", destino: "/lista-compras" },
+    { id: 5, titulo: "Cozinha", destino: "/cozinha" },
+  ];
 
-/* === DROPDOWN DE OPÇÕES === */
-.dropdown-interno {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+  const [botaoAtivo, setBotaoAtivo] = React.useState(3); // default: botão do meio
 
-.dropdown-interno button {
-  padding: 0.6rem 1rem;
-  background-color: #fdf9f7;
-  color: #333;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s ease;
-}
+  const handleScroll = (event) => {
+    const container = event.target;
+    const larguraBotao = 220;
+    const scrollPosition = container.scrollLeft + container.offsetWidth / 2;
+    const index = Math.round(scrollPosition / larguraBotao);
+    setBotaoAtivo(index);
+  };
 
-.dropdown-interno button:hover {
-  background-color: #f0e6e0;
-}
+  return (
+    <div className="tela-pcp">
+      <h1 className="titulo-pcp">PCP – Planejamento e Controle de Produção</h1>
 
-/* === RESPONSIVIDADE EXTRA === */
-@media (max-width: 600px) {
-  .botao-principal {
-    width: 160px;
-    height: 160px;
-    font-size: 1.2rem;
-  }
-}
+      <div
+        className="container-botoes"
+        onScroll={handleScroll}
+      >
+        {botoes.map((botao, index) => (
+          <button
+            key={botao.id}
+            className={`botao-principal ${
+              index === botaoAtivo ? "botao-ativo" : ""
+            }`}
+            onClick={() => navigate(botao.destino)}
+          >
+            {botao.titulo}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default HomePCP;
+// === FIM HomePCP.jsx ===
