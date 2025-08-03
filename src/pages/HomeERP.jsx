@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import HomePCP from "./HomePCP";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
-  const [focusIndex, setFocusIndex] = useState(1);
-  const [aberto, setAberto] = useState(false);
+  const [focusIndex, setFocusIndex] = useState(0);
+  const [zoomAtivo, setZoomAtivo] = useState(false);
   const carrosselRef = useRef(null);
 
   const botoes = [
@@ -36,14 +36,13 @@ const HomeERP = () => {
   ];
 
   const handleScroll = () => {
-    if (!carrosselRef.current) return;
     const container = carrosselRef.current;
     const scrollLeft = container.scrollLeft;
     const width = container.clientWidth;
     const idx = Math.round(scrollLeft / width);
     if (idx !== focusIndex) {
       setFocusIndex(idx);
-      setAberto(false);
+      setZoomAtivo(false);
     }
   };
 
@@ -54,6 +53,17 @@ const HomeERP = () => {
     container.scrollTo({ left: scrollTo, behavior: "smooth" });
   }, [focusIndex]);
 
+  const handleBotaoMacro = (idx) => {
+    if (idx !== focusIndex) {
+      setFocusIndex(idx);
+      setZoomAtivo(false);
+    } else if (!zoomAtivo) {
+      setZoomAtivo(true);
+    } else {
+      botoes[idx].action();
+    }
+  };
+
   if (tela === "PCP") return <HomePCP />;
 
   return (
@@ -63,12 +73,11 @@ const HomeERP = () => {
         backgroundSize: "cover",
         backgroundPosition: "center",
         minHeight: "100vh",
-        position: "relative",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      {/* Cabeçalho */}
+      {/* === INÍCIO HEADER === */}
       <header
         style={{
           height: "140px",
@@ -97,8 +106,9 @@ const HomeERP = () => {
           ERP DUDUNITÊ
         </h1>
       </header>
+      {/* === FIM HEADER === */}
 
-      {/* Carrossel */}
+      {/* === INÍCIO CARROSSEL === */}
       <div
         ref={carrosselRef}
         onScroll={handleScroll}
@@ -113,6 +123,7 @@ const HomeERP = () => {
       >
         {botoes.map((btn, idx) => {
           const isFocused = idx === focusIndex;
+          const isZoom = isFocused && zoomAtivo;
           return (
             <div
               key={idx}
@@ -123,32 +134,27 @@ const HomeERP = () => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                paddingBottom: "3rem",
               }}
             >
               <button
-                onClick={() => {
-                  btn.action();
-                  if (isFocused) setAberto(true);
-                }}
+                onClick={() => handleBotaoMacro(idx)}
                 style={{
-                  width: isFocused ? "360px" : "260px",
-                  height: isFocused ? "360px" : "260px",
-                  fontSize: isFocused ? "2.4rem" : "1.8rem",
-                  backgroundColor: isFocused ? "#8c3b1b" : "#e6cfc2",
-                  color: "#fff",
+                  width: isZoom ? "360px" : "260px",
+                  height: isZoom ? "360px" : "260px",
+                  fontSize: isZoom ? "2.2rem" : "1.8rem",
+                  backgroundColor: isZoom ? "#8c3b1b" : "#e6cfc2",
+                  color: isZoom ? "white" : "#8c3b1b",
                   border: "none",
                   borderRadius: "1.8rem",
                   boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
                   fontWeight: "bold",
-                  transition: "all 0.4s ease",
-                  whiteSpace: "normal",
+                  transition: "all 0.3s ease",
                 }}
               >
                 {btn.label}
               </button>
 
-              {isFocused && aberto && (
+              {isZoom && (
                 <div
                   style={{
                     marginTop: "2.5rem",
@@ -165,7 +171,7 @@ const HomeERP = () => {
                       style={{
                         padding: "1.2rem 2rem",
                         fontSize: "1.6rem",
-                        borderRadius: "0.8rem",
+                        borderRadius: "1.2rem",
                         backgroundColor: "#fff",
                         color: "#8c3b1b",
                         border: "2px solid #8c3b1b",
@@ -183,8 +189,9 @@ const HomeERP = () => {
           );
         })}
       </div>
+      {/* === FIM CARROSSEL === */}
 
-      {/* Rodapé */}
+      {/* === INÍCIO RODAPÉ === */}
       <footer
         style={{
           backgroundColor: "rgba(140, 59, 27, 0.4)",
@@ -197,10 +204,11 @@ const HomeERP = () => {
         <marquee behavior="scroll" direction="left">
           • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
           Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros •
-          Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato
-          Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
+          Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo •
+          Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
         </marquee>
       </footer>
+      {/* === FIM RODAPÉ === */}
     </div>
   );
 };
