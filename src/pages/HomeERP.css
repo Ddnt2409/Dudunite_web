@@ -1,39 +1,11 @@
-/* === AJUSTE GLOBAL PARA ALTURA === */
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-/* === CONTAINER PCP CENTRALIZADO === */
-.container-pcp {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;   /* Centraliza vertical */
-  align-items: center;       /* Centraliza horizontal */
-  min-height: 100vh;         /* Garante altura total da tela */
-  gap: 2rem;
-  position: relative;
-  z-index: 1;
-}
-
-/* === CONTAINER ERP === */
-.container-erp {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-  padding-top: 3rem;
-}
-
-/* === BOTÕES ERP – 30% maiores === */
-.botao-principal-erp {
+/* === BOTÕES PRINCIPAIS === */
+.botao-principal {
   background-color: #8c3b1b;
   color: white;
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  width: 234px;
-  height: 234px;
+  width: 180px;
+  height: 180px;
   border-radius: 1rem;
   border: none;
   transition: transform 0.3s ease, background-color 0.3s ease;
@@ -41,34 +13,17 @@ html, body {
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* === BOTÕES PCP – 100% maiores === */
-.botao-principal-pcp {
-  background-color: #8c3b1b;
-  color: white;
-  font-size: 2rem;
-  font-weight: bold;
-  width: 360px;
-  height: 360px;
-  border-radius: 1rem;
-  border: none;
-  transition: transform 0.3s ease, background-color 0.3s ease;
-  white-space: pre-line;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* === ZOOM AO CLICAR === */
 .botao-ativo {
   transform: scale(1.2);
   background-color: #a3471f;
 }
 
-/* === INATIVO === */
 .botao-inativo {
   opacity: 0.7;
   background-color: #8c3b1b;
 }
 
-/* === DROPDOWN INTERNO (se aplicável) === */
+/* === DROPDOWN INTERNO === */
 .dropdown-interno {
   margin-top: 0.8rem;
   display: flex;
@@ -91,7 +46,7 @@ html, body {
   color: white;
 }
 
-/* === ANIMAÇÃO DE FADE === */
+/* === FADE === */
 .fade-out {
   animation: fadeOut 0.5s ease forwards;
 }
