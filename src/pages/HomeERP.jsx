@@ -115,9 +115,10 @@ const HomeERP = () => {
           justifyContent: "center",
           alignItems: "center",
           overflowX: "auto",
+          overflowY: "visible",
           scrollSnapType: "x mandatory",
           gap: "3rem",
-          padding: "2rem 1rem",
+          padding: "2rem 1rem 6rem",
         }}
         onTouchStart={(e) => (touchStartX.current = e.changedTouches[0].clientX)}
         onTouchEnd={(e) => {
@@ -139,6 +140,7 @@ const HomeERP = () => {
                 alignItems: "center",
                 transform: isZoomed ? "scale(1.3)" : "scale(1)",
                 transition: "transform 0.3s ease",
+                overflow: "visible",
               }}
             >
               <button
