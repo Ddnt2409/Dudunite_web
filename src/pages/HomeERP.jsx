@@ -1,17 +1,20 @@
-// === INÍCIO HomeERP.jsx ===
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import HomePCP from "./HomePCP";
 
 const HomeERP = () => {
   const [tela, setTela] = useState("Home");
   const [focusIndex, setFocusIndex] = useState(1);
+  const [aberto, setAberto] = useState(false);
   const carrosselRef = useRef(null);
 
   const botoes = [
     {
       label: "Produção (PCP)",
       action: () => setTela("PCP"),
-      dropdown: [{ nome: "Ir para Produção", acao: () => setTela("PCP") }],
+      dropdown: [
+        { nome: "Lançar Pedido", acao: () => setTela("PCP") },
+        { nome: "Alimentar Sabores", acao: () => alert("Em breve") },
+      ],
     },
     {
       label: "Financeiro (FinFlux)",
@@ -37,11 +40,12 @@ const HomeERP = () => {
     const novoIndex = focusIndex + direcao;
     if (novoIndex >= 0 && novoIndex < botoes.length) {
       setFocusIndex(novoIndex);
+      setAberto(false);
     }
   };
 
   useEffect(() => {
-    if (tela === "Home" && carrosselRef.current) {
+    if (carrosselRef.current) {
       const btns = carrosselRef.current.querySelectorAll(".carousel-button");
       const centralBtn = btns[focusIndex];
       if (centralBtn) {
@@ -50,223 +54,199 @@ const HomeERP = () => {
           centralBtn.offsetLeft -
           container.offsetWidth / 2 +
           centralBtn.offsetWidth / 2;
-
         container.scrollTo({ left: scrollLeft, behavior: "smooth" });
       }
     }
-  }, [focusIndex, tela]);
+  }, [focusIndex]);
 
-  if (tela === "PCP") {
-    return (
-      <div style={{ animation: "fadein 0.8s ease-in-out" }}>
-        <HomePCP />
-      </div>
-    );
-  }
+  if (tela === "PCP") return <HomePCP />;
 
   return (
-    <>
-      {/* === INÍCIO RT00 – Tela Inicial ERP === */}
-      <div
+    <div
+      style={{
+        backgroundImage: "url('/bg002.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        minHeight: "100vh",
+        position: "relative",
+        overflowX: "hidden",
+      }}
+    >
+      {/* Cabeçalho */}
+      <header
         style={{
-          backgroundImage: "url('/bg002.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          minHeight: "100vh",
+          height: "140px",
           display: "flex",
-          flexDirection: "column",
+          justifyContent: "space-between",
           alignItems: "center",
-          position: "relative",
+          padding: "0 1rem",
+          backgroundColor: "rgba(255,255,255,0.5)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
         }}
       >
-        {/* Cabeçalho */}
-        <header
+        <img
+          src="/LogomarcaDDnt2025Vazado.png"
+          alt="Logo"
+          style={{ width: "280px", marginTop: "3%" }}
+        />
+        <h1
           style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 10,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            height: "140px",
-            padding: "0 1rem",
-            backgroundColor: "rgba(255, 255, 255, 0.5)",
-            backdropFilter: "blur(6px)",
-            WebkitBackdropFilter: "blur(6px)",
+            fontSize: "2.6rem",
+            fontWeight: "bold",
+            color: "#8c3b1b",
+            marginRight: "2ch",
           }}
         >
-          <img
-            src="/LogomarcaDDnt2025Vazado.png"
-            alt="Logo Dudunitê"
-            style={{ width: "300px", marginTop: "4%" }}
-          />
-          <h1
-            style={{
-              color: "#8c3b1b",
-              fontSize: "2.6rem",
-              fontWeight: "bold",
-              marginRight: "2ch",
-            }}
-          >
-            <strong>ERP DUDUNITÊ</strong>
-          </h1>
-        </header>
+          ERP DUDUNITÊ
+        </h1>
+      </header>
 
-        {/* Setas de navegação */}
-        <button
-          onClick={() => moverCarrossel(-1)}
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "5%",
-            fontSize: "3rem",
-            background: "none",
-            border: "none",
-            color: "#fff",
-            zIndex: 5,
-          }}
-        >
-          ←
-        </button>
-        <button
-          onClick={() => moverCarrossel(1)}
-          style={{
-            position: "absolute",
-            top: "50%",
-            right: "5%",
-            fontSize: "3rem",
-            background: "none",
-            border: "none",
-            color: "#fff",
-            zIndex: 5,
-          }}
-        >
-          →
-        </button>
+      {/* Setas de navegação */}
+      <button
+        onClick={() => moverCarrossel(-1)}
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "2%",
+          fontSize: "4rem",
+          background: "none",
+          border: "none",
+          color: "#fff",
+          zIndex: 10,
+        }}
+      >
+        ←
+      </button>
+      <button
+        onClick={() => moverCarrossel(1)}
+        style={{
+          position: "absolute",
+          top: "50%",
+          right: "2%",
+          fontSize: "4rem",
+          background: "none",
+          border: "none",
+          color: "#fff",
+          zIndex: 10,
+        }}
+      >
+        →
+      </button>
 
-        {/* Carrossel */}
+      {/* Carrossel */}
+      <div
+        ref={carrosselRef}
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          overflowX: "auto",
+          scrollSnapType: "x mandatory",
+          marginTop: "160px",
+          padding: "2rem 0",
+        }}
+      >
         <div
-          ref={carrosselRef}
           style={{
-            marginTop: "180px",
-            width: "100%",
-            overflowX: "auto",
-            padding: "2rem 0",
             display: "flex",
-            justifyContent: "center",
-            scrollSnapType: "x mandatory",
+            gap: "3rem",
+            minWidth: "max-content",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              gap: "2rem",
-              padding: "1rem",
-              minWidth: "max-content",
-            }}
-          >
-            {botoes.map((btn, idx) => {
-              const isFocused = idx === focusIndex;
-              return (
-                <div
-                  key={idx}
-                  className="carousel-button"
+          {botoes.map((btn, idx) => {
+            const isFocused = idx === focusIndex;
+            return (
+              <div
+                key={idx}
+                className="carousel-button"
+                style={{
+                  scrollSnapAlign: "center",
+                  textAlign: "center",
+                  transform: isFocused ? "scale(1.3)" : "scale(1)",
+                  transition: "transform 0.4s ease",
+                }}
+              >
+                <button
+                  onClick={() => {
+                    btn.action();
+                    if (isFocused) setAberto(true);
+                  }}
                   style={{
-                    flexShrink: 0,
-                    scrollSnapAlign: "center",
-                    textAlign: "center",
-                    transition: "transform 0.4s ease",
-                    transform: isFocused ? "scale(1.3)" : "scale(0.7)",
+                    width: isFocused ? "390px" : "240px",
+                    height: isFocused ? "390px" : "240px",
+                    fontSize: isFocused ? "2.2rem" : "1.8rem",
+                    backgroundColor: isFocused ? "#8c3b1b" : "#e6cfc2",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "1rem",
+                    boxShadow: "6px 6px 12px rgba(0,0,0,0.3)",
+                    fontWeight: "bold",
+                    transition: "all 0.4s ease",
                   }}
                 >
-                  <button
-                    onClick={btn.action}
+                  {btn.label}
+                </button>
+
+                {/* Botões internos – só aparecem se clicado */}
+                {isFocused && aberto && (
+                  <div
                     style={{
-                      backgroundColor: isFocused ? "#8c3b1b" : "#e6cfc2",
-                      color: "white",
-                      width: isFocused ? "390px" : "200px",
-                      height: isFocused ? "390px" : "200px",
-                      borderRadius: "1rem",
-                      border: "none",
-                      fontSize: "1.6rem",
-                      fontWeight: "bold",
-                      boxShadow: isFocused
-                        ? "10px 10px 20px rgba(0,0,0,0.6)"
-                        : "4px 4px 8px rgba(0,0,0,0.3)",
-                      transition: "all 0.3s ease",
-                      zIndex: isFocused ? 2 : 1,
+                      marginTop: "195px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "1rem",
+                      alignItems: "center",
+                      transition: "all 0.5s ease-in-out",
                     }}
                   >
-                    {btn.label}
-                  </button>
-
-                  {/* Botões internos na vertical */}
-                  {isFocused && (
-                    <div
-                      style={{
-                        marginTop: "1rem",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: "0.6rem",
-                        transition: "all 0.4s ease-in-out",
-                      }}
-                    >
-                      {btn.dropdown.map((item, i) => (
-                        <button
-                          key={i}
-                          onClick={item.acao}
-                          style={{
-                            padding: "0.6rem 1.2rem",
-                            backgroundColor: "#fff",
-                            color: "#8c3b1b",
-                            borderRadius: "0.6rem",
-                            border: "1px solid #8c3b1b",
-                            fontWeight: "bold",
-                            cursor: "pointer",
-                            fontSize: "1.1rem",
-                            boxShadow: "2px 2px 6px rgba(0,0,0,0.2)",
-                          }}
-                        >
-                          {item.nome}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                    {btn.dropdown.map((op, i) => (
+                      <button
+                        key={i}
+                        onClick={op.acao}
+                        style={{
+                          padding: "0.8rem 1.2rem",
+                          fontSize: "1.2rem",
+                          borderRadius: "0.6rem",
+                          backgroundColor: "#fff",
+                          color: "#8c3b1b",
+                          border: "1px solid #8c3b1b",
+                          boxShadow: "2px 2px 6px rgba(0,0,0,0.2)",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {op.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-
-        {/* Rodapé */}
-        <footer
-          style={{
-            position: "absolute",
-            bottom: "70px",
-            width: "100%",
-            backgroundColor: "rgba(140, 59, 27, 0.4)",
-            color: "white",
-            padding: "1.4rem",
-            fontSize: "1.6rem",
-            textAlign: "center",
-          }}
-        >
-          <marquee behavior="scroll" direction="left">
-            • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
-            Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros
-            • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo •
-            Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
-          </marquee>
-        </footer>
       </div>
-      {/* === FIM RT00 === */}
-    </>
+
+      {/* Rodapé */}
+      <footer
+        style={{
+          position: "absolute",
+          bottom: "70px",
+          width: "100%",
+          backgroundColor: "rgba(140, 59, 27, 0.4)",
+          color: "white",
+          padding: "1.4rem",
+          fontSize: "1.6rem",
+          textAlign: "center",
+        }}
+      >
+        <marquee behavior="scroll" direction="left">
+          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
+          Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros •
+          Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato
+          Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
+        </marquee>
+      </footer>
+    </div>
   );
 };
 
 export default HomeERP;
-// === FIM HomeERP.jsx ===
