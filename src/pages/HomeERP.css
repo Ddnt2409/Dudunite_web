@@ -1,4 +1,4 @@
-/* === INÍCIO HomeERP.css === */
+/* === INÍCIO HomeERP.css Corrigido === */
 
 body,
 html {
@@ -6,6 +6,7 @@ html {
   padding: 0;
   height: 100%;
   font-family: Arial, sans-serif;
+  background: none !important; /* evita piscar outro fundo */
   background-image: url('/bg001.png');
   background-size: cover;
   background-position: center;
@@ -128,4 +129,4 @@ html {
   bottom: 0;
 }
 
-/* === FIM HomeERP.css === */
+/* === FIM HomeERP.css Corrigido === */
