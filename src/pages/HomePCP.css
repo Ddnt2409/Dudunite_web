@@ -56,7 +56,6 @@ main > div > div {
 /* === BOTÃO INATIVO – TRANSLÚCIDO === */
 .botao-inativo {
   opacity: 0.4;
-  pointer-events: none;
 }
 
 /* === HOVER === */
