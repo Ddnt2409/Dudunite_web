@@ -1,0 +1,296 @@
+---
+
+ERP Dudunitê – Sistema de Gestão de Produção e Finanças
+
+Sistema completo para controle de produção, planejamento, finanças e análise de resultado da fábrica Dudunitê. Desenvolvido em React com Firebase e Vercel, com layout responsivo para mobile e tablet.
+
+
+---
+
+📦 MÓDULO 1 – PRODUÇÃO (PCP)
+
+🧁 Tela Inicial – PCP
+
+Exibe dois botões centrais:
+
+Lançar Pedido
+
+Alimentar Sabores
+
+
+Interface
+
+Responsiva para mobile e tablet
+
+Background com fade em fotos reais
+
+Logomarca centralizada no cabeçalho
+
+Rodapé animado com status em tempo real dos pedidos
+
+
+Rodapé – Status em Tempo Real
+
+Animação da esquerda para a direita, exibindo:
+
+Nome do PDV
+
+Bolinha colorida com status do pedido
+
+
+Cores por status:
+
+Status	Cor	Código Hex
+
+PENDENTE DE LANÇAMENTO	Cinza Claro	#cccccc
+EM LANÇAMENTO	Azul Escuro	#003366
+AGUARDANDO SABORES	Amarelo	#facc15
+SABORIZANDO	Laranja	#f97316
+SABORIZADO	Verde Claro	#a3e635
+EM PRODUÇÃO	Roxo Médio	#8b5cf6
+PRODUZIDO	Verde Escuro	#15803d
+
+
+
+---
+
+📌 Botão: Lançar Pedido
+
+Campos:
+
+Cidade
+
+Ponto de Venda
+
+Tipo de Produto
+
+Quantidade
+
+Valor Unitário (puxa da Tabela de Preços do Módulo 2, mas é editável)
+
+Valor Total (calculado automaticamente)
+
+Forma de Pagamento:
+
+PIX
+
+Cartão
+
+Espécie
+
+Boleto
+
+
+
+Se for boleto:
+
+Exige upload de NOTA FISCAL e BOLETO
+
+
+Outros Recursos:
+
+Campo: Data de Vencimento
+
+Botão: Alterar Pedido
+
+Botão: Disparar Pedido (WhatsApp) – Gera recibo com todos os dados para o cliente
+
+Salva com status automático:
+PENDENTE DE LANÇAMENTO → EM LANÇAMENTO → AGUARDANDO SABORES
+
+
+Observação:
+
+Ao tentar salvar um novo pedido para um PDV que já tem pedido salvo na produção atual:
+
+Exibe: “Este ponto de venda já tem um pedido lançado nesta produção. Deseja continuar?”
+
+Se Sim → continua salvamento
+
+Se Não → cancela
+
+
+
+
+---
+
+🍫 Botão: Alimentar Sabores
+
+Exibe pedidos em post-its
+
+Seleção de sabores por produto
+
+Ordena: Cidade > PDV (ordem alfabética)
+
+Status: AGUARDANDO SABORES → SABORIZANDO → SABORIZADO
+
+
+
+---
+
+👩‍🍳 Tela Cozinha
+
+Filtro por: Cidade, PDV ou Tipo de Produto
+
+Exibe os pedidos prontos para produção
+
+Status: SABORIZADO → EM PRODUÇÃO → PRODUZIDO
+
+
+
+---
+
+📊 Status dos Pedidos
+
+Visível no rodapé e na tela de status geral. Mostra o status em tempo real de todos os PDVs.
+
+Na segunda-feira:
+
+Todos os PDVs aparecem com status: PENDENTE DE LANÇAMENTO
+
+Ao longo da semana, os pedidos feitos vão mudando os status dinamicamente
+
+
+Status considerados “em execução” (ex: EM LANÇAMENTO, SABORIZANDO) são atribuídos no momento de seleção do PDV (e não após salvar)
+
+
+---
+
+🧾 Relatórios
+
+📋 Planejamento de Produção
+
+Totaliza por tipo de produto
+
+Quantidade de tabuleiros
+
+Quantidade de bacias de recheios branco e preto
+
+
+🛒 Lista de Compras
+
+Gera automaticamente após saborização
+
+Baseia-se nos rendimentos padrões dos produtos
+
+Permite informar o valor unitário de cada insumo
+
+
+
+---
+
+💰 MÓDULO 2 – FINANCEIRO (FINFLUX)
+
+📥 Contas a Receber
+
+Tipos:
+
+Pedidos Acumulados: lançados no Módulo 1
+
+Vendas Avulsas: lançamentos manuais de varejo
+
+
+Campos:
+
+PDV ou Cliente
+
+Produto
+
+Quantidade
+
+Valor unitário (revenda ou varejo)
+
+Valor total
+
+Forma de recebimento (PIX, Espécie, Cartão, Boleto)
+
+Data de vencimento
+
+Data de lançamento
+
+Plano de Contas
+
+
+
+---
+
+📤 Contas a Pagar
+
+Cadastro de todas as despesas da empresa
+
+Possui campos:
+
+Tipo de lançamento (isolado, semanal, mensal, quinzenal)
+
+Data prevista
+
+Valor
+
+Plano de contas
+
+Observações
+
+
+
+
+---
+
+💼 Fluxo de Caixa
+
+Todas as linhas de receita e despesa aparecem com:
+
+Previsto / Realizado
+
+Cor e status visuais:
+
+Receita prevista: texto azul
+
+Receita realizada: fundo azul bebê
+
+Despesa prevista: texto vermelho
+
+Despesa realizada: fundo vermelho claro
+
+
+Agrupamento por data e tipo
+
+
+
+
+---
+
+📈 MÓDULO 3 – ANÁLISE DE CUSTOS
+
+Analisa rentabilidade por produto, cidade e PDV
+
+Compara:
+
+Valor de venda (tabela de preços)
+
+Valor de custo por item
+
+Custos indiretos: gás, mão de obra, combustível
+
+
+
+Baseado em:
+
+Receita própria por tipo de produto
+
+Rendimento padrão por tabuleiro e bacia
+
+Compras informadas pelo Módulo de Compras
+
+
+
+---
+
+📌 PADRÕES ADOTADOS
+
+Arquitetura por módulos separados
+
+FNs nomeadas sequencialmente (FN01, FN02...)
+
+RTs nomeadas por função: RT00 (PCP), RR01 (Receber), RP01 (Pagar), etc.
+
+Status sempre salvos em campo próprio do Firebase
