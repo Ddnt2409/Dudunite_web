@@ -1,94 +1,93 @@
 /* === FORÇAR DESATIVAR CARROSSEL === */
 main > div {
-flex-direction: column !important;
-align-items: center !important;
-justify-content: flex-start !important;
-overflow-x: unset !important;
-scroll-snap-type: none !important;
-padding: 2rem 1rem !important;
-gap: 2.5rem !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  overflow-x: unset !important;
+  scroll-snap-type: none !important;
+  padding: 2rem 1rem !important;
+  gap: 2.5rem !important;
 }
 
 /* === FORÇAR BOTÕES EM 2 LINHAS === */
 main > div > div {
-display: flex !important;
-flex-wrap: wrap !important;
-justify-content: center !important;
-gap: 2rem !important;
-max-width: 100% !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 2rem !important;
+  max-width: 100% !important;
 }
 
-/* === BOTÕES INDIVIDUAIS (com aumento de 40% na largura) === /
+/* === BOTÕES INDIVIDUAIS (com aumento de 40% na largura) === */
 .botao-principal {
-background-color: #8c3b1b;
-color: white;
-font-size: 2.2rem;
-width: 432px;               / AUMENTADO: 220px + 40% = 308 → 432px /
-height: 220px;              / ALTURA MANTIDA */
-font-weight: bold;
-border-radius: 1rem;
-border: none;
-transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
-white-space: pre-line;
-box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-text-align: center;
-display: flex;
-justify-content: center;
-align-items: center;
-min-width: 432px;
-max-width: 432px;
-flex-shrink: 0;
+  background-color: #8c3b1b;
+  color: white;
+  font-size: 2.2rem;
+  width: 432px;               /* AUMENTADO: 220px + 40% = 308 → 432px */
+  height: 220px;              /* ALTURA MANTIDA */
+  font-weight: bold;
+  border-radius: 1rem;
+  border: none;
+  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
+  white-space: pre-line;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 432px;
+  max-width: 432px;
+  flex-shrink: 0;
 }
 
 /* === ZOOM ATIVO / TRANSLÚCIDO INATIVO === */
 .botao-ativo {
-transform: scale(1.12);
-box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
+  transform: scale(1.12);
+  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
 }
 
 .botao-inativo {
-opacity: 0.4;
-pointer-events: none;
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 /* === HOVER === */
 .botao-principal:hover {
-transform: scale(1.15);
-background-color: #a3471f;
+  transform: scale(1.15);
+  background-color: #a3471f;
 }
 
 /* === DROPDOWN INTERNO === */
 .dropdown-interno {
-margin-top: 0.8rem;
-display: flex;
-flex-direction: column;
-gap: 0.5rem;
-align-items: center;
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .dropdown-interno button {
-background-color: #fff;
-color: #8c3b1b;
-font-weight: bold;
-font-size: 1.56rem;
-padding: 0.7rem 1.3rem;
-border-radius: 0.5rem;
-border: 2px solid #8c3b1b;
-transition: background-color 0.3s;
+  background-color: #fff;
+  color: #8c3b1b;
+  font-weight: bold;
+  font-size: 1.56rem;
+  padding: 0.7rem 1.3rem;
+  border-radius: 0.5rem;
+  border: 2px solid #8c3b1b;
+  transition: background-color 0.3s;
 }
 
 .dropdown-interno button:hover {
-background-color: #8c3b1b;
-color: white;
+  background-color: #8c3b1b;
+  color: white;
 }
 
 /* === RODAPÉ === */
 footer {
-background-color: rgba(140, 59, 27, 0.4);
-color: #ffffff;
-padding: 1rem;
-font-size: 1.2rem;
-text-align: center;
-margin-top: 2rem;
-}
-
+  background-color: rgba(140, 59, 27, 0.4);
+  color: #ffffff;
+  padding: 1rem;
+  font-size: 1.2rem;
+  text-align: center;
+  margin-top: 2rem;
+  }
