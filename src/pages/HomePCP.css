@@ -1,115 +1,102 @@
-/* === HOMEPCP – Estilo Exclusivo da Tela de Planejamento de Produção === */
+/* === PCP CSS FINAL – PADRÃO BASE COM ZOOM E TRANSLÚCIDO === */
 
-/* Fundo da tela */
-.home-pcp {
-  min-height: 100vh;
-  background-image: url('/fundopcp.jpg');
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 0;
-  margin: 0;
+/* === FORÇAR DESATIVAR CARROSSEL === */
+main > div {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  overflow-x: unset !important;
+  scroll-snap-type: none !important;
+  padding: 2rem 1rem !important;
+  gap: 2.5rem !important;
 }
 
-/* Cabeçalho */
-.cabecalho-home {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: rgba(255, 255, 255, 0.85);
-  padding: 0.8rem 1rem;
-  font-weight: bold;
-  font-size: 1rem;
-  color: #8c3b1b;
+/* === FORÇAR BOTÕES EM 2 LINHAS === */
+main > div > div {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 2rem !important;
+  max-width: 100% !important;
 }
 
-.logo-home {
-  height: 40px;
-}
-
-/* Container dos botões centrais */
-.botoes-centrais {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3rem;
-  padding-bottom: 6vh;
-  margin-top: 5vh;
-}
-
-/* Botão padrão */
+/* === BOTÕES INDIVIDUAIS (largura +40%) === */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
+  font-size: 2.2rem;
+  width: 450px;
+  height: 220px;
   font-weight: bold;
+  border-radius: 1rem;
   border: none;
-  border-radius: 12px;
-  padding: 2.2rem 2.5rem;
-  font-size: 1.3rem;
-  width: 431px; /* 308px + 40% */
-  max-width: 90vw;
-  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-}
-
-/* Ao passar o mouse */
-.botao-principal:hover {
-  cursor: pointer;
-  transform: scale(1.03);
-}
-
-/* Botão ativo */
-.botao-ativo {
-  transform: scale(1.05);
-  opacity: 1;
-  transition: all 0.3s ease;
-}
-
-/* Botão inativo – aplica translúcido */
-.botao-inativo {
-  opacity: 0.4;
-  pointer-events: none;
-  transform: scale(1);
-}
-
-/* Forçar efeito mesmo se houver conflito com outras classes */
-.botao-principal.botao-inativo {
-  opacity: 0.4 !important;
-  pointer-events: none !important;
-  transform: scale(1) !important;
-  background-color: #8c3b1b !important;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2) !important;
-}
-
-/* Rodapé */
-.rodape-home {
+  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
+  white-space: pre-line;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
-  font-size: 0.85rem;
-  color: white;
-  background-color: #8c3b1b;
-  padding: 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 450px;
+  max-width: 450px;
+  flex-shrink: 0;
+  opacity: 0.35;
+  pointer-events: none;
 }
 
-/* Ajustes específicos para mobile */
-@media (max-width: 600px) {
+/* === BOTÃO ATIVO – ZOOM e COR DESTACADA === */
+.botao-ativo {
+  transform: scale(1.12);
+  background-color: #a3471f;
+  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* === HOVER === */
+.botao-principal:hover {
+  transform: scale(1.15);
+  background-color: #a3471f;
+}
+
+/* === DROPDOWN INTERNO === */
+.dropdown-interno {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dropdown-interno button {
+  background-color: #fff;
+  color: #8c3b1b;
+  font-weight: bold;
+  font-size: 1.56rem;
+  padding: 0.7rem 1.3rem;
+  border-radius: 0.5rem;
+  border: 2px solid #8c3b1b;
+  transition: background-color 0.3s;
+}
+
+.dropdown-interno button:hover {
+  background-color: #8c3b1b;
+  color: white;
+}
+
+/* === RODAPÉ === */
+footer {
+  background-color: rgba(140, 59, 27, 0.4);
+  color: #ffffff;
+  padding: 1rem;
+  font-size: 1.2rem;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+/* === RESPONSIVO MOBILE E TABLET === */
+@media (max-width: 1024px) {
   .botao-principal {
-    font-size: 1.1rem;
-    padding: 2rem 2.2rem;
-    width: 90vw;
-  }
-
-  .cabecalho-home {
-    font-size: 0.9rem;
-    padding: 0.6rem 1rem;
-  }
-
-  .rodape-home {
-    font-size: 0.75rem;
+    margin-top: 4vh !important;
   }
 }
