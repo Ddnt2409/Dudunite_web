@@ -1,52 +1,24 @@
-/* === GERAL === */
-html, body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Arial', sans-serif;
-  background-color: #fff5ec;
-  background-image: url('/bg002.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  min-height: 100vh;
+/* === FORÇAR DESATIVAR CARROSSEL === */
+main > div {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  overflow-x: unset !important;
+  scroll-snap-type: none !important;
+  padding: 2rem 1rem !important;
+  gap: 2.5rem !important;
 }
 
-/* === CABEÇALHO === */
-header {
-  height: 100px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 1rem;
-  background-color: rgba(255,255,255,0.5);
-  backdrop-filter: blur(6px);
+/* === FORÇAR BOTÕES EM 2 LINHAS === */
+main > div > div {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 2rem !important;
+  max-width: 100% !important;
 }
 
-/* === CONTAINER PRINCIPAL DE BOTÕES === */
-.botoes-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2.5rem;
-  padding: 2rem 1rem;
-}
-
-/* === LINHA SUPERIOR: 3 botões lado a lado === */
-.linha-superior {
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-/* === LINHA INFERIOR: botão Cozinha centralizado === */
-.linha-inferior {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
-}
-
-/* === BOTÕES PADRÃO === */
+/* === BOTÕES INDIVIDUAIS === */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
@@ -56,7 +28,7 @@ header {
   font-weight: bold;
   border-radius: 1rem;
   border: none;
-  transition: transform 0.3s ease, background-color 0.3s ease;
+  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
   white-space: pre-line;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
@@ -65,13 +37,12 @@ header {
   align-items: center;
 }
 
-/* === ZOOM QUANDO ATIVO === */
+/* === ZOOM ATIVO / TRANSLÚCIDO INATIVO === */
 .botao-ativo {
   transform: scale(1.12);
   box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* === TRANSLÚCIDO QUANDO INATIVO === */
 .botao-inativo {
   opacity: 0.4;
   pointer-events: none;
@@ -83,7 +54,7 @@ header {
   background-color: #a3471f;
 }
 
-/* === DROPDOWN === */
+/* === DROPDOWN INTERNO === */
 .dropdown-interno {
   margin-top: 0.8rem;
   display: flex;
