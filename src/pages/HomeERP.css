@@ -1,89 +1,72 @@
-/* === FORÇAR DESATIVAR CARROSSEL === */
-main > div {
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  overflow-x: unset !important;
-  scroll-snap-type: none !important;
-  padding: 2rem 1rem !important;
-  gap: 2.5rem !important;
+/* Plano de fundo e estrutura */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* === FORÇAR BOTÕES EM 2 LINHAS === */
-main > div > div {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: center !important;
-  gap: 2rem !important;
-  max-width: 100% !important;
+/* Fade-out para transição de telas */
+.fade-out {
+  animation: fadeOut 0.5s forwards;
 }
 
-/* === BOTÕES INDIVIDUAIS === */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Botão principal */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
-  font-size: 1.9rem;
-  width: 220px;
-  height: 220px;
   font-weight: bold;
-  border-radius: 1rem;
   border: none;
-  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
-  white-space: pre-line;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 1rem;
+  padding: 2rem 3rem; /* 25% vertical / 150% horizontal */
+  font-size: 1.3rem;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+  min-width: 180px;
   text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  white-space: pre-line;
+  opacity: 0.5;
 }
 
-/* === ZOOM ATIVO / TRANSLÚCIDO INATIVO === */
+/* Quando botão está ativo */
 .botao-ativo {
-  transform: scale(1.12);
-  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
-}
-
-.botao-inativo {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-/* === HOVER === */
-.botao-principal:hover {
   transform: scale(1.15);
-  background-color: #a3471f;
+  opacity: 1 !important;
 }
 
-/* === DROPDOWN INTERNO === */
+/* Quando botão está inativo */
+.botao-inativo {
+  opacity: 0.5 !important;
+}
+
+/* Dropdown abaixo dos botões */
 .dropdown-interno {
-  margin-top: 0.8rem;
   display: flex;
   flex-direction: column;
+  margin-top: 0.8rem;
   gap: 0.5rem;
-  align-items: center;
 }
 
 .dropdown-interno button {
-  background-color: #fff;
+  background-color: white;
   color: #8c3b1b;
-  font-weight: bold;
-  padding: 0.5rem 1rem;
+  border: 1px solid #8c3b1b;
   border-radius: 0.5rem;
-  border: 2px solid #8c3b1b;
-  transition: background-color 0.3s;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .dropdown-interno button:hover {
-  background-color: #8c3b1b;
-  color: white;
-}
-
-/* === RODAPÉ === */
-footer {
-  background-color: rgba(140, 59, 27, 0.4);
-  color: #ffffff;
-  padding: 1rem;
-  font-size: 1.2rem;
-  text-align: center;
-  margin-top: 2rem;
+  background-color: #fbeee0;
 }
