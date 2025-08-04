@@ -23,7 +23,7 @@ main > div > div {
   background-color: #8c3b1b;
   color: white;
   font-size: 2.2rem;
-  width: 450px;                /* 220px + 40% */
+  width: 450px;                /* 320px + 40% */
   height: 220px;               /* ALTURA MANTIDA */
   font-weight: bold;
   border-radius: 1rem;
@@ -43,7 +43,7 @@ main > div > div {
 /* === ZOOM ATIVO / COR DESTACADA === */
 .botao-ativo {
   transform: scale(1.12);
-  background-color: #a3471f; /* mesma cor do hover */
+  background-color: #a3471f;
   box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
 }
 
