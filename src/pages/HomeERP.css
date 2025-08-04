@@ -1,30 +1,29 @@
-/* === PCP CSS FINAL – PADRÃO BASE COM ZOOM E TRANSLÚCIDO === */
+/* === ERP CSS FINAL – PADRÃO BASE COM ZOOM E TRANSLÚCIDO (AMARELO) === */
 
-/* === FORÇAR DESATIVAR CARROSSEL === */
+/* === BOTÕES ERP EM CARROSSEL HORIZONTAL (mantém efeito original) === */
 main > div {
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  overflow-x: unset !important;
-  scroll-snap-type: none !important;
-  padding: 2rem 1rem !important;
-  gap: 2.5rem !important;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 2rem 1rem;
+  gap: 3rem;
 }
 
-/* === FORÇAR BOTÕES EM 2 LINHAS === */
+/* === CONTAINER DE BOTÕES ERP === */
 main > div > div {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: center !important;
-  gap: 2rem !important;
-  max-width: 100% !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  scroll-snap-align: center;
 }
 
-/* === BOTÕES INDIVIDUAIS (largura +40%) === */
+/* === BOTÕES INDIVIDUAIS ERP === */
 .botao-principal {
-  background-color: #8c3b1b;
-  color: white;
-  font-size: 2.2rem;
+  background-color: #facc15; /* Amarelo */
+  color: #000000;
+  font-size: 2rem;
   width: 450px;
   height: 220px;
   font-weight: bold;
@@ -44,28 +43,29 @@ main > div > div {
   pointer-events: auto;
 }
 
-/* === BOTÃO ATIVO – ZOOM e COR DESTACADA === */
+/* === BOTÃO ATIVO ERP === */
 .botao-ativo {
   transform: scale(1.12);
-  background-color: #a3471f;
+  background-color: #facc15; /* Mesmo amarelo */
   box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
   opacity: 1;
   pointer-events: auto;
 }
 
-/* === BOTÃO INATIVO – TRANSLÚCIDO === */
+/* === BOTÃO INATIVO ERP === */
 .botao-inativo {
+  background-color: #facc15;
   opacity: 0.4;
   pointer-events: none;
 }
 
-/* === HOVER === */
+/* === HOVER ERP === */
 .botao-principal:hover {
   transform: scale(1.15);
-  background-color: #a3471f;
+  background-color: #facc15;
 }
 
-/* === DROPDOWN INTERNO === */
+/* === DROPDOWN INTERNO ERP === */
 .dropdown-interno {
   margin-top: 0.8rem;
   display: flex;
@@ -75,22 +75,22 @@ main > div > div {
 }
 
 .dropdown-interno button {
-  background-color: #fff;
+  background-color: #fffbea;
   color: #8c3b1b;
   font-weight: bold;
-  font-size: 1.56rem;
+  font-size: 1.5rem;
   padding: 0.7rem 1.3rem;
   border-radius: 0.5rem;
-  border: 2px solid #8c3b1b;
+  border: 2px solid #facc15;
   transition: background-color 0.3s;
 }
 
 .dropdown-interno button:hover {
-  background-color: #8c3b1b;
-  color: white;
+  background-color: #facc15;
+  color: black;
 }
 
-/* === RODAPÉ === */
+/* === RODAPÉ ERP === */
 footer {
   background-color: rgba(140, 59, 27, 0.4);
   color: #ffffff;
@@ -100,7 +100,7 @@ footer {
   margin-top: 2rem;
 }
 
-/* === RESPONSIVO MOBILE E TABLET === */
+/* === RESPONSIVO ERP === */
 @media (max-width: 1024px) {
   .botao-principal {
     margin-top: 4vh !important;
