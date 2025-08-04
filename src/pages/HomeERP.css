@@ -94,7 +94,7 @@ footer {
 
 /* === DESCER BOTÕES 15% EM MOBILE E TABLET === */
 @media (max-width: 1024px) {
-  main > div {
-    padding-top: 40vh;
+  .botao-principal {
+    margin-top: 20vh !important;
   }
 }
