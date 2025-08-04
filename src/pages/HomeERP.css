@@ -1,5 +1,6 @@
-/* === FORÇAR DESATIVAR CARROSSEL === */
+/* === FORÇAR DESATIVAR CARROSSEL (TODAS AS TELAS) === */
 main > div {
+  display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: flex-start !important;
@@ -7,6 +8,14 @@ main > div {
   scroll-snap-type: none !important;
   padding: 2rem 1rem !important;
   gap: 2.5rem !important;
+}
+
+/* === CENTRALIZAR VERTICAL APENAS EM MOBILE E TABLET === */
+@media (max-width: 1024px) {
+  main > div {
+    justify-content: center !important;
+    min-height: 100vh !important;
+  }
 }
 
 /* === FORÇAR BOTÕES EM 2 LINHAS === */
@@ -23,8 +32,8 @@ main > div > div {
   background-color: #8c3b1b;
   color: white;
   font-size: 2.2rem;
-  width: 432px;               /* AUMENTADO: 220px + 40% = 308 → 432px */
-  height: 220px;              /* ALTURA MANTIDA */
+  width: 308px;                /* 220px + 40% */
+  height: 220px;               /* ALTURA MANTIDA */
   font-weight: bold;
   border-radius: 1rem;
   border: none;
@@ -35,8 +44,8 @@ main > div > div {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-width: 432px;
-  max-width: 432px;
+  min-width: 308px;
+  max-width: 308px;
   flex-shrink: 0;
 }
 
