@@ -1,11 +1,10 @@
 /* === GERAL === */
 html, body {
-  height: 100%;
   margin: 0;
   padding: 0;
   font-family: 'Arial', sans-serif;
   background-color: #fff5ec;
-  background-image: url('/bg002.png'); /* Ajuste conforme necessário */
+  background-image: url('/bg002.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -23,17 +22,7 @@ header {
   backdrop-filter: blur(6px);
 }
 
-.logo {
-  height: 48px;
-}
-
-.titulo {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #8c3b1b;
-}
-
-/* === BOTÕES PRINCIPAIS === */
+/* === CONTAINER PRINCIPAL DE BOTÕES === */
 .botoes-container {
   display: flex;
   flex-direction: column;
@@ -42,18 +31,22 @@ header {
   padding: 2rem 1rem;
 }
 
+/* === LINHA SUPERIOR: 3 botões lado a lado === */
 .linha-superior {
   display: flex;
-  justify-content: center;
   gap: 2rem;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
+/* === LINHA INFERIOR: botão Cozinha centralizado === */
 .linha-inferior {
+  display: flex;
+  justify-content: center;
   margin-top: 1rem;
 }
 
-/* === BOTÃO PADRÃO === */
+/* === BOTÕES PADRÃO === */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
@@ -72,13 +65,13 @@ header {
   align-items: center;
 }
 
-/* === BOTÃO ATIVO (DESTACADO) === */
+/* === ZOOM QUANDO ATIVO === */
 .botao-ativo {
   transform: scale(1.12);
   box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* === BOTÃO INATIVO (TRANSLÚCIDO) === */
+/* === TRANSLÚCIDO QUANDO INATIVO === */
 .botao-inativo {
   opacity: 0.4;
   pointer-events: none;
@@ -90,7 +83,7 @@ header {
   background-color: #a3471f;
 }
 
-/* === DROPDOWN INTERNO === */
+/* === DROPDOWN === */
 .dropdown-interno {
   margin-top: 0.8rem;
   display: flex;
