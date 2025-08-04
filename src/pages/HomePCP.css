@@ -1,7 +1,4 @@
-/* === TESTE DE CARREGAMENTO === */
-body {
-  border: 5px solid red !important;
-}
+/* === PCP CSS FINAL – PADRÃO BASE COM ZOOM E TRANSLÚCIDO === */
 
 /* === FORÇAR DESATIVAR CARROSSEL === */
 main > div {
@@ -43,6 +40,8 @@ main > div > div {
   min-width: 450px;
   max-width: 450px;
   flex-shrink: 0;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* === BOTÃO ATIVO – ZOOM e COR DESTACADA === */
@@ -50,6 +49,8 @@ main > div > div {
   transform: scale(1.12);
   background-color: #a3471f;
   box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* === BOTÃO INATIVO – TRANSLÚCIDO === */
