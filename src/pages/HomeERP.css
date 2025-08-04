@@ -24,7 +24,7 @@ main > div > div {
   color: white;
   font-size: 2.2rem;           /* AUMENTADO */
   width: 308px;                /* 220 + 40% */
-  height: 220px;               /* MANTIDA */
+  height: 220px;
   font-weight: bold;
   border-radius: 1rem;
   border: none;
@@ -67,8 +67,8 @@ main > div > div {
   background-color: #fff;
   color: #8c3b1b;
   font-weight: bold;
-  font-size: 1.3rem;          /* AUMENTADO */
-  padding: 0.6rem 1.2rem;
+  font-size: 1.56rem;           /* AUMENTADO 20% */
+  padding: 0.7rem 1.3rem;       /* AUMENTADO */
   border-radius: 0.5rem;
   border: 2px solid #8c3b1b;
   transition: background-color 0.3s;
