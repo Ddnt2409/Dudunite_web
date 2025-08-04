@@ -1,6 +1,8 @@
-/* === FUNDO GERAL === */
-body {
+/* === GERAL === */
+html, body {
+  height: 100%;
   margin: 0;
+  padding: 0;
   font-family: 'Arial', sans-serif;
   background-color: #fff5ec;
   background-image: url('/background.jpg'); /* ajuste conforme necessário */
@@ -30,26 +32,18 @@ header {
   color: #8c3b1b;
 }
 
-/* === CONTAINER CENTRAL ERP === */
+/* === CONTAINER GERAL === */
 .container-central {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  justify-content: center;
-  gap: 2rem;
-  padding: 2rem;
-  min-height: calc(100vh - 140px);
-}
-
-/* === LINHA SUPERIOR DOS BOTÕES (3 lado a lado) === */
-.linha-botoes {
-  display: flex;
-  justify-content: center;
   gap: 2rem;
   flex-wrap: wrap;
+  padding: 2rem;
+  min-height: calc(100vh - 140px); /* header + footer */
 }
 
-/* === BOTÃO PRINCIPAL – ESTILO PADRÃO === */
+/* === BOTÕES ERP E PCP === */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
@@ -68,7 +62,17 @@ header {
   align-items: center;
 }
 
-/* === BOTÃO MAIOR – USADO NA PCP === */
+.botao-principal:hover {
+  transform: scale(1.15);
+  background-color: #a3471f;
+}
+
+.botao-inativo {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* === TAMANHO ESPECIAL DOS BOTÕES PCP === */
 .tela-pcp .botao-principal {
   font-size: 3rem;
   width: 360px;
@@ -76,32 +80,46 @@ header {
   box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* === BOTÃO INATIVO – Translúcido === */
-.botao-inativo {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* === BOTÃO HOVER === */
-.botao-principal:hover {
-  transform: scale(1.15);
-  background-color: #a3471f;
-}
-
-/* === BOTÃO COZINHA (centralizado abaixo) === */
-.botao-cozinha {
-  margin-top: 1.5rem;
-  align-self: center;
-}
-
-/* === CONTAINER PCP === */
+/* === ORGANIZAÇÃO DOS BOTÕES: 3 cima + 1 baixo === */
 .tela-pcp {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  flex-direction: row;
   gap: 2rem;
   height: 100vh;
+}
+
+.linha-superior {
+  display: flex;
+  gap: 2rem;
+}
+
+.botao-cozinha {
+  margin-top: 1.5rem;
+}
+
+/* === DROPDOWN INTERNO === */
+.dropdown-interno {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dropdown-interno button {
+  background-color: #fff;
+  color: #8c3b1b;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid #8c3b1b;
+  transition: background-color 0.3s;
+}
+
+.dropdown-interno button:hover {
+  background-color: #8c3b1b;
+  color: white;
 }
 
 /* === RODAPÉ === */
