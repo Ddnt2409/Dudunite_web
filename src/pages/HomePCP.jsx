@@ -47,41 +47,41 @@ const HomePCP = () => {
       </header>
       {/* === FIM HEADER === */}
 
-      {/* === INÍCIO CONTEÚDO PRINCIPAL === */}
-      <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "3rem",
-            marginTop: "4rem",
-            flexWrap: "wrap",
-          }}
-        >
-          <button
-            className={`botao-principal ${
-              tela === "lancamento" ? "botao-ativo" : ""
-            }`}
-            onClick={() => setTela("lancamento")}
-          >
-            📝
-            <br />
-            Lançar Pedido
-          </button>
+{/* === INÍCIO CONTEÚDO PRINCIPAL === */}
+<main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      gap: "3rem",
+      marginTop: "4rem",
+      flexWrap: "wrap",
+    }}
+  >
+    <button
+      className={`botao-principal ${
+        tela === "lancamento" ? "botao-ativo" : "botao-inativo"
+      }`}
+      onClick={() => setTela("lancamento")}
+    >
+      📝
+      <br />
+      Lançar Pedido
+    </button>
 
-          <button
-            className={`botao-principal ${
-              tela === "sabores" ? "botao-ativo" : ""
-            }`}
-            onClick={() => setTela("sabores")}
-          >
-            🍫
-            <br />
-            Alimentar Sabores
-          </button>
-        </div>
-      </main>
-      {/* === FIM CONTEÚDO PRINCIPAL === */}
+    <button
+      className={`botao-principal ${
+        tela === "sabores" ? "botao-ativo" : "botao-inativo"
+      }`}
+      onClick={() => setTela("sabores")}
+    >
+      🍫
+      <br />
+      Alimentar Sabores
+    </button>
+  </div>
+</main>
+{/* === FIM CONTEÚDO PRINCIPAL === */}
 
       {/* === INÍCIO RODAPÉ === */}
       <footer
