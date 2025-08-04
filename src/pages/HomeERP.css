@@ -1,106 +1,117 @@
-/* === AJUSTE GLOBAL PARA ALTURA === */
-html, body {
-  height: 100%;
+/* === FUNDO GERAL === */
+body {
   margin: 0;
-  padding: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #fff5ec;
+  background-image: url('/background.jpg'); /* ajuste conforme necessário */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
 }
 
-/* === CONTAINER PCP CENTRALIZADO === */
-.container-pcp {
+/* === CABEÇALHO === */
+header {
   display: flex;
-  flex-direction: column;
-  justify-content: center;   /* Centraliza vertical */
-  align-items: center;       /* Centraliza horizontal */
-  min-height: 100vh;         /* Garante altura total da tela */
-  gap: 2rem;
-  position: relative;
-  z-index: 1;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff5ec;
+  padding: 0.8rem 1.5rem;
+  border-bottom: 1px solid #ccc;
 }
 
-/* === CONTAINER ERP === */
-.container-erp {
+.logo {
+  height: 48px;
+}
+
+.titulo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #8c3b1b;
+}
+
+/* === CONTAINER CENTRAL ERP === */
+.container-central {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2rem;
-  padding-top: 3rem;
+  padding: 2rem;
+  min-height: calc(100vh - 140px);
 }
 
-/* === BOTÕES ERP – 30% maiores === */
-.botao-principal-erp {
+/* === LINHA SUPERIOR DOS BOTÕES (3 lado a lado) === */
+.linha-botoes {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* === BOTÃO PRINCIPAL – ESTILO PADRÃO === */
+.botao-principal {
   background-color: #8c3b1b;
   color: white;
-  font-size: 1.8rem;
-  font-weight: bold;
+  font-size: 1.95rem;
   width: 234px;
   height: 234px;
+  font-weight: bold;
   border-radius: 1rem;
   border: none;
   transition: transform 0.3s ease, background-color 0.3s ease;
   white-space: pre-line;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* === BOTÕES PCP – 100% maiores === */
-.botao-principal-pcp {
-  background-color: #8c3b1b;
-  color: white;
-  font-size: 2rem;
-  font-weight: bold;
+/* === BOTÃO MAIOR – USADO NA PCP === */
+.tela-pcp .botao-principal {
+  font-size: 3rem;
   width: 360px;
   height: 360px;
-  border-radius: 1rem;
-  border: none;
-  transition: transform 0.3s ease, background-color 0.3s ease;
-  white-space: pre-line;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* === ZOOM AO CLICAR === */
-.botao-ativo {
-  transform: scale(1.2);
+/* === BOTÃO INATIVO – Translúcido === */
+.botao-inativo {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* === BOTÃO HOVER === */
+.botao-principal:hover {
+  transform: scale(1.15);
   background-color: #a3471f;
 }
 
-/* === INATIVO === */
-.botao-inativo {
-  opacity: 0.7;
-  background-color: #8c3b1b;
+/* === BOTÃO COZINHA (centralizado abaixo) === */
+.botao-cozinha {
+  margin-top: 1.5rem;
+  align-self: center;
 }
 
-/* === DROPDOWN INTERNO (se aplicável) === */
-.dropdown-interno {
-  margin-top: 0.8rem;
+/* === CONTAINER PCP === */
+.tela-pcp {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap: 2rem;
+  height: 100vh;
 }
 
-.dropdown-interno button {
-  background-color: #fff;
-  color: #8c3b1b;
-  font-weight: bold;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  border: 2px solid #8c3b1b;
-  transition: background-color 0.3s;
-}
-
-.dropdown-interno button:hover {
+/* === RODAPÉ === */
+footer {
   background-color: #8c3b1b;
   color: white;
-}
-
-/* === ANIMAÇÃO DE FADE === */
-.fade-out {
-  animation: fadeOut 0.5s ease forwards;
-}
-
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+  text-align: center;
+  padding: 0.8rem;
+  font-size: 0.85rem;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
 }
