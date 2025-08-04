@@ -16,18 +16,15 @@ main > div > div {
   justify-content: center !important;
   gap: 2rem !important;
   max-width: 100% !important;
-  width: 100% !important;
 }
 
-/* === BOTÕES INDIVIDUAIS === */
+/* === BOTÕES INDIVIDUAIS (com aumento de 40% na largura) === */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
   font-size: 2.2rem;
-  width: 308px !important;      /* AUMENTADO E FORÇADO */
-  min-width: 308px !important;  /* GARANTE LARGURA MÍNIMA */
-  max-width: 308px !important;  /* BLOQUEIA REDUÇÃO */
-  height: 220px;
+  width: 308px;                /* 220px + 40% */
+  height: 220px;               /* ALTURA MANTIDA */
   font-weight: bold;
   border-radius: 1rem;
   border: none;
@@ -38,7 +35,9 @@ main > div > div {
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-shrink: 0 !important;    /* IMPDE REDUÇÃO PELO FLEX */
+  min-width: 308px;
+  max-width: 308px;
+  flex-shrink: 0;
 }
 
 /* === ZOOM ATIVO / TRANSLÚCIDO INATIVO === */
