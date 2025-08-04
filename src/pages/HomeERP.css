@@ -5,7 +5,7 @@ html, body {
   padding: 0;
   font-family: 'Arial', sans-serif;
   background-color: #fff5ec;
-  background-image: url('/background.jpg'); /* ajuste conforme necessário */
+  background-image: url('/background.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -40,7 +40,7 @@ header {
   gap: 2rem;
   flex-wrap: wrap;
   padding: 2rem;
-  min-height: calc(100vh - 140px); /* header + footer */
+  min-height: calc(100vh - 140px);
 }
 
 /* === BOTÕES ERP E PCP === */
@@ -86,17 +86,20 @@ header {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 2rem;
   height: 100vh;
 }
 
-.linha-superior {
+.tela-pcp > div:nth-child(-n+3) {
   display: flex;
   gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-.botao-cozinha {
-  margin-top: 1.5rem;
+.tela-pcp > div:nth-child(4) {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
 }
 
 /* === DROPDOWN INTERNO === */
