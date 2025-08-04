@@ -1,15 +1,36 @@
-/* === PCP CSS – TESTE COM BOTÕES AMARELOS === */
+/* === HOME PCP CSS FINAL – REPLICADO E ISOLADO === */
 
-/* === BOTÕES GERAIS (INATIVOS) === */
+/* === FORÇAR DESATIVAR CARROSSEL === */
+main > div {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  overflow-x: unset !important;
+  scroll-snap-type: none !important;
+  padding: 2rem 1rem !important;
+  gap: 2.5rem !important;
+}
+
+/* === FORÇAR BOTÕES EM 2 LINHAS === */
+main > div > div {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 2rem !important;
+  max-width: 100% !important;
+}
+
+/* === BOTÕES INDIVIDUAIS (largura +40%) === */
 .botao-principal {
-  background-color: #f2c300; /* Amarelo vivo */
-  color: #4a2e00;
+  background-color: #8c3b1b;
+  color: white;
   font-size: 2.2rem;
   width: 450px;
   height: 220px;
   font-weight: bold;
   border-radius: 1rem;
   border: none;
+  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
   white-space: pre-line;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
@@ -19,35 +40,69 @@
   min-width: 450px;
   max-width: 450px;
   flex-shrink: 0;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-  opacity: 0.3;
-  pointer-events: none;
-  filter: blur(0.2px);
-}
-
-/* === ATIVO – Destaca o botão === */
-.botao-principal.botao-ativo {
   opacity: 1;
   pointer-events: auto;
-  filter: none;
-  transform: scale(1.05);
-  background-color: #ffe600; /* Amarelo mais claro no ativo */
-  color: #4a2e00;
-  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* === HOVER SOMENTE ATIVO === */
-.botao-principal.botao-ativo:hover {
+/* === BOTÃO ATIVO – ZOOM e COR DESTACADA === */
+.botao-ativo {
   transform: scale(1.12);
-  background-color: #fff255; /* Tom de hover amarelo */
-  color: #4a2e00;
+  background-color: #a3471f;
+  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
+  opacity: 1;
+  pointer-events: auto;
 }
 
-/* === MOBILE E TABLET === */
+/* === BOTÃO INATIVO – TRANSLÚCIDO === */
+.botao-inativo {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* === HOVER === */
+.botao-principal:hover {
+  transform: scale(1.15);
+  background-color: #a3471f;
+}
+
+/* === DROPDOWN INTERNO (se houver no futuro) === */
+.dropdown-interno {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dropdown-interno button {
+  background-color: #fff;
+  color: #8c3b1b;
+  font-weight: bold;
+  font-size: 1.56rem;
+  padding: 0.7rem 1.3rem;
+  border-radius: 0.5rem;
+  border: 2px solid #8c3b1b;
+  transition: background-color 0.3s;
+}
+
+.dropdown-interno button:hover {
+  background-color: #8c3b1b;
+  color: white;
+}
+
+/* === RODAPÉ === */
+footer {
+  background-color: rgba(140, 59, 27, 0.4);
+  color: #ffffff;
+  padding: 1rem;
+  font-size: 1.2rem;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+/* === RESPONSIVO MOBILE E TABLET === */
 @media (max-width: 1024px) {
   .botao-principal {
-    width: 380px;
-    height: 180px;
-    font-size: 1.8rem;
+    margin-top: 4vh !important;
   }
 }
