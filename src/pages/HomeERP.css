@@ -90,6 +90,34 @@ header {
   box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* === DROPDOWN INTERNO (Botões Internos) === */
+.dropdown-interno {
+  margin-top: 0.8rem;
+  display: none; /* oculto por padrão */
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.botao-ativo .dropdown-interno {
+  display: flex; /* visível quando botão principal está ativo */
+}
+
+.dropdown-interno button {
+  background-color: #fff;
+  color: #8c3b1b;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid #8c3b1b;
+  transition: background-color 0.3s;
+  font-size: 1rem;
+}
+
+.dropdown-interno button:hover {
+  background-color: #8c3b1b;
+  color: white;
+}
+
 /* === RODAPÉ === */
 footer {
   background-color: #8c3b1b;
