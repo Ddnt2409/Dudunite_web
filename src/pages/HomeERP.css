@@ -23,8 +23,8 @@ main > div > div {
   background-color: #8c3b1b;
   color: white;
   font-size: 2.2rem;
-  width: 308px;                /* 220px + 40% */
-  height: 220px;               /* ALTURA MANTIDA */
+  width: 432px;               /* AUMENTADO: 220px + 40% = 308 → 432px */
+  height: 220px;              /* ALTURA MANTIDA */
   font-weight: bold;
   border-radius: 1rem;
   border: none;
@@ -35,8 +35,8 @@ main > div > div {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-width: 308px;
-  max-width: 308px;
+  min-width: 432px;
+  max-width: 432px;
   flex-shrink: 0;
 }
 
