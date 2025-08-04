@@ -18,13 +18,13 @@ main > div > div {
   max-width: 100% !important;
 }
 
-/* === BOTÕES INDIVIDUAIS (com aumento de 40% na largura) === */
+/* === BOTÕES INDIVIDUAIS (largura +40%) === */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
   font-size: 2.2rem;
-  width: 450px;                /* 320px + 40% */
-  height: 220px;               /* ALTURA MANTIDA */
+  width: 450px;
+  height: 220px;
   font-weight: bold;
   border-radius: 1rem;
   border: none;
@@ -40,14 +40,14 @@ main > div > div {
   flex-shrink: 0;
 }
 
-/* === ZOOM ATIVO / COR DESTACADA === */
+/* === BOTÃO ATIVO – ZOOM e COR DESTACADA === */
 .botao-ativo {
   transform: scale(1.12);
   background-color: #a3471f;
   box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* === TRANSLÚCIDO INATIVO === */
+/* === BOTÃO INATIVO – TRANSLÚCIDO === */
 .botao-inativo {
   opacity: 0.4;
   pointer-events: none;
@@ -94,7 +94,7 @@ footer {
   margin-top: 2rem;
 }
 
-/* === DESCER BOTÕES EM MOBILE E TABLET === */
+/* === RESPONSIVO MOBILE E TABLET === */
 @media (max-width: 1024px) {
   .botao-principal {
     margin-top: 4vh !important;
