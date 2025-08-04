@@ -1,32 +1,48 @@
-/* Plano de fundo e estrutura */
-body, html {
+/* Fundo e layout */
+body {
   margin: 0;
   padding: 0;
+  background: url('/fundo-autenticado.jpg') no-repeat center center fixed;
+  background-size: cover;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Fade-out para transição de telas */
-.fade-out {
-  animation: fadeOut 0.5s forwards;
+/* Container principal */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+/* Título */
+.titulo {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  color: #8c3b1b;
+  text-align: center;
 }
 
-/* Botão principal */
+/* Botões principais */
+.botoes-principais {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
   font-weight: bold;
   border: none;
   border-radius: 1rem;
-  padding: 2rem 3rem; /* 25% vertical / 150% horizontal */
+  padding: 1.25rem 3rem; /* AUMENTADO: 25% vertical, 150% horizontal */
   font-size: 1.3rem;
   transition: transform 0.3s ease, opacity 0.3s ease;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
@@ -36,37 +52,46 @@ body, html {
   opacity: 0.5;
 }
 
-/* Quando botão está ativo */
-.botao-ativo {
-  transform: scale(1.15);
-  opacity: 1 !important;
+.botao-principal.ativo {
+  opacity: 1;
+  transform: scale(1.05);
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.3);
 }
 
-/* Quando botão está inativo */
-.botao-inativo {
-  opacity: 0.5 !important;
-}
-
-/* Dropdown abaixo dos botões */
-.dropdown-interno {
+/* Sub-botões de PCP */
+.sub-botoes {
   display: flex;
   flex-direction: column;
-  margin-top: 0.8rem;
   gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
-.dropdown-interno button {
+.sub-botao {
   background-color: white;
   color: #8c3b1b;
-  border: 1px solid #8c3b1b;
+  font-weight: bold;
+  border: 2px solid #8c3b1b;
   border-radius: 0.5rem;
-  padding: 0.4rem 0.8rem;
+  padding: 0.3rem 1rem;
   font-size: 0.9rem;
-  font-weight: 600;
+  text-align: center;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
-.dropdown-interno button:hover {
-  background-color: #fbeee0;
+.sub-botao:hover {
+  background-color: #8c3b1b;
+  color: white;
+}
+
+/* Rodapé com escolas */
+.rodape-escolas {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #8c3b1b;
+  color: white;
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 0.3rem;
 }
