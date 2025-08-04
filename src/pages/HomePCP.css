@@ -97,6 +97,6 @@ footer {
 /* === RESPONSIVO MOBILE E TABLET === */
 @media (max-width: 1024px) {
   .botao-principal {
-    margin-top: 4vh !important;
+    margin-top: 20vh !important;
   }
 }
