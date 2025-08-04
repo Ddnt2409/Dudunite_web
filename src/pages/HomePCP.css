@@ -40,12 +40,14 @@ main > div > div {
   flex-shrink: 0;
 }
 
-/* === ZOOM ATIVO / TRANSLÚCIDO INATIVO === */
+/* === ZOOM ATIVO / COR DESTACADA === */
 .botao-ativo {
   transform: scale(1.12);
+  background-color: #a3471f; /* mesma cor do hover */
   box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* === TRANSLÚCIDO INATIVO === */
 .botao-inativo {
   opacity: 0.4;
   pointer-events: none;
@@ -92,7 +94,7 @@ footer {
   margin-top: 2rem;
 }
 
-/* === DESCER BOTÕES 15% EM MOBILE E TABLET === */
+/* === DESCER BOTÕES EM MOBILE E TABLET === */
 @media (max-width: 1024px) {
   .botao-principal {
     margin-top: 4vh !important;
