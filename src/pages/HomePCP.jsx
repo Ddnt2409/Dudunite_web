@@ -48,6 +48,7 @@ const HomePCP = () => {
       {/* === FIM HEADER === */}
 
 {/* === INÍCIO CONTEÚDO PRINCIPAL === */}
+{/* === INÍCIO CONTEÚDO PRINCIPAL === */}
 <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
   <div
     style={{
@@ -59,10 +60,8 @@ const HomePCP = () => {
     }}
   >
     <button
-      className={`botao-principal ${
-        tela === "lancamento" ? "botao-ativo" : "botao-inativo"
-      }`}
-      onClick={() => setTela("lancamento")}
+      className="botao-principal"
+      onClick={() => props.setTela("HomeERP")}
     >
       📝
       <br />
@@ -70,10 +69,8 @@ const HomePCP = () => {
     </button>
 
     <button
-      className={`botao-principal ${
-        tela === "sabores" ? "botao-ativo" : "botao-inativo"
-      }`}
-      onClick={() => setTela("sabores")}
+      className="botao-principal"
+      onClick={() => props.setTela("HomePCP")}
     >
       🍫
       <br />
