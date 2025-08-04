@@ -1,3 +1,8 @@
+/* === TESTE DE CARREGAMENTO === */
+body {
+  border: 5px solid red !important;
+}
+
 /* === FORÇAR DESATIVAR CARROSSEL === */
 main > div {
   flex-direction: column !important;
@@ -97,6 +102,6 @@ footer {
 /* === RESPONSIVO MOBILE E TABLET === */
 @media (max-width: 1024px) {
   .botao-principal {
-    margin-top: 20vh !important;
+    margin-top: 4vh !important;
   }
 }
