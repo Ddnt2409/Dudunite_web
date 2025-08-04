@@ -1,97 +1,89 @@
-/* Fundo e layout */
-body {
-  margin: 0;
-  padding: 0;
-  background: url('/fundo-autenticado.jpg') no-repeat center center fixed;
-  background-size: cover;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* === FORÇAR DESATIVAR CARROSSEL === */
+main > div {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  overflow-x: unset !important;
+  scroll-snap-type: none !important;
+  padding: 2rem 1rem !important;
+  gap: 2.5rem !important;
 }
 
-/* Container principal */
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 2rem;
-  background-color: rgba(255, 255, 255, 0.1);
+/* === FORÇAR BOTÕES EM 2 LINHAS === */
+main > div > div {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 2rem !important;
+  max-width: 100% !important;
 }
 
-/* Título */
-.titulo {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 2rem;
-  color: #8c3b1b;
-  text-align: center;
-}
-
-/* Botões principais */
-.botoes-principais {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
+/* === BOTÕES INDIVIDUAIS === */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
+  font-size: 1.9rem;
+  width: 330px;                /* AUMENTADO 150% */
+  height: 275px;               /* AUMENTADO 25% */
   font-weight: bold;
-  border: none;
   border-radius: 1rem;
-  padding: 1.25rem 3rem; /* AUMENTADO: 25% vertical, 150% horizontal */
-  font-size: 1.3rem;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
-  min-width: 180px;
-  text-align: center;
+  border: none;
+  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
   white-space: pre-line;
-  opacity: 0.5;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.botao-principal.ativo {
-  opacity: 1;
-  transform: scale(1.05);
-  box-shadow: 0 0 16px rgba(0, 0, 0, 0.3);
+/* === ZOOM ATIVO / TRANSLÚCIDO INATIVO === */
+.botao-ativo {
+  transform: scale(1.12);
+  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Sub-botões de PCP */
-.sub-botoes {
+.botao-inativo {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* === HOVER === */
+.botao-principal:hover {
+  transform: scale(1.15);
+  background-color: #a3471f;
+}
+
+/* === DROPDOWN INTERNO === */
+.dropdown-interno {
+  margin-top: 0.8rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  align-items: center;
 }
 
-.sub-botao {
-  background-color: white;
+.dropdown-interno button {
+  background-color: #fff;
   color: #8c3b1b;
   font-weight: bold;
-  border: 2px solid #8c3b1b;
+  padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  padding: 0.3rem 1rem;
-  font-size: 0.9rem;
-  text-align: center;
-  cursor: pointer;
+  border: 2px solid #8c3b1b;
+  transition: background-color 0.3s;
 }
 
-.sub-botao:hover {
+.dropdown-interno button:hover {
   background-color: #8c3b1b;
   color: white;
 }
 
-/* Rodapé com escolas */
-.rodape-escolas {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: #8c3b1b;
-  color: white;
-  font-size: 0.75rem;
+/* === RODAPÉ === */
+footer {
+  background-color: rgba(140, 59, 27, 0.4);
+  color: #ffffff;
+  padding: 1rem;
+  font-size: 1.2rem;
   text-align: center;
-  padding: 0.3rem;
+  margin-top: 2rem;
 }
