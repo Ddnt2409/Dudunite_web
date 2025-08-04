@@ -20,7 +20,7 @@ main > div > div {
   max-width: 100% !important;
 }
 
-/* === BOTÕES INDIVIDUAIS (largura +40%) === */
+/* === BOTÕES INDIVIDUAIS === */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
@@ -47,21 +47,19 @@ main > div > div {
 /* === BOTÃO ATIVO – ZOOM e COR DESTACADA === */
 .botao-ativo {
   transform: scale(1.12);
-  background-color: #a3471f;
+  background-color: #a3471f !important;
   box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
-  opacity: 1;
-  filter: none;
-  pointer-events: auto;
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: auto !important;
 }
 
-/* === BOTÃO INATIVO – TRANSLÚCIDO === */
+/* === BOTÃO INATIVO – TRANSLÚCIDO VISÍVEL === */
 .botao-inativo {
-  background-color: #8c3b1b;
-  color: white;
-  opacity: 0.4;
-  filter: blur(0.2px) brightness(0.95);
-  transform: scale(1);
-  pointer-events: none;
+  opacity: 0.4 !important;
+  filter: brightness(0.8) grayscale(0.3) blur(0.3px) !important;
+  pointer-events: none !important;
+  transform: scale(1) !important;
 }
 
 /* === HOVER === */
