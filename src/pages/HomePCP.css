@@ -30,7 +30,7 @@ main > div > div {
   font-weight: bold;
   border-radius: 1rem;
   border: none;
-  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
   white-space: pre-line;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
@@ -50,12 +50,17 @@ main > div > div {
   background-color: #a3471f;
   box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
   opacity: 1;
+  filter: none;
   pointer-events: auto;
 }
 
 /* === BOTÃO INATIVO – TRANSLÚCIDO === */
 .botao-inativo {
+  background-color: #8c3b1b;
+  color: white;
   opacity: 0.4;
+  filter: blur(0.2px) brightness(0.95);
+  transform: scale(1);
   pointer-events: none;
 }
 
