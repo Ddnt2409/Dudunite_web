@@ -16,14 +16,17 @@ main > div > div {
   justify-content: center !important;
   gap: 2rem !important;
   max-width: 100% !important;
+  width: 100% !important;
 }
 
 /* === BOTÕES INDIVIDUAIS === */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
-  font-size: 2.2rem;           /* AUMENTADO */
-  width: 308px;                /* 220 + 40% */
+  font-size: 2.2rem;
+  width: 308px !important;      /* AUMENTADO E FORÇADO */
+  min-width: 308px !important;  /* GARANTE LARGURA MÍNIMA */
+  max-width: 308px !important;  /* BLOQUEIA REDUÇÃO */
   height: 220px;
   font-weight: bold;
   border-radius: 1rem;
@@ -35,6 +38,7 @@ main > div > div {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0 !important;    /* IMPDE REDUÇÃO PELO FLEX */
 }
 
 /* === ZOOM ATIVO / TRANSLÚCIDO INATIVO === */
@@ -67,8 +71,8 @@ main > div > div {
   background-color: #fff;
   color: #8c3b1b;
   font-weight: bold;
-  font-size: 1.56rem;           /* AUMENTADO 20% */
-  padding: 0.7rem 1.3rem;       /* AUMENTADO */
+  font-size: 1.56rem;
+  padding: 0.7rem 1.3rem;
   border-radius: 0.5rem;
   border: 2px solid #8c3b1b;
   transition: background-color 0.3s;
