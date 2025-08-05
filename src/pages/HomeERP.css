@@ -1,6 +1,6 @@
 /* === HOME ERP CSS FINAL – RESTAURADO E ISOLADO === */
 
-/* === FORÇAR DESATIVAR CARROSSEL === */
+/* desativa carrossel horizontal */
 main > div {
   flex-direction: column !important;
   align-items: center !important;
@@ -11,7 +11,7 @@ main > div {
   gap: 2.5rem !important;
 }
 
-/* === FORÇAR BOTÕES EM 2 LINHAS === */
+/* forçar 2 linhas de botões */
 main > div > div {
   display: flex !important;
   flex-wrap: wrap !important;
@@ -20,7 +20,7 @@ main > div > div {
   max-width: 100% !important;
 }
 
-/* === BOTÕES INDIVIDUAIS (largura +40%) === */
+/* BOTÕES GERAIS */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
@@ -30,7 +30,8 @@ main > div > div {
   font-weight: bold;
   border-radius: 1rem;
   border: none;
-  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.3s ease, background-color 0.3s ease,
+    opacity 0.3s ease;
   white-space: pre-line;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
@@ -44,7 +45,7 @@ main > div > div {
   pointer-events: auto;
 }
 
-/* === BOTÃO ATIVO – ZOOM e COR DESTACADA === */
+/* ativo = zoom + cor */
 .botao-ativo {
   transform: scale(1.12);
   background-color: #a3471f;
@@ -53,44 +54,19 @@ main > div > div {
   pointer-events: auto;
 }
 
-/* === BOTÃO INATIVO – TRANSLÚCIDO === */
+/* inativo = translúcido e sem clique */
 .botao-inativo {
   opacity: 0.4;
   pointer-events: none;
 }
 
-/* === HOVER === */
+/* hover em qualquer botão */
 .botao-principal:hover {
   transform: scale(1.15);
   background-color: #a3471f;
 }
 
-/* === DROPDOWN INTERNO === */
-.dropdown-interno {
-  margin-top: 0.8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.dropdown-interno button {
-  background-color: #fff;
-  color: #8c3b1b;
-  font-weight: bold;
-  font-size: 1.56rem;
-  padding: 0.7rem 1.3rem;
-  border-radius: 0.5rem;
-  border: 2px solid #8c3b1b;
-  transition: background-color 0.3s;
-}
-
-.dropdown-interno button:hover {
-  background-color: #8c3b1b;
-  color: white;
-}
-
-/* === RODAPÉ === */
+/* RODAPÉ */
 footer {
   background-color: rgba(140, 59, 27, 0.4);
   color: #ffffff;
@@ -100,26 +76,9 @@ footer {
   margin-top: 2rem;
 }
 
-/* === RESPONSIVO MOBILE E TABLET === */
+/* RESPONSIVO */
 @media (max-width: 1024px) {
   .botao-principal {
     margin-top: 4vh !important;
   }
-}
-
-/* === BOTÃO VOLTAR (MENOR) === */
-.botao-voltar {
-  background-color: #8c3b1b;
-  color: white;
-  font-size: 1.4rem;
-  padding: 0.8rem 1.4rem;
-  border-radius: 0.5rem;
-  border: none;
-  opacity: 0.6;
-  transition: background-color 0.3s ease;
-}
-
-.botao-voltar:hover {
-  background-color: #a3471f;
-  opacity: 1;
 }
