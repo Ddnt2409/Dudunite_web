@@ -1,31 +1,34 @@
-// src/pages/HomeERP.jsx
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import HomePCP from "./HomePCP";
 import LanPed from "./LanPed";
 import "./HomeERP.css";
 
 const botoes = [
   {
-    label: "📦\nProdução (PCP)",
     id: "PCP",
+    label: "📦\nProdução (PCP)",
+    actionId: "PCP",
     dropdown: [
       { nome: "Lançar Pedido", acaoId: "LanPed" },
       { nome: "Alimentar Sabores", acaoId: "AlimSab" },
     ],
   },
   {
-    label: "💰\nFinanceiro (FinFlux)",
     id: "FinFlux",
+    label: "💰\nFinanceiro (FinFlux)",
+    actionId: null,
     dropdown: [],
   },
   {
-    label: "📊\nAnálise de Custos",
     id: "Analise",
+    label: "📊\nAnálise de Custos",
+    actionId: null,
     dropdown: [],
   },
   {
-    label: "👨‍🍳\nCozinha",
     id: "Cozinha",
+    label: "👨‍🍳\nCozinha",
+    actionId: null,
     dropdown: [],
   },
 ];
@@ -34,45 +37,28 @@ export default function HomeERP() {
   const [tela, setTela] = useState("Home");
   const [zoomIndex, setZoomIndex] = useState(0);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
-  const touchStartX = useRef(null);
 
-  // Se a tela mudar para PCP ou LanPed, renderiza o componente específico
+  // roteamento interno
   if (tela === "PCP") return <HomePCP setTela={setTela} />;
   if (tela === "LanPed") return <LanPed setTela={setTela} />;
 
-  // resto da tela HomeERP
   const handleClick = (idx, botao) => {
-    if (zoomIndex === idx) {
-      // se clicar novamente no mesmo botão, abre o dropdown ou chama a ação
-      if (botao.dropdown.length) {
-        setMostrarDropdown((m) => !m);
-      }
-    } else {
+    if (zoomIndex !== idx) {
+      // escolhe botão
       setZoomIndex(idx);
       setMostrarDropdown(false);
+    } else {
+      // já selecionado: primeiro tenta ação direta
+      if (botao.actionId) {
+        setTela(botao.actionId);
+      } else if (botao.dropdown.length) {
+        setMostrarDropdown((m) => !m);
+      }
     }
   };
 
-  const deslizar = (direcao) => {
-    setZoomIndex((prev) => {
-      const total = botoes.length;
-      return direcao === "esquerda"
-        ? (prev - 1 + total) % total
-        : (prev + 1) % total;
-    });
-    setMostrarDropdown(false);
-  };
-
   return (
-    <div
-      className="home-erp"
-      onTouchStart={(e) => (touchStartX.current = e.touches[0].clientX)}
-      onTouchEnd={(e) => {
-        const diff = e.changedTouches[0].clientX - touchStartX.current;
-        if (diff > 50) deslizar("esquerda");
-        if (diff < -50) deslizar("direita");
-      }}
-    >
+    <div className="home-erp">
       <header className="erp-header">
         <img
           src="/LogomarcaDDnt2025Vazado.png"
@@ -95,6 +81,7 @@ export default function HomeERP() {
               >
                 {btn.label}
               </button>
+
               {ativo && mostrarDropdown && btn.dropdown.length > 0 && (
                 <div className="dropdown-interno">
                   {btn.dropdown.map((op) => (
