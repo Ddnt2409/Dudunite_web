@@ -2,24 +2,17 @@ import React, { useState, useRef } from "react";
 import HomePCP from "./HomePCP";
 import "./HomeERP.css";
 
-const HomeERP = () => {
+export default function HomeERP() {
   const [tela, setTela] = useState("Home");
-  const [zoomIndex, setZoomIndex] = useState(0);
   const touchStartX = useRef(null);
+  const [zoomIndex, setZoomIndex] = useState(1);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
-  const [fadeOut, setFadeOut] = useState(false);
 
   const botoes = [
     {
       label: "📦\nProdução (PCP)",
-      action: () => {
-        setFadeOut(true);
-        setTimeout(() => setTela("PCP"), 300);
-      },
-      dropdown: [
-        { nome: "Lançar Pedido", acao: () => setTela("LanPed") },
-        { nome: "Alimentar Sabores", acao: () => alert("Em construção") },
-      ],
+      action: () => setTela("PCP"),
+      dropdown: [],
     },
     {
       label: "💰\nFinanceiro (FinFlux)",
@@ -38,16 +31,22 @@ const HomeERP = () => {
     },
   ];
 
-  const handleClick = (index, action) => {
-    if (zoomIndex === index) {
-      // se já está ativo, abre action ou dropdown
-      if (botoes[index].dropdown.length) {
-        setMostrarDropdown((m) => !m);
-      } else {
-        action();
-      }
+  // Roteamento para PCP
+  if (tela === "PCP") {
+    return <HomePCP setTela={setTela} />;
+  }
+
+  const handleClick = (idx, action) => {
+    // se for o botão PCP (idx=0), chama SEM ZOOM
+    if (idx === 0) {
+      action();
+      return;
+    }
+    // para os outros, primeiro faz zoom, depois dropdown
+    if (zoomIndex === idx) {
+      setMostrarDropdown((m) => !m);
     } else {
-      setZoomIndex(index);
+      setZoomIndex(idx);
       setMostrarDropdown(false);
     }
   };
@@ -63,36 +62,34 @@ const HomeERP = () => {
     });
   };
 
-  // roteamento interno
-  if (tela === "PCP") return <HomePCP setTela={setTela} />;
-  if (tela === "LanPed") return <HomePCP setTela={setTela} lan />;
-
   return (
-    <div className={`home-erp ${fadeOut ? "fade-out" : ""}`}>
+    <div className="home-erp">
       <header className="erp-header">
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logo"
-          className="erp-logo"
-        />
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo" className="erp-logo" />
         <h1 className="erp-titulo">ERP DUDUNITÊ</h1>
       </header>
 
-      <main className="erp-main">
+      <main
+        className="erp-main"
+        onTouchStart={(e) => (touchStartX.current = e.changedTouches[0].clientX)}
+        onTouchEnd={(e) => {
+          const diff = e.changedTouches[0].clientX - touchStartX.current;
+          if (diff > 50) deslizar("esquerda");
+          else if (diff < -50) deslizar("direita");
+        }}
+      >
         {botoes.map((btn, idx) => {
-          const isZoomed = idx === zoomIndex;
+          const isActive = idx === zoomIndex;
           return (
             <div key={idx} className="erp-botao-container">
               <button
                 onClick={() => handleClick(idx, btn.action)}
-                className={`botao-principal ${
-                  isZoomed ? "botao-ativo" : "botao-inativo"
-                }`}
+                className={`botao-principal ${isActive ? "botao-ativo" : "botao-inativo"}`}
               >
                 {btn.label}
               </button>
 
-              {isZoomed && mostrarDropdown && btn.dropdown.length > 0 && (
+              {isActive && mostrarDropdown && btn.dropdown.length > 0 && (
                 <div className="dropdown-interno">
                   {btn.dropdown.map((op, i) => (
                     <button key={i} onClick={op.acao}>
@@ -116,6 +113,4 @@ const HomeERP = () => {
       </footer>
     </div>
   );
-};
-
-export default HomeERP;
+}
