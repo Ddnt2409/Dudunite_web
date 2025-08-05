@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./HomePCP.css";
 
-const HomePCP = () => {
+const HomePCP = (props) => {
   const [tela, setTela] = useState(null);
 
   return (
@@ -47,38 +47,37 @@ const HomePCP = () => {
       </header>
       {/* === FIM HEADER === */}
 
-{/* === INÍCIO CONTEÚDO PRINCIPAL === */}
-{/* === INÍCIO CONTEÚDO PRINCIPAL === */}
-<main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "center",
-      gap: "3rem",
-      marginTop: "4rem",
-      flexWrap: "wrap",
-    }}
-  >
-    <button
-      className="botao-principal"
-      onClick={() => props.setTela("HomeERP")}
-    >
-      📝
-      <br />
-      Lançar Pedido
-    </button>
+      {/* === INÍCIO CONTEÚDO PRINCIPAL === */}
+      <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "3rem",
+            marginTop: "4rem",
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            className="botao-principal"
+            onClick={() => props.setTela("LanPed")} // 🔧 AJUSTADO PARA CHAMAR LanPed
+          >
+            📝
+            <br />
+            Lançar Pedido
+          </button>
 
-    <button
-      className="botao-principal"
-      onClick={() => props.setTela("HomePCP")}
-    >
-      🍫
-      <br />
-      Alimentar Sabores
-    </button>
-  </div>
-</main>
-{/* === FIM CONTEÚDO PRINCIPAL === */}
+          <button
+            className="botao-principal"
+            onClick={() => props.setTela("HomePCP")}
+          >
+            🍫
+            <br />
+            Alimentar Sabores
+          </button>
+        </div>
+      </main>
+      {/* === FIM CONTEÚDO PRINCIPAL === */}
 
       {/* === INÍCIO RODAPÉ === */}
       <footer
