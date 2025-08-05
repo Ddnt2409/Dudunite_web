@@ -5,7 +5,6 @@
   background: url('/bg002.png') center/cover no-repeat;
 }
 
-/* HEADER */
 .lanped-header {
   display: flex;
   align-items: center;
@@ -13,16 +12,13 @@
   background: rgba(255,255,255,0.5);
   backdrop-filter: blur(6px);
 }
-.lanped-logo {
-  width: 200px;
-  margin-right: 1rem;
-}
-.lanped-titulo {
+.lanped-header img { width: 200px; }
+.lanped-header h1 {
   font-size: 1.8rem;
   color: #8c3b1b;
+  margin-left: 1rem;
 }
 
-/* FORMULÁRIO */
 .lanped-formulario {
   flex: 1;
   display: flex;
@@ -42,8 +38,7 @@
   font-size: 1rem;
 }
 
-/* BOTÕES */
-.lanped-formulario button {
+.botao-salvar {
   background: #8c3b1b;
   color: white;
   padding: 0.8rem;
@@ -53,16 +48,16 @@
   cursor: pointer;
   transition: transform 0.2s, background 0.3s;
 }
-.lanped-formulario button:hover {
+.botao-salvar:hover {
   transform: scale(1.05);
   background: #a3471f;
 }
 
-/* RODAPÉ */
 .lanped-footer {
   padding: 1rem;
-  text-align: center;
   background: rgba(140,59,27,0.4);
+  color: #fff;
+  text-align: center;
 }
 .botao-voltar {
   background: #8c3b1b;
