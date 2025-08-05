@@ -56,21 +56,9 @@ const HomePCP = (props) => {
             flexWrap: "wrap",
           }}
         >
-<button
-  onClick={() => {
-    alert("🟢 CLICOU NO BOTÃO LANÇAR PEDIDO");
-    setTela("LanPed"); // 👈 Esse nome está 100% correto
-  }}
-  style={{
-    backgroundColor: 'green',
-    color: 'white',
-    padding: '1rem 2rem',
-    borderRadius: '0.5rem',
-    fontWeight: 'bold',
-    fontSize: '1rem',
-    border: 'none',
-    cursor: 'pointer',
-  }}
+<<button
+  className="botao-teste"
+  onClick={() => setTela('LanPed')} // ✅ troca o alert pela navegação real
 >
   TESTE LANÇAR PEDIDO
 </button>
