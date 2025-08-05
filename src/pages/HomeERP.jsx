@@ -1,79 +1,65 @@
-import React, { useState, useRef } from 'react';
-import HomePCP from './HomePCP';
-import './HomeERP.css';
+import React, { useState, useRef } from "react";
+import HomePCP from "./HomePCP";
+import "./HomeERP.css";
 
-export default function HomeERP() {
-  const [tela, setTela] = useState('Home');
-  const [zoomIndex, setZoomIndex] = useState(0);
+const HomeERP = () => {
+  const [tela, setTela] = useState("Home");
+  const [zoomIndex, setZoomIndex] = useState(null);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
+
   const touchStartX = useRef(null);
 
   const botoes = [
     {
-      label: '📦\nProdução (PCP)',
-      action: () => setTela('PCP'),
-      dropdown: []
-    },
-    {
-      label: '💰\nFinanceiro (FinFlux)',
-      action: () => {},
+      label: "📦\nProdução (PCP)",
       dropdown: [
-        { nome: 'Contas a Receber', acao: () => alert('Em construção') },
-        { nome: 'Contas a Pagar',    acao: () => alert('Em construção') },
+        {
+          nome: "Lançar Pedido",
+          acao: () => setTela("LanPed"),
+        },
+        {
+          nome: "Alimentar Sabores",
+          acao: () => alert("Em construção"),
+        },
       ],
     },
     {
-      label: '📊\nAnálise de Custos',
-      action: () => {},
+      label: "💰\nFinanceiro (FinFlux)",
       dropdown: [
-        { nome: 'Custos por Produto', acao: () => alert('Em construção') },
-        { nome: 'Custos Fixos',       acao: () => alert('Em construção') },
-        { nome: 'Custos Variáveis',   acao: () => alert('Em construção') },
+        { nome: "Contas a Receber", acao: () => alert("Em construção") },
+        { nome: "Contas a Pagar", acao: () => alert("Em construção") },
       ],
     },
     {
-      label: '👨‍🍳\nCozinha',
-      action: () => alert('Em construção'),
-      dropdown: []
+      label: "📊\nAnálise de Custos",
+      dropdown: [
+        { nome: "Custos por Produto", acao: () => alert("Em construção") },
+        { nome: "Custos Fixos", acao: () => alert("Em construção") },
+        { nome: "Custos Variáveis", acao: () => alert("Em construção") },
+      ],
+    },
+    {
+      label: "👨‍🍳\nCozinha",
+      dropdown: [{ nome: "Em breve", acao: () => alert("Em construção") }],
     },
   ];
 
-  const handleClick = (idx, action, hasDropdown) => {
-    if (hasDropdown) {
-      // módulos com dropdown apenas expandem/colapsam
-      if (zoomIndex === idx) {
-        setMostrarDropdown(v => !v);
-      } else {
-        setZoomIndex(idx);
-        setMostrarDropdown(false);
-      }
+  const handleClick = (idx) => {
+    if (zoomIndex === idx) {
+      // já está ampliado → só alterna dropdown
+      setMostrarDropdown((v) => !v);
     } else {
-      // módulos sem dropdown disparam a action imediatamente
       setZoomIndex(idx);
-      setMostrarDropdown(false);
-      action();
+      setMostrarDropdown(true);
     }
   };
 
-  const deslizar = direcao => {
-    const total = botoes.length;
-    setZoomIndex(prev => {
-      const novo = direcao === 'esquerda'
-        ? (prev - 1 + total) % total
-        : (prev + 1) % total;
-      setMostrarDropdown(false);
-      return novo;
-    });
-  };
-
-  // Se a tela for PCP, renderiza o HomePCP
-  if (tela === 'PCP') {
-    return <HomePCP setTela={setTela} />;
-  }
+  // roteamento interno
+  if (tela === "PCP") return <HomePCP setTela={setTela} />;
+  if (tela === "LanPed") return <HomePCP setTela={setTela} lan=true />;
 
   return (
-    <div className="erp-container">
-      {/* HEADER */}
+    <div className="home-erp-wrapper">
       <header className="erp-header">
         <img
           src="/LogomarcaDDnt2025Vazado.png"
@@ -83,45 +69,50 @@ export default function HomeERP() {
         <h1 className="erp-titulo">ERP DUDUNITÊ</h1>
       </header>
 
-      {/* CONTEÚDO PRINCIPAL */}
-      <main
-        className="erp-main"
-        onTouchStart={e => (touchStartX.current = e.changedTouches[0].clientX)}
-        onTouchEnd={e => {
-          const diff = e.changedTouches[0].clientX - touchStartX.current;
-          if (diff > 50) deslizar('esquerda');
-          else if (diff < -50) deslizar('direita');
-        }}
-      >
-        {botoes.map((btn, idx) => {
-          const isZoomed = idx === zoomIndex;
-          const hasDropdown = btn.dropdown.length > 0;
-          return (
-            <div key={idx} className="erp-item">
-              <button
-                onClick={() => handleClick(idx, btn.action, hasDropdown)}
-                className={`botao-principal ${
-                  isZoomed ? 'botao-ativo' : 'botao-inativo'
-                }`}
-              >
-                {btn.label}
-              </button>
+      <main>
+        <div
+          className="botoes-erp"
+          onTouchStart={(e) =>
+            (touchStartX.current = e.changedTouches[0].clientX)
+          }
+          onTouchEnd={(e) => {
+            const diff = e.changedTouches[0].clientX - touchStartX.current;
+            if (Math.abs(diff) > 50) {
+              const passo = diff > 0 ? -1 : +1;
+              const novo = (zoomIndex + passo + botoes.length) % botoes.length;
+              setZoomIndex(novo);
+              setMostrarDropdown(false);
+            }
+          }}
+        >
+          {botoes.map((btn, idx) => {
+            const ativo = idx === zoomIndex;
+            return (
+              <div key={idx}>
+                <button
+                  className={`botao-principal ${
+                    ativo ? "botao-ativo" : "botao-inativo"
+                  }`}
+                  onClick={() => handleClick(idx)}
+                >
+                  {btn.label}
+                </button>
 
-              {isZoomed && mostrarDropdown && hasDropdown && (
-                <div className="dropdown-interno">
-                  {btn.dropdown.map((op, i) => (
-                    <button key={i} onClick={op.acao}>
-                      {op.nome}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+                {ativo && mostrarDropdown && btn.dropdown.length > 0 && (
+                  <div className="dropdown-interno">
+                    {btn.dropdown.map((op, i) => (
+                      <button key={i} onClick={op.acao}>
+                        {op.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </main>
 
-      {/* FOOTER */}
       <footer className="erp-footer">
         <marquee behavior="scroll" direction="left">
           • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
@@ -132,4 +123,6 @@ export default function HomeERP() {
       </footer>
     </div>
   );
-}
+};
+
+export default HomeERP;
