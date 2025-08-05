@@ -111,14 +111,9 @@ const HomePCP = ({ setTela, voltar }) => {
               alignItems: "center",
             }}
           >
-            <button
-              className="botao-principal botao-inativo"
-              onClick={voltar}
-            >
-              🔙
-              <br />
-              Voltar ao ERP
-            </button>
+            <button className="botao-voltar" onClick={voltar}>
+  🔙 Voltar ao ERP
+</button>
           </div>
         </div>
       </main>
