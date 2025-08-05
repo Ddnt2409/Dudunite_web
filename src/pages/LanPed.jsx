@@ -9,7 +9,7 @@ import './LanPed.css';
 // QD02 – COMPONENTE PRINCIPAL E STATES
 // ============================================
 
-function LanPed() {
+function LanPed(props) {
   const [cidade, setCidade] = useState('');
   const [pdv, setPdv] = useState('');
   const [produto, setProduto] = useState('');
@@ -59,6 +59,22 @@ function LanPed() {
 
   return (
     <div className="lanped-container">
+      <button
+        onClick={() => props.setTela("HomePCP")}
+        style={{
+          alignSelf: "flex-start",
+          marginBottom: "1rem",
+          backgroundColor: "#8c3b1b",
+          color: "#fff",
+          border: "none",
+          padding: "0.5rem 1rem",
+          borderRadius: "6px",
+          cursor: "pointer",
+        }}
+      >
+        ⬅ Voltar
+      </button>
+
       <h1 className="lanped-title">Lançar Pedido</h1>
 
       <label>Cidade</label>
