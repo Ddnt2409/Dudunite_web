@@ -1,47 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './LanPed.css';
 
 export default function LanPed({ setTela }) {
-  // estados do formulário
   const [cidade, setCidade] = useState('');
   const [escola, setEscola] = useState('');
   const [produto, setProduto] = useState('');
   const [sabor, setSabor] = useState('');
   const [quantidade, setQuantidade] = useState(1);
 
-  // opções fixas (você pode puxar do Firestore depois)
-  const cidades = ['Gravatá', 'Recife', 'Caruaru'];
+  const cidades = ['Gravatá','Recife','Caruaru','Petrolina','Garanhuns'];
   const escolasPorCidade = {
-    Gravatá: ['Pequeno Príncipe', 'Salesianas', 'Céu Azul'],
-    Recife: ['Tio Valter', 'Vera Cruz', 'Pinheiros'],
-    Caruaru: ['Interativo', 'Exato Sede', 'Sesi'],
+    Gravatá: ['Pequeno Príncipe','Salesianas','Céu Azul','Russas'],
+    Recife: ['Tio Valter','Vera Cruz','Pinheiros','Dourado','BMQ','CFC'],
+    Caruaru: ['Interativo','Exato Sede','Exato Anexo','Sesi','Motivo'],
+    Petrolina: ['Sol','Vale','Juazeiro'],
+    Garanhuns: ['Alvorada','São João'],
   };
-  const produtos = ['BRW 7x7', 'BRW 6x6', 'PKT 5x5'];
+  const produtos = ['BRW 7x7','BRW 6x6','PKT 5x5','PKT 6x6','Esc','DUDU'];
   const saboresPorProduto = {
-    'BRW 7x7': ['Ninho', 'Oreo', 'Paçoca'],
-    'BRW 6x6': ['Brigadeiro branco', 'Brigadeiro preto'],
-    'PKT 5x5': ['Ovomaltine', 'Beijinho'],
+    'BRW 7x7': ['Ninho','Oreo','Paçoca','Nutella'],
+    'BRW 6x6': ['Brigadeiro branco','Brigadeiro preto','Ovomaltine'],
+    'PKT 5x5': ['Beijinho','KitKat','Palha italiana'],
+    'PKT 6x6': ['Oreo','Brigadeiro preto','Paçoca'],
+    Esc: ['Ninho','Prestígio','Paçoca'],
+    DUDU: ['Dd Oreo','Dd Nutella','Dd Maracujá'],
   };
 
-  // filtra escolas e sabores
-  const escolasFiltradas = cidade ? escolasPorCidade[cidade] || [] : [];
-  const saboresFiltrados = produto ? saboresPorProduto[produto] || [] : [];
+  const escolas = cidade ? (escolasPorCidade[cidade] || []) : [];
+  const sabores = produto ? (saboresPorProduto[produto] || []) : [];
 
-  // salvar (ainda só faz console.log)
   function salvar() {
-    console.log({ cidade, escola, produto, sabor, quantidade });
-    alert('Pedido simulado: ' + cidade + ' - ' + escola);
+    // aqui você envia para o Firestore
+    alert(`Enviado: ${cidade} > ${escola} > ${produto} > ${sabor} x${quantidade}`);
   }
 
   return (
     <div className="lanped-container">
-      {/* HEADER */}
       <header className="lanped-header">
-        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo Dudunitê" className="lanped-logo" />
-        <h1 className="lanped-titulo">Lançar Pedido – Dudunitê</h1>
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo" />
+        <h1>Lançar Pedido – Dudunitê</h1>
       </header>
 
-      {/* FORMULÁRIO */}
       <div className="lanped-formulario">
         <label>Cidade</label>
         <select value={cidade} onChange={e => setCidade(e.target.value)}>
@@ -50,9 +49,13 @@ export default function LanPed({ setTela }) {
         </select>
 
         <label>Escola</label>
-        <select value={escola} onChange={e => setEscola(e.target.value)} disabled={!cidade}>
+        <select
+          value={escola}
+          onChange={e => setEscola(e.target.value)}
+          disabled={!cidade}
+        >
           <option value="">Selecione</option>
-          {escolasFiltradas.map(e => <option key={e} value={e}>{e}</option>)}
+          {escolas.map(e => <option key={e} value={e}>{e}</option>)}
         </select>
 
         <label>Produto</label>
@@ -62,9 +65,13 @@ export default function LanPed({ setTela }) {
         </select>
 
         <label>Sabor</label>
-        <select value={sabor} onChange={e => setSabor(e.target.value)} disabled={!produto}>
+        <select
+          value={sabor}
+          onChange={e => setSabor(e.target.value)}
+          disabled={!produto}
+        >
           <option value="">Selecione</option>
-          {saboresFiltrados.map(s => <option key={s} value={s}>{s}</option>)}
+          {sabores.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
 
         <label>Quantidade</label>
@@ -75,15 +82,19 @@ export default function LanPed({ setTela }) {
           onChange={e => setQuantidade(Number(e.target.value))}
         />
 
-        <button onClick={salvar}>💾 Salvar Pedido</button>
-      </div>
-
-      {/* VOLTAR */}
-      <div className="lanped-footer">
-        <button className="botao-voltar" onClick={() => setTela('HomePCP')}>
-          🔙 Voltar para PCP
+        <button className="botao-salvar" onClick={salvar}>
+          💾 Salvar Pedido
         </button>
       </div>
+
+      <footer className="lanped-footer">
+        <marquee>
+          Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • …
+        </marquee>
+        <button className="botao-voltar" onClick={() => setTela('PCP')}>
+          🔙 Voltar para PCP
+        </button>
+      </footer>
     </div>
   );
 }
