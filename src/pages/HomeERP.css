@@ -1,19 +1,18 @@
-/* Container principal com BG */
+/* Container principal */
 .home-erp {
   background: url("/bg002.png") center/cover no-repeat;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 
-/* HEADER */
+/* Header */
 .erp-header {
   height: 100px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   padding: 0 1rem;
-  background: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(6px);
 }
 .erp-logo {
@@ -21,88 +20,103 @@
 }
 .erp-titulo {
   font-size: 2rem;
+  font-weight: bold;
   color: #8c3b1b;
+  margin-right: 2ch;
 }
 
-/* MAIN: empilhar botões na vertical */
+/* Main — empilhado vertical, espaçamento de 2 cm */
 .erp-main {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 1rem; /* cerca de 1 cm */
+  gap: 2cm;
   padding: 2rem 1rem;
+  margin-top: -5rem; /* sobe o bloco para mais perto do header */
 }
 
-/* Container de cada botão + dropdown */
-.botao-container {
+/* Container de cada botão */
+.erp-botao-container {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* BOTÕES */
+/* Botão principal */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
   font-size: 2.2rem;
-  width: 440px;
+  width: 480px;
   height: 220px;
   font-weight: bold;
   border-radius: 1rem;
   border: none;
-  transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
+  transition: transform 0.3s ease, background-color 0.3s ease,
+    opacity 0.3s ease;
+  white-space: pre-line;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
   display: flex;
   justify-content: center;
   align-items: center;
-  white-space: pre-line;
-}
-
-.botao-ativo {
-  transform: scale(1.12);
-  background-color: #a3471f;
-  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
   opacity: 1;
   pointer-events: auto;
 }
 
+/* Ativo */
+.botao-ativo {
+  transform: scale(1.12);
+  background-color: #a3471f;
+  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Inativo */
 .botao-inativo {
   opacity: 0.4;
   pointer-events: auto;
 }
 
+/* Hover */
 .botao-principal:hover {
   transform: scale(1.15);
   background-color: #a3471f;
 }
 
-/* DROPDOWN INTERNO */
+/* Dropdown interno */
 .dropdown-interno {
-  margin-top: 0.8rem;
+  margin-top: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 .dropdown-interno button {
-  background: #fff;
+  background-color: #fff;
   color: #8c3b1b;
-  font-size: 1.56rem;
+  font-weight: bold;
+  font-size: 1.5rem;
   padding: 0.7rem 1.3rem;
-  border: 2px solid #8c3b1b;
   border-radius: 0.5rem;
+  border: 2px solid #8c3b1b;
+  transition: background-color 0.3s;
 }
 .dropdown-interno button:hover {
-  background: #8c3b1b;
-  color: #fff;
+  background-color: #8c3b1b;
+  color: white;
 }
 
-/* FOOTER */
+/* Footer */
 .erp-footer {
   background-color: rgba(140, 59, 27, 0.4);
   color: #fff;
+  padding: 1rem;
   font-size: 1.2rem;
   text-align: center;
-  padding: 1rem;
-  margin-top: auto;
+}
+
+/* Garante scroll na página */
+html,
+body {
+  height: auto;
+  overflow-y: auto;
 }
