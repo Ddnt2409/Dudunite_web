@@ -1,148 +1,36 @@
-import React from "react";
-import "./HomePCP.css";
+import React from 'react';
+import './HomePCP.css';
 
-const HomePCP = ({ setTela, voltar }) => {
+const HomePCP = ({ setTela }) => {
   return (
-    <div
-      style={{
-        backgroundImage: "url('/bg002.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        minHeight: "100dvh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-start",
-        overflowY: "auto",
-      }}
-    >
-      {/* === INÍCIO HEADER === */}
-      <header
-        style={{
-          height: "100px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0 1rem",
-          backgroundColor: "rgba(255,255,255,0.5)",
-          backdropFilter: "blur(6px)",
-        }}
-      >
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logo"
-          style={{ width: "200px", marginTop: "2%" }}
-        />
-        <h1
-          style={{
-            fontSize: "2rem",
-            fontWeight: "bold",
-            color: "#8c3b1b",
-            marginRight: "2ch",
-          }}
-        >
-          PCP – Planejamento de Produção
-        </h1>
-      </header>
-      {/* === FIM HEADER === */}
+    <div className="homepcp-container">
+      {/* === INÍCIO RT00 – Tela Home PCP === */}
 
-      {/* === INÍCIO CONTEÚDO PRINCIPAL === */}
-      <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <div
-          style={{
-            flexGrow: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            overflowX: "auto",
-            scrollSnapType: "x mandatory",
-            gap: "3rem",
-            padding: "2rem 1rem 0",
-            width: "100%",
-          }}
-        >
-          {/* Botão 1 – Lançar Pedido */}
-<div
-  style={{
-    flex: "0 0 auto",
-    scrollSnapAlign: "center",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-  }}
->
-  <button
-    style={{
-      padding: '1rem 2rem',
-      fontSize: '1.5rem',
-      fontWeight: 'bold',
-      backgroundColor: '#8c3b1b',
-      color: '#fff',
-      border: 'none',
-      borderRadius: '10px',
-      cursor: 'pointer',
-    }}
-    onClick={() => setTela("LanPed")}
-  >
-    📝 Lançar Pedido (Teste)
-  </button>
-</div>
-{/* Botão 2 – Alimentar Sabores */}
-<div
-  style={{
-    flex: "0 0 auto",
-    scrollSnapAlign: "center",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-  }}
->
-  <button
-    className="botao-principal botao-ativo"
-    onClick={() => setTela("AlimSab")}
-  >
-    🍫
-    <br />
-    Alimentar Sabores
-  </button>
-</div>
+      <div className="homepcp-header">
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo Dudunitê" className="logo-pcp" />
+        <h1 className="homepcp-titulo">PCP – Planejamento de Produção</h1>
+      </div>
 
-          {/* Botão 3 – Voltar */}
-          <div
-            style={{
-              flex: "0 0 auto",
-              scrollSnapAlign: "center",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            <button className="botao-voltar" onClick={voltar}>
-  🔙 Voltar ao ERP
-</button>
-          </div>
-        </div>
-      </main>
-      {/* === FIM CONTEÚDO PRINCIPAL === */}
+      <div className="botoes-pcp">
+        <button className="botao-principal botao-ativo" onClick={() => setTela("LanPed")}>
+          📝<br />Lançar Pedido (Teste)
+        </button>
 
-      {/* === INÍCIO RODAPÉ === */}
-      <footer
-        style={{
-          backgroundColor: "rgba(140, 59, 27, 0.4)",
-          color: "#ffffff",
-          padding: "1rem",
-          fontSize: "1.2rem",
-          textAlign: "center",
-          marginTop: "2rem",
-        }}
-      >
-        <marquee behavior="scroll" direction="left">
-          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
-          Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros •
-          Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo •
-          Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
-        </marquee>
-      </footer>
-      {/* === FIM RODAPÉ === */}
+        {/* Temporariamente desativado até criar o componente AlimSab */}
+        {/* <button className="botao-principal botao-ativo" onClick={() => setTela("AlimSab")}>
+          🍫<br />Alimentar Sabores
+        </button> */}
+      </div>
+
+      <button className="botao-voltar" onClick={() => setTela("HomeERP")}>
+        🔙 Voltar ao ERP
+      </button>
+
+      <div className="lista-escolas">
+        Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Society Show • Russas • Kaduh • Degusty • Bora Gastar • Salesianas • Céu Azul • Pequeno Príncipe • Tio Valter • Vera Cruz
+      </div>
+
+      {/* === FIM RT00 === */}
     </div>
   );
 };
