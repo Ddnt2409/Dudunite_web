@@ -56,7 +56,7 @@ const HomePCP = (props) => {
             flexWrap: "wrap",
           }}
         >
-<<button
+<button
   className="botao-teste"
   onClick={() => setTela('LanPed')} // ✅ troca o alert pela navegação real
 >
