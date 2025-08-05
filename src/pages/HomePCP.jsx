@@ -57,13 +57,16 @@ const HomePCP = (props) => {
           }}
         >
           <button
-            className="botao-principal"
-            onClick={() => props.setTela("LanPed")}
-          >
-            📝
-            <br />
-            Lançar Pedido
-          </button>
+  className="botao-principal"
+  onClick={() => {
+    alert("Botão clicado");
+    props.setTela("LanPed");
+  }}
+>
+  📝
+  <br />
+  Lançar Pedido
+</button>
 
           <button
             className="botao-principal"
