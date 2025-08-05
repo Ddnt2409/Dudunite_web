@@ -1,50 +1,69 @@
-/* PCP.CSS – PADRÃO HOME PCP */
+/* === HomePCP.css === */
 
-.pcp-container {
-  background-image: url('/bg002.png');
-  background-size: cover;
-  background-position: center;
+.home-pcp-wrapper {
+  background: url('/bg002.png') center/cover no-repeat;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
 
-/* HEADER */
-.pcp-header {
+.erp-header,
+.erp-footer {
+  /* reaproveita estilos do ERP */
+  background-color: rgba(255,255,255,0.5);
+  backdrop-filter: blur(6px);
+}
+
+.er p-header {
   height: 100px;
   display: flex;
   align-items: center;
   padding: 0 1rem;
-  background-color: rgba(255,255,255,0.5);
-  backdrop-filter: blur(6px);
 }
-.pcp-logo {
+
+.erp-logo {
   width: 200px;
 }
-.pcp-titulo {
-  margin-left: auto;
-  margin-right: 2ch;
+
+.erp-titulo {
   font-size: 2rem;
-  font-weight: bold;
   color: #8c3b1b;
+  margin-left: 1rem;
 }
 
-/* MAIN */
-.pcp-main {
-  flex: 1;
+.botoes-pcp {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
   gap: 2rem;
-  padding: 2rem;
-}
-.pcp-main .botao-principal {
-  width: 450px;
-  height: 220px;
+  padding: 2rem 1rem 0;
 }
 
-/* FOOTER */
-.pcp-footer {
-  padding: 1rem;
-  text-align: center;
+.botao-principal-erp {
+  width: 450px;
+  height: 220px;
+  background-color: #8c3b1b;
+  color: white;
+  font-size: 2.2rem;
+  border: none;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s;
+}
+
+.botao-principal-erp:hover {
+  transform: scale(1.15);
+  background-color: #a3471f;
+}
+
+.botao-inativo {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.texto-botao {
+  margin-left: 0.5rem;
+  font-weight: bold;
 }
