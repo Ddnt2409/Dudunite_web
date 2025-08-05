@@ -1,55 +1,112 @@
-/* ... seu resto de estilos ... */
+/* === HomeERP.css === */
 
-/* Container de botões em coluna */
-main > div.botoes-erp {
+/* Layout geral */
+.home-erp-wrapper {
+  background: url('/bg002.png') center/cover no-repeat;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Cabeçalho */
+.erp-header {
+  height: 100px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+  background-color: rgba(255,255,255,0.5);
+  backdrop-filter: blur(6px);
+}
+.erp-logo {
+  width: 200px;
+}
+.erp-titulo {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #8c3b1b;
+  margin-right: 2ch;
+}
+
+/* Container de botões */
+.botoes-erp {
   display: flex !important;
-  flex-direction: column !important;    /* vertical */
+  flex-direction: column !important;
   align-items: center !important;
   gap: 2rem !important;
   padding: 2rem 1rem 0 !important;
   overflow-x: hidden !important;
 }
 
-/* Cada botão principal */
+/* Botão principal */
 .botao-principal {
-  width: 450px !important;               /* largura fixa */
-  height: 220px !important;              /* altura fixa */
-  font-size: 2.2rem !important;
-  background-color: #8c3b1b !important;
+  background-color: #8c3b1b;
   color: white;
+  font-size: 2.2rem;
+  width: 450px;
+  height: 220px;
+  font-weight: bold;
   border-radius: 1rem;
   border: none;
-  transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
+  transition: transform 0.3s ease, background-color 0.3s ease,
+    opacity 0.3s ease;
+  white-space: pre-line;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* Zoom no ativo */
+/* Botão ativo */
 .botao-ativo {
-  transform: scale(1.12) !important;
-  background-color: #a3471f !important;
+  transform: scale(1.12);
+  background-color: #a3471f;
+  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
   opacity: 1 !important;
   pointer-events: auto;
 }
 
-/* Inativo fica translúcido */
+/* Botão inativo */
 .botao-inativo {
   opacity: 0.4 !important;
   pointer-events: none !important;
 }
 
-/* Hover mantém zoom e cor */
+/* Hover */
 .botao-principal:hover {
   transform: scale(1.15);
   background-color: #a3471f;
 }
 
-/* Dropdown interno abaixo do botão */
+/* Dropdown */
 .dropdown-interno {
   margin-top: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   align-items: center;
+}
+.dropdown-interno button {
+  background-color: #fff;
+  color: #8c3b1b;
+  font-weight: bold;
+  font-size: 1.2rem;
+  padding: 0.7rem 1.3rem;
+  border-radius: 0.5rem;
+  border: 2px solid #8c3b1b;
+  transition: background-color 0.3s;
+}
+.dropdown-interno button:hover {
+  background-color: #8c3b1b;
+  color: white;
+}
+
+/* Rodapé */
+.erp-footer {
+  background-color: rgba(140, 59, 27, 0.4);
+  color: #ffffff;
+  padding: 1rem;
+  font-size: 1.2rem;
+  text-align: center;
+  margin-top: auto;
 }
