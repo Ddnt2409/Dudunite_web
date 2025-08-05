@@ -1,5 +1,5 @@
 import React from 'react';
-import './PCP.css';
+import './HomePCP.css';
 
 export default function HomePCP({ setTela }) {
   return (
