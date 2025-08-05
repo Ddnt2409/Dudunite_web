@@ -1,60 +1,74 @@
-import React from "react";
-import HomePCP from "./HomePCP";
-import "./HomeERP.css";
+import React, { useState } from 'react';
+import './HomeERP.css';
 
-export default function HomeERP({ setAppTela }) {
-  const [tela, setTela] = React.useState("ERP");
+export default function HomeERP({ setTela }) {
+  const [section, setSection] = useState('');
 
-  // Se navegou pra PCP, renderiza o componente
-  if (tela === "PCP") {
-    return <HomePCP setTela={setTela} />;
-  }
+  const handleMainClick = (sec) => {
+    // alterna visibilidade dos inner buttons
+    setSection((prev) => (prev === sec ? '' : sec));
+  };
 
   return (
-    <div className="erp-container">
+    <div className="home-erp">
       <header className="erp-header">
-        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo Dudunitê" />
-        <h1>ERP&nbsp;DUDUNITÊ</h1>
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logomarca Dudunitê" />
+        <h1>ERP DUDUNITÊ</h1>
       </header>
 
-      <main className="erp-main">
+      <div className="buttons-container">
         <button
-          className="erp-btn"
-          onClick={() => setTela("PCP")}
+          className="button-main"
+          onClick={() => handleMainClick('PCP')}
         >
-          📦<br />Produção&nbsp;(PCP)
+          📦 Produção (PCP)
         </button>
+        {section === 'PCP' && (
+          <div className="inner-buttons">
+            <button onClick={() => setTela('PCP')}>Lançar Pedido</button>
+            <button onClick={() => setTela('Sabores')}>Alimentar Sabores</button>
+          </div>
+        )}
 
         <button
-          className="erp-btn"
-          onClick={() => alert("FinFlux em construção")}
+          className="button-main"
+          onClick={() => handleMainClick('Financeiro')}
         >
-          💰<br />Financeiro&nbsp;(FinFlux)
+          💰 Financeiro (FinFlux)
         </button>
+        {section === 'Financeiro' && (
+          <div className="inner-buttons">
+            <button onClick={() => setTela('ContasAPagar')}>Contas a Pagar</button>
+            <button onClick={() => setTela('ContasAReceber')}>Contas a Receber</button>
+            <button onClick={() => setTela('FluxoCaixa')}>Fluxo de Caixa</button>
+          </div>
+        )}
 
         <button
-          className="erp-btn"
-          onClick={() => alert("Análise de Custos em construção")}
+          className="button-main"
+          onClick={() => handleMainClick('Analise')}
         >
-          📊<br />Análise&nbsp;de&nbsp;Custos
+          📊 Análise de Custos
         </button>
+        {section === 'Analise' && (
+          <div className="inner-buttons">
+            <button onClick={() => setTela('Resultado')}>Resultado</button>
+            <button onClick={() => setTela('Dashboard')}>Dashboard</button>
+          </div>
+        )}
 
         <button
-          className="erp-btn"
-          onClick={() => alert("Cozinha em construção")}
+          className="button-main"
+          onClick={() => handleMainClick('Cozinha')}
         >
-          👨‍🍳<br />Cozinha
+          👩‍🍳 Cozinha
         </button>
-      </main>
+        {/* Cozinha não tem sub-itens por enquanto */}
+      </div>
 
       <footer className="erp-footer">
-        <marquee behavior="scroll" direction="left">
-          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
-          Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros •
-          Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo •
-          Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
-        </marquee>
+        • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
       </footer>
     </div>
-);
+  );
 }
