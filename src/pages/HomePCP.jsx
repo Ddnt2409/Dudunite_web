@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import "./HomePCP.css";
 
 const HomePCP = (props) => {
-  const [tela, setTela] = useState(null);
-
   return (
     <div
       style={{
@@ -60,7 +58,7 @@ const HomePCP = (props) => {
         >
           <button
             className="botao-principal"
-            onClick={() => props.setTela("LanPed")} // 🔧 AJUSTADO PARA CHAMAR LanPed
+            onClick={() => props.setTela("LanPed")}
           >
             📝
             <br />
