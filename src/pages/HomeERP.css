@@ -1,67 +1,92 @@
-.erp-container {
+/* =====================
+   Estilos para HomeERP
+   ===================== */
+
+/* container geral com background */
+.home-erp {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: url("/bg002.png") center/cover no-repeat;
+  background: url('/bg001.png') center/cover no-repeat;
+  position: relative;
 }
 
+/* cabeçalho fixo */
 .erp-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 80px;
-  padding: 0 1rem;
-  background: rgba(255,255,255,0.6);
-  backdrop-filter: blur(6px);
+  padding: 16px 32px;
+  background-color: rgba(255, 255, 255, 0.8);
 }
 .erp-header img {
-  height: 60px;
+  height: 40px;
+  margin-right: 16px;
 }
 .erp-header h1 {
-  font-size: 1.8rem;
+  font-size: 1.25rem;
   color: #8c3b1b;
-  margin: 0;
 }
 
-.erp-main {
-  flex: 1;
+/* área de botões principais */
+.buttons-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 1cm; /* espaçamento de ~1cm */
-  padding: 1rem;
-  overflow-y: auto;
+  margin: 10vh auto 0; /* desloca 10% da altura para baixo */
+  width: 100%;
+  max-width: 500px;
 }
 
-.erp-btn {
+/* botões principais */
+.button-main {
   width: 480px;
   height: 220px;
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: #fff;
   background-color: #8c3b1b;
   border: none;
-  border-radius: 1rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  margin-bottom: 32px; /* ~2cm de espaçamento */
   cursor: pointer;
-  text-align: center;
-  line-height: 1.2;
-  padding: 0.5rem;
-  transition: background-color 0.2s, transform 0.2s;
+  transition: background-color .2s;
 }
-.erp-btn:hover {
-  background-color: #a3471f;
-  transform: scale(1.05);
+.button-main:hover {
+  background-color: #6d2d14;
 }
 
-.erp-footer {
-  height: 40px;
-  background: rgba(140,59,27,0.4);
-  color: #fff;
+/* inner buttons, visíveis ao clicar no principal */
+.inner-buttons {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  font-size: 1rem;
+  margin-bottom: 32px;
 }
-.erp-footer marquee {
+.inner-buttons button {
+  width: 240px;
+  padding: 12px 0;
+  margin: 8px 0;
+  font-size: 1rem;
+  background-color: #fff;
+  color: #8c3b1b;
+  border: 2px solid #8c3b1b;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color .2s, color .2s;
+}
+.inner-buttons button:hover {
+  background-color: #8c3b1b;
+  color: #fff;
+}
+
+/* rodapé fixo no bottom */
+.erp-footer {
+  position: absolute;
+  bottom: 0;
   width: 100%;
+  padding: 8px 0;
+  text-align: center;
+  font-size: 0.875rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #333;
 }
