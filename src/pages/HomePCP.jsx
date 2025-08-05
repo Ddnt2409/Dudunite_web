@@ -1,7 +1,7 @@
 import React from "react";
 import "./HomePCP.css";
 
-const HomePCP = ({ voltar }) => {
+const HomePCP = ({ setTela, voltar }) => {
   return (
     <div
       style={{
