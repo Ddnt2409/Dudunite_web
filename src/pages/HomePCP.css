@@ -1,39 +1,32 @@
 .homepcp-container {
-  background-image: url('/bg002.png');
-  background-size: cover;
-  background-position: center;
-  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  overflow-y: auto;
+  min-height: 100dvh;
+  background: url('/bg002.png') center/cover no-repeat;
 }
 
-/* Cabeçalho */
 .homepcp-header {
-  height: 100px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 1rem;
-  background-color: rgba(255, 255, 255, 0.5);
+  padding: 1rem;
+  background: rgba(255,255,255,0.5);
   backdrop-filter: blur(6px);
 }
-.logo-pcp { width: 200px; margin-top: 2%; }
-.homepcp-titulo {
-  font-size: 2rem;
-  font-weight: bold;
+.homepcp-header img { width: 200px; }
+.homepcp-header h1 {
+  font-size: 1.8rem;
   color: #8c3b1b;
-  margin-right: 2ch;
+  margin-left: 1rem;
 }
 
-/* Botões */
-.botoes-pcp {
+.homepcp-main {
+  flex: 1;
   display: flex;
   gap: 2rem;
-  flex-wrap: wrap;
-  justify-content: center;
   padding: 2rem 1rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .botao-principal {
@@ -42,41 +35,37 @@
   font-size: 2.2rem;
   width: 450px;
   height: 220px;
-  font-weight: bold;
   border-radius: 1rem;
   border: none;
-  transition: transform 0.3s ease,
-              background-color 0.3s ease,
-              opacity 0.3s ease;
-  white-space: pre-line;
   box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
+  white-space: pre-line;
 }
-
-/* Ativo: zoom + cor destacada */
 .botao-ativo {
   transform: scale(1.12);
   background-color: #a3471f;
   box-shadow: 3px 3px 12px rgba(0,0,0,0.3);
   opacity: 1;
-  pointer-events: auto;
 }
-
-/* Inativo: translúcido e sem clique */
 .botao-inativo {
   opacity: 0.4;
   pointer-events: none;
 }
-
-/* Hover mantém zoom e cor */
 .botao-principal:hover {
   transform: scale(1.15);
   background-color: #a3471f;
 }
 
-/* Botão voltar menor */
+.homepcp-footer {
+  background-color: rgba(140,59,27,0.4);
+  color: #fff;
+  padding: 1rem;
+  text-align: center;
+}
+.homepcp-footer marquee {
+  display: block;
+  margin-bottom: 1rem;
+}
 .botao-voltar {
   background-color: #8c3b1b;
   color: white;
@@ -85,21 +74,15 @@
   border-radius: 0.5rem;
   border: none;
   opacity: 0.6;
-  transition: background-color 0.3s ease, opacity 0.3s ease;
-  margin: 0 auto 2rem;
+  transition: background-color 0.3s, opacity 0.3s;
 }
 .botao-voltar:hover {
   background-color: #a3471f;
   opacity: 1;
 }
 
-/* Rodapé */
-.lista-escolas {
-  background-color: rgba(140,59,27,0.4);
-  color: white;
-  font-size: 1.2rem;
-  text-align: center;
-  padding: 1rem 0;
-  position: sticky;
-  bottom: 0;
+@media (max-width: 1024px) {
+  .botao-principal {
+    width: 90vw;
+  }
 }
