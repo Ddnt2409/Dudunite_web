@@ -1,11 +1,12 @@
-/* Container principal */
+/* container com bg */
 .home-erp {
   background: url("/bg002.png") center/cover no-repeat;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
-/* Header */
+/* header igual ao PCP */
 .erp-header {
   height: 100px;
   display: flex;
@@ -25,65 +26,55 @@
   margin-right: 2ch;
 }
 
-/* Main — empilhado vertical, espaçamento de 2 cm */
+/* main empilhado vertical, espaçamento de 2cm */
 .erp-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2cm;
   padding: 2rem 1rem;
-  margin-top: -5rem; /* sobe o bloco para mais perto do header */
+  overflow-y: auto;
 }
 
-/* Container de cada botão */
+/* container de cada botão */
 .erp-botao-container {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Botão principal */
+/* botões fixos 480×220, centralizados */
 .botao-principal {
-  background-color: #8c3b1b;
-  color: white;
-  font-size: 2.2rem;
   width: 480px;
   height: 220px;
+  font-size: 2.2rem;
   font-weight: bold;
-  border-radius: 1rem;
   border: none;
-  transition: transform 0.3s ease, background-color 0.3s ease,
-    opacity 0.3s ease;
-  white-space: pre-line;
+  border-radius: 1rem;
+  background-color: #8c3b1b;
+  color: white;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-  text-align: center;
+  transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
+  white-space: pre-line;
   display: flex;
   justify-content: center;
   align-items: center;
-  opacity: 1;
-  pointer-events: auto;
+  cursor: pointer;
 }
 
-/* Ativo */
+/* ativo ganha zoom e cor mais escura */
 .botao-ativo {
   transform: scale(1.12);
   background-color: #a3471f;
-  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Inativo */
+/* inativo fica sem destaque */
 .botao-inativo {
-  opacity: 0.4;
-  pointer-events: auto;
+  opacity: 0.5;
 }
 
-/* Hover */
-.botao-principal:hover {
-  transform: scale(1.15);
-  background-color: #a3471f;
-}
-
-/* Dropdown interno */
+/* dropdown interno */
 .dropdown-interno {
   margin-top: 1rem;
   display: flex;
@@ -91,32 +82,33 @@
   gap: 0.5rem;
 }
 .dropdown-interno button {
-  background-color: #fff;
-  color: #8c3b1b;
-  font-weight: bold;
+  padding: 0.7rem 1.2rem;
   font-size: 1.5rem;
-  padding: 0.7rem 1.3rem;
-  border-radius: 0.5rem;
+  font-weight: bold;
   border: 2px solid #8c3b1b;
-  transition: background-color 0.3s;
+  border-radius: 0.5rem;
+  background: white;
+  color: #8c3b1b;
+  cursor: pointer;
 }
 .dropdown-interno button:hover {
-  background-color: #8c3b1b;
+  background: #8c3b1b;
   color: white;
 }
 
-/* Footer */
+/* footer igual ao PCP */
 .erp-footer {
   background-color: rgba(140, 59, 27, 0.4);
-  color: #fff;
+  color: white;
   padding: 1rem;
-  font-size: 1.2rem;
   text-align: center;
+  font-size: 1.2rem;
 }
 
-/* Garante scroll na página */
+/* garante scroll quando necessário */
 html,
 body {
-  height: auto;
-  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  height: 100%;
 }
