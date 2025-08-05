@@ -61,44 +61,45 @@ const HomePCP = ({ voltar }) => {
           }}
         >
           {/* Botão 1 – Lançar Pedido */}
-          <div
-            style={{
-              flex: "0 0 auto",
-              scrollSnapAlign: "center",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            <button
-              className="botao-principal botao-ativo"
-              onClick={() => alert("Em breve: Lançar Pedido")}
-            >
-              📝
-              <br />
-              Lançar Pedido
-            </button>
-          </div>
+{/* Botão 1 – Lançar Pedido */}
+<div
+  style={{
+    flex: "0 0 auto",
+    scrollSnapAlign: "center",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  }}
+>
+  <button
+    className="botao-principal botao-ativo"
+    onClick={() => setTela("LanPed")}
+  >
+    📝
+    <br />
+    Lançar Pedido
+  </button>
+</div>
 
-          {/* Botão 2 – Alimentar Sabores */}
-          <div
-            style={{
-              flex: "0 0 auto",
-              scrollSnapAlign: "center",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            <button
-              className="botao-principal botao-ativo"
-              onClick={() => alert("Em breve: Alimentar Sabores")}
-            >
-              🍫
-              <br />
-              Alimentar Sabores
-            </button>
-          </div>
+{/* Botão 2 – Alimentar Sabores */}
+<div
+  style={{
+    flex: "0 0 auto",
+    scrollSnapAlign: "center",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  }}
+>
+  <button
+    className="botao-principal botao-ativo"
+    onClick={() => setTela("AlimSab")}
+  >
+    🍫
+    <br />
+    Alimentar Sabores
+  </button>
+</div>
 
           {/* Botão 3 – Voltar */}
           <div
