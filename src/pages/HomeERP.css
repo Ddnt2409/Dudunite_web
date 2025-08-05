@@ -1,74 +1,146 @@
-.erp-container {
+/* === MESMO CSS DO PCP, REPLICADO AQUI === */
+
+.homepcp-container {
+  background-image: url('/bg002.png');
+  background-size: cover;
+  background-position: center;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-
-  /* BG full-screen */
-  background: url('/bg001.png') no-repeat center center fixed;
-  background-size: cover;
 }
 
-.erp-header {
+.homepcp-header {
+  height: 100px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
-  height: 80px;
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 10;
+  padding: 0 1rem;
+  background-color: rgba(255,255,255,0.5);
+  backdrop-filter: blur(6px);
 }
 
-.erp-logo {
-  height: 60px;
-  margin-right: 20px;
+.logo-pcp {
+  width: 200px;
+  margin-top: 2%;
 }
 
-.erp-title {
-  font-size: 1.5rem;
+.homepcp-titulo {
+  font-size: 2rem;
+  font-weight: bold;
   color: #8c3b1b;
 }
 
-.erp-main {
-  flex: 1;
+/* container de botões em duas linhas */
+.botoes-pcp {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  align-items: flex-start;
-
-  /* desce o bloco de botões aprox. 10cm (aprox. 300px) */
-  padding-top: 300px;
+  gap: 2rem;
+  padding: 2rem 1rem;
 }
 
-.erp-buttons {
+/* wrapper de cada botao para centralizar dropdown */
+.botao-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 2cm;
-  align-items: center; /* centraliza horizontalmente */
+  align-items: center;
 }
 
-.erp-btn {
-  width: 480px;
-  height: 220px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #fff;
-  background-color: #a65a3d;
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.erp-btn:hover {
+/* botões grandes */
+.botao-principal {
   background-color: #8c3b1b;
+  color: white;
+  font-size: 2.2rem;
+  width: 450px;
+  height: 220px;
+  font-weight: bold;
+  border: none;
+  border-radius: 1rem;
+  white-space: pre-line;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
 }
 
-.erp-footer {
-  height: 40px;
-  background: rgba(255, 255, 255, 0.85);
+.botao-ativo {
+  transform: scale(1.12);
+  background-color: #a3471f;
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.botao-inativo {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.botao-principal:hover {
+  transform: scale(1.15);
+  background-color: #a3471f;
+}
+
+/* dropdown interno */
+.dropdown-interno {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dropdown-interno button {
+  background-color: #fff;
+  color: #8c3b1b;
+  font-weight: bold;
+  font-size: 1.56rem;
+  padding: 0.7rem 1.3rem;
+  border-radius: 0.5rem;
+  border: 2px solid #8c3b1b;
+}
+
+.dropdown-interno button:hover {
+  background-color: #8c3b1b;
+  color: white;
+}
+
+/* botão voltar menor */
+.botao-voltar {
+  background-color: #8c3b1b;
+  color: white;
+  font-size: 1.4rem;
+  padding: 0.8rem 1.4rem;
+  border: none;
+  border-radius: 0.5rem;
+  opacity: 0.6;
+  margin: 1rem auto;
+  transition: background-color 0.3s, opacity 0.3s;
+}
+
+.botao-voltar:hover {
+  background-color: #a3471f;
+  opacity: 1;
+}
+
+/* rodapé animado */
+.lista-escolas {
+  background-color: rgba(140,59,27,0.4);
+  color: #fff;
+  font-size: 1rem;
   text-align: center;
-  line-height: 40px;
-  font-size: 0.9rem;
-  color: #5c1d0e;
-  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem 1rem;
+  margin-top: auto;
+  animation: scroll-left 20s linear infinite;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+@keyframes scroll-left {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* responsivo */
+@media (max-width: 1024px) {
+  .botao-principal { width: 90vw; height: 180px; }
 }
