@@ -1,43 +1,34 @@
 .erp-container {
-  background: url('/bg002.png') center/cover no-repeat;
-  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  min-height: 100dvh;
+  background: url('/bg002.png') center/cover no-repeat;
 }
 
-/* HEADER */
 .erp-header {
-  height: 100px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0 1rem;
+  align-items: center;
+  padding: 1rem;
   background-color: rgba(255,255,255,0.5);
   backdrop-filter: blur(6px);
 }
-.erp-logo {
+.erp-header img {
   width: 200px;
 }
-.erp-title {
+.erp-header h1 {
   font-size: 2rem;
-  font-weight: bold;
   color: #8c3b1b;
 }
 
 /* CARROSSEL */
-.erp-main {
+.erp-carousel {
   flex: 1;
   display: flex;
-  flex-direction: column;
-}
-.erp-carousel {
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
+  gap: 2rem;
+  padding: 2rem 1rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  gap: 2.5rem;
-  padding: 2rem 1rem 0;
 }
 .erp-item {
   flex: 0 0 auto;
@@ -50,34 +41,26 @@
 /* BOTÕES */
 .botao-principal {
   background-color: #8c3b1b;
-  color: #fff;
+  color: white;
   font-size: 2.2rem;
   width: 450px;
   height: 220px;
-  font-weight: bold;
-  border: none;
   border-radius: 1rem;
+  border: none;
   box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
-  white-space: pre-line;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
+  white-space: pre-line;
 }
-
 .botao-ativo {
   transform: scale(1.12);
   background-color: #a3471f;
   box-shadow: 3px 3px 12px rgba(0,0,0,0.3);
   opacity: 1;
-  pointer-events: auto;
 }
-
 .botao-inativo {
   opacity: 0.4;
   pointer-events: none;
 }
-
 .botao-principal:hover {
   transform: scale(1.15);
   background-color: #a3471f;
@@ -85,7 +68,7 @@
 
 /* DROPDOWN */
 .dropdown-interno {
-  margin-top: 0.8rem;
+  margin-top: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -93,27 +76,24 @@
 .dropdown-interno button {
   background: #fff;
   color: #8c3b1b;
-  font-weight: bold;
-  padding: 0.7rem 1.3rem;
   border: 2px solid #8c3b1b;
+  padding: 0.7rem 1.3rem;
   border-radius: 0.5rem;
+  font-size: 1.2rem;
 }
 .dropdown-interno button:hover {
-  background-color: #8c3b1b;
-  color: #fff;
+  background: #8c3b1b;
+  color: white;
 }
 
-/* RODAPÉ */
 .erp-footer {
   background-color: rgba(140,59,27,0.4);
   color: #fff;
   padding: 1rem;
   text-align: center;
-  font-size: 1.1rem;
   margin-top: auto;
 }
 
-/* Responsivo */
 @media (max-width: 1024px) {
   .botao-principal {
     width: 90vw;
