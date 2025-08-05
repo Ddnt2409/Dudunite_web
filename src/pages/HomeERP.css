@@ -1,26 +1,54 @@
-/* === HOME ERP CSS FINAL – RESTAURADO E ISOLADO === */
-
-/* desativa carrossel horizontal */
-main > div {
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  overflow-x: unset !important;
-  scroll-snap-type: none !important;
-  padding: 2rem 1rem !important;
-  gap: 2.5rem !important;
+.erp-container {
+  background: url('/bg002.png') center/cover no-repeat;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* forçar 2 linhas de botões */
-main > div > div {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: center !important;
-  gap: 2rem !important;
-  max-width: 100% !important;
+/* HEADER */
+.erp-header {
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  background-color: rgba(255,255,255,0.5);
+  backdrop-filter: blur(6px);
+}
+.erp-logo {
+  width: 200px;
+}
+.erp-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #8c3b1b;
 }
 
-/* BOTÕES GERAIS */
+/* CARROSSEL */
+.erp-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.erp-carousel {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 3rem;
+  padding: 2rem 1rem 0;
+  width: 100%;
+}
+.erp-item {
+  flex: 0 0 auto;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* BOTÕES */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
@@ -30,55 +58,58 @@ main > div > div {
   font-weight: bold;
   border-radius: 1rem;
   border: none;
-  transition: transform 0.3s ease, background-color 0.3s ease,
-    opacity 0.3s ease;
+  transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
   white-space: pre-line;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-  text-align: center;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
   display: flex;
   justify-content: center;
   align-items: center;
-  min-width: 450px;
-  max-width: 450px;
-  flex-shrink: 0;
-  opacity: 1;
-  pointer-events: auto;
 }
 
-/* ativo = zoom + cor */
 .botao-ativo {
   transform: scale(1.12);
   background-color: #a3471f;
-  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 3px 3px 12px rgba(0,0,0,0.3);
   opacity: 1;
   pointer-events: auto;
 }
 
-/* inativo = translúcido e sem clique */
 .botao-inativo {
   opacity: 0.4;
   pointer-events: none;
 }
 
-/* hover em qualquer botão */
 .botao-principal:hover {
   transform: scale(1.15);
   background-color: #a3471f;
 }
 
-/* RODAPÉ */
-footer {
-  background-color: rgba(140, 59, 27, 0.4);
-  color: #ffffff;
-  padding: 1rem;
-  font-size: 1.2rem;
-  text-align: center;
-  margin-top: 2rem;
+/* DROPDOWN */
+.dropdown-interno {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.dropdown-interno button {
+  background-color: #fff;
+  color: #8c3b1b;
+  font-weight: bold;
+  padding: 0.7rem 1.3rem;
+  border-radius: 0.5rem;
+  border: 2px solid #8c3b1b;
+}
+.dropdown-interno button:hover {
+  background-color: #8c3b1b;
+  color: white;
 }
 
-/* RESPONSIVO */
-@media (max-width: 1024px) {
-  .botao-principal {
-    margin-top: 4vh !important;
-  }
+/* FOOTER */
+.erp-footer {
+  background-color: rgba(140,59,27,0.4);
+  color: white;
+  padding: 1rem;
+  text-align: center;
+  font-size: 1.2rem;
+  margin-top: auto;
 }
