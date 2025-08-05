@@ -1,96 +1,95 @@
-/* === LANÇAR PEDIDO CSS – PADRÃO PCP === */
+/* === LANPED.CSS – VISUAL DO LANÇAR PEDIDO === */
 
-/* === FORÇAR ESTRUTURA DE LAYOUT === */
-main > div {
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  overflow-x: unset !important;
-  scroll-snap-type: none !important;
-  padding: 2rem 1rem !important;
-  gap: 2.5rem !important;
-}
-
-/* === ESTRUTURA DOS BOTÕES EM 2 LINHAS === */
-main > div > div {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: center !important;
-  gap: 2rem !important;
-  max-width: 100% !important;
-}
-
-/* === BOTÃO PADRÃO PRINCIPAL === */
-.botao-principal {
-  background-color: #8c3b1b;
-  color: white;
-  font-size: 2.2rem;
-  width: 450px;
-  height: 220px;
-  font-weight: bold;
-  border-radius: 1rem;
-  border: none;
-  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
-  white-space: pre-line;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-width: 450px;
-  max-width: 450px;
-  flex-shrink: 0;
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* === BOTÃO ATIVO – ZOOM e COR DESTACADA === */
-.botao-ativo {
-  transform: scale(1.12);
-  background-color: #a3471f;
-  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* === BOTÃO INATIVO – TRANSLÚCIDO === */
-.botao-inativo {
-  opacity: 0.4;
-}
-
-/* === HOVER DO BOTÃO === */
-.botao-principal:hover {
-  transform: scale(1.15);
-  background-color: #a3471f;
-}
-
-/* === DROPDOWN FUTURO === */
-.dropdown-interno {
-  margin-top: 0.8rem;
+/* === BACKGROUND E CONTAINER GERAL === */
+.lanped-bg {
+  background-image: url('/bg002.png');
+  background-size: cover;
+  background-position: center;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  justify-content: flex-start;
+  overflow-y: auto;
+}
+
+/* === HEADER === */
+.lanped-header {
+  height: 100px;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
+  padding: 0 1rem;
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(6px);
 }
 
-.dropdown-interno button {
-  background-color: #fff;
-  color: #8c3b1b;
+.lanped-logo {
+  width: 200px;
+  margin-top: 2%;
+}
+
+.lanped-titulo {
+  font-size: 2rem;
   font-weight: bold;
-  font-size: 1.56rem;
-  padding: 0.7rem 1.3rem;
-  border-radius: 0.5rem;
-  border: 2px solid #8c3b1b;
-  transition: background-color 0.3s;
+  color: #8c3b1b;
+  margin-right: 2ch;
 }
 
-.dropdown-interno button:hover {
+/* === FORMULÁRIO CENTRAL === */
+.lanped-formulario {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  gap: 1.5rem;
+}
+
+.lanped-formulario label {
+  font-weight: bold;
+  color: #8c3b1b;
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.lanped-formulario select,
+.lanped-formulario input {
+  width: 300px;
+  padding: 0.6rem;
+  border: 2px solid #8c3b1b;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+/* === BOTÕES === */
+.lanped-formulario button {
   background-color: #8c3b1b;
   color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+  margin-top: 0.5rem;
 }
 
-/* === RODAPÉ PADRÃO === */
-footer {
+.lanped-formulario button:hover {
+  transform: scale(1.05);
+  background-color: #a3471f;
+}
+
+/* === BOTÃO VOLTAR === */
+.botao-voltar {
+  align-self: flex-start;
+  margin-left: 1rem;
+  background-color: #ccc;
+  color: #333;
+  border: 2px solid #666;
+}
+
+/* === RODAPÉ === */
+.lanped-footer {
   background-color: rgba(140, 59, 27, 0.4);
   color: #ffffff;
   padding: 1rem;
@@ -99,9 +98,18 @@ footer {
   margin-top: 2rem;
 }
 
-/* === RESPONSIVO PARA TABLET E MOBILE === */
-@media (max-width: 1024px) {
-  .botao-principal {
-    margin-top: 4vh !important;
+/* === RESPONSIVO === */
+@media (max-width: 768px) {
+  .lanped-formulario input,
+  .lanped-formulario select {
+    width: 90vw;
+  }
+
+  .lanped-logo {
+    width: 150px;
+  }
+
+  .lanped-titulo {
+    font-size: 1.5rem;
   }
 }
