@@ -1,34 +1,42 @@
+/* === ERP.CSS – PADRÃO HOME ERP === */
+
 .erp-container {
+  background-image: url('/bg002.png');
+  background-size: cover;
+  background-position: center;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
-  background: url('/bg002.png') center/cover no-repeat;
 }
 
+/* HEADER */
 .erp-header {
+  height: 100px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 0 1rem;
   background-color: rgba(255,255,255,0.5);
   backdrop-filter: blur(6px);
 }
-.erp-header img {
+.erp-logo {
   width: 200px;
 }
-.erp-header h1 {
+.erp-titulo {
   font-size: 2rem;
+  font-weight: bold;
   color: #8c3b1b;
+  margin-right: 2ch;
 }
 
-/* CARROSSEL */
-.erp-carousel {
+/* MAIN */
+.erp-main {
   flex: 1;
   display: flex;
-  gap: 2rem;
-  padding: 2rem 1rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
+  gap: 2rem;
+  padding: 2rem 1rem 0;
 }
 .erp-item {
   flex: 0 0 auto;
@@ -45,58 +53,72 @@
   font-size: 2.2rem;
   width: 450px;
   height: 220px;
+  font-weight: bold;
   border-radius: 1rem;
   border: none;
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
-  transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
+  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
   white-space: pre-line;
-}
-.botao-ativo {
-  transform: scale(1.12);
-  background-color: #a3471f;
-  box-shadow: 3px 3px 12px rgba(0,0,0,0.3);
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   opacity: 1;
-}
-.botao-inativo {
-  opacity: 0.4;
-  pointer-events: none;
+  pointer-events: auto;
 }
 .botao-principal:hover {
   transform: scale(1.15);
   background-color: #a3471f;
 }
 
+.botao-ativo {
+  transform: scale(1.12);
+  background-color: #a3471f;
+  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
+}
+.botao-inativo {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 /* DROPDOWN */
 .dropdown-interno {
-  margin-top: 1rem;
+  margin-top: 0.8rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  align-items: center;
 }
 .dropdown-interno button {
-  background: #fff;
+  background-color: #fff;
   color: #8c3b1b;
-  border: 2px solid #8c3b1b;
+  font-weight: bold;
+  font-size: 1.56rem;
   padding: 0.7rem 1.3rem;
   border-radius: 0.5rem;
-  font-size: 1.2rem;
+  border: 2px solid #8c3b1b;
+  transition: background-color 0.3s;
 }
 .dropdown-interno button:hover {
-  background: #8c3b1b;
+  background-color: #8c3b1b;
   color: white;
 }
 
+/* FOOTER */
 .erp-footer {
-  background-color: rgba(140,59,27,0.4);
-  color: #fff;
+  background-color: rgba(140, 59, 27, 0.4);
+  color: #ffffff;
   padding: 1rem;
+  font-size: 1.2rem;
   text-align: center;
   margin-top: auto;
 }
 
+/* RESPONSIVO */
 @media (max-width: 1024px) {
   .botao-principal {
-    width: 90vw;
-    min-width: unset;
+    width: 80vw;
+    height: auto;
+    font-size: 1.8rem;
   }
 }
