@@ -1,108 +1,89 @@
 import React, { useState, useEffect } from 'react';
 import './LanPed.css';
 
-const cidades = {
-  Gravatá: ['Pequeno Príncipe','Salesianas','Céu Azul','Russas','Bora Gastar','Kaduh','Society Show','Degusty'],
-  Recife:  ['Tio Valter','Vera Cruz','Pinheiros','Dourado','BMQ','CFC','Madre de Deus','Saber Viver'],
-  Caruaru:['Interativo','Exato Sede','Exato Anexo','Sesi','Motivo','Jesus Salvador']
-};
-const produtos = ['BRW 7x7','BRW 6x6','PKT 5x5','PKT 6x6','Esc','Dudu'];
-
 export default function LanPed({ setTela }) {
+  // estados do formulário
   const [cidade, setCidade] = useState('');
   const [escola, setEscola] = useState('');
-  const [dataV, setDataV] = useState('');
-  const [forma, setForma] = useState('');
   const [produto, setProduto] = useState('');
-  const [quant, setQuant] = useState(1);
-  const [valor, setValor] = useState('');
-  const [itens, setItens] = useState([]);
+  const [sabor, setSabor] = useState('');
+  const [quantidade, setQuantidade] = useState(1);
 
-  function adicionarItem() {
-    if (!produto||!quant||!valor) return alert('Preencha produto, quantidade e valor.');
-    setItens(prev => [...prev,{produto,quant,valor}]);
-    setProduto(''); setQuant(1); setValor('');
-  }
+  // opções fixas (você pode puxar do Firestore depois)
+  const cidades = ['Gravatá', 'Recife', 'Caruaru'];
+  const escolasPorCidade = {
+    Gravatá: ['Pequeno Príncipe', 'Salesianas', 'Céu Azul'],
+    Recife: ['Tio Valter', 'Vera Cruz', 'Pinheiros'],
+    Caruaru: ['Interativo', 'Exato Sede', 'Sesi'],
+  };
+  const produtos = ['BRW 7x7', 'BRW 6x6', 'PKT 5x5'];
+  const saboresPorProduto = {
+    'BRW 7x7': ['Ninho', 'Oreo', 'Paçoca'],
+    'BRW 6x6': ['Brigadeiro branco', 'Brigadeiro preto'],
+    'PKT 5x5': ['Ovomaltine', 'Beijinho'],
+  };
 
-  function salvarPedido() {
-    // aqui você envia ao Firestore...
-    alert('✅ Pedido salvo!');
-    setItens([]);
+  // filtra escolas e sabores
+  const escolasFiltradas = cidade ? escolasPorCidade[cidade] || [] : [];
+  const saboresFiltrados = produto ? saboresPorProduto[produto] || [] : [];
+
+  // salvar (ainda só faz console.log)
+  function salvar() {
+    console.log({ cidade, escola, produto, sabor, quantidade });
+    alert('Pedido simulado: ' + cidade + ' - ' + escola);
   }
 
   return (
     <div className="lanped-container">
       {/* HEADER */}
       <header className="lanped-header">
-        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo" className="lanped-logo" />
-        <h1 className="lanped-title">Lançar Pedido</h1>
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo Dudunitê" className="lanped-logo" />
+        <h1 className="lanped-titulo">Lançar Pedido – Dudunitê</h1>
       </header>
 
       {/* FORMULÁRIO */}
-      <div className="lanped-form">
+      <div className="lanped-formulario">
         <label>Cidade</label>
-        <select value={cidade} onChange={e=>{setCidade(e.target.value); setEscola('');}}>
+        <select value={cidade} onChange={e => setCidade(e.target.value)}>
           <option value="">Selecione</option>
-          {Object.keys(cidades).map(c=> <option key={c} value={c}>{c}</option>)}
+          {cidades.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
 
         <label>Escola</label>
-        <select value={escola} onChange={e=>setEscola(e.target.value)} disabled={!cidade}>
+        <select value={escola} onChange={e => setEscola(e.target.value)} disabled={!cidade}>
           <option value="">Selecione</option>
-          {cidade && cidades[cidade].map(e=> <option key={e} value={e}>{e}</option>)}
-        </select>
-
-        <label>Vencimento</label>
-        <input type="date" value={dataV} onChange={e=>setDataV(e.target.value)} />
-
-        <label>Forma de Pagamento</label>
-        <select value={forma} onChange={e=>setForma(e.target.value)}>
-          <option value="">Selecione</option>
-          <option>PIX</option><option>Espécie</option><option>Boleto</option>
+          {escolasFiltradas.map(e => <option key={e} value={e}>{e}</option>)}
         </select>
 
         <label>Produto</label>
-        <select value={produto} onChange={e=>setProduto(e.target.value)}>
+        <select value={produto} onChange={e => setProduto(e.target.value)}>
           <option value="">Selecione</option>
-          {produtos.map(p=> <option key={p} value={p}>{p}</option>)}
+          {produtos.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+
+        <label>Sabor</label>
+        <select value={sabor} onChange={e => setSabor(e.target.value)} disabled={!produto}>
+          <option value="">Selecione</option>
+          {saboresFiltrados.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
 
         <label>Quantidade</label>
-        <input type="number" min="1" value={quant} onChange={e=>setQuant(Number(e.target.value))} />
+        <input
+          type="number"
+          min="1"
+          value={quantidade}
+          onChange={e => setQuantidade(Number(e.target.value))}
+        />
 
-        <label>Valor Unit.</label>
-        <input type="number" min="0" step="0.01" value={valor} onChange={e=>setValor(e.target.value)} />
-
-        <button onClick={adicionarItem}>➕ Adicionar Item</button>
+        <button onClick={salvar}>💾 Salvar Pedido</button>
       </div>
 
-      {/* LISTA DE ITENS */}
-      {itens.length > 0 && (
-        <div className="lanped-itens">
-          <h2>Itens do Pedido</h2>
-          <ul>
-            {itens.map((it,i)=>(
-              <li key={i}>{it.quant}x {it.produto} – R$ {Number(it.valor).toFixed(2)}</li>
-            ))}
-          </ul>
-          <button className="lanped-save" onClick={salvarPedido}>
-            💾 Salvar Pedido
-          </button>
-        </div>
-      )}
-
-      {/* BOTÃO VOLTAR */}
-      <button className="botao-voltar" onClick={()=>setTela('PCP')}>
-        🔙 Voltar para PCP
-      </button>
-
-      {/* RODAPÉ */}
-      <footer className="lanped-footer">
-        <marquee behavior="scroll" direction="left">
-          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show •
-          Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
-          Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
-        </marquee>
-      </footer>
+      {/* VOLTAR */}
+      <div className="lanped-footer">
+        <button className="botao-voltar" onClick={() => setTela('HomePCP')}>
+          🔙 Voltar para PCP
+        </button>
+      </div>
     </div>
-    }
+  );
+}
