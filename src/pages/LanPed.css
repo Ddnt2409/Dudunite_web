@@ -1,74 +1,117 @@
+/* LanPed.CSS – Tela Lançar Pedido */
+
 .lanped-container {
+  background-image: url('/bg002.png');
+  background-size: cover;
+  background-position: center;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
-  background: url('/bg002.png') center/cover no-repeat;
+  align-items: center;
 }
 
 .lanped-header {
+  width: 100%;
+  height: 100px;
   display: flex;
   align-items: center;
-  padding: 1rem;
-  background: rgba(255,255,255,0.5);
+  padding: 0 1rem;
+  background-color: rgba(255,255,255,0.5);
   backdrop-filter: blur(6px);
 }
-.lanped-header img { width: 200px; }
-.lanped-header h1 {
+.lanped-logo {
+  width: 200px;
+}
+.lanped-titulo {
+  margin-left: auto;
+  margin-right: 2ch;
   font-size: 1.8rem;
   color: #8c3b1b;
-  margin-left: 1rem;
 }
 
-.lanped-formulario {
-  flex: 1;
+.lanped-main {
+  width: 100%;
+  max-width: 480px;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 2rem 1rem;
 }
-.lanped-formulario label {
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+.form-group label {
   font-weight: bold;
+  margin-bottom: 0.3rem;
   color: #8c3b1b;
 }
-.lanped-formulario select,
-.lanped-formulario input {
+.form-group select,
+.form-group input {
   padding: 0.6rem;
   border: 2px solid #8c3b1b;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 0.5rem;
+}
+
+.quantidade-group {
+  width: 100px;
+}
+
+.botao-adicionar {
+  background-color: #8c3b1b;
+  color: white;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+.botao-adicionar:hover {
+  background-color: #a3471f;
+}
+
+.lista-itens {
+  list-style: disc inside;
+  background: rgba(255,255,255,0.7);
+  padding: 0.8rem;
+  border-radius: 0.5rem;
 }
 
 .botao-salvar {
-  background: #8c3b1b;
+  background-color: #8c3b1b;
   color: white;
-  padding: 0.8rem;
-  font-size: 1.1rem;
+  padding: 1rem;
   border: none;
-  border-radius: 10px;
+  border-radius: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: bold;
   cursor: pointer;
-  transition: transform 0.2s, background 0.3s;
 }
 .botao-salvar:hover {
-  transform: scale(1.05);
-  background: #a3471f;
+  background-color: #a3471f;
+}
+
+.botao-voltar {
+  margin: 1rem;
+  background-color: #8c3b1b;
+  color: white;
+  padding: 0.8rem 1.2rem;
+  border: none;
+  border-radius: 0.5rem;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity 0.3s, background-color 0.3s;
+}
+.botao-voltar:hover {
+  background-color: #a3471f;
+  opacity: 1;
 }
 
 .lanped-footer {
-  padding: 1rem;
-  background: rgba(140,59,27,0.4);
-  color: #fff;
-  text-align: center;
-}
-.botao-voltar {
-  background: #8c3b1b;
+  width: 100%;
+  padding: 0.5rem 0;
+  background-color: rgba(140, 59, 27, 0.4);
   color: white;
-  padding: 0.8rem 1.4rem;
-  border-radius: 0.5rem;
-  border: none;
-  opacity: 0.6;
-  transition: opacity 0.3s, background 0.3s;
-}
-.botao-voltar:hover {
-  opacity: 1;
-  background: #a3471f;
+  text-align: center;
+  margin-top: auto;
 }
