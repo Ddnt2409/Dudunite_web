@@ -1,117 +1,128 @@
-/* LanPed.CSS – Tela Lançar Pedido */
+/* === LanPed.css === */
 
-.lanped-container {
-  background-image: url('/bg002.png');
-  background-size: cover;
-  background-position: center;
+.lanped-wrapper {
+  background: url('/bg002.png') center/cover no-repeat;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
-.lanped-header {
-  width: 100%;
+.erp-header,
+.erp-footer {
+  background-color: rgba(255,255,255,0.5);
+  backdrop-filter: blur(6px);
+}
+
+.erp-header {
   height: 100px;
   display: flex;
   align-items: center;
   padding: 0 1rem;
-  background-color: rgba(255,255,255,0.5);
-  backdrop-filter: blur(6px);
 }
-.lanped-logo {
+.erp-logo {
   width: 200px;
 }
-.lanped-titulo {
-  margin-left: auto;
-  margin-right: 2ch;
-  font-size: 1.8rem;
+.erp-titulo {
+  font-size: 2rem;
   color: #8c3b1b;
+  margin-left: 1rem;
 }
 
 .lanped-main {
-  width: 100%;
-  max-width: 480px;
-  padding: 1rem;
+  flex: 1;
   display: flex;
   flex-direction: column;
+  padding: 1rem;
   gap: 1rem;
 }
+
 .form-group {
   display: flex;
   flex-direction: column;
 }
 .form-group label {
   font-weight: bold;
-  margin-bottom: 0.3rem;
   color: #8c3b1b;
+  margin-bottom: 0.3rem;
 }
 .form-group select,
 .form-group input {
-  padding: 0.6rem;
-  border: 2px solid #8c3b1b;
+  padding: 0.5rem;
   border-radius: 0.5rem;
+  border: 2px solid #8c3b1b;
+}
+
+.form-inline {
+  display: flex;
+  gap: 2rem;
 }
 
 .quantidade-group {
-  width: 100px;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
-
-.botao-adicionar {
+.quantidade-group button {
+  width: 2.5rem;
+  height: 2.5rem;
   background-color: #8c3b1b;
   color: white;
-  padding: 0.8rem;
   border: none;
   border-radius: 0.5rem;
-  font-weight: bold;
-  cursor: pointer;
 }
-.botao-adicionar:hover {
-  background-color: #a3471f;
-}
-
-.lista-itens {
-  list-style: disc inside;
-  background: rgba(255,255,255,0.7);
-  padding: 0.8rem;
-  border-radius: 0.5rem;
+.quantidade-group input {
+  width: 4rem;
+  text-align: center;
 }
 
-.botao-salvar {
-  background-color: #8c3b1b;
-  color: white;
-  padding: 1rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-  cursor: pointer;
-}
-.botao-salvar:hover {
-  background-color: #a3471f;
-}
-
+.botao-add,
+.botao-salvar,
 .botao-voltar {
-  margin: 1rem;
   background-color: #8c3b1b;
   color: white;
-  padding: 0.8rem 1.2rem;
+  padding: 0.8rem;
   border: none;
   border-radius: 0.5rem;
-  opacity: 0.6;
-  cursor: pointer;
-  transition: opacity 0.3s, background-color 0.3s;
+  font-size: 1rem;
+  margin-top: 1rem;
+  transition: background-color 0.3s;
 }
+.botao-add:hover,
+.botao-salvar:hover,
 .botao-voltar:hover {
   background-color: #a3471f;
-  opacity: 1;
 }
 
-.lanped-footer {
+.itens-lista {
+  list-style: disc inside;
+  margin-top: 1rem;
+}
+.itens-lista li {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.btn-remover {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.total-pedido {
+  margin-top: 0.5rem;
+  font-size: 1.2rem;
+  color: #8c3b1b;
+  text-align: right;
+}
+
+.erp-footer {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.erp-footer marquee {
   width: 100%;
-  padding: 0.5rem 0;
-  background-color: rgba(140, 59, 27, 0.4);
-  color: white;
-  text-align: center;
-  margin-top: auto;
+  margin-bottom: 0.5rem;
 }
