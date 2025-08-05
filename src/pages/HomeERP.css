@@ -1,114 +1,67 @@
-/* container com bg */
-.home-erp {
-  background: url("/bg002.png") center/cover no-repeat;
+.erp-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background: url("/bg002.png") center/cover no-repeat;
 }
 
-/* header igual ao PCP */
 .erp-header {
-  height: 100px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  height: 80px;
   padding: 0 1rem;
-  background-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255,255,255,0.6);
   backdrop-filter: blur(6px);
 }
-.erp-logo {
-  width: 200px;
+.erp-header img {
+  height: 60px;
 }
-.erp-titulo {
-  font-size: 2rem;
-  font-weight: bold;
+.erp-header h1 {
+  font-size: 1.8rem;
   color: #8c3b1b;
-  margin-right: 2ch;
+  margin: 0;
 }
 
-/* main empilhado vertical, espaçamento de 2cm */
 .erp-main {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2cm;
-  padding: 2rem 1rem;
+  justify-content: center;
+  gap: 1cm; /* espaçamento de ~1cm */
+  padding: 1rem;
   overflow-y: auto;
 }
 
-/* container de cada botão */
-.erp-botao-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* botões fixos 480×220, centralizados */
-.botao-principal {
+.erp-btn {
   width: 480px;
   height: 220px;
-  font-size: 2.2rem;
-  font-weight: bold;
+  font-size: 2rem;
+  color: #fff;
+  background-color: #8c3b1b;
   border: none;
   border-radius: 1rem;
-  background-color: #8c3b1b;
-  color: white;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
-  white-space: pre-line;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   cursor: pointer;
-}
-
-/* ativo ganha zoom e cor mais escura */
-.botao-ativo {
-  transform: scale(1.12);
-  background-color: #a3471f;
-}
-
-/* inativo fica sem destaque */
-.botao-inativo {
-  opacity: 0.5;
-}
-
-/* dropdown interno */
-.dropdown-interno {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.dropdown-interno button {
-  padding: 0.7rem 1.2rem;
-  font-size: 1.5rem;
-  font-weight: bold;
-  border: 2px solid #8c3b1b;
-  border-radius: 0.5rem;
-  background: white;
-  color: #8c3b1b;
-  cursor: pointer;
-}
-.dropdown-interno button:hover {
-  background: #8c3b1b;
-  color: white;
-}
-
-/* footer igual ao PCP */
-.erp-footer {
-  background-color: rgba(140, 59, 27, 0.4);
-  color: white;
-  padding: 1rem;
   text-align: center;
-  font-size: 1.2rem;
+  line-height: 1.2;
+  padding: 0.5rem;
+  transition: background-color 0.2s, transform 0.2s;
+}
+.erp-btn:hover {
+  background-color: #a3471f;
+  transform: scale(1.05);
 }
 
-/* garante scroll quando necessário */
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+.erp-footer {
+  height: 40px;
+  background: rgba(140,59,27,0.4);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+}
+.erp-footer marquee {
+  width: 100%;
 }
