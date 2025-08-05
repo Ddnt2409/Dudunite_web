@@ -1,100 +1,74 @@
 import React from "react";
-import "./HomePCP.css";
 
-const HomePCP = (props) => {
+function HomePCP({ setTela }) {
   return (
     <div
       style={{
-        backgroundImage: "url('/bg002.png')",
+        backgroundImage: "url('/fundopcp.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
-        minHeight: "100dvh",
+        minHeight: "100vh",
+        padding: "2rem",
         display: "flex",
         flexDirection: "column",
+        alignItems: "center",
         justifyContent: "flex-start",
-        overflowY: "auto",
+        gap: "3rem",
       }}
     >
-      {/* === INÍCIO HEADER === */}
-      <header
+      {/* === INÍCIO RT00 – Tela PCP === */}
+      <h1
         style={{
-          height: "100px",
+          fontSize: "1.8rem",
+          fontWeight: "bold",
+          color: "#8c3b1b",
+          backgroundColor: "#fff5ec",
+          padding: "1rem 2rem",
+          borderRadius: "1rem",
+          marginTop: "2rem",
+        }}
+      >
+        Planejamento de Produção
+      </h1>
+
+      <div
+        style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0 1rem",
-          backgroundColor: "rgba(255,255,255,0.5)",
-          backdropFilter: "blur(6px)",
+          flexDirection: "column",
+          gap: "2rem",
+          marginTop: "2rem",
         }}
       >
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logo"
-          style={{ width: "200px", marginTop: "2%" }}
-        />
-        <h1
-          style={{
-            fontSize: "2rem",
-            fontWeight: "bold",
-            color: "#8c3b1b",
-            marginRight: "2ch",
-          }}
+        {/* Botão 1 – Lançar Pedido */}
+        <button
+          className="botao-principal"
+          onClick={() => setTela("LanPed")}
         >
-          Planejamento de Produção
-        </h1>
-      </header>
-      {/* === FIM HEADER === */}
+          📝 Lançar Pedido
+        </button>
 
-      {/* === INÍCIO CONTEÚDO PRINCIPAL === */}
-      <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "3rem",
-            marginTop: "4rem",
-            flexWrap: "wrap",
-          }}
+        {/* Botão 2 – Alimentar Sabores */}
+        <button
+          className="botao-principal"
+          onClick={() => alert("Em breve!")}
         >
-<button
-  className="botao-teste"
-  onClick={() => setTela('LanPed')} // ✅ troca o alert pela navegação real
->
-  TESTE LANÇAR PEDIDO
-</button>
-          <button
-            className="botao-principal"
-            onClick={() => props.setTela("HomePCP")}
-          >
-            🍫
-            <br />
-            Alimentar Sabores
-          </button>
-        </div>
-      </main>
-      {/* === FIM CONTEÚDO PRINCIPAL === */}
+          🍫 Alimentar Sabores
+        </button>
+      </div>
 
-      {/* === INÍCIO RODAPÉ === */}
-      <footer
+      {/* Rodapé com escolas recentes */}
+      <div
         style={{
-          backgroundColor: "rgba(140, 59, 27, 0.4)",
-          color: "#ffffff",
-          padding: "1rem",
-          fontSize: "1.2rem",
-          textAlign: "center",
-          marginTop: "4rem",
+          marginTop: "auto",
+          color: "white",
+          fontSize: "0.8rem",
         }}
       >
-        <marquee behavior="scroll" direction="left">
-          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
-          Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros •
-          Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo •
-          Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
-        </marquee>
-      </footer>
-      {/* === FIM RODAPÉ === */}
+        • Pequeno Príncipe • Salesianas
+      </div>
+      {/* === FIM RT00 === */}
     </div>
   );
-};
+}
 
 export default HomePCP;
