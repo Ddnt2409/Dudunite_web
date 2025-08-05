@@ -36,9 +36,8 @@
   align-items: center;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  gap: 3rem;
+  gap: 2.5rem;
   padding: 2rem 1rem 0;
-  width: 100%;
 }
 .erp-item {
   flex: 0 0 auto;
@@ -51,19 +50,19 @@
 /* BOTÕES */
 .botao-principal {
   background-color: #8c3b1b;
-  color: white;
+  color: #fff;
   font-size: 2.2rem;
   width: 450px;
   height: 220px;
   font-weight: bold;
-  border-radius: 1rem;
   border: none;
-  transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
-  white-space: pre-line;
+  border-radius: 1rem;
   box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+  white-space: pre-line;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
 }
 
 .botao-ativo {
@@ -92,24 +91,32 @@
   gap: 0.5rem;
 }
 .dropdown-interno button {
-  background-color: #fff;
+  background: #fff;
   color: #8c3b1b;
   font-weight: bold;
   padding: 0.7rem 1.3rem;
-  border-radius: 0.5rem;
   border: 2px solid #8c3b1b;
+  border-radius: 0.5rem;
 }
 .dropdown-interno button:hover {
   background-color: #8c3b1b;
-  color: white;
+  color: #fff;
 }
 
-/* FOOTER */
+/* RODAPÉ */
 .erp-footer {
   background-color: rgba(140,59,27,0.4);
-  color: white;
+  color: #fff;
   padding: 1rem;
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   margin-top: auto;
+}
+
+/* Responsivo */
+@media (max-width: 1024px) {
+  .botao-principal {
+    width: 90vw;
+    min-width: unset;
+  }
 }
