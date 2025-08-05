@@ -61,7 +61,6 @@ const HomePCP = ({ setTela, voltar }) => {
           }}
         >
           {/* Botão 1 – Lançar Pedido */}
-{/* Botão 1 – Lançar Pedido */}
 <div
   style={{
     flex: "0 0 auto",
@@ -72,15 +71,21 @@ const HomePCP = ({ setTela, voltar }) => {
   }}
 >
   <button
-    className="botao-principal botao-ativo"
+    style={{
+      padding: '1rem 2rem',
+      fontSize: '1.5rem',
+      fontWeight: 'bold',
+      backgroundColor: '#8c3b1b',
+      color: '#fff',
+      border: 'none',
+      borderRadius: '10px',
+      cursor: 'pointer',
+    }}
     onClick={() => setTela("LanPed")}
   >
-    📝
-    <br />
-    Lançar Pedido
+    📝 Lançar Pedido (Teste)
   </button>
 </div>
-
 {/* Botão 2 – Alimentar Sabores */}
 <div
   style={{
