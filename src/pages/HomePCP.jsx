@@ -59,14 +59,17 @@ const HomePCP = (props) => {
 <button
   onClick={() => {
     alert("🟢 CLICOU NO BOTÃO LANÇAR PEDIDO");
-    props.setTela("LanPed");
+    setTela("LanPed"); // 👈 Esse nome está 100% correto
   }}
   style={{
-    backgroundColor: "green",
-    color: "white",
-    fontSize: "2rem",
-    padding: "2rem",
-    borderRadius: "1rem"
+    backgroundColor: 'green',
+    color: 'white',
+    padding: '1rem 2rem',
+    borderRadius: '0.5rem',
+    fontWeight: 'bold',
+    fontSize: '1rem',
+    border: 'none',
+    cursor: 'pointer',
   }}
 >
   TESTE LANÇAR PEDIDO
