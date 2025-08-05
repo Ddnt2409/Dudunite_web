@@ -1,26 +1,41 @@
-/* === HOME PCP CSS FINAL – REPLICADO E ISOLADO === */
-
-/* === FORÇAR DESATIVAR CARROSSEL === */
-main > div {
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  overflow-x: unset !important;
-  scroll-snap-type: none !important;
-  padding: 2rem 1rem !important;
-  gap: 2.5rem !important;
+.homepcp-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: url('/bg002.png') center/cover no-repeat;
 }
 
-/* === FORÇAR BOTÕES EM 2 LINHAS === */
-main > div > div {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: center !important;
-  gap: 2rem !important;
-  max-width: 100% !important;
+.homepcp-header {
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  background-color: rgba(255,255,255,0.5);
+  backdrop-filter: blur(6px);
 }
 
-/* === BOTÕES INDIVIDUAIS (largura +40%) === */
+.logo-pcp {
+  width: 200px;
+  margin-top: 2%;
+}
+
+.homepcp-titulo {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #8c3b1b;
+  margin-right: 2ch;
+}
+
+.botoes-pcp {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem 1rem;
+  flex-grow: 1;
+}
+
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
@@ -32,76 +47,48 @@ main > div > div {
   border: none;
   transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
   white-space: pre-line;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-  text-align: center;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
   display: flex;
   justify-content: center;
   align-items: center;
-  min-width: 450px;
-  max-width: 450px;
-  flex-shrink: 0;
-  opacity: 1;
-  pointer-events: auto;
 }
 
-/* === BOTÃO ATIVO – ZOOM e COR DESTACADA === */
 .botao-ativo {
   transform: scale(1.12);
   background-color: #a3471f;
-  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 3px 3px 12px rgba(0,0,0,0.3);
   opacity: 1;
   pointer-events: auto;
 }
 
-/* === BOTÃO INATIVO – TRANSLÚCIDO === */
 .botao-inativo {
-  opacity: 0.8;
+  opacity: 0.4;
+  pointer-events: none;
 }
 
-/* === HOVER === */
-.botao-principal:hover {
-  transform: scale(1.15);
-  background-color: #a3471f;
-}
-
-/* === DROPDOWN INTERNO (se houver no futuro) === */
-.dropdown-interno {
-  margin-top: 0.8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.dropdown-interno button {
-  background-color: #fff;
-  color: #8c3b1b;
-  font-weight: bold;
-  font-size: 1.56rem;
-  padding: 0.7rem 1.3rem;
-  border-radius: 0.5rem;
-  border: 2px solid #8c3b1b;
-  transition: background-color 0.3s;
-}
-
-.dropdown-interno button:hover {
+.botao-voltar {
   background-color: #8c3b1b;
   color: white;
+  font-size: 1.4rem;
+  padding: 0.8rem 1.4rem;
+  border-radius: 0.5rem;
+  border: none;
+  opacity: 0.6;
+  align-self: center;
+  margin-bottom: 2rem;
+  transition: background-color 0.3s ease;
 }
 
-/* === RODAPÉ === */
-footer {
-  background-color: rgba(140, 59, 27, 0.4);
-  color: #ffffff;
+.botao-voltar:hover {
+  background-color: #a3471f;
+  opacity: 1;
+}
+
+.lista-escolas {
+  margin-top: auto;
+  background-color: rgba(140,59,27,0.4);
+  color: #fff;
   padding: 1rem;
-  font-size: 1.2rem;
   text-align: center;
-  margin-top: 2rem;
-}
-
-/* === RESPONSIVO MOBILE E TABLET === */
-@media (max-width: 1024px) {
-  .botao-principal {
-    margin-top: 4vh !important;
-  }
+  font-size: 1.2rem;
 }
