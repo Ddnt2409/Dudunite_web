@@ -57,7 +57,10 @@ const HomePCP = (props) => {
           }}
         >
 <button
-  onClick={() => props.setTela("LanPed")}
+  onClick={() => {
+    alert("🟢 CLICOU NO BOTÃO LANÇAR PEDIDO");
+    props.setTela("LanPed");
+  }}
   style={{
     backgroundColor: "green",
     color: "white",
