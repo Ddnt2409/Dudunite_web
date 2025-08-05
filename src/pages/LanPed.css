@@ -1,99 +1,105 @@
-.lanped-bg {
+.lanped-container {
   background: url('/bg002.png') center/cover no-repeat;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
 
+/* HEADER */
 .lanped-header {
   height: 100px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 1rem;
   background-color: rgba(255,255,255,0.5);
   backdrop-filter: blur(6px);
 }
-
 .lanped-logo {
   width: 200px;
-  margin-top: 2%;
 }
-
-.lanped-titulo {
+.lanped-title {
   font-size: 2rem;
   font-weight: bold;
   color: #8c3b1b;
-  margin-left: auto;
 }
 
-.lanped-formulario {
+/* FORMULÁRIO */
+.lanped-form {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 1rem;
   padding: 2rem 1rem;
 }
-
-.lanped-formulario label {
+.lanped-form label {
   font-weight: bold;
   color: #8c3b1b;
 }
-
-.lanped-formulario select,
-.lanped-formulario input {
-  width: 300px;
-  padding: 0.6rem;
+.lanped-form select,
+.lanped-form input {
+  padding: 0.5rem;
   border: 2px solid #8c3b1b;
-  border-radius: 8px;
+  border-radius: 0.5rem;
+  font-size: 1rem;
 }
-
-.lanped-formulario button {
+.lanped-form button {
   background-color: #8c3b1b;
-  color: white;
-  font-weight: bold;
-  padding: 0.8rem 2rem;
+  color: #fff;
   border: none;
-  border-radius: 10px;
+  padding: 0.8rem;
+  border-radius: 0.5rem;
+  font-weight: bold;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.3s ease;
+  transition: background-color 0.3s;
 }
-
-.lanped-formulario button:hover {
-  transform: scale(1.05);
+.lanped-form button:hover {
   background-color: #a3471f;
 }
 
-.lanped-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* ITENS E SALVAR */
+.lanped-itens {
+  padding: 1rem;
 }
-
-.lanped-salvar {
+.lanped-itens ul {
+  list-style: disc inside;
+}
+.lanped-save {
+  background-color: #8c3b1b;
+  color: #fff;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
   margin-top: 1rem;
 }
-
-.botao-voltar {
-  background-color: #8c3b1b;
-  color: white;
-  font-size: 1.4rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: 0.5rem;
-  border: none;
-  opacity: 0.6;
-  transition: background-color 0.3s ease;
+.lanped-save:hover {
+  background-color: #a3471f;
 }
 
+/* BOTÃO VOLTAR */
+.botao-voltar {
+  align-self: flex-start;
+  margin: 1rem;
+  background-color: #8c3b1b;
+  color: #fff;
+  padding: 0.8rem 1.2rem;
+  border: none;
+  border-radius: 0.5rem;
+  opacity: 0.6;
+  transition: background-color 0.3s, opacity 0.3s;
+}
 .botao-voltar:hover {
   background-color: #a3471f;
   opacity: 1;
 }
 
+/* RODAPÉ */
 .lanped-footer {
-  margin-top: auto;
   background-color: rgba(140,59,27,0.4);
-  color: white;
+  color: #fff;
   padding: 1rem;
   text-align: center;
-  font-size: 1.2rem;
+  margin-top: auto;
 }
