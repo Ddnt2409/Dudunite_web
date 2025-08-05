@@ -56,18 +56,18 @@ const HomePCP = (props) => {
             flexWrap: "wrap",
           }}
         >
-          <button
-  className="botao-principal"
-  onClick={() => {
-    alert("Botão clicado");
-    props.setTela("LanPed");
+<button
+  onClick={() => props.setTela("LanPed")}
+  style={{
+    backgroundColor: "green",
+    color: "white",
+    fontSize: "2rem",
+    padding: "2rem",
+    borderRadius: "1rem"
   }}
 >
-  📝
-  <br />
-  Lançar Pedido
+  TESTE LANÇAR PEDIDO
 </button>
-
           <button
             className="botao-principal"
             onClick={() => props.setTela("HomePCP")}
