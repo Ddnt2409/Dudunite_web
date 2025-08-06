@@ -1,56 +1,59 @@
 import React from "react";
-import "./HomePCP.css";
+import "./HomeERP.css"; // reaproveita o mesmo CSS de botões, cabeçalho e rodapé
 
-const HomePCP = ({ setTela, lan = false }) => {
-  // se lan=true, já abre LanPed
-  React.useEffect(() => {
-    if (lan) setTela("LanPed");
-  }, [lan]);
-
+export default function HomePCP({ setTela }) {
   return (
-    <div className="home-pcp-wrapper">
-      <header className="erp-header">
+    <div
+      style={{
+        backgroundImage: "url('/bg002.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        minHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* === HEADER === */}
+      <header className="homeerp-header">
         <img
           src="/LogomarcaDDnt2025Vazado.png"
           alt="Logo Dudunitê"
-          className="erp-logo"
+          className="homeerp-logo"
         />
-        <h1 className="erp-titulo">PCP – Planejamento de Produção</h1>
+        <h1 className="homeerp-titulo">PCP – Planejamento de Produção</h1>
       </header>
 
+      {/* === BOTÃO DE LANÇAR PEDIDO === */}
       <main>
-        <div className="botoes-pcp">
+        <div className="botoes-erp" style={{ justifyContent: "center" }}>
           <button
-            className="botao-principal-erp"
+            className="botao-principal botao-ativo"
             onClick={() => setTela("LanPed")}
           >
-            📋{" "}
-            <span className="texto-botao">
-              Lançar Pedido
-            </span>
-          </button>
-          <button
-            className="botao-principal-erp botao-inativo"
-            onClick={() => alert("Em construção")}
-          >
-            🍫{" "}
-            <span className="texto-botao">
-              Alimentar Sabores
-            </span>
+            📝<br />
+            Lançar Pedido
           </button>
         </div>
       </main>
 
-      <footer className="erp-footer">
+      {/* === BOTÃO VOLTAR === */}
+      <button
+        className="botao-voltar"
+        onClick={() => setTela("Home")}
+        style={{ alignSelf: "center", margin: "1rem 0" }}
+      >
+        🔙 Voltar ao ERP
+      </button>
+
+      {/* === RODAPÉ === */}
+      <footer>
         <marquee behavior="scroll" direction="left">
-          • Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber
-          Viver • Interativo • Exato Sede • Exato Anexo • Society Show • Russas
-          • Kaduh • Degusty • Bora Gastar • Salesianas • Céu Azul • Pequeno
-          Príncipe • Tio Valter • Vera Cruz
+          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
+          Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ •
+          CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Motivo •
+          Jesus Salvador
         </marquee>
       </footer>
     </div>
   );
-};
-
-export default HomePCP;
+}
