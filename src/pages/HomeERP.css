@@ -4,7 +4,6 @@
 .homeerp-container {
   background: url("/bg001.png") no-repeat center center fixed;
   background-size: cover;
-
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -43,8 +42,9 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  /* DESCE todo o bloco 4 cm sem mexer em margin entre botões */
-  padding-top: 4cm;
+  /* antes: padding-top: 4cm; */
+  /* agora: desce 4cm + mais 5% da altura da viewport */
+  padding-top: calc(4cm + 5vh);
 }
 
 .botao-wrapper {
@@ -116,7 +116,7 @@
   z-index: 2;
 }
 
-/* === Rodapé de escolas com movimento === */
+/* === Rodapé de escolas com movimento contínuo === */
 .lista-escolas {
   position: absolute;
   bottom: 0;
@@ -125,6 +125,7 @@
   overflow: hidden;
 }
 
+.lista-escolas span,
 .lista-escolas p {
   display: inline-block;
   white-space: nowrap;
@@ -135,6 +136,6 @@
 }
 
 @keyframes marquee {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-100%); }
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
 }
