@@ -10,6 +10,7 @@
   align-items: center;
   min-height: 100vh;
   padding-bottom: 150px;
+  position: relative;
 }
 
 /* === Header === */
@@ -20,6 +21,7 @@
   padding: 16px 32px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 2;
 }
 
 .logo-erp {
@@ -41,13 +43,12 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  /* DESCE todo o bloco 4 cm */
+  /* DESCE todo o bloco 4 cm sem mexer em margin entre botões */
   padding-top: 4cm;
 }
 
 .botao-wrapper {
-  /* espaçamento vertical de 33px entre cada botão */
-  margin-bottom: 33px;
+  margin-bottom: 33px; /* mantém espaçamento interno original */
 }
 
 .botao-principal {
@@ -57,8 +58,7 @@
   border-radius: 12px;
   background-color: #a65a3d;
   color: #fff;
-  /* +30% sobre 2.08rem ≈ 2.7rem */
-  font-size: 2.7rem;
+  font-size: 2.7rem; /* 2.08rem +30% */
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -93,6 +93,7 @@
   border-radius: 8px;
   background: #f9f1e8;
   color: #5c1d0e;
+  font-size: 1.3rem; /* 1rem +30% */
   font-weight: bold;
   cursor: pointer;
 }
@@ -112,18 +113,28 @@
   font-size: 1.1rem;
   font-weight: bold;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 2;
 }
 
-/* === Rodapé de escolas === */
+/* === Rodapé de escolas com movimento === */
 .lista-escolas {
   position: absolute;
   bottom: 0;
   width: 100%;
-  padding: 12px 0;
   background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  text-align: center;
-  font-size: 0.9rem;
+  overflow: hidden;
+}
+
+.lista-escolas p {
+  display: inline-block;
   white-space: nowrap;
-  overflow-x: auto;
+  padding-left: 100%;
+  animation: marquee 20s linear infinite;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
 }
