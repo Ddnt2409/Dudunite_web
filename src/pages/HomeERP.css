@@ -1,146 +1,133 @@
-/* === MESMO CSS DO PCP, REPLICADO AQUI === */
+/* HomeERP.css */
 
+/* === Container geral da tela === */
 .homepcp-container {
-  background-image: url('/bg002.png');
+  /* BG full-screen */
+  background: url("/bg001.png") no-repeat center center fixed;
   background-size: cover;
-  background-position: center;
-  min-height: 100dvh;
+
   display: flex;
   flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  position: relative;
+
+  /* Espaço extra para rodapé */
+  padding-bottom: 100px;
 }
 
+/* === Cabeçalho === */
 .homepcp-header {
-  height: 100px;
+  width: 100%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 1rem;
-  background-color: rgba(255,255,255,0.5);
-  backdrop-filter: blur(6px);
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .logo-pcp {
-  width: 200px;
-  margin-top: 2%;
+  height: 48px;
+  margin-right: 16px;
 }
 
 .homepcp-titulo {
-  font-size: 2rem;
-  font-weight: bold;
+  font-size: 1.5rem;
   color: #8c3b1b;
-}
-
-/* container de botões em duas linhas */
-.botoes-pcp {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 2rem;
-  padding: 2rem 1rem;
-}
-
-/* wrapper de cada botao para centralizar dropdown */
-.botao-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* botões grandes */
-.botao-principal {
-  background-color: #8c3b1b;
-  color: white;
-  font-size: 2.2rem;
-  width: 450px;
-  height: 220px;
   font-weight: bold;
+}
+
+/* === Área dos botões principais === */
+.botoes-pcp {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Wrapper de cada botão para aplicar espaçamento */
+.botao-wrapper {
+  /* Desce cada botão em 15% da própria altura (220px * 15% ≈ 33px) */
+  margin-bottom: 33px;
+}
+
+/* Estilo base do botão */
+.botao-principal {
+  width: 480px;
+  height: 220px;
   border: none;
-  border-radius: 1rem;
-  white-space: pre-line;
+  border-radius: 12px;
+  background-color: #a65a3d;
+  color: #fff;
+  font-size: 1.3rem;        /* +30% do tamanho-base (1rem → 1.3rem) */
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+  text-align: center;
+  white-space: pre-line;    /* para suportar quebras \n no label */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: transform 0.2s, background-color 0.2s;
 }
 
+/* Estado ativo (quando “zoomed”) */
 .botao-ativo {
-  transform: scale(1.12);
-  background-color: #a3471f;
-  pointer-events: auto;
-  opacity: 1;
+  background-color: #8c3b1b;
+  transform: scale(1.05);
 }
 
+/* Estado inativo */
 .botao-inativo {
-  opacity: 0.4;
-  pointer-events: none;
+  opacity: 0.7;
 }
 
-.botao-principal:hover {
-  transform: scale(1.15);
-  background-color: #a3471f;
-}
-
-/* dropdown interno */
+/* Dropdown interno (sub-botões) */
 .dropdown-interno {
-  margin-top: 0.8rem;
+  margin-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .dropdown-interno button {
-  background-color: #fff;
-  color: #8c3b1b;
-  font-weight: bold;
-  font-size: 1.56rem;
-  padding: 0.7rem 1.3rem;
-  border-radius: 0.5rem;
-  border: 2px solid #8c3b1b;
-}
-
-.dropdown-interno button:hover {
-  background-color: #8c3b1b;
-  color: white;
-}
-
-/* botão voltar menor */
-.botao-voltar {
-  background-color: #8c3b1b;
-  color: white;
-  font-size: 1.4rem;
-  padding: 0.8rem 1.4rem;
+  width: 300px;
+  padding: 8px 12px;
   border: none;
-  border-radius: 0.5rem;
-  opacity: 0.6;
-  margin: 1rem auto;
-  transition: background-color 0.3s, opacity 0.3s;
+  border-radius: 8px;
+  background: #f9f1e8;
+  color: #5c1d0e;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-.botao-voltar:hover {
-  background-color: #a3471f;
-  opacity: 1;
-}
-
-/* rodapé animado */
-.lista-escolas {
-  background-color: rgba(140,59,27,0.4);
-  color: #fff;
+/* === Botão “Voltar ao ERP” === */
+.botao-voltar {
+  position: absolute;
+  bottom: 70px;      /* acima do rodapé */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  padding: 10px 0;
+  border: none;
+  border-radius: 8px;
+  background-color: #d38b5d;
+  color: white;
   font-size: 1rem;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* === Rodapé de lista de escolas === */
+.lista-escolas {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 8px 0;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
   text-align: center;
-  padding: 0.5rem 1rem;
-  margin-top: auto;
-  animation: scroll-left 20s linear infinite;
+  font-size: 0.9rem;
   white-space: nowrap;
-  overflow: hidden;
-}
-
-@keyframes scroll-left {
-  0%   { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
-
-/* responsivo */
-@media (max-width: 1024px) {
-  .botao-principal { width: 90vw; height: 180px; }
+  overflow-x: auto;
 }
