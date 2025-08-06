@@ -19,14 +19,14 @@
   align-items: center;
   padding: 16px 32px;
   background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   z-index: 2;
 }
 
 .logo-pcp {
-  height: 64px;
+  height: 180px;
   margin-right: 16px;
-  object-fit: contain; /* mantém proporção sem distorcer */
+  object-fit: contain;
 }
 
 .homepcp-titulo {
@@ -42,13 +42,13 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
-  /* desloca todo o bloco 4cm para baixo (sem alterar o espaçamento interno) */
+  /* desloca todo o bloco 4cm para baixo */
   padding-top: calc(4cm + 5vh);
 }
 
 /* Wrapper para espaçar verticalmente cada botão */
 .botao-wrapper {
-  margin-bottom: 2cm; /* mantém espaçamento entre os botões */
+  margin-bottom: 2cm;
 }
 
 /* Botões principais */
@@ -59,7 +59,7 @@
   border-radius: 12px;
   background-color: #a65a3d;
   color: #fff;
-  font-size: 2.7rem; /* +30% de fonte */
+  font-size: 2.7rem;
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -79,7 +79,7 @@
   opacity: 0.8;
 }
 
-/* === Dropdown interno (botões filhos) === */
+/* Dropdown interno */
 .dropdown-interno {
   margin-top: 12px;
   display: flex;
@@ -88,56 +88,60 @@
 }
 
 .dropdown-interno button {
-  width: 360px;           /* +30% que 280px original */
-  padding: 12px 16px;     /* um pouco mais de padding */
+  width: 360px;
+  padding: 12px 16px;
   border: none;
   border-radius: 8px;
   background: #f9f1e8;
   color: #5c1d0e;
-  font-size: 1.3rem;      /* +30% de fonte */
+  font-size: 1.3rem;
   font-weight: bold;
   cursor: pointer;
 }
 
-/* === Botão "Voltar ao ERP" === */
+/* Botão voltar */
 .botao-voltar {
   position: absolute;
   bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
-  width: 240px;           /* um pouco maior */
+  width: 240px;
   padding: 16px 0;
   border: none;
   border-radius: 8px;
   background-color: #d38b5d;
   color: white;
-  font-size: 1.3rem;      /* +30% */
+  font-size: 1.3rem;
   font-weight: bold;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   z-index: 2;
 }
 
-/* === Rodapé animado === */
+/* Rodapé animado */
 .lista-escolas {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 50px;                   /* altura suficiente para 1 linha de texto */
-  background: rgba(0, 0, 0, 0.8);  /* tarja escura bem opaca */
+  height: 50px;
+  background: rgba(0, 0, 0, 0.8);
   overflow: hidden;
   display: flex;
   align-items: center;
-  padding-left: 100%;             /* inicia fora da tela */
-  white-space: nowrap;
-  animation: marquee 20s linear infinite;
-  color: #fff;
-  font-size: 1rem;
-  line-height: 1;
-  z-index: 999;                   /* acima de tudo */
+  z-index: 999;
 }
 
-/* Keyframes para a rolagem do rodapé */
+/* Esse span é que se move, mantendo o fundo estático */
+.lista-escolas .marquee-content {
+  display: inline-block;
+  padding-left: 100%;
+  white-space: nowrap;
+  color: #fff;
+  font-size: 1rem;
+  line-height: 50px;
+  animation: marquee 20s linear infinite;
+}
+
 @keyframes marquee {
   from { transform: translateX(0); }
   to   { transform: translateX(-100%); }
