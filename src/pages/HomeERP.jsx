@@ -1,18 +1,22 @@
+// src/pages/HomeERP.jsx
 import React, { useState, useRef } from "react";
+import HomePCP from "./HomePCP";
 import "./HomeERP.css";
 
-export default function HomeERP({ setTela }) {
-  const [zoomIndex, setZoomIndex] = useState(0);
+export default function HomeERP() {
+  const [tela, setTela] = useState("Home");       // "Home" ou "PCP"
+  const [zoomIndex, setZoomIndex] = useState(0);  // índice do botão ampliado
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const touchStartX = useRef(null);
 
+  // definição dos botões e seus sub-itens
   const botoes = [
     {
       label: "📦\nProdução (PCP)",
-      action: () => setTela("HomePCP"),
+      action: () => setTela("PCP"),
       dropdown: [
         { nome: "Lançar Pedido", acao: () => setTela("LanPed") },
-        { nome: "Alimentar Sabores", acao: () => setTela("AlimSab") },
+        { nome: "Alimentar Sabores", acao: () => alert("Em breve") },
       ],
     },
     {
@@ -39,42 +43,53 @@ export default function HomeERP({ setTela }) {
     },
   ];
 
+  // clique num botão principal
   const handleClick = (idx, action) => {
     if (zoomIndex === idx) {
+      // já estava ampliado: alterna dropdown
       setMostrarDropdown(d => !d);
       if (mostrarDropdown) action();
     } else {
+      // amplifica este e esconde dropdown
       setZoomIndex(idx);
       setMostrarDropdown(false);
     }
   };
 
+  // swipe horizontal para navegar botões
   const deslizar = dir => {
     setZoomIndex(prev => {
       const total = botoes.length;
-      const next = dir === "esquerda"
-        ? (prev - 1 + total) % total
-        : (prev + 1) % total;
+      const next =
+        dir === "esquerda"
+          ? (prev - 1 + total) % total
+          : (prev + 1) % total;
       setMostrarDropdown(false);
       return next;
     });
   };
 
+  // Se entrou em PCP, renderiza HomePCP
+  if (tela === "PCP") {
+    return <HomePCP setTela={setTela} />;
+  }
+
+  // ======== RENDERIZAÇÃO DA TELA ERP =========
   return (
-    <div className="homeerp-container">
+    <div className="homepcp-container">
       {/* HEADER */}
-      <div className="homeerp-header">
+      <div className="homepcp-header">
         <img
           src="/LogomarcaDDnt2025Vazado.png"
           alt="Logo Dudunitê"
-          className="homeerp-logo"
+          className="logo-pcp"
         />
-        <h1 className="homeerp-title">ERP DUDUNITÊ</h1>
+        <h1 className="homepcp-titulo">ERP DUDUNITÊ</h1>
       </div>
 
-      {/* BOTÕES PRINCIPAIS */}
+      {/* BOTÕES PRINCIPAIS (com swipe) */}
       <div
-        className="homeerp-buttons"
+        className="botoes-pcp"
         onTouchStart={e => (touchStartX.current = e.changedTouches[0].clientX)}
         onTouchEnd={e => {
           const diff = e.changedTouches[0].clientX - touchStartX.current;
@@ -85,15 +100,17 @@ export default function HomeERP({ setTela }) {
         {botoes.map((btn, idx) => {
           const isActive = idx === zoomIndex;
           return (
-            <div key={idx} className="button-wrapper">
+            <div key={idx} className="botao-wrapper">
               <button
-                className={`primary-button ${isActive ? "active" : "inactive"}`}
+                className={`botao-principal ${
+                  isActive ? "botao-ativo" : "botao-inativo"
+                }`}
                 onClick={() => handleClick(idx, btn.action)}
               >
                 {btn.label}
               </button>
               {isActive && mostrarDropdown && btn.dropdown.length > 0 && (
-                <div className="dropdown-inner">
+                <div className="dropdown-interno">
                   {btn.dropdown.map((op, i) => (
                     <button key={i} onClick={op.acao}>
                       {op.nome}
@@ -106,15 +123,18 @@ export default function HomeERP({ setTela }) {
         })}
       </div>
 
-      {/* BOTÃO VOLTAR */}
-      <button className="volver-button" onClick={() => setTela("HomeERP")}>
+      {/* BOTÃO VOLTAR AO ERP (fica na Home local) */}
+      <button className="botao-voltar" onClick={() => setTela("Home")}>
         🔙 Voltar ao ERP
       </button>
 
       {/* RODAPÉ ANIMADO */}
-      <div className="marquee-container">
+      <div className="lista-escolas">
         <span className="marquee-content">
-          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
+          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
+          Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros •
+          Dourado • BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato
+          Sede • Exato Anexo • Sesi • Motivo • Jesus Salvador
         </span>
       </div>
     </div>
