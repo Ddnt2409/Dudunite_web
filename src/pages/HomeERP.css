@@ -1,27 +1,52 @@
+/* === MESMO CSS DO PCP, REPLICADO AQUI === */
 
-/* === HOME ERP CSS FINAL – RESTAURADO E ISOLADO === */
-
-/* === FORÇAR DESATIVAR CARROSSEL === */
-main > div {
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  overflow-x: unset !important;
-  scroll-snap-type: none !important;
-  padding: 2rem 1rem !important;
-  gap: 2.5rem !important;
+.homepcp-container {
+  background-image: url('/bg002.png');
+  background-size: cover;
+  background-position: center;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* === FORÇAR BOTÕES EM 2 LINHAS === */
-main > div > div {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: center !important;
-  gap: 2rem !important;
-  max-width: 100% !important;
+.homepcp-header {
+  height: 100px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+  background-color: rgba(255,255,255,0.5);
+  backdrop-filter: blur(6px);
 }
 
-/* === BOTÕES INDIVIDUAIS (largura +40%) === */
+.logo-pcp {
+  width: 200px;
+  margin-top: 2%;
+}
+
+.homepcp-titulo {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #8c3b1b;
+}
+
+/* container de botões em duas linhas */
+.botoes-pcp {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem 1rem;
+}
+
+/* wrapper de cada botao para centralizar dropdown */
+.botao-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* botões grandes */
 .botao-principal {
   background-color: #8c3b1b;
   color: white;
@@ -29,50 +54,39 @@ main > div > div {
   width: 450px;
   height: 220px;
   font-weight: bold;
-  border-radius: 1rem;
   border: none;
-  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
+  border-radius: 1rem;
   white-space: pre-line;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-  text-align: center;
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-width: 450px;
-  max-width: 450px;
-  flex-shrink: 0;
-  opacity: 1;
-  pointer-events: auto;
+  justify-content: center;
+  transition: transform 0.3s, background-color 0.3s, opacity 0.3s;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
 }
 
-/* === BOTÃO ATIVO – ZOOM e COR DESTACADA === */
 .botao-ativo {
   transform: scale(1.12);
   background-color: #a3471f;
-  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
-  opacity: 1;
   pointer-events: auto;
+  opacity: 1;
 }
 
-/* === BOTÃO INATIVO – TRANSLÚCIDO === */
 .botao-inativo {
   opacity: 0.4;
   pointer-events: none;
 }
 
-/* === HOVER === */
 .botao-principal:hover {
   transform: scale(1.15);
   background-color: #a3471f;
 }
 
-/* === DROPDOWN INTERNO === */
+/* dropdown interno */
 .dropdown-interno {
   margin-top: 0.8rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  align-items: center;
 }
 
 .dropdown-interno button {
@@ -83,7 +97,6 @@ main > div > div {
   padding: 0.7rem 1.3rem;
   border-radius: 0.5rem;
   border: 2px solid #8c3b1b;
-  transition: background-color 0.3s;
 }
 
 .dropdown-interno button:hover {
@@ -91,36 +104,43 @@ main > div > div {
   color: white;
 }
 
-/* === RODAPÉ === */
-footer {
-  background-color: rgba(140, 59, 27, 0.4);
-  color: #ffffff;
-  padding: 1rem;
-  font-size: 1.2rem;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-/* === RESPONSIVO MOBILE E TABLET === */
-@media (max-width: 1024px) {
-  .botao-principal {
-    margin-top: 4vh !important;
-  }
-}
-
-/* === BOTÃO VOLTAR (MENOR) === */
+/* botão voltar menor */
 .botao-voltar {
   background-color: #8c3b1b;
   color: white;
   font-size: 1.4rem;
   padding: 0.8rem 1.4rem;
-  border-radius: 0.5rem;
   border: none;
+  border-radius: 0.5rem;
   opacity: 0.6;
-  transition: background-color 0.3s ease;
+  margin: 1rem auto;
+  transition: background-color 0.3s, opacity 0.3s;
 }
 
 .botao-voltar:hover {
   background-color: #a3471f;
   opacity: 1;
+}
+
+/* rodapé animado */
+.lista-escolas {
+  background-color: rgba(140,59,27,0.4);
+  color: #fff;
+  font-size: 1rem;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  margin-top: auto;
+  animation: scroll-left 20s linear infinite;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+@keyframes scroll-left {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* responsivo */
+@media (max-width: 1024px) {
+  .botao-principal { width: 90vw; height: 180px; }
 }
