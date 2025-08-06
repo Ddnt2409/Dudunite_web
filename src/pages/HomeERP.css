@@ -133,7 +133,7 @@
 }
 
 /* Esse span é que se move, mantendo o fundo estático */
-.lista-escolas .marquee-content {
+.lista-escolas {
   position: absolute;
   bottom: 0;
   width: 100%;
