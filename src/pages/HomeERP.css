@@ -134,15 +134,19 @@
 
 /* Esse span é que se move, mantendo o fundo estático */
 .lista-escolas .marquee-content {
-  display: inline-block;
-  padding-left: 100%;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 40px;
+  background-color: #8C3B1B; /* mesmo terracota do botão ativo */
+  color:            #FFFFFF; /* texto branco */
+  overflow: hidden;
   white-space: nowrap;
-  color: #E35336;
-  font-size: 1rem;
-  line-height: 50px;
+  padding-left: 100%; 
   animation: marquee 20s linear infinite;
+  line-height: 40px;
+  z-index: 5;
 }
-
 @keyframes marquee {
   from { transform: translateX(0); }
   to   { transform: translateX(-100%); }
