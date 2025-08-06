@@ -1,11 +1,10 @@
-//falso
-import React, { useState } from 'react'
-import HomeERP from './pages/HomeERP'
-import HomePCP from './pages/HomePCP'
-import LanPed from './pages/LanPed'
+import React, { useState } from 'react';
+import HomeERP from './pages/HomeERP';
+import HomePCP from './pages/HomePCP';
+import LanPed from './pages/LanPed';
 
 export default function App() {
-  const [tela, setTela] = useState('HomeERP')
+  const [tela, setTela] = useState('HomeERP');
 
   return (
     <>
@@ -13,5 +12,5 @@ export default function App() {
       {tela === 'HomePCP' && <HomePCP setTela={setTela} />}
       {tela === 'LanPed'  && <LanPed  setTela={setTela} />}
     </>
-  )
+  );
 }
