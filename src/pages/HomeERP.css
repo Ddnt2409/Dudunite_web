@@ -1,14 +1,5 @@
 /* HomeERP.css */
 
-/* ========================================================================== 
-   Variáveis de cor (você pode colocar essas no :root ou em um arquivo de variáveis)
-   ========================================================================== */
-:root {
-  --terracota-ativo: #8c3b1b;   /* mesmo tom do botão ativo */
-  --terracota-claro: #a65a3d;   /* tom dos botões inativos */
-  --branco: #ffffff;
-}
-
 /* === Container geral === */
 .homepcp-container {
   background: url("/bg001.png") no-repeat center center fixed;
@@ -17,10 +8,7 @@
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  /* espaço inferior extra para não colidir com o rodapé absoluto */
-  padding-bottom: 80px;
-  /* permite rolagem vertical! sem isso o rodapé absoluto some */
-  overflow-y: auto;
+  padding-bottom: 150px; /* espaço para o rodapé */
   position: relative;
 }
 
@@ -31,49 +19,49 @@
   align-items: center;
   padding: 16px 32px;
   background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 2;
 }
 
+/* Logo com 180px de largura e altura proporcional */
 .logo-pcp {
-  height: 64px;
+  width: 180px;
+  height: auto;
   margin-right: 16px;
-  /* preserve aspect ratio */
-  object-fit: contain;
 }
 
 .homepcp-titulo {
   font-size: 2rem;
-  color: var(--terracota-ativo);
+  color: #8c3b1b;
   font-weight: bold;
 }
 
 /* === Área de botões principais === */
-/* Quanto maior o padding-top, mais “embaixo” o bloco todo fica */
 .botoes-pcp {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  /* Ajuste este valor para subir/descer o bloco de botões (ex.: 5vh) */
-  padding-top: 5vh;
+  /* ajuste vertical */
+  padding-top: calc(4cm + 5vh - 7vh);
 }
 
 /* Wrapper para espaçar verticalmente cada botão */
+/* reduzido em 50% (antes 2cm) */
 .botao-wrapper {
-  margin-bottom: 2cm; /* mantém espaçamento entre os botões */
+  margin-bottom: 1cm;
 }
 
-/* Botões principais */
+/* === Botões principais === */
 .botao-principal {
   width: 480px;
   height: 220px;
   border: none;
   border-radius: 12px;
-  background-color: var(--terracota-claro);
-  color: var(--branco);
-  font-size: 2.7rem;    /* +30% de fonte */
+  background-color: #a65a3d;
+  color: #fff;
+  font-size: 2.7rem; /* +30% */
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -85,7 +73,7 @@
 }
 
 .botao-ativo {
-  background-color: var(--terracota-ativo);
+  background-color: #8c3b1b;
   transform: scale(1.05);
 }
 
@@ -102,13 +90,13 @@
 }
 
 .dropdown-interno button {
-  width: 360px;           /* +30% que 280px original */
-  padding: 12px 16px;     
+  width: 360px;           /* +30% */
+  padding: 12px 16px;
   border: none;
   border-radius: 8px;
   background: #f9f1e8;
   color: #5c1d0e;
-  font-size: 1.3rem;      /* +30% de fonte */
+  font-size: 1.3rem;      /* +30% */
   font-weight: bold;
   cursor: pointer;
 }
@@ -116,45 +104,48 @@
 /* === Botão "Voltar ao ERP" === */
 .botao-voltar {
   position: absolute;
-  bottom: 60px;           /* acima do rodapé */
+  bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
-  width: 240px;           
+  width: 240px;
   padding: 16px 0;
   border: none;
   border-radius: 8px;
   background-color: #d38b5d;
-  color: var(--branco);
+  color: white;
   font-size: 1.3rem;      /* +30% */
   font-weight: bold;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  z-index: 10;
+  z-index: 2;
 }
 
-/* 1) Container do rodapé (a tarja terracota) */
+/* === Rodapé animado === */
+/* tarja fixa e texto centralizado verticalmente */
 .lista-escolas {
-  position: fixed;           /* fixa na viewport */
-  bottom: 0;                 /* cola na base da janela */
+  position: fixed;
+  bottom: 0;
   left: 0;
-  width: 100%;               /* cobre toda a largura */
-  height: 40px;              /* altura da tarja */
+  width: 100%;
+  height: 40px;
   background-color: #8c3b1b; /* terracota do botão ativo */
-  overflow: hidden;          /* esconde o texto além da caixa */
-  z-index: 9999;             /* sobre tudo */
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  z-index: 9999;
 }
 
-/* 2) Texto rolante (inside span) */
+/* conteúdo que rola dentro do rodapé */
 .marquee-content {
-  display: inline-block;     /* essencial para animação */
-  white-space: nowrap;       /* sem quebras de linha */
-  padding-left: 100%;        /* inicia à direita, fora da tela */
-  line-height: 40px;         /* centraliza verticalmente */
-  color: #ffffff;            /* texto branco */
-  font-size: 1rem;           /* ajuste se precisar */
+  display: inline-block;
+  white-space: nowrap;
+  padding-left: 100%;       /* inicia fora da tela à direita */
+  line-height: 40px;        /* centraliza verticalmente */
+  color: #ffffff;           /* texto branco */
+  font-size: 1rem;
   animation: marquee 20s linear infinite;
 }
 
-/* 3) Keyframes da rolagem */
+/* keyframes para a rolagem */
 @keyframes marquee {
   from { transform: translateX(0); }
   to   { transform: translateX(-100%); }
