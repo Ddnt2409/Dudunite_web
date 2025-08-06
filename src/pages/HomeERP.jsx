@@ -2,12 +2,14 @@ import React, { useState, useRef } from "react";
 import HomePCP from "./HomePCP";
 import "./HomeERP.css";
 
-export default function HomeERP() {
+export default function HomeERP({ setTela: propSetTela }) {
+  // estado local de tela: "Home" ou "PCP" (lançamento sabore virá depois)
   const [tela, setTela] = useState("Home");
   const [zoomIndex, setZoomIndex] = useState(0);
   const touchStartX = useRef(null);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
 
+  // lista de grupos de botões + dropdown
   const botoes = [
     {
       label: "📦\nProdução (PCP)",
@@ -18,7 +20,7 @@ export default function HomeERP() {
       ],
     },
     {
-      label: "💰\nFinanceiro",
+      label: "💰\nFinanceiro (FinFlux)",
       action: () => {},
       dropdown: [
         { nome: "Contas a Receber", acao: () => alert("Em breve") },
@@ -41,92 +43,102 @@ export default function HomeERP() {
     },
   ];
 
-  const handleClick = (idx, action) => {
+  function handleClick(idx, acao) {
     if (zoomIndex === idx) {
-      setMostrarDropdown(d => !d);
-      if (mostrarDropdown) action();
+      // se já está zoomed e tem dropdown, executa ação
+      if (mostrarDropdown) acao();
+      else setMostrarDropdown(true);
     } else {
+      // apenas muda o zoom
       setZoomIndex(idx);
       setMostrarDropdown(false);
     }
-  };
+  }
 
-  const deslizar = dir => {
-    setZoomIndex(prev => {
+  function deslizar(direcao) {
+    setZoomIndex((prev) => {
       const total = botoes.length;
-      const next = dir === "esquerda"
+      const novo = direcao === "esquerda"
         ? (prev - 1 + total) % total
         : (prev + 1) % total;
       setMostrarDropdown(false);
-      return next;
+      return novo;
     });
-  };
+  }
 
-  if (tela === "PCP") return <HomePCP setTela={setTela} />;
+  // se estiver em PCP, renderiza o sub-componente
+  if (tela === "PCP") {
+    // encaminha propSetTela para o HomePCP, para voltar depois
+    return <HomePCP setTela={propSetTela} />;
+  }
 
   return (
-    <div className="homepcp-container">
+    <div
+      style={{
+        backgroundImage: "url('/bg002.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        minHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       {/* === HEADER === */}
-      <div className="homepcp-header">
+      <header className="homeerp-header">
         <img
           src="/LogomarcaDDnt2025Vazado.png"
           alt="Logo Dudunitê"
-          className="logo-pcp"
+          className="homeerp-logo"
         />
-        <h1 className="homepcp-titulo">ERP DUDUNITÊ</h1>
-      </div>
+        <h1 className="homeerp-titulo">ERP DUDUNITÊ</h1>
+      </header>
 
       {/* === BOTÕES PRINCIPAIS === */}
-      <div
-        className="botoes-pcp"
-        onTouchStart={e => (touchStartX.current = e.changedTouches[0].clientX)}
-        onTouchEnd={e => {
-          const diff = e.changedTouches[0].clientX - touchStartX.current;
-          if (diff > 50) deslizar("esquerda");
-          else if (diff < -50) deslizar("direita");
-        }}
-      >
-        {botoes.map((btn, idx) => {
-          const isZoomed = idx === zoomIndex;
-          return (
-            <div key={idx} className="botao-wrapper">
-              <button
-                className={`botao-principal ${
-                  isZoomed ? "botao-ativo" : "botao-inativo"
-                }`}
-                onClick={() => handleClick(idx, btn.action)}
-              >
-                {btn.label}
-              </button>
-              {isZoomed && mostrarDropdown && btn.dropdown.length > 0 && (
-                <div className="dropdown-interno">
-                  {btn.dropdown.map((op, i) => (
-                    <button key={i} onClick={op.acao}>
-                      {op.nome}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+      <main>
+        <div
+          className="botoes-erp"
+          onTouchStart={(e) => (touchStartX.current = e.changedTouches[0].clientX)}
+          onTouchEnd={(e) => {
+            const diff = e.changedTouches[0].clientX - touchStartX.current;
+            if (diff > 50) deslizar("esquerda");
+            else if (diff < -50) deslizar("direita");
+          }}
+        >
+          {botoes.map((btn, idx) => {
+            const zoomed = idx === zoomIndex;
+            return (
+              <div key={idx} className="item-erp">
+                <button
+                  className={`botao-principal ${zoomed ? "botao-ativo" : "botao-inativo"}`}
+                  onClick={() => handleClick(idx, btn.action)}
+                >
+                  {btn.label}
+                </button>
 
-      {/* === BOTÃO VOLTAR === */}
-      <button
-        className="botao-voltar"
-        onClick={() => setTela("Home")}
-      >
-        🔙 Voltar ao ERP
-      </button>
+                {zoomed && mostrarDropdown && btn.dropdown.length > 0 && (
+                  <div className="dropdown-interno">
+                    {btn.dropdown.map((op, i) => (
+                      <button key={i} onClick={op.acao}>
+                        {op.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </main>
 
       {/* === RODAPÉ === */}
-      <div className="lista-escolas">
-        • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
-        Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
-        BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
-        Exato Anexo • Sesi • Motivo • Jesus Salvador
-      </div>
+      <footer>
+        <marquee behavior="scroll" direction="left">
+          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
+          Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado • BMQ •
+          CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede • Exato Anexo • Motivo •
+          Jesus Salvador
+        </marquee>
+      </footer>
     </div>
   );
-      }
+}
