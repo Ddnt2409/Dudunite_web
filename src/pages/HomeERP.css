@@ -1,5 +1,12 @@
 /* HomeERP.css */
-//forçar deploy 
+
+/* Variáveis de tema */
+:root {
+  --terracota-ativo: #8C3B1B;
+  --terracota-sec:    #A65A3D;
+  --offwhite:         #F9F1E8;
+  --branco:           #FFFFFF;
+}
 
 /* === Container geral === */
 .homepcp-container {
@@ -9,7 +16,7 @@
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  padding-bottom: 150px; /* espaço para o rodapé */
+  padding-bottom: 200px; /* espaço extra pro rodapé e botão voltar */
   position: relative;
 }
 
@@ -19,20 +26,20 @@
   display: flex;
   align-items: center;
   padding: 16px 32px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  z-index: 2;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 
 .logo-pcp {
-  height: 180px;
+  height: 64px;
   margin-right: 16px;
-  object-fit: contain;
+  object-fit: contain; /* evita “achatamento” */
 }
 
 .homepcp-titulo {
   font-size: 2rem;
-  color: #8c3b1b;
+  color: var(--terracota-ativo);
   font-weight: bold;
 }
 
@@ -43,13 +50,13 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
-  /* desloca todo o bloco 4cm para baixo */
-  padding-top: calc(4cm + 5vh);
+  /* desce o bloco inteiro 5% a mais em relação ao topo disponível */
+  padding-top: 5vh;
 }
 
 /* Wrapper para espaçar verticalmente cada botão */
 .botao-wrapper {
-  margin-bottom: 2cm;
+  margin-bottom: 2cm; /* mantém espaçamento entre os botões */
 }
 
 /* Botões principais */
@@ -58,9 +65,9 @@
   height: 220px;
   border: none;
   border-radius: 12px;
-  background-color: #a65a3d;
-  color: #fff;
-  font-size: 2.7rem;
+  background-color: var(--terracota-sec);
+  color: var(--branco);
+  font-size: 2.7rem; /* +30% de fonte */
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -72,15 +79,15 @@
 }
 
 .botao-ativo {
-  background-color: #8c3b1b;
+  background-color: var(--terracota-ativo);
   transform: scale(1.05);
 }
 
 .botao-inativo {
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
-/* Dropdown interno */
+/* === Dropdown interno (botões filhos) === */
 .dropdown-interno {
   margin-top: 12px;
   display: flex;
@@ -89,64 +96,55 @@
 }
 
 .dropdown-interno button {
-  width: 360px;
+  width: 360px;           /* +30% que 280px original */
   padding: 12px 16px;
   border: none;
   border-radius: 8px;
-  background: #f9f1e8;
-  color: #5c1d0e;
-  font-size: 1.3rem;
+  background: var(--offwhite);
+  color: #5C1D0E;
+  font-size: 1.3rem;      /* +30% de fonte */
   font-weight: bold;
   cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Botão voltar */
+/* === Botão "Voltar ao ERP" === */
 .botao-voltar {
   position: absolute;
-  bottom: 100px;
+  bottom: 120px;
   left: 50%;
   transform: translateX(-50%);
   width: 240px;
   padding: 16px 0;
   border: none;
   border-radius: 8px;
-  background-color: #d38b5d;
-  color: white;
-  font-size: 1.3rem;
+  background-color: var(--offwhite);
+  color: var(--terracota-ativo);
+  font-size: 1.3rem;      /* +30% */
   font-weight: bold;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  z-index: 2;
+  z-index: 10;
 }
 
-/* Rodapé animado */
+/* === Rodapé animado direto na DIV === */
 .lista-escolas {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 50px;
-  background: rgba(0, 0, 0, 0.8);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  z-index: 999;
-}
-
-/* Esse span é que se move, mantendo o fundo estático */
-.lista-escolas {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
   height: 40px;
-  background-color: #8C3B1B; /* mesmo terracota do botão ativo */
-  color:            #FFFFFF; /* texto branco */
+  background-color: var(--terracota-ativo);
+  color: var(--branco);
   overflow: hidden;
   white-space: nowrap;
-  padding-left: 100%; 
+  padding-left: 100%;   /* inicia fora da tela, movendo texto pra direita */
   animation: marquee 20s linear infinite;
   line-height: 40px;
+  font-size: 1rem;
   z-index: 5;
 }
+
+/* Keyframes para a rolagem do rodapé */
 @keyframes marquee {
   from { transform: translateX(0); }
   to   { transform: translateX(-100%); }
