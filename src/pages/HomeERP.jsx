@@ -121,12 +121,15 @@ export default function HomeERP() {
       </button>
 
       {/* === RODAPÉ === */}
-      <div className="lista-escolas">
-        • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
-        Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
-        BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
-        Exato Anexo • Sesi • Motivo • Jesus Salvador
-      </div>
+      {/* HomeERP.jsx */}
+<div className="lista-escolas">
+  <span className="marquee-content">
+    • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
+    Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
+    BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
+    Exato Anexo • Sesi • Motivo • Jesus Salvador
+  </span>
+</div>
     </div>
   );
 }
