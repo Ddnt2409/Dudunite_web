@@ -11,13 +11,13 @@ export default function HomeERP({ setTela }) {
       label: '📦\nProdução (PCP)',
       action: () => setTela('HomePCP'),
       dropdown: [
-        { nome: 'Lançar Pedido', acao: () => setTela('HomePCP') },
+        { nome: 'Lançar Pedido', acao: () => setTela('LanPed') },
         { nome: 'Alimentar Sabores', acao: () => alert('Em construção') },
       ],
     },
     {
       label: '💰\nFinanceiro',
-      action: () => {}, // nada por enquanto
+      action: () => {},
       dropdown: [
         { nome: 'Contas a Receber', acao: () => alert('Em construção') },
         { nome: 'Contas a Pagar', acao: () => alert('Em construção') },
@@ -41,7 +41,6 @@ export default function HomeERP({ setTela }) {
 
   function handleClick(idx, action) {
     if (zoomIndex === idx) {
-      // se já estava ativo, alterna dropdown e dispara ação interna
       setMostrarDropdown(d => !d);
       if (mostrarDropdown) action();
     } else {
@@ -63,15 +62,16 @@ export default function HomeERP({ setTela }) {
 
   return (
     <div className="homeerp-container">
-      {/* HEADER */}
-      <header className="homeerp-header">
-        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo" className="homeerp-logo" />
+      {/* === HEADER === */}
+      <div className="homeerp-header">
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo Dudunitê" className="homeerp-logo" />
         <h1 className="homeerp-titulo">ERP DUDUNITÊ</h1>
-      </header>
+      </div>
 
-      {/* BOTÕES */}
-      <main className="homeerp-main"
-        onTouchStart={e => touchStartX.current = e.changedTouches[0].clientX}
+      {/* === BOTÕES PRINCIPAIS === */}
+      <div
+        className="homeerp-botoes"
+        onTouchStart={e => (touchStartX.current = e.changedTouches[0].clientX)}
         onTouchEnd={e => {
           const diff = e.changedTouches[0].clientX - touchStartX.current;
           if (diff > 50) deslizar('esquerda');
@@ -98,20 +98,18 @@ export default function HomeERP({ setTela }) {
             </div>
           );
         })}
-      </main>
+      </div>
 
-      {/* VOLTAR */}
-      <button className="botao-voltar" onClick={() => setTela('HomeERP')}>
-        🔙 Voltar
-      </button>
+      {/* === BOTÃO VOLTAR (invisível aqui, pois estamos na HomeERP) */}
+      {/* você pode remover esse button se não for usar na ERP */}
 
-      {/* RODAPÉ */}
-      <footer className="homeerp-footer">
+      {/* === RODAPÉ ANIMADO === */}
+      <div className="homeerp-footer">
         • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
         Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
         BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
         Exato Anexo • Sesi • Motivo • Jesus Salvador
-      </footer>
+      </div>
     </div>
   );
 }
