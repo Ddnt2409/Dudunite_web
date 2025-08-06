@@ -11,9 +11,9 @@ export default function HomeERP() {
   const botoes = [
     {
       label: "📦\nProdução (PCP)",
-      action: () => setTela("PCP"),
+      action: () => setTela("HomePCP"),
       dropdown: [
-        { nome: "Lançar Pedido", acao: () => setTela("PCP") },
+        { nome: "Lançar Pedido", acao: () => setTela("LanPed") },
         { nome: "Alimentar Sabores", acao: () => alert("Em breve") },
       ],
     },
