@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import HomeERP from './pages/HomeERP';
-import HomePCP from './pages/HomePCP';
-import LanPed from './pages/LanPed';
+import HomeERP   from './pages/HomeERP';
+import HomePCP   from './pages/HomePCP';
+import LanPed    from './pages/LanPed';
 
 export default function App() {
   const [tela, setTela] = useState('HomeERP');
@@ -9,8 +9,8 @@ export default function App() {
   return (
     <>
       {tela === 'HomeERP' && <HomeERP setTela={setTela} />}
-      {tela === 'HomePCP' && <HomePCP setTela={setTela} />}
-      {tela === 'LanPed'  && <LanPed  setTela={setTela} />}
+      {tela === 'HomePCP' && <HomePCP  setTela={setTela} />}
+      {tela === 'LanPed'  && <LanPed   setTela={setTela} />}
     </>
   );
 }
