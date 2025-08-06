@@ -1,5 +1,5 @@
 import React from 'react';
-import './HomePCP.css';  // aqui você importa apenas o CSS dessa tela
+import './HomePCP.css';
 
 export default function HomePCP({ setTela }) {
   return (
@@ -16,7 +16,6 @@ export default function HomePCP({ setTela }) {
 
       {/* === BOTÕES PRINCIPAIS === */}
       <div className="botoes-pcp">
-        {/* Botão 1 – Lançar Pedido */}
         <button
           className="botao-principal botao-ativo"
           onClick={() => setTela('LanPed')}
@@ -25,7 +24,6 @@ export default function HomePCP({ setTela }) {
           Lançar Pedido
         </button>
 
-        {/* Botão 2 – Alimentar Sabores */}
         <button
           className="botao-principal botao-inativo"
           onClick={() => setTela('AlimSab')}
@@ -45,10 +43,10 @@ export default function HomePCP({ setTela }) {
 
       {/* === RODAPÉ – lista de PDVs animada === */}
       <div className="lista-escolas">
-        Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
-        Interativo • Exato Sede • Exato Anexo • Society Show • Russas • Kaduh •
-        Degusty • Bora Gastar • Salesianas • Céu Azul • Pequeno Príncipe •
-        Tio Valter • Vera Cruz
+        • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
+        Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
+        BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
+        Exato Anexo • Sesi • Motivo • Jesus Salvador
       </div>
     </div>
   );
