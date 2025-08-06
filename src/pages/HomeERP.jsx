@@ -1,135 +1,117 @@
-import React, { useState, useRef } from "react";
-import HomePCP from "./HomePCP";
-import "./HomeERP.css";
+import React, { useState, useRef } from 'react';
+import './HomeERP.css';
 
-export default function HomeERP() {
-  const [tela, setTela] = useState("Home");
-  const [zoomIndex, setZoomIndex] = useState(0);
-  const touchStartX = useRef(null);
+export default function HomeERP({ setTela }) {
+  const [zoomIndex, setZoomIndex]     = useState(0);
+  const touchStartX                   = useRef(null);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
 
   const botoes = [
     {
-      label: "📦\nProdução (PCP)",
-      action: () => setTela("PCP"),
+      label: '📦\nProdução (PCP)',
+      action: () => setTela('HomePCP'),
       dropdown: [
-        { nome: "Lançar Pedido", acao: () => setTela("LanPed") },
-        { nome: "Alimentar Sabores", acao: () => alert("Em breve") },
+        { nome: 'Lançar Pedido', acao: () => setTela('HomePCP') },
+        { nome: 'Alimentar Sabores', acao: () => alert('Em construção') },
       ],
     },
     {
-      label: "💰\nFinanceiro",
+      label: '💰\nFinanceiro',
+      action: () => {}, // nada por enquanto
+      dropdown: [
+        { nome: 'Contas a Receber', acao: () => alert('Em construção') },
+        { nome: 'Contas a Pagar', acao: () => alert('Em construção') },
+      ],
+    },
+    {
+      label: '📊\nAnálise de Custos',
       action: () => {},
       dropdown: [
-        { nome: "Contas a Receber", acao: () => alert("Em breve") },
-        { nome: "Contas a Pagar", acao: () => alert("Em breve") },
+        { nome: 'Custos por Produto', acao: () => alert('Em construção') },
+        { nome: 'Custos Fixos', acao: () => alert('Em construção') },
+        { nome: 'Custos Variáveis', acao: () => alert('Em construção') },
       ],
     },
     {
-      label: "📊\nAnálise de Custos",
-      action: () => {},
-      dropdown: [
-        { nome: "Custos por Produto", acao: () => alert("Em breve") },
-        { nome: "Custos Fixos", acao: () => alert("Em breve") },
-        { nome: "Custos Variáveis", acao: () => alert("Em breve") },
-      ],
-    },
-    {
-      label: "👨‍🍳\nCozinha",
-      action: () => alert("Em breve"),
+      label: '👨‍🍳\nCozinha',
+      action: () => alert('Em construção'),
       dropdown: [],
     },
   ];
 
-  const handleClick = (idx, action) => {
+  function handleClick(idx, action) {
     if (zoomIndex === idx) {
+      // se já estava ativo, alterna dropdown e dispara ação interna
       setMostrarDropdown(d => !d);
       if (mostrarDropdown) action();
     } else {
       setZoomIndex(idx);
       setMostrarDropdown(false);
     }
-  };
+  }
 
-  const deslizar = dir => {
+  function deslizar(dir) {
     setZoomIndex(prev => {
       const total = botoes.length;
-      const next = dir === "esquerda"
+      const next = dir === 'esquerda'
         ? (prev - 1 + total) % total
         : (prev + 1) % total;
       setMostrarDropdown(false);
       return next;
     });
-  };
-
-  if (tela === "PCP") return <HomePCP setTela={setTela} />;
+  }
 
   return (
-    <div className="homepcp-container">
-      {/* === HEADER === */}
-      <div className="homepcp-header">
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logo Dudunitê"
-          className="logo-pcp"
-        />
-        <h1 className="homepcp-titulo">ERP DUDUNITÊ</h1>
-      </div>
+    <div className="homeerp-container">
+      {/* HEADER */}
+      <header className="homeerp-header">
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo" className="homeerp-logo" />
+        <h1 className="homeerp-titulo">ERP DUDUNITÊ</h1>
+      </header>
 
-      {/* === BOTÕES PRINCIPAIS === */}
-      <div
-        className="botoes-pcp"
-        onTouchStart={e => (touchStartX.current = e.changedTouches[0].clientX)}
+      {/* BOTÕES */}
+      <main className="homeerp-main"
+        onTouchStart={e => touchStartX.current = e.changedTouches[0].clientX}
         onTouchEnd={e => {
           const diff = e.changedTouches[0].clientX - touchStartX.current;
-          if (diff > 50) deslizar("esquerda");
-          else if (diff < -50) deslizar("direita");
+          if (diff > 50) deslizar('esquerda');
+          else if (diff < -50) deslizar('direita');
         }}
       >
         {botoes.map((btn, idx) => {
-          const isZoomed = idx === zoomIndex;
+          const ativo = idx === zoomIndex;
           return (
             <div key={idx} className="botao-wrapper">
               <button
-                className={`botao-principal ${
-                  isZoomed ? "botao-ativo" : "botao-inativo"
-                }`}
+                className={`botao-principal ${ativo ? 'botao-ativo' : 'botao-inativo'}`}
                 onClick={() => handleClick(idx, btn.action)}
               >
                 {btn.label}
               </button>
-              {isZoomed && mostrarDropdown && btn.dropdown.length > 0 && (
+              {ativo && mostrarDropdown && btn.dropdown.length > 0 && (
                 <div className="dropdown-interno">
                   {btn.dropdown.map((op, i) => (
-                    <button key={i} onClick={op.acao}>
-                      {op.nome}
-                    </button>
+                    <button key={i} onClick={op.acao}>{op.nome}</button>
                   ))}
                 </div>
               )}
             </div>
           );
         })}
-      </div>
+      </main>
 
-      {/* === BOTÃO VOLTAR === */}
-      <button
-        className="botao-voltar"
-        onClick={() => setTela("Home")}
-      >
-        🔙 Voltar ao ERP
+      {/* VOLTAR */}
+      <button className="botao-voltar" onClick={() => setTela('HomeERP')}>
+        🔙 Voltar
       </button>
 
-      {/* === RODAPÉ === */}
-      {/* HomeERP.jsx */}
-<div className="lista-escolas">
-  <span className="marquee-content">
-    • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
-    Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
-    BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
-    Exato Anexo • Sesi • Motivo • Jesus Salvador
-  </span>
-</div>
+      {/* RODAPÉ */}
+      <footer className="homeerp-footer">
+        • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
+        Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
+        BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
+        Exato Anexo • Sesi • Motivo • Jesus Salvador
+      </footer>
     </div>
   );
 }
