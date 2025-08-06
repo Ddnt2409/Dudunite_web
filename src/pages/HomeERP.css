@@ -131,24 +131,30 @@
   z-index: 10;
 }
 
-/* === Rodapé animado === */
+/* 1) Container do rodapé (a tarja terracota) */
 .lista-escolas {
   position: fixed;           /* fixa na viewport */
-  bottom: 0;                 /* exatamente embaixo */
+  bottom: 0;                 /* cola na base da janela */
   left: 0;
   width: 100%;               /* cobre toda a largura */
   height: 40px;              /* altura da tarja */
   background-color: #8c3b1b; /* terracota do botão ativo */
-  color: #ffffff;            /* texto branco */
-  overflow: hidden;          /* esconde o que sair do box */
-  white-space: nowrap;       /* uma linha só */
-  padding-left: 100%;        /* texto inicia deslocado à direita */
-  animation: marquee 20s linear infinite;
-  line-height: 40px;         /* centraliza verticalmente o texto */
-  font-size: 1rem;
+  overflow: hidden;          /* esconde o texto além da caixa */
   z-index: 9999;             /* sobre tudo */
 }
 
+/* 2) Texto rolante (inside span) */
+.marquee-content {
+  display: inline-block;     /* essencial para animação */
+  white-space: nowrap;       /* sem quebras de linha */
+  padding-left: 100%;        /* inicia à direita, fora da tela */
+  line-height: 40px;         /* centraliza verticalmente */
+  color: #ffffff;            /* texto branco */
+  font-size: 1rem;           /* ajuste se precisar */
+  animation: marquee 20s linear infinite;
+}
+
+/* 3) Keyframes da rolagem */
 @keyframes marquee {
   from { transform: translateX(0); }
   to   { transform: translateX(-100%); }
