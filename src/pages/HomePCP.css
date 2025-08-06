@@ -1,69 +1,99 @@
-/* === HomePCP.css === */
-
-.home-pcp-wrapper {
-  background: url('/bg002.png') center/cover no-repeat;
+/* HomePCP.css */
+.homepcp-container {
+  background-image: url('/bg002.png');
+  background-size: cover;
+  background-position: center;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  overflow-y: auto;
 }
 
-.erp-header,
-.erp-footer {
-  /* reaproveita estilos do ERP */
+.homepcp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  height: 100px;
   background-color: rgba(255,255,255,0.5);
   backdrop-filter: blur(6px);
 }
 
-.er p-header {
-  height: 100px;
-  display: flex;
-  align-items: center;
-  padding: 0 1rem;
-}
-
-.erp-logo {
+.logo-pcp {
   width: 200px;
+  margin-top: 2%;
 }
 
-.erp-titulo {
+.homepcp-titulo {
   font-size: 2rem;
+  font-weight: bold;
   color: #8c3b1b;
-  margin-left: 1rem;
+  margin-right: 2ch;
 }
 
 .botoes-pcp {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-  padding: 2rem 1rem 0;
+  justify-content: center;
+  gap: 3rem;
+  padding: 2rem 1rem;
+  flex-wrap: wrap;
 }
 
-.botao-principal-erp {
-  width: 450px;
-  height: 220px;
+.botao-principal {
   background-color: #8c3b1b;
   color: white;
   font-size: 2.2rem;
-  border: none;
+  width: 450px;
+  height: 220px;
   border-radius: 1rem;
+  border: none;
+  transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
+  white-space: pre-line;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s;
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.botao-principal-erp:hover {
-  transform: scale(1.15);
+.botao-ativo {
+  transform: scale(1.12);
   background-color: #a3471f;
+  box-shadow: 3px 3px 12px rgba(0,0,0,0.3);
 }
 
 .botao-inativo {
   opacity: 0.4;
-  pointer-events: none;
+  pointer-events: none; /* bloqueia clique até habilitar */
 }
 
-.texto-botao {
-  margin-left: 0.5rem;
-  font-weight: bold;
+.botao-principal:hover {
+  transform: scale(1.15);
+  background-color: #a3471f;
+}
+
+.botao-voltar {
+  background-color: #8c3b1b;
+  color: white;
+  font-size: 1.4rem;
+  padding: 0.8rem 1.4rem;
+  border-radius: 0.5rem;
+  border: none;
+  opacity: 0.6;
+  margin: 1rem auto;
+}
+
+.botao-voltar:hover {
+  background-color: #a3471f;
+  opacity: 1;
+}
+
+.lista-escolas {
+  margin-top: auto;
+  padding: 1rem;
+  background-color: rgba(140,59,27,0.4);
+  color: white;
+  text-align: center;
+  font-size: 1rem;
 }
