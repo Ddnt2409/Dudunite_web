@@ -9,7 +9,6 @@
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  /* Aumenta espaço inferior para o footer */
   padding-bottom: 150px;
 }
 
@@ -42,12 +41,12 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  /* Desce todos os botões em ~15% da altura deles (220px * 0.15 ≈ 33px) */
-  padding-top: 33px;
+  /* DESCE todo o bloco 4 cm */
+  padding-top: 4cm;
 }
 
 .botao-wrapper {
-  /* espaçamento vertical de 33px entre botões */
+  /* espaçamento vertical de 33px entre cada botão */
   margin-bottom: 33px;
 }
 
@@ -58,8 +57,8 @@
   border-radius: 12px;
   background-color: #a65a3d;
   color: #fff;
-  /* +30% em cima de 1.6rem = 2.08rem */
-  font-size: 2.08rem;
+  /* +30% sobre 2.08rem ≈ 2.7rem */
+  font-size: 2.7rem;
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -101,7 +100,7 @@
 /* === Botão voltar === */
 .botao-voltar {
   position: absolute;
-  bottom: 100px; /* sobe um pouco para não colar no footer */
+  bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
   width: 200px;
