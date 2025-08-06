@@ -133,23 +133,22 @@
 
 /* === Rodapé animado === */
 .lista-escolas {
-  position: absolute;
-  bottom: 0;
+  position: fixed;           /* fixa na viewport */
+  bottom: 0;                 /* exatamente embaixo */
   left: 0;
-  width: 100%;
-  height: 40px;                 /* altura da barra */
-  background-color: var(--terracota-ativo);
-  color: var(--branco);
-  overflow: hidden;             /* esconde o texto que sair dos 40px */
-  white-space: nowrap;
-  padding-left: 100%;           /* inicia fora da tela, à direita */
+  width: 100%;               /* cobre toda a largura */
+  height: 40px;              /* altura da tarja */
+  background-color: #8c3b1b; /* terracota do botão ativo */
+  color: #ffffff;            /* texto branco */
+  overflow: hidden;          /* esconde o que sair do box */
+  white-space: nowrap;       /* uma linha só */
+  padding-left: 100%;        /* texto inicia deslocado à direita */
   animation: marquee 20s linear infinite;
-  line-height: 40px;            /* centra verticalmente o texto */
+  line-height: 40px;         /* centraliza verticalmente o texto */
   font-size: 1rem;
-  z-index: 10;                  /* acima de tudo na página */
+  z-index: 9999;             /* sobre tudo */
 }
 
-/* Keyframes para a rolagem do rodapé */
 @keyframes marquee {
   from { transform: translateX(0); }
   to   { transform: translateX(-100%); }
