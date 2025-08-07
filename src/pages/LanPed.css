@@ -24,8 +24,9 @@
 }
 
 .logo-lanped {
-  width: 200px;
-  margin-top: 2%;
+  width: 180px;
+  height: auto;
+  margin-right: 16px;
 }
 
 .lanped-titulo {
