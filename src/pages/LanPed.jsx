@@ -1,5 +1,5 @@
 // src/pages/LanPed.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   collection,
   addDoc,
@@ -37,7 +37,7 @@ export default function LanPed({ setTela }) {
   // ─── CALCULA TOTAL AO MUDAR QTD OU VALOR ───
   useEffect(() => {
     const t = parseFloat(quantidade) * parseFloat(valorUnitario || 0);
-    setTotalPedido(isNaN(t) ? "0.00" : t.toFixed(2));
+    setTotalPedido(t.toFixed(2));
   }, [quantidade, valorUnitario]);
 
   // ─── ADICIONA ITEM ──────────────────────
@@ -51,7 +51,7 @@ export default function LanPed({ setTela }) {
       {
         produto,
         quantidade,
-        valorUnitario: parseFloat(valorUnitario).toFixed(2),
+        valorUnitario,
         total: (quantidade * parseFloat(valorUnitario)).toFixed(2),
       },
     ]);
@@ -79,7 +79,6 @@ export default function LanPed({ setTela }) {
     try {
       await addDoc(collection(db, "PEDIDOS"), novo);
       alert("✅ Pedido salvo!");
-      // reset
       setCidade("");
       setPdv("");
       setItens([]);
@@ -106,19 +105,19 @@ export default function LanPed({ setTela }) {
   }, []);
 
   return (
-// INÍCIO: substitua seu header atual por este
-<div className="lanped-header">
-  <img
-    src="/LogomarcaDDnt2025Vazado.png"
-    alt="Logo Dudunitê"
-    className="lanped-logo"
-  />
-  <h1 className="lanped-titulo">Lançar Pedido</h1>
-  <button className="botao-voltar" onClick={() => setTela("HomePCP")}>
-    🔙
-  </button>
-</div>
-// FIM: substituição do header
+    <div className="lanped-container">
+      {/* HEADER */}
+      <div className="lanped-header">
+        <img
+          src="/LogomarcaDDnt2025Vazado.png"
+          alt="Logo Dudunitê"
+          className="lanped-logo"
+        />
+        <h1 className="lanped-titulo">Lançar Pedido</h1>
+        <button className="botao-voltar" onClick={() => setTela("HomePCP")}>
+          🔙
+        </button>
+      </div>
 
       {/* FORMULÁRIO */}
       <div className="lanped-formulario">
@@ -129,7 +128,9 @@ export default function LanPed({ setTela }) {
             onChange={e => { setCidade(e.target.value); setPdv(""); }}
           >
             <option value="">Selecione</option>
-            {cidades.map(c => <option key={c} value={c}>{c}</option>)}
+            {cidades.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
           </select>
         </div>
 
@@ -141,7 +142,9 @@ export default function LanPed({ setTela }) {
             disabled={!cidade}
           >
             <option value="">Selecione</option>
-            {cidade && pdvsPorCidade[cidade].map(p => <option key={p} value={p}>{p}</option>)}
+            {cidade && pdvsPorCidade[cidade].map(p => (
+              <option key={p} value={p}>{p}</option>
+            ))}
           </select>
         </div>
 
@@ -152,7 +155,9 @@ export default function LanPed({ setTela }) {
             onChange={e => setProduto(e.target.value)}
           >
             <option value="">Selecione</option>
-            {produtos.map(p => <option key={p} value={p}>{p}</option>)}
+            {produtos.map(p => (
+              <option key={p} value={p}>{p}</option>
+            ))}
           </select>
         </div>
 
@@ -183,17 +188,18 @@ export default function LanPed({ setTela }) {
           <ul className="lista-itens">
             {itens.map((it, i) => (
               <li key={i}>
-                {it.quantidade}× {it.produto} — R$ {it.valorUnitario} (R$ {it.total})
+                {it.quantidade}× {it.produto} — R$ {it.valorUnitario} (Total: R$ {it.total})
                 <button
                   className="botao-excluir"
                   onClick={() => setItens(itens.filter((_, j) => j !== i))}
-                >✖</button>
+                >
+                  ✖
+                </button>
               </li>
             ))}
           </ul>
         )}
 
-        {/* TOTAL */}
         <div className="total-pedido">
           <strong>Total:</strong> R$ {totalPedido}
         </div>
@@ -205,7 +211,9 @@ export default function LanPed({ setTela }) {
             onChange={e => setFormaPagamento(e.target.value)}
           >
             <option value="">Selecione</option>
-            {formasPagamento.map(f => <option key={f} value={f}>{f}</option>)}
+            {formasPagamento.map(f => (
+              <option key={f} value={f}>{f}</option>
+            ))}
           </select>
         </div>
 
