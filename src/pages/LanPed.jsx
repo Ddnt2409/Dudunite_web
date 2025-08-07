@@ -106,15 +106,19 @@ export default function LanPed({ setTela }) {
   }, []);
 
   return (
-    <div className="lanped-container">
-      {/* CABEÇALHO */}
-      <header className="lanped-header">
-        <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" className="logo-header" />
-        <h1 className="lanped-titulo">Lançar Pedido</h1>
-        <button className="botao-voltar" onClick={() => setTela("HomePCP")}>
-          🔙
-        </button>
-      </header>
+// INÍCIO: substitua seu header atual por este
+<div className="lanped-header">
+  <img
+    src="/LogomarcaDDnt2025Vazado.png"
+    alt="Logo Dudunitê"
+    className="lanped-logo"
+  />
+  <h1 className="lanped-titulo">Lançar Pedido</h1>
+  <button className="botao-voltar" onClick={() => setTela("HomePCP")}>
+    🔙
+  </button>
+</div>
+// FIM: substituição do header
 
       {/* FORMULÁRIO */}
       <div className="lanped-formulario">
