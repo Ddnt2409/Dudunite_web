@@ -1,7 +1,10 @@
-import React from 'react';
+// src/pages/HomePCP.jsx
+import React, { useState } from 'react';
 import './HomePCP.css';
 
 export default function HomePCP({ setTela }) {
+  const [saboresZoomed, setSaboresZoomed] = useState(false);
+
   return (
     <div className="homepcp-container">
       {/* === HEADER === */}
@@ -28,8 +31,9 @@ export default function HomePCP({ setTela }) {
 
         <div className="botao-wrapper">
           <button
-            className="botao-principal botao-inativo"
-            onClick={() => alert('Em construção')}
+            className={`botao-principal ${saboresZoomed ? 'botao-ativo' : 'botao-inativo'}`}
+            onClick={() => setSaboresZoomed(z => !z)}      {/* 1º clique: zoom in/out */}
+            onDoubleClick={() => setTela('AliSab')}         {/* 2º clique: vai para Alimentar Sabores */}
           >
             🍫<br />
             Alimentar Sabores
