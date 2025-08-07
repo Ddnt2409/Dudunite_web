@@ -233,3 +233,39 @@
   border-radius: 4px;
 }
 /* --- Fim: ajustes do cabeçalho LanPed --- */
+/* --- Ajustes finais do cabeçalho LanPed --- */
+.lanped-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  width: 100vw;           /* ocupa toda a largura da viewport */
+  max-width: 100%;        
+  box-sizing: border-box;
+  padding: 0.5rem 1rem;    /* controla a “altura” interna */
+  margin: 0;               /* sem margem extra */
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+}
+
+.lanped-header .lanped-logo {
+  height: 180px;          /* altura fixa de 180px */
+  width: auto;
+}
+
+.lanped-header .lanped-titulo {
+  font-size: 2rem;        /* título maior à direita */
+  margin: 0;
+  color: #5c1d0e;
+}
+
+.lanped-header .botao-voltar {
+  background: rgba(255,255,255,0.8);
+  padding: 0.4rem;
+  font-size: 1.2rem;
+  border-radius: 4px;
+  position: relative;
+  left: auto;
+}
