@@ -1,6 +1,6 @@
 // src/pages/HomeERP.jsx
 import React, { useState, useRef } from 'react';
-import './HomeERP.css';
+import './HomeERP.css';  // seu CSS original, sem nenhuma modificação
 
 export default function HomeERP({ setTela }) {
   const [zoomIndex, setZoomIndex] = useState(0);
@@ -44,10 +44,10 @@ export default function HomeERP({ setTela }) {
   function handleClick(idx, action) {
     const now = Date.now();
 
-    // especial para o botão PCP (idx 0): clique duplo navega
     if (idx === 0) {
+      // Botão PCP: clique simples apenas expande, duplo clique navega
       if (zoomIndex === 0 && now - lastClickTime.current < 400) {
-        action(); // navega para HomePCP no duplo clique
+        action(); // duplo clique: vai para HomePCP
       } else {
         setZoomIndex(0);
         setMostrarDropdown(false);
@@ -56,7 +56,7 @@ export default function HomeERP({ setTela }) {
       return;
     }
 
-    // demais botões seguem lógica normal
+    // demais botões: clique simples/duplo normal
     if (zoomIndex === idx) {
       setMostrarDropdown(d => !d);
       if (mostrarDropdown) action();
@@ -79,13 +79,17 @@ export default function HomeERP({ setTela }) {
 
   return (
     <div className="homeerp-container">
-      {/* HEADER */}
+      {/* === HEADER === */}
       <header className="homeerp-header">
-        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo" className="homeerp-logo" />
+        <img
+          src="/LogomarcaDDnt2025Vazado.png"
+          alt="Logomarca Dudunitê"
+          className="homeerp-logo"
+        />
         <h1 className="homeerp-titulo">ERP DUDUNITÊ</h1>
       </header>
 
-      {/* BOTÕES */}
+      {/* === MAIN CARROSSEL === */}
       <main
         className="homeerp-main"
         onTouchStart={e => touchStartX.current = e.changedTouches[0].clientX}
@@ -117,18 +121,20 @@ export default function HomeERP({ setTela }) {
         })}
       </main>
 
-      {/* VOLTAR */}
+      {/* === VOLTAR === */}
       <button className="botao-voltar" onClick={() => setTela('HomeERP')}>
         🔙 Voltar
       </button>
 
-      {/* RODAPÉ */}
-      <footer className="homeerp-footer">
-        • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
-        Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
-        BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
-        Exato Anexo • Sesi • Motivo • Jesus Salvador
-      </footer>
+      {/* === RODAPÉ MARQUEE === */}
+      <div className="lista-escolas">
+        <span className="marquee-content">
+          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
+          Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
+          BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
+          Exato Anexo • Sesi • Motivo • Jesus Salvador
+        </span>
+      </div>
     </div>
   );
 }
