@@ -32,8 +32,12 @@ export default function HomePCP({ setTela }) {
         <div className="botao-wrapper">
           <button
             className={`botao-principal ${saboresZoomed ? 'botao-ativo' : 'botao-inativo'}`}
-            onClick={() => setSaboresZoomed(z => !z)}      {/* 1º clique: zoom in/out */}
-            onDoubleClick={() => setTela('AliSab')}         {/* 2º clique: vai para Alimentar Sabores */}
+            onClick={() => setSaboresZoomed(z => !z)}
+            onDoubleClick={() => setTela('AliSab')}
+            style={{
+              transform: saboresZoomed ? 'scale(1.1)' : 'scale(1)',
+              transition: 'transform 0.2s',
+            }}
           >
             🍫<br />
             Alimentar Sabores
@@ -56,5 +60,5 @@ export default function HomePCP({ setTela }) {
         </span>
       </div>
     </div>
-  );
+);
 }
