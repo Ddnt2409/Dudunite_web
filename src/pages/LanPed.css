@@ -32,7 +32,7 @@
 
 .lanped-logo {
   width: auto;
-  height: 80px;                /* controla só a altura da logomarca */
+  height: 180px;                /* controla só a altura da logomarca */
 }
 
 .lanped-titulo {
@@ -188,4 +188,3 @@
   padding: 0.4rem 0.6rem;
   border-radius: 4px;
 }
-```0
