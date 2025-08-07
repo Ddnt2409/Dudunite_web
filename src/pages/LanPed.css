@@ -2,7 +2,7 @@
   position: relative;
   min-height: 100vh;
   padding-bottom: 160px;
-  background: url("/bg004.png") center/cover no-repeat;
+  background: url("/bg003.png") center/cover no-repeat;
 }
 
 .botao-voltar {
@@ -77,4 +77,36 @@
 
 .status-item {
   background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;
+}
+
+/* ========== Labels translúcidos ========== */
+/* Envolve cada label do formulário em um fundo branco semi-transparente */
+.lanped-row label {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 0.25rem;
+  color: #8c3b1b;  /* mesma cor dos textos originais */
+  font-weight: bold;
+}
+
+/* ========== Botão “Voltar” menor e no topo ========== */
+/* Escopo só dentro de LanPed, sobrescreve a regra global .botao-voltar */
+.lanped-container .botao-voltar {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: auto;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border-radius: 6px;
+  background-color: #d38b5d;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  z-index: 10;
+}
+
+/* Ajuste fino no hover para não invadir o conteúdo */
+.lanped-container .botao-voltar:hover {
+  transform: none;
 }
