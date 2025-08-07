@@ -215,6 +215,7 @@
 /* ajusta o título verticalmente */
 .lanped-titulo {
   font-size: 2rem;
-  margin: 0;
-  line-height: 1;  
+  font-weight: bold;
+  color: #8c3b1b;
+  margin-right: 2ch;  
 }
