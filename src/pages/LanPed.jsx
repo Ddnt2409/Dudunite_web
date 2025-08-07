@@ -1,5 +1,5 @@
 // src/pages/LanPed.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   collection,
   addDoc,
@@ -34,13 +34,13 @@ export default function LanPed({ setTela }) {
   const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
   const formasPagamento = ["PIX", "Espécie", "Cartão", "Boleto"];
 
-  // ─── CALCULA TOTAL AO MUDAR QTD OU VALOR ───
+  // ─── CALCULA TOTAL ───────────────────
   useEffect(() => {
     const t = parseFloat(quantidade) * parseFloat(valorUnitario || 0);
     setTotalPedido(t.toFixed(2));
   }, [quantidade, valorUnitario]);
 
-  // ─── ADICIONA ITEM ──────────────────────
+  // ─── ADICIONA ITEM ──────────────────
   function adicionarItem() {
     if (!produto || quantidade <= 0 || !valorUnitario) {
       alert("Preencha todos os campos de item.");
@@ -60,7 +60,7 @@ export default function LanPed({ setTela }) {
     setValorUnitario("");
   }
 
-  // ─── SALVA PEDIDO ───────────────────────
+  // ─── SALVA PEDIDO ───────────────────
   async function handleSalvar() {
     if (!cidade || !pdv || itens.length === 0 || !formaPagamento) {
       alert("Preencha todos os campos obrigatórios.");
@@ -90,7 +90,7 @@ export default function LanPed({ setTela }) {
     }
   }
 
-  // ─── MONITORA STATUS DOS PDVs ──────────
+  // ─── MONITORA STATUS DOS PDVs ───────
   useEffect(() => {
     const ref = collection(db, "PEDIDOS");
     const q = query(ref, orderBy("criadoEm", "asc"));
@@ -114,9 +114,6 @@ export default function LanPed({ setTela }) {
           className="lanped-logo"
         />
         <h1 className="lanped-titulo">Lançar Pedido</h1>
-        <button className="botao-voltar" onClick={() => setTela("HomePCP")}>
-          🔙
-        </button>
       </div>
 
       {/* FORMULÁRIO */}
@@ -243,6 +240,14 @@ export default function LanPed({ setTela }) {
           💾 Salvar Pedido
         </button>
       </div>
+
+      {/* BOTÃO VOLTAR ABAIXO DO FORMULÁRIO */}
+      <button
+        className="botao-voltar"
+        onClick={() => setTela("HomePCP")}
+      >
+        🔙 Voltar
+      </button>
 
       {/* RODAPÉ */}
       <footer className="lanped-footer">
