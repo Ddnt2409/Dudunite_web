@@ -1,11 +1,12 @@
 /* src/pages/LanPed.css */
 
+/* Container principal */
 .lanped-container {
   background: url("/bg001.png") no-repeat center center fixed;
   background-size: cover;
   min-height: 100vh;
-  padding: 2rem 1rem;      /* reduz o padding horizontal para dar espaço ao header fixo */
-  padding-top: 50px;       /* espaço para o header fixo */
+  padding: 2rem 1rem;
+  padding-top: 160px;    /* espaço para o header fixo (110px de altura + 50px de folga) */
   position: relative;
   color: #5c1d0e;
 }
@@ -14,26 +15,31 @@
    CABEÇALHO FIXO REDUZIDO
    =========================== */
 .lanped-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 110px;               /* altura do header */
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 1rem;
-  height: 100px;
-  background-color: rgba(255,255,255,0.5);
+  background-color: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(6px);
+  box-sizing: border-box;
+  z-index: 100;
 }
 
-.logo-lanped {
-  width: 180px;
-  height: auto;
-  margin-right: 16px;
+.lanped-logo {
+  width: auto;
+  height: 80px;                /* controla só a altura da logomarca */
 }
 
 .lanped-titulo {
   font-size: 2rem;
   font-weight: bold;
   color: #8c3b1b;
-  margin-right: 2ch;
+  margin: 0;
 }
 
 /* ===========================
@@ -41,7 +47,7 @@
    =========================== */
 .lanped-formulario {
   max-width: 600px;
-  margin: 2rem auto 4rem;  /* margem superior compensando o header */
+  margin: 0 auto 4rem;
 }
 
 .lanped-field {
@@ -63,18 +69,10 @@
   padding: 0.6rem;
   border: 2px solid #a65a3d;
   border-radius: 4px;
-  font-size: 1rem;
+  font-size: 2rem;             /* fonte maior */
 }
 
-/* dobra o tamanho das fontes dos campos e itens */
-.lanped-field label,
-.lanped-field input,
-.lanped-field select,
-.lista-itens li,
-.total-pedido {
-  font-size: 2rem;
-}
-
+/* Botões do formulário */
 .botao-adicionar,
 .botao-salvar {
   width: 100%;
@@ -88,9 +86,7 @@
   cursor: pointer;
 }
 
-/* ===========================
-   LISTA DE ITENS
-   =========================== */
+/* Lista de itens */
 .lista-itens {
   list-style: none;
   padding: 0;
@@ -115,39 +111,46 @@
   cursor: pointer;
 }
 
-/* ===========================
-   TOTAL
-   =========================== */
+/* Total do pedido */
 .total-pedido {
   background: rgba(255,255,255,0.8);
   padding: 0.8rem;
   border-radius: 6px;
   text-align: right;
   font-size: 2rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
+/* ===========================
+   BOTÃO VOLTAR ABAIXO DO FORMULÁRIO
+   =========================== */
 .botao-voltar {
+  display: block;
+  position: static;            /* rola junto com a página */
+  margin: 0.5rem auto 2rem;    /* 0.5 acima, 2 abaixo */
   background-color: #8c3b1b;
-  color: white;
+  color: #fff;
   font-size: 1.4rem;
-  padding: 0.8rem 0.5rem;
-  border-radius: 0.5rem;
+  padding: 0.8rem 1.4rem;
   border: none;
-  opacity: 0.6;
-  margin: 1rem auto 0.5rem;
+  border-radius: 6px;
+  opacity: 0.8;
+  cursor: pointer;
 }
 
 .botao-voltar:hover {
-  background-color: #a3471f;
   opacity: 1;
 }
+
 /* ===========================
-   RODAPÉ
+   RODAPÉ FIXO
    =========================== */
 .lanped-footer {
-  position: static;
+  position: fixed;
+  bottom: 0;
+  left: 0;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .lista-escolas-marquee {
@@ -185,35 +188,4 @@
   padding: 0.4rem 0.6rem;
   border-radius: 4px;
 }
-
-/* ===========================
-   Ajuste fixo do cabeçalho
-   =========================== */
-.lanped-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;           /* ocupa toda a largura da tela */
-  height: 110px;           /* metade dos 120px que você vinha usando */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1rem;
-  background-color: rgba(255, 255, 255, 0.5);
-  box-sizing: border-box;
-  z-index: 100;
-}
-
-/* logo sempre proporcional, mas limitando apenas a altura */
-.lanped-logo {
-  height: 200px;           /* metade dos 80px que você vinha usando */
-  width: auto;
-}
-
-/* ajusta o título verticalmente */
-.lanped-titulo {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #8c3b1b;
-  margin-right: 2ch;  
-}
+```0
