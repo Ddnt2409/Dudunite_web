@@ -202,3 +202,34 @@
   font-size: 1.4rem;
   padding: 1rem;
 }
+/* --- Início: ajustes do cabeçalho LanPed --- */
+.lanped-header {
+  display: flex;
+  justify-content: space-between; /* logo à esquerda, título à direita */
+  align-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 1rem; /* reduz a altura interna */
+  margin-bottom: 1rem;
+}
+
+.lanped-header .lanped-logo {
+  max-height: 70px; /* aproximadamente 70% do tamanho anterior */
+  height: auto;
+  width: auto;
+}
+
+.lanped-header .lanped-titulo {
+  font-size: 1.6rem; /* mantém o título legível à direita */
+  margin: 0;
+}
+
+/* Ajusta o botão voltar para não sobrepor o logo */
+.lanped-header .botao-voltar {
+  background: rgba(255,255,255,0.8);
+  padding: 0.4rem;
+  font-size: 1.2rem;
+  border-radius: 4px;
+}
+/* --- Fim: ajustes do cabeçalho LanPed --- */
