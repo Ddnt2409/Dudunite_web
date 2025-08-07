@@ -146,9 +146,7 @@
    RODAPÉ
    =========================== */
 .lanped-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
+  position: static;
   width: 100%;
 }
 
