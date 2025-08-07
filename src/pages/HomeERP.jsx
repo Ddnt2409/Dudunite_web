@@ -1,75 +1,72 @@
-// src/pages/HomeERP.jsx
 import React, { useState, useRef } from 'react';
-import './HomeERP.css';  // seu CSS original, sem nenhuma modificação
+import './HomeERP.css';
 
 export default function HomeERP({ setTela }) {
-  const [zoomIndex, setZoomIndex] = useState(0);
+  // --- estados e refs ---
+  const [zoomIndex, setZoomIndex]             = useState(0);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
-  const touchStartX = useRef(null);
-  const lastClickTime = useRef(0);
+  const touchStartX                           = useRef(null);
 
+  // --- configuração dos botões ---
   const botoes = [
     {
       label: '📦\nProdução (PCP)',
-      action: () => setTela('HomePCP'),
+      // apenas muda zoomIndex, NÃO chama setTela
+      action: () => setZoomIndex(0),
       dropdown: [
-        { nome: 'Lançar Pedido', acao: () => setTela('LanPed') },
-        { nome: 'Alimentar Sabores', acao: () => alert('Em construção') },
+        {
+          nome: 'Lançar Pedido',
+          // aqui sim dispara a tela LanPed
+          acao: () => setTela('LanPed')
+        },
+        {
+          nome: 'Alimentar Sabores',
+          acao: () => alert('Em construção')
+        },
       ],
     },
     {
       label: '💰\nFinanceiro',
-      action: () => {},
+      action: () => setZoomIndex(1),
       dropdown: [
         { nome: 'Contas a Receber', acao: () => alert('Em construção') },
-        { nome: 'Contas a Pagar', acao: () => alert('Em construção') },
+        { nome: 'Contas a Pagar',    acao: () => alert('Em construção') },
       ],
     },
     {
       label: '📊\nAnálise de Custos',
-      action: () => {},
+      action: () => setZoomIndex(2),
       dropdown: [
         { nome: 'Custos por Produto', acao: () => alert('Em construção') },
-        { nome: 'Custos Fixos', acao: () => alert('Em construção') },
-        { nome: 'Custos Variáveis', acao: () => alert('Em construção') },
+        { nome: 'Custos Fixos',       acao: () => alert('Em construção') },
+        { nome: 'Custos Variáveis',   acao: () => alert('Em construção') },
       ],
     },
     {
       label: '👨‍🍳\nCozinha',
-      action: () => alert('Em construção'),
+      action: () => setZoomIndex(3),
       dropdown: [],
     },
   ];
 
+  // --- handler de clique no botão principal ---
   function handleClick(idx, action) {
-    const now = Date.now();
-
-    if (idx === 0) {
-      // Botão PCP: clique simples apenas expande, duplo clique navega
-      if (zoomIndex === 0 && now - lastClickTime.current < 400) {
-        action(); // duplo clique: vai para HomePCP
-      } else {
-        setZoomIndex(0);
-        setMostrarDropdown(false);
-      }
-      lastClickTime.current = now;
-      return;
-    }
-
-    // demais botões: clique simples/duplo normal
     if (zoomIndex === idx) {
+      // segundo clique: mostra dropdown E executa a ação
       setMostrarDropdown(d => !d);
       if (mostrarDropdown) action();
     } else {
+      // primeiro clique: só muda o zoom
       setZoomIndex(idx);
       setMostrarDropdown(false);
     }
   }
 
+  // --- swipe para mobile ---
   function deslizar(dir) {
     setZoomIndex(prev => {
       const total = botoes.length;
-      const next = dir === 'esquerda'
+      const next  = dir === 'esquerda'
         ? (prev - 1 + total) % total
         : (prev + 1) % total;
       setMostrarDropdown(false);
@@ -78,20 +75,20 @@ export default function HomeERP({ setTela }) {
   }
 
   return (
-    <div className="homeerp-container">
-      {/* === HEADER === */}
-      <header className="homeerp-header">
+    <div className="homepcp-container">
+      {/* === HEADER (volta junto com CSS aprovado) === */}
+      <div className="homepcp-header">
         <img
           src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logomarca Dudunitê"
-          className="homeerp-logo"
+          alt="Logo Dudunitê"
+          className="logo-pcp"
         />
-        <h1 className="homeerp-titulo">ERP DUDUNITÊ</h1>
-      </header>
+        <h1 className="homepcp-titulo">ERP DUDUNITÊ</h1>
+      </div>
 
-      {/* === MAIN CARROSSEL === */}
-      <main
-        className="homeerp-main"
+      {/* === BOTÕES PRINCIPAIS === */}
+      <div
+        className="botoes-pcp"
         onTouchStart={e => touchStartX.current = e.changedTouches[0].clientX}
         onTouchEnd={e => {
           const diff = e.changedTouches[0].clientX - touchStartX.current;
@@ -109,24 +106,30 @@ export default function HomeERP({ setTela }) {
               >
                 {btn.label}
               </button>
+
               {ativo && mostrarDropdown && btn.dropdown.length > 0 && (
                 <div className="dropdown-interno">
                   {btn.dropdown.map((op, i) => (
-                    <button key={i} onClick={op.acao}>{op.nome}</button>
+                    <button key={i} onClick={op.acao}>
+                      {op.nome}
+                    </button>
                   ))}
                 </div>
               )}
             </div>
           );
         })}
-      </main>
+      </div>
 
-      {/* === VOLTAR === */}
-      <button className="botao-voltar" onClick={() => setTela('HomeERP')}>
+      {/* === BOTÃO VOLTAR === */}
+      <button
+        className="botao-voltar"
+        onClick={() => setTela('HomeERP')}
+      >
         🔙 Voltar
       </button>
 
-      {/* === RODAPÉ MARQUEE === */}
+      {/* === RODAPÉ FIXO COM MARQUEE === */}
       <div className="lista-escolas">
         <span className="marquee-content">
           • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
