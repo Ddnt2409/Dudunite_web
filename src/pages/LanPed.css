@@ -14,31 +14,26 @@
    CABEÇALHO FIXO REDUZIDO
    =========================== */
 .lanped-header {
+  width: 100%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  padding: 16px 32px;
   background: rgba(255, 255, 255, 0.9);
-  width: 100vw;
-  height: 105px;            /* altura fixa reduzi­da pela metade */
-  box-sizing: border-box;
-  padding: 0 1rem;         /* sem padding vertical */
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 100;
-  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 2;
 }
 
-.lanped-header .lanped-logo {
+/* Logo com 180px de largura e altura proporcional */
+.logo-lanped {
   width: 180px;
   height: auto;
   margin-right: 16px;
 }
 
-.lanped-header .lanped-titulo {
-  font-size: 2rem;       /* mantém legível à direita */
-  margin: 0;
-  color: #5c1d0e;
+.lanped-titulo {
+  font-size: 2rem;
+  color: #8c3b1b;
+  font-weight: bold;
 }
 
 .lanped-header .botao-voltar {
