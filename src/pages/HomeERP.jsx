@@ -11,12 +11,12 @@ export default function HomeERP({ setTela }) {
   const botoes = [
     {
       label: '📦\nProdução (PCP)',
-      // apenas muda zoomIndex, NÃO chama setTela
-      action: () => setZoomIndex(0),
+      // 1º clique só dá zoom; navegação só no 2º clique
+      zoomAction: () => setZoomIndex(0),
+      navAction: () => setTela('HomePCP'),
       dropdown: [
         {
           nome: 'Lançar Pedido',
-          // aqui sim dispara a tela LanPed
           acao: () => setTela('LanPed')
         },
         {
@@ -27,7 +27,7 @@ export default function HomeERP({ setTela }) {
     },
     {
       label: '💰\nFinanceiro',
-      action: () => setZoomIndex(1),
+      zoomAction: () => setZoomIndex(1),
       dropdown: [
         { nome: 'Contas a Receber', acao: () => alert('Em construção') },
         { nome: 'Contas a Pagar',    acao: () => alert('Em construção') },
@@ -35,7 +35,7 @@ export default function HomeERP({ setTela }) {
     },
     {
       label: '📊\nAnálise de Custos',
-      action: () => setZoomIndex(2),
+      zoomAction: () => setZoomIndex(2),
       dropdown: [
         { nome: 'Custos por Produto', acao: () => alert('Em construção') },
         { nome: 'Custos Fixos',       acao: () => alert('Em construção') },
@@ -44,21 +44,28 @@ export default function HomeERP({ setTela }) {
     },
     {
       label: '👨‍🍳\nCozinha',
-      action: () => setZoomIndex(3),
+      zoomAction: () => setZoomIndex(3),
       dropdown: [],
     },
   ];
 
   // --- handler de clique no botão principal ---
-  function handleClick(idx, action) {
+  function handleClick(idx, btn) {
     if (zoomIndex === idx) {
-      // segundo clique: mostra dropdown E executa a ação
-      setMostrarDropdown(d => !d);
-      if (mostrarDropdown) action();
+      // já estava ativo
+      if (!mostrarDropdown) {
+        // primeiro segundo-clique: abre dropdown
+        setMostrarDropdown(true);
+      } else {
+        // segundo segundo-clique: fecha dropdown e navega (se houver)
+        setMostrarDropdown(false);
+        btn.navAction?.();
+      }
     } else {
-      // primeiro clique: só muda o zoom
+      // primeiro clique: só muda o zoom, fecha dropdown
       setZoomIndex(idx);
       setMostrarDropdown(false);
+      btn.zoomAction();
     }
   }
 
@@ -76,7 +83,7 @@ export default function HomeERP({ setTela }) {
 
   return (
     <div className="homepcp-container">
-      {/* === HEADER (volta junto com CSS aprovado) === */}
+      {/* === HEADER (seu CSS aprovado) === */}
       <div className="homepcp-header">
         <img
           src="/LogomarcaDDnt2025Vazado.png"
@@ -102,7 +109,7 @@ export default function HomeERP({ setTela }) {
             <div key={idx} className="botao-wrapper">
               <button
                 className={`botao-principal ${ativo ? 'botao-ativo' : 'botao-inativo'}`}
-                onClick={() => handleClick(idx, btn.action)}
+                onClick={() => handleClick(idx, btn)}
               >
                 {btn.label}
               </button>
@@ -129,7 +136,7 @@ export default function HomeERP({ setTela }) {
         🔙 Voltar
       </button>
 
-      {/* === RODAPÉ FIXO COM MARQUEE === */}
+      {/* === RODAPÉ FIXO COM MARQUEE (seu CSS aprovado) === */}
       <div className="lista-escolas">
         <span className="marquee-content">
           • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
