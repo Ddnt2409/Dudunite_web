@@ -44,12 +44,14 @@ export default function HomePCP({ setTela }) {
       </button>
 
       {/* RODAPÉ */}
-      <footer className="homepcp-footer">
-        Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
-        Interativo • Exato Sede • Exato Anexo • Society Show • Russas • Kaduh •
-        Degusty • Bora Gastar • Salesianas • Céu Azul • Pequeno Príncipe •
-        Tio Valter • Vera Cruz
-      </footer>
-    </div>
+{/* RODAPÉ ANIMADO */}
+<div className="lista-escolas">
+  <span className="marquee-content">
+    • Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
+    Interativo • Exato Sede • Exato Anexo • Society Show • Russas • Kaduh •
+    Degusty • Bora Gastar • Salesianas • Céu Azul • Pequeno Príncipe •
+    Tio Valter • Vera Cruz
+  </span>
+</div>
   );
 }
