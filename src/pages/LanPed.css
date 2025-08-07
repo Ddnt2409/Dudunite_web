@@ -30,12 +30,13 @@
 }
 
 .lanped-header .lanped-logo {
-  height: 180px;            /* reduzido proporcionalmente */
-  width: auto;
+  width: 180px;
+  height: auto;
+  margin-right: 16px;
 }
 
 .lanped-header .lanped-titulo {
-  font-size: 1.4rem;       /* mantém legível à direita */
+  font-size: 2rem;       /* mantém legível à direita */
   margin: 0;
   color: #5c1d0e;
 }
