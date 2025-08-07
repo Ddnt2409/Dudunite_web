@@ -1,59 +1,62 @@
-/* LanPed.css */
+/* src/pages/LanPed.css */
 
-/* Container principal */
 .lanped-container {
   background: url("/bg001.png") no-repeat center center fixed;
   background-size: cover;
   min-height: 100vh;
-  padding: 2rem;
+  padding: 2rem 1rem;      /* reduz o padding horizontal para dar espaço ao header fixo */
+  padding-top: 50px;       /* espaço para o header fixo */
   position: relative;
   color: #5c1d0e;
-  padding-top: 200px; /* espaço para o header fixo */
 }
 
-/* --- Cabeçalho LanPed unificado --- */
+/* ===========================
+   CABEÇALHO FIXO REDUZIDO
+   =========================== */
 .lanped-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: rgba(255, 255, 255, 0.9);
   width: 100vw;
+  height: 50px;            /* altura fixa reduzi­da pela metade */
   box-sizing: border-box;
-  padding: 0.5rem 1rem;
-  margin: 0;
+  padding: 0 1rem;         /* sem padding vertical */
   position: fixed;
   top: 0;
   left: 0;
   z-index: 100;
+  overflow: hidden;
 }
 
 .lanped-header .lanped-logo {
-  height: 180px;    /* altura fixa */
+  height: 180px;            /* reduzido proporcionalmente */
   width: auto;
 }
 
 .lanped-header .lanped-titulo {
-  font-size: 2rem;
+  font-size: 1.4rem;       /* mantém legível à direita */
   margin: 0;
   color: #5c1d0e;
-  text-align: right;
 }
 
 .lanped-header .botao-voltar {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
   background: rgba(255,255,255,0.8);
-  padding: 0.4rem;
-  font-size: 1.2rem;
   border: none;
   border-radius: 4px;
+  padding: 0.3rem;
+  font-size: 1rem;
   cursor: pointer;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
 }
 
-/* Formulário */
+/* ===========================
+   FORMULÁRIO
+   =========================== */
 .lanped-formulario {
   max-width: 600px;
-  margin: 0 auto 4rem; /* espaço inferior para o footer */
+  margin: 2rem auto 4rem;  /* margem superior compensando o header */
 }
 
 .lanped-field {
@@ -68,7 +71,6 @@
 .lanped-field label {
   margin-bottom: 0.4rem;
   font-weight: 600;
-  font-size: 2rem;
 }
 
 .lanped-field input,
@@ -76,10 +78,18 @@
   padding: 0.6rem;
   border: 2px solid #a65a3d;
   border-radius: 4px;
+  font-size: 1rem;
+}
+
+/* dobra o tamanho das fontes dos campos e itens */
+.lanped-field label,
+.lanped-field input,
+.lanped-field select,
+.lista-itens li,
+.total-pedido {
   font-size: 2rem;
 }
 
-/* Botões de ação */
 .botao-adicionar,
 .botao-salvar {
   width: 100%;
@@ -93,7 +103,9 @@
   cursor: pointer;
 }
 
-/* Lista de itens */
+/* ===========================
+   LISTA DE ITENS
+   =========================== */
 .lista-itens {
   list-style: none;
   padding: 0;
@@ -108,7 +120,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 2rem;
 }
 
 .botao-excluir {
@@ -119,7 +130,9 @@
   cursor: pointer;
 }
 
-/* Total do pedido */
+/* ===========================
+   TOTAL
+   =========================== */
 .total-pedido {
   background: rgba(255,255,255,0.8);
   padding: 0.8rem;
@@ -129,7 +142,9 @@
   margin-bottom: 1.5rem;
 }
 
-/* Rodapé fixo */
+/* ===========================
+   RODAPÉ
+   =========================== */
 .lanped-footer {
   position: fixed;
   bottom: 0;
@@ -167,36 +182,8 @@
 }
 
 .status-item {
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   background: #f9f1e8;
   padding: 0.4rem 0.6rem;
   border-radius: 4px;
-}
-
-/* ─── Ajustes finais ───────────────────────────────── */
-/* 2) Esconde o botão voltar no header */
-.lanped-header .botao-voltar {
-  display: none;
-}
-
-/* 3) Reposiciona o botão voltar para abaixo do Salvar Pedido */
-.lanped-formulario .botao-voltar {
-  display: block;
-  position: static;
-  width: auto;
-  height: auto;
-  margin: 1rem auto 0;
-  padding: 0.8rem 1.2rem;
-  font-size: 1.2rem;
-  writing-mode: horizontal-tb;
-  text-orientation: initial;
-  background: #8c3b1b;
-  color: #fff;
-  border-radius: 6px;
-}
-
-/* Garante que o formulário seja fluxo flexível para aceitar o botão no final */
-.lanped-formulario {
-  display: flex;
-  flex-direction: column;
 }
