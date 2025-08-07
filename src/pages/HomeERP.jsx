@@ -1,53 +1,153 @@
-// src/pages/HomeERP.jsx
-import React from 'react';
-import './HomeERP.css';
+/* HomeERP.css */
+//forçar deploy 
 
-export default function HomeERP({ setTela }) {
-  return (
-    <div className="homeerp-container">
-      {/* Cabeçalho */}
-      <header className="homeerp-header">
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logo Dudunitê"
-          className="logo-erp"
-        />
-        <h1 className="homeerp-titulo">ERP – Sistema Administrativo</h1>
-      </header>
+/* === Container geral === */
+.homepcp-container {
+  background: url("/bg001.png") no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding-bottom: 150px; /* espaço para o rodapé */
+  position: relative;
+}
 
-      {/* Corpo com botões */}
-      <main className="homeerp-main">
-        <button
-          className="botao-erp"
-          onClick={() => setTela('HomePCP')}
-        >
-          🛠️ PCP – Planejamento e Controle de Produção
-        </button>
-        <button
-          className="botao-erp"
-          onClick={() => alert('Módulo Financeiro em desenvolvimento')}
-        >
-          💰 Financeiro
-        </button>
-        <button
-          className="botao-erp"
-          onClick={() => alert('Módulo Relatórios em desenvolvimento')}
-        >
-          📊 Relatórios
-        </button>
-      </main>
+/* === Header === */
+.homepcp-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 16px 32px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 2;
+}
 
-      {/* Rodapé animado */}
-      <footer className="homeerp-footer">
-        <div className="lista-escolas">
-          <span className="marquee-content">
-            • Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
-            Interativo • Exato Sede • Exato Anexo • Society Show • Russas • Kaduh •
-            Degusty • Bora Gastar • Salesianas • Céu Azul • Pequeno Príncipe •
-            Tio Valter • Vera Vera
-          </span>
-        </div>
-      </footer>
-    </div>
-);
+.logo-pcp {
+  height: 180px;
+  margin-right: 16px;
+  object-fit: contain;
+}
+
+.homepcp-titulo {
+  font-size: 2rem;
+  color: #8c3b1b;
+  font-weight: bold;
+}
+
+/* === Área de botões principais === */
+.botoes-pcp {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  /* desloca todo o bloco 4cm para baixo */
+  padding-top: calc(4cm + 5vh);
+}
+
+/* Wrapper para espaçar verticalmente cada botão */
+.botao-wrapper {
+  margin-bottom: 2cm;
+}
+
+/* Botões principais */
+.botao-principal {
+  width: 480px;
+  height: 220px;
+  border: none;
+  border-radius: 12px;
+  background-color: #a65a3d;
+  color: #fff;
+  font-size: 2.7rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: pre-line;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.botao-ativo {
+  background-color: #8c3b1b;
+  transform: scale(1.05);
+}
+
+.botao-inativo {
+  opacity: 0.8;
+}
+
+/* Dropdown interno */
+.dropdown-interno {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dropdown-interno button {
+  width: 360px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #f9f1e8;
+  color: #5c1d0e;
+  font-size: 1.3rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Botão voltar */
+.botao-voltar {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  padding: 16px 0;
+  border: none;
+  border-radius: 8px;
+  background-color: #d38b5d;
+  color: white;
+  font-size: 1.3rem;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 2;
+}
+
+/* Rodapé animado */
+.lista-escolas {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background: rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  z-index: 999;
+}
+
+/* Esse span é que se move, mantendo o fundo estático */
+.lista-escolas {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 40px;
+  background-color: #8C3B1B; /* mesmo terracota do botão ativo */
+  color:            #FFFFFF; /* texto branco */
+  overflow: hidden;
+  white-space: nowrap;
+  padding-left: 100%; 
+  animation: marquee 20s linear infinite;
+  line-height: 40px;
+  z-index: 5;
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
 }
