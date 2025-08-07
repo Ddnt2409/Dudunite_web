@@ -196,7 +196,7 @@
   top: 0;
   left: 0;
   width: 100vw;           /* ocupa toda a largura da tela */
-  height: 120px;           /* metade dos 120px que você vinha usando */
+  height: 110px;           /* metade dos 120px que você vinha usando */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -208,7 +208,7 @@
 
 /* logo sempre proporcional, mas limitando apenas a altura */
 .lanped-logo {
-  height: 180px;           /* metade dos 80px que você vinha usando */
+  height: 200px;           /* metade dos 80px que você vinha usando */
   width: auto;
 }
 
