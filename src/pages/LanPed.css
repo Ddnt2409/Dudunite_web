@@ -36,18 +36,6 @@
   margin-right: 2ch;
 }
 
-
-.lanped-header .botao-voltar {
-  background: rgba(255,255,255,0.8);
-  border: none;
-  border-radius: 4px;
-  padding: 0.3rem;
-  font-size: 1rem;
-  cursor: pointer;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-}
-
 /* ===========================
    FORMULÁRIO
    =========================== */
@@ -137,8 +125,22 @@
   text-align: right;
   font-size: 2rem;
   margin-bottom: 1.5rem;
+
+.botao-voltar {
+  background-color: #8c3b1b;
+  color: white;
+  font-size: 1.4rem;
+  padding: 0.8rem 1.4rem;
+  border-radius: 0.5rem;
+  border: none;
+  opacity: 0.6;
+  margin: 1rem auto;
 }
 
+.botao-voltar:hover {
+  background-color: #a3471f;
+  opacity: 1;
+}
 /* ===========================
    RODAPÉ
    =========================== */
