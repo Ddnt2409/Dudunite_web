@@ -19,7 +19,7 @@
   align-items: center;
   background: rgba(255, 255, 255, 0.9);
   width: 100vw;
-  height: 50px;            /* altura fixa reduzi­da pela metade */
+  height: 210px;            /* altura fixa reduzi­da pela metade */
   box-sizing: border-box;
   padding: 0 1rem;         /* sem padding vertical */
   position: fixed;
