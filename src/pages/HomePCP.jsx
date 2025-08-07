@@ -1,74 +1,50 @@
-import React, { useRef } from 'react';
-import './HomeERP.css'; // usa exatamente o CSS aprovado do HomeERP
+import React from 'react';
+-import './HomePCP.css';
++import './HomePCP.css';
 
 export default function HomePCP({ setTela }) {
-  const touchStartX = useRef(null);
-
   return (
-    <div className="homepcp-container">
-      {/* === HEADER === */}
-      <div className="homepcp-header">
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logo Dudunitê"
-          className="logo-pcp"
-        />
-        <h1 className="homepcp-titulo">PCP – Planejamento de Produção</h1>
-      </div>
+-    <div className="homepcp-container">
++    <div className="homepcp-container">
+       {/* HEADER */}
+-      <header className="homepcp-header">
++      {/* aqui reaproveitamos a regra de header do ERP (padding menor, espaço entre logo e título) */}
++      <header className="homepcp-header homeerp-header">
+         <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo" className="logo-pcp" />
+-        <h1 className="homepcp-titulo">PCP – Planejamento de Produção</h1>
++        {/* usamos a classe do título do ERP para alinhamento à direita */}
++        <h1 className="homeerp-titulo">PCP – Planejamento de Produção</h1>
+       </header>
 
-      {/* === BOTÕES PRINCIPAIS === */}
-      <div
-        className="botoes-pcp"
-        onTouchStart={e => (touchStartX.current = e.changedTouches[0].clientX)}
-        onTouchEnd={e => {
-          const diff = e.changedTouches[0].clientX - touchStartX.current;
-          if (diff > 50) {
-            /* opcional: swipe esquerda */
-          } else if (diff < -50) {
-            /* opcional: swipe direita */
-          }
-        }}
-      >
-        {/* Lançar Pedido */}
-        <div className="botao-wrapper">
-          <button
-            className="botao-principal botao-ativo"
-            onClick={() => setTela('LanPed')}
-          >
-            📝<br />
-            Lançar Pedido
-          </button>
-        </div>
+       {/* BOTÕES */}
+       <main className="botoes-pcp">
+         <button
+           className="botao-principal botao-ativo"
+           onClick={() => setTela('LanPed')}
+         >
+           📝<br/>Lançar Pedido
+         </button>
 
-        {/* Alimentar Sabores */}
-        <div className="botao-wrapper">
-          <button
-            className="botao-principal botao-inativo"
-            onClick={() => setTela('AlimSab')}
-          >
-            🍫<br />
-            Alimentar Sabores
-          </button>
-        </div>
-      </div>
+         <button
+           className="botao-principal botao-inativo"
+           onClick={() => alert('Em construção')}
+         >
+           🍫<br/>Alimentar Sabores
+         </button>
+       </main>
 
-      {/* === BOTÃO VOLTAR === */}
-      <button
-        className="botao-voltar"
-        onClick={() => setTela('HomeERP')}
-      >
-        🔙 Voltar ao ERP
-      </button>
+       {/* VOLTAR */}
+       <button className="botao-voltar" onClick={() => setTela('HomeERP')}>
+         🔙 Voltar ao ERP
+       </button>
 
-      {/* === RODAPÉ FIXO COM MARQUEE === */}
-      <div className="lista-escolas">
-        <span className="marquee-content">
-          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
-          Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
-          BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
-          Exato Anexo • Sesi • Motivo • Jesus Salvador
-        </span>
-      </div>
-    </div>
+       {/* RODAPÉ */}
+       <footer className="homepcp-footer">
+         Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
+         Interativo • Exato Sede • Exato Anexo • Society Show • Russas • Kaduh •
+         Degusty • Bora Gastar • Salesianas • Céu Azul • Pequeno Príncipe •
+         Tio Valter • Vera Cruz
+       </footer>
+     </div>
   );
-}
+  }
