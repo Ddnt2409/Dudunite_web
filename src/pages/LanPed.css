@@ -187,3 +187,34 @@
   padding: 0.4rem 0.6rem;
   border-radius: 4px;
 }
+
+/* ===========================
+   Ajuste fixo do cabeçalho
+   =========================== */
+.lanped-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;           /* ocupa toda a largura da tela */
+  height: 60px;           /* metade dos 120px que você vinha usando */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-sizing: border-box;
+  z-index: 100;
+}
+
+/* logo sempre proporcional, mas limitando apenas a altura */
+.lanped-logo {
+  height: 40px;           /* metade dos 80px que você vinha usando */
+  width: auto;
+}
+
+/* ajusta o título verticalmente */
+.lanped-titulo {
+  font-size: 1.6rem;
+  margin: 0;
+  line-height: 1;  
+}
