@@ -196,7 +196,7 @@
   top: 0;
   left: 0;
   width: 100vw;           /* ocupa toda a largura da tela */
-  height: 60px;           /* metade dos 120px que você vinha usando */
+  height: 90px;           /* metade dos 120px que você vinha usando */
   display: flex;
   align-items: center;
   justify-content: space-between;
