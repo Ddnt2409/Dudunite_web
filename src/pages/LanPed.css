@@ -7,24 +7,38 @@
   color: #5c1d0e;
 }
 
+/* CABEÇALHO */
+.lanped-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.8);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+.logo-header {
+  height: 40px;
+}
 .botao-voltar {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
   background: rgba(255,255,255,0.6);
   border: none;
   border-radius: 4px;
-  padding: 0.4rem;
+  width: 2rem;
+  height: 2rem;
   font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 
+/* TÍTULO */
 .lanped-titulo {
-  text-align: center;
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
+  display: none; /* escondido pois já está no header */
 }
 
+/* FORMULÁRIO */
 .lanped-formulario {
   max-width: 600px;
   margin: 0 auto;
@@ -65,6 +79,7 @@
   cursor: pointer;
 }
 
+/* LISTA DE ITENS */
 .lista-itens {
   list-style: none;
   padding: 0;
@@ -89,12 +104,17 @@
   cursor: pointer;
 }
 
+/* TOTAL */
 .total-pedido {
+  background: rgba(255,255,255,0.8);
+  padding: 0.8rem;
+  border-radius: 6px;
   text-align: right;
   font-size: 1.2rem;
   margin-bottom: 1.5rem;
 }
 
+/* RODAPÉ */
 .lanped-footer {
   position: fixed;
   bottom: 0;
