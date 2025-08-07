@@ -1,3 +1,4 @@
+// src/pages/LanPed.jsx
 import React, { useState, useEffect } from "react";
 import {
   collection,
@@ -36,7 +37,7 @@ export default function LanPed({ setTela }) {
   // ─── CALCULA TOTAL AO MUDAR QTD OU VALOR ───
   useEffect(() => {
     const t = parseFloat(quantidade) * parseFloat(valorUnitario || 0);
-    setTotalPedido(t.toFixed(2));
+    setTotalPedido(isNaN(t) ? "0.00" : t.toFixed(2));
   }, [quantidade, valorUnitario]);
 
   // ─── ADICIONA ITEM ──────────────────────
@@ -50,8 +51,8 @@ export default function LanPed({ setTela }) {
       {
         produto,
         quantidade,
-        valorUnitario,
-        total: (quantidade * valorUnitario).toFixed(2),
+        valorUnitario: parseFloat(valorUnitario).toFixed(2),
+        total: (quantidade * parseFloat(valorUnitario)).toFixed(2),
       },
     ]);
     setProduto("");
@@ -106,13 +107,16 @@ export default function LanPed({ setTela }) {
 
   return (
     <div className="lanped-container">
-      {/* VOLTAR */}
-      <button className="botao-voltar" onClick={() => setTela("HomePCP")}>
-        🔙
-      </button>
+      {/* CABEÇALHO */}
+      <header className="lanped-header">
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" className="logo-header" />
+        <h1 className="lanped-titulo">Lançar Pedido</h1>
+        <button className="botao-voltar" onClick={() => setTela("HomePCP")}>
+          🔙
+        </button>
+      </header>
 
-      <h1 className="lanped-titulo">Lançar Pedido</h1>
-
+      {/* FORMULÁRIO */}
       <div className="lanped-formulario">
         <div className="lanped-field">
           <label>Cidade</label>
@@ -121,9 +125,7 @@ export default function LanPed({ setTela }) {
             onChange={e => { setCidade(e.target.value); setPdv(""); }}
           >
             <option value="">Selecione</option>
-            {cidades.map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
+            {cidades.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
 
@@ -135,9 +137,7 @@ export default function LanPed({ setTela }) {
             disabled={!cidade}
           >
             <option value="">Selecione</option>
-            {cidade && pdvsPorCidade[cidade].map(p => (
-              <option key={p} value={p}>{p}</option>
-            ))}
+            {cidade && pdvsPorCidade[cidade].map(p => <option key={p} value={p}>{p}</option>)}
           </select>
         </div>
 
@@ -148,9 +148,7 @@ export default function LanPed({ setTela }) {
             onChange={e => setProduto(e.target.value)}
           >
             <option value="">Selecione</option>
-            {produtos.map(p => (
-              <option key={p} value={p}>{p}</option>
-            ))}
+            {produtos.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
         </div>
 
@@ -181,7 +179,7 @@ export default function LanPed({ setTela }) {
           <ul className="lista-itens">
             {itens.map((it, i) => (
               <li key={i}>
-                {it.quantidade}× {it.produto} — R$ {parseFloat(it.valorUnitario).toFixed(2)} (R$ {it.total})
+                {it.quantidade}× {it.produto} — R$ {it.valorUnitario} (R$ {it.total})
                 <button
                   className="botao-excluir"
                   onClick={() => setItens(itens.filter((_, j) => j !== i))}
@@ -191,6 +189,7 @@ export default function LanPed({ setTela }) {
           </ul>
         )}
 
+        {/* TOTAL */}
         <div className="total-pedido">
           <strong>Total:</strong> R$ {totalPedido}
         </div>
@@ -202,9 +201,7 @@ export default function LanPed({ setTela }) {
             onChange={e => setFormaPagamento(e.target.value)}
           >
             <option value="">Selecione</option>
-            {formasPagamento.map(f => (
-              <option key={f} value={f}>{f}</option>
-            ))}
+            {formasPagamento.map(f => <option key={f} value={f}>{f}</option>)}
           </select>
         </div>
 
@@ -252,4 +249,4 @@ export default function LanPed({ setTela }) {
       </footer>
     </div>
   );
-      }
+}
