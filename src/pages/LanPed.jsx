@@ -221,4 +221,4 @@ export default function LanPed({ setTela }) {
       </footer>
     </div>
   );
-}
+            }
