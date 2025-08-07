@@ -28,7 +28,7 @@
 }
 
 .lanped-header .lanped-logo {
-  height: 180px;    /* altura fixa */
+  height: 90px;    /* altura fixa */
   width: auto;
 }
 
@@ -171,4 +171,32 @@
   background: #f9f1e8;
   padding: 0.4rem 0.6rem;
   border-radius: 4px;
+}
+
+/* ─── Ajustes finais ───────────────────────────────── */
+/* 2) Esconde o botão voltar no header */
+.lanped-header .botao-voltar {
+  display: none;
+}
+
+/* 3) Reposiciona o botão voltar para abaixo do Salvar Pedido */
+.lanped-formulario .botao-voltar {
+  display: block;
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 1rem auto 0;
+  padding: 0.8rem 1.2rem;
+  font-size: 1.2rem;
+  writing-mode: horizontal-tb;
+  text-orientation: initial;
+  background: #8c3b1b;
+  color: #fff;
+  border-radius: 6px;
+}
+
+/* Garante que o formulário seja fluxo flexível para aceitar o botão no final */
+.lanped-formulario {
+  display: flex;
+  flex-direction: column;
 }
