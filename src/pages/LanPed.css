@@ -208,13 +208,13 @@
 
 /* logo sempre proporcional, mas limitando apenas a altura */
 .lanped-logo {
-  height: 40px;           /* metade dos 80px que você vinha usando */
+  height: 180px;           /* metade dos 80px que você vinha usando */
   width: auto;
 }
 
 /* ajusta o título verticalmente */
 .lanped-titulo {
-  font-size: 1.6rem;
+  font-size: 2rem;
   margin: 0;
   line-height: 1;  
 }
