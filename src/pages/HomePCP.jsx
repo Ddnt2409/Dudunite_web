@@ -1,3 +1,4 @@
+// src/pages/HomePCP.jsx
 import React from 'react';
 import './HomePCP.css';
 
@@ -52,5 +53,5 @@ export default function HomePCP({ setTela }) {
         </span>
       </div>
     </div>
-  );
+);
 }
