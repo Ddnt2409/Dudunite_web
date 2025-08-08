@@ -19,7 +19,7 @@ export default function HomePCP({ setTela }) {
       <div className="botoes-pcp">
         <div className="botao-wrapper">
           <button
-            className="botao-principal botao-ativo"
+            className="botao-principal"
             onClick={() => setTela('LanPed')}
           >
             📝<br />
@@ -29,7 +29,7 @@ export default function HomePCP({ setTela }) {
 
         <div className="botao-wrapper">
           <button
-            className="botao-principal botao-inativo"
+            className="botao-principal"
             onClick={() => setTela('AliSab')}
           >
             🍫<br />
@@ -39,7 +39,10 @@ export default function HomePCP({ setTela }) {
       </div>
 
       {/* === VOLTAR === */}
-      <button className="botao-voltar" onClick={() => setTela('HomeERP')}>
+      <button
+        className="botao-voltar"
+        onClick={() => setTela('HomeERP')}
+      >
         🔙 Voltar ao ERP
       </button>
 
@@ -49,9 +52,9 @@ export default function HomePCP({ setTela }) {
           • Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
           Interativo • Exato Sede • Exato Anexo • Society Show • Russas • Kaduh •
           Degusty • Bora Gastar • Salesianas • Céu Azul • Pequeno Príncipe •
-          Tio Valter • Vera Vera
+          Tio Valter • Vera Cruz
         </span>
       </div>
     </div>
-);
+  );
 }
