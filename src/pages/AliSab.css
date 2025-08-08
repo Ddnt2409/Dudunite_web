@@ -1,49 +1,68 @@
-/* src/pages/AliSab.css */
 .alisab-container {
   padding: 1rem;
-  background: url("/bg001.png") no-repeat center/cover fixed;
+  background: rgba(255, 245, 230, 0.8);
   min-height: 100vh;
-  color: #5c1d0e;
+  box-sizing: border-box;
 }
 
+/* header com título e botão voltar */
 .alisab-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  background: rgba(255,255,255,0.8);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-}
-
-.alisab-main {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 1rem;
-  border-radius: 6px;
-}
-
-.alisab-erro {
-  background: #fdd;
-  color: #900;
-  padding: 0.5rem;
-  border: 1px solid #f00;
+  justify-content: space-between;
   margin-bottom: 1rem;
 }
 
-.alisab-json {
-  white-space: pre-wrap;
-  background: #eee;
-  padding: 1rem;
-  border-radius: 4px;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.botao-voltar {
+.botao-voltar-alisab {
   background: #8c3b1b;
-  color: white;
+  color: #fff;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
+}
+
+/* lista de post-its */
+.postits-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* estilo de cada post-it */
+.postit {
+  position: relative;
+  width: 200px;
+  background: #fff9c4;
+  padding: 0.75rem;
+  border: 2px solid #e0c046;
+  border-radius: 6px;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+  cursor: default;
+}
+
+.postit-cabecalho {
+  border-bottom: 1px dashed #e0c046;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.postit-itens {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.postit-itens li {
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+/* mensagem quando não há pedidos */
+.nenhum-pedido {
+  width: 100%;
+  text-align: center;
+  color: #666;
+  margin-top: 2rem;
 }
