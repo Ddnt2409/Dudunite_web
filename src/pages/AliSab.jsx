@@ -1,47 +1,96 @@
-// src/pages/AliSab.jsx
-import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import db from '../firebase';
+import React, { useState, useEffect } from "react";
+import { collection, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
+import db from "../firebase";
+import "./AliSab.css";
 
 export default function AliSab({ setTela }) {
-  const [pedidos, setPedidos] = useState(null);
-  const [erro, setErro] = useState(null);
+  const [pedidos, setPedidos] = useState([]);
+  const [expandedId, setExpandedId] = useState(null);
+  const saboresFixos = ["Sabor A", "Sabor B"]; // placeholder
 
+  // carrega pedidos com status "Lançado"
   useEffect(() => {
-    (async () => {
-      try {
-        const ref = collection(db, "PEDIDOS");
-        const q = query(ref, where("statusEtapa", "==", "Lançado"));
-        const snap = await getDocs(q);
-        setPedidos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (e) {
-        setErro(e.message);
-      }
-    })();
+    async function load() {
+      const q = query(collection(db, "PEDIDOS"), where("statusEtapa", "==", "Lançado"));
+      const snap = await getDocs(q);
+      setPedidos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }
+    load();
   }, []);
 
-  if (erro) {
-    return (
-      <div style={{ padding: 20, color: 'red' }}>
-        <h1>❌ Erro ao carregar pedidos</h1>
-        <pre>{erro}</pre>
-        <button onClick={() => setTela('HomePCP')}>🔙 Voltar ao PCP</button>
-      </div>
-    );
-  }
-
-  if (pedidos === null) {
-    return <div style={{ padding: 20 }}>🔄 Carregando pedidos…</div>;
+  // salva sabores e atualiza statusEtapa
+  async function handleSalvar(id, selecionados) {
+    const ref = doc(db, "PEDIDOS", id);
+    await updateDoc(ref, {
+      sabores: selecionados,
+      statusEtapa: "Alimentado",
+      atualizadoEm: new Date()
+    });
+    setPedidos(pedidos.filter(p => p.id !== id));
+    setExpandedId(null);
   }
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>🍫 Alimentar Sabores</h1>
-      <button onClick={() => setTela('HomePCP')}>🔙 Voltar ao PCP</button>
-      <h2>Dados brutos:</h2>
-      <pre style={{ whiteSpace: 'pre-wrap', background: '#eee', padding: 10 }}>
-        {JSON.stringify(pedidos, null, 2)}
-      </pre>
+    <div className="alisab-container">
+      <header className="alisab-header">
+        <h2>🍫 Alimentar Sabores</h2>
+        <button onClick={() => setTela("HomePCP")} className="btn-voltar">
+          🔙 Voltar ao PCP
+        </button>
+      </header>
+
+      <div className="postits-list">
+        {pedidos.map(p => (
+          <div
+            key={p.id}
+            className={`postit ${expandedId === p.id ? "ativo" : ""}`}
+            onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
+          >
+            <div className="postit-cabecalho">
+              <strong>{p.escola}</strong> – {p.quantidade}× {p.produto}
+            </div>
+
+            {expandedId === p.id && (
+              <>
+                <ul className="postit-itens">
+                  {p.itens.map((it, i) => (
+                    <li key={i}>
+                      {it.quantidade}× {it.produto}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="sabores-checkboxes">
+                  {saboresFixos.map(s => (
+                    <label key={s}>
+                      <input type="checkbox" value={s} /> {s}
+                    </label>
+                  ))}
+                </div>
+
+                <button
+                  className="btn-salvar"
+                  onClick={e => {
+                    e.stopPropagation();
+                    // pega checados
+                    const form = e.currentTarget.previousSibling;
+                    const selecionados = Array.from(
+                      form.querySelectorAll("input:checked")
+                    ).map(inp => inp.value);
+                    handleSalvar(p.id, selecionados);
+                  }}
+                >
+                  💾 Salvar Sabores
+                </button>
+              </>
+            )}
+          </div>
+        ))}
+
+        {pedidos.length === 0 && (
+          <p>Nenhum pedido pendente para alimentar.</p>
+        )}
+      </div>
     </div>
   );
 }
