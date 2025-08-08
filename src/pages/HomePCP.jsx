@@ -20,7 +20,10 @@ export default function HomePCP({ setTela }) {
         <div className="botao-wrapper">
           <button
             className="botao-principal botao-ativo"
-            onClick={() => setTela('LanPed')}
+            onClick={() => {
+              console.log('🧪 Lançar Pedido clicado');
+              setTela('LanPed');
+            }}
           >
             📝<br />
             Lançar Pedido
@@ -30,7 +33,10 @@ export default function HomePCP({ setTela }) {
         <div className="botao-wrapper">
           <button
             className="botao-principal botao-inativo"
-            onClick={() => setTela('AliSab')}
+            onClick={() => {
+              console.log('🧪 Alimentar Sabores clicado');
+              setTela('AliSab');
+            }}
           >
             🍫<br />
             Alimentar Sabores
@@ -39,7 +45,13 @@ export default function HomePCP({ setTela }) {
       </div>
 
       {/* === VOLTAR === */}
-      <button className="botao-voltar" onClick={() => setTela('HomeERP')}>
+      <button
+        className="botao-voltar"
+        onClick={() => {
+          console.log('🧪 Voltar ao ERP clicado');
+          setTela('HomeERP');
+        }}
+      >
         🔙 Voltar ao ERP
       </button>
 
