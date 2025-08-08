@@ -1,61 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-} from 'firebase/firestore';
-import db from '../firebase';
-import './AliSab.css';
+// src/pages/AliSab.jsx
+import React from 'react';
 
 export default function AliSab({ setTela }) {
-  const [pedidos, setPedidos] = useState([]);
-
-  useEffect(() => {
-    // busca todos os pedidos com status "Lançado" (ainda sem sabores)
-    const q = query(
-      collection(db, 'PEDIDOS'),
-      where('statusEtapa', '==', 'Lançado')
-    );
-    const unsub = onSnapshot(q, (snapshot) => {
-      setPedidos(
-        snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-      );
-    });
-    return () => unsub();
-  }, []);
-
   return (
-    <div className="alisab-container">
-      <div className="alisab-header">
-        <h1>🍫 Alimentar Sabores</h1>
-        <button
-          className="botao-voltar-alisab"
-          onClick={() => setTela('HomePCP')}
-        >
-          🔙 Voltar ao PCP
-        </button>
-      </div>
-
-      <div className="postits-list">
-        {pedidos.map(pedido => (
-          <div key={pedido.id} className="postit">
-            <div className="postit-cabecalho">
-              <strong>{pedido.escola}</strong>
-            </div>
-            <ul className="postit-itens">
-              {pedido.itens.map((item, i) => (
-                <li key={i}>
-                  {item.quantidade}× {item.produto}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-        {pedidos.length === 0 && (
-          <p className="nenhum-pedido">Nenhum pedido pendente.</p>
-        )}
-      </div>
+    <div
+      style={{
+        padding: 20,
+        backgroundColor: '#ffffff',
+        minHeight: '100vh',
+        boxSizing: 'border-box'
+      }}
+    >
+      <h1 style={{ marginBottom: 16 }}>🍫 Alimentar Sabores</h1>
+      <p style={{ marginBottom: 32 }}>
+        Se você está vendo este texto, a tela carregou corretamente!
+      </p>
+      <button
+        style={{
+          padding: '0.8rem 1.2rem',
+          fontSize: '1rem',
+          background: '#8c3b1b',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 4,
+          cursor: 'pointer'
+        }}
+        onClick={() => setTela('HomePCP')}
+      >
+        🔙 Voltar ao PCP
+      </button>
     </div>
   );
 }
