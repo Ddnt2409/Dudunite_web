@@ -1,10 +1,12 @@
 // src/pages/AliSab.jsx
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import db from '../firebase';
+import './AliSab.css';  // próximo passo: crie este CSS
 
 export default function AliSab({ setTela }) {
-  const [pedidos, setPedidos] = useState(null);
+  const [pedidos, setPedidos] = useState([]);
+  const [ativo, setAtivo] = useState(null);
   const [erro, setErro] = useState(null);
 
   useEffect(() => {
@@ -20,32 +22,42 @@ export default function AliSab({ setTela }) {
     })();
   }, []);
 
+  const toggle = id => {
+    setAtivo(prev => (prev === id ? null : id));
+  };
+
   return (
-    <div style={{ padding: 20, background: '#fff', color: '#000' }}>
-      <h1>🍫 Alimentar Sabores</h1>
-      <button onClick={() => setTela('HomePCP')}>
-        🔙 Voltar ao PCP
-      </button>
+    <div className="alisab-container">
+      <header className="alisab-header">
+        <h1>🍫 Alimentar Sabores</h1>
+        <button className="botao-voltar" onClick={() => setTela('HomePCP')}>
+          🔙 Voltar ao PCP
+        </button>
+      </header>
 
-      {erro && (
-        <p style={{ color: 'red' }}>Erro: {erro}</p>
-      )}
+      {erro && <p className="erro">Erro: {erro}</p>}
 
-      {pedidos === null ? (
-        <p>Carregando pedidos...</p>
-      ) : pedidos.length === 0 ? (
-        <p>Não há pedidos com status “Lançado”.</p>
-      ) : (
-        <pre style={{
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-all',
-          background: '#eee',
-          padding: '1rem',
-          marginTop: '1rem'
-        }}>
-          {JSON.stringify(pedidos, null, 2)}
-        </pre>
-      )}
+      <div className="postits-list">
+        {pedidos.map(p => (
+          <div
+            key={p.id}
+            className={`postit ${ativo === p.id ? 'ativo' : ''}`}
+            onClick={() => toggle(p.id)}
+          >
+            <div className="postit-cabecalho">
+              <strong>{p.escola}</strong>
+            </div>
+            <ul className="postit-itens">
+              <li><em>Qtd:</em> {p.itens.reduce((sum,i) => sum + (i.quantidade||0), 0)}</li>
+              {p.itens.map((it, i) => (
+                <li key={i}>
+                  {it.quantidade}× {it.produto}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
