@@ -1,153 +1,150 @@
-/* HomeERP.css */
-//forçar deploy 
+import React, { useState, useRef } from 'react';
+import './HomeERP.css';
 
-/* === Container geral === */
-.homepcp-container {
-  background: url("/bg001.png") no-repeat center center fixed;
-  background-size: cover;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  padding-bottom: 150px; /* espaço para o rodapé */
-  position: relative;
-}
+export default function HomeERP({ setTela }) {
+  // --- estados e refs ---
+  const [zoomIndex, setZoomIndex]             = useState(0);
+  const [mostrarDropdown, setMostrarDropdown] = useState(false);
+  const touchStartX                           = useRef(null);
 
-/* === Header === */
-.homepcp-header {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  padding: 16px 32px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  z-index: 2;
-}
+  // --- configuração dos botões ---
+  const botoes = [
+    {
+      label: '📦\nProdução (PCP)',
+      // 1º clique só dá zoom; navegação só no 2º clique
+      zoomAction: () => setZoomIndex(0),
+      navAction: () => setTela('HomePCP'),
+      dropdown: [
+        {
+          nome: 'Lançar Pedido',
+          acao: () => setTela('LanPed')
+        },
+        {
+          nome: 'Alimentar Sabores',
+          acao: () => alert('Em construção')
+        },
+      ],
+    },
+    {
+      label: '💰\nFinanceiro',
+      zoomAction: () => setZoomIndex(1),
+      dropdown: [
+        { nome: 'Contas a Receber', acao: () => alert('Em construção') },
+        { nome: 'Contas a Pagar',    acao: () => alert('Em construção') },
+      ],
+    },
+    {
+      label: '📊\nAnálise de Custos',
+      zoomAction: () => setZoomIndex(2),
+      dropdown: [
+        { nome: 'Custos por Produto', acao: () => alert('Em construção') },
+        { nome: 'Custos Fixos',       acao: () => alert('Em construção') },
+        { nome: 'Custos Variáveis',   acao: () => alert('Em construção') },
+      ],
+    },
+    {
+      label: '👨‍🍳\nCozinha',
+      zoomAction: () => setZoomIndex(3),
+      dropdown: [],
+    },
+  ];
 
-.logo-pcp {
-  height: 180px;
-  margin-right: 16px;
-  object-fit: contain;
-}
+  // --- handler de clique no botão principal ---
+  function handleClick(idx, btn) {
+    if (zoomIndex === idx) {
+      // já estava ativo
+      if (!mostrarDropdown) {
+        // primeiro segundo-clique: abre dropdown
+        setMostrarDropdown(true);
+      } else {
+        // segundo segundo-clique: fecha dropdown e navega (se houver)
+        setMostrarDropdown(false);
+        btn.navAction?.();
+      }
+    } else {
+      // primeiro clique: só muda o zoom, fecha dropdown
+      setZoomIndex(idx);
+      setMostrarDropdown(false);
+      btn.zoomAction();
+    }
+  }
 
-.homepcp-titulo {
-  font-size: 2rem;
-  color: #8c3b1b;
-  font-weight: bold;
-}
+  // --- swipe para mobile ---
+  function deslizar(dir) {
+    setZoomIndex(prev => {
+      const total = botoes.length;
+      const next  = dir === 'esquerda'
+        ? (prev - 1 + total) % total
+        : (prev + 1) % total;
+      setMostrarDropdown(false);
+      return next;
+    });
+  }
 
-/* === Área de botões principais === */
-.botoes-pcp {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  /* desloca todo o bloco 4cm para baixo */
-  padding-top: calc(4cm + 5vh);
-}
+  return (
+    <div className="homepcp-container">
+      {/* === HEADER (seu CSS aprovado) === */}
+      <div className="homepcp-header">
+        <img
+          src="/LogomarcaDDnt2025Vazado.png"
+          alt="Logo Dudunitê"
+          className="logo-pcp"
+        />
+        <h1 className="homepcp-titulo">ERP DUDUNITÊ</h1>
+      </div>
 
-/* Wrapper para espaçar verticalmente cada botão */
-.botao-wrapper {
-  margin-bottom: 2cm;
-}
+      {/* === BOTÕES PRINCIPAIS === */}
+      <div
+        className="botoes-pcp"
+        onTouchStart={e => touchStartX.current = e.changedTouches[0].clientX}
+        onTouchEnd={e => {
+          const diff = e.changedTouches[0].clientX - touchStartX.current;
+          if (diff > 50) deslizar('esquerda');
+          else if (diff < -50) deslizar('direita');
+        }}
+      >
+        {botoes.map((btn, idx) => {
+          const ativo = idx === zoomIndex;
+          return (
+            <div key={idx} className="botao-wrapper">
+              <button
+                className={`botao-principal ${ativo ? 'botao-ativo' : 'botao-inativo'}`}
+                onClick={() => handleClick(idx, btn)}
+              >
+                {btn.label}
+              </button>
 
-/* Botões principais */
-.botao-principal {
-  width: 480px;
-  height: 220px;
-  border: none;
-  border-radius: 12px;
-  background-color: #a65a3d;
-  color: #fff;
-  font-size: 2.7rem;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  white-space: pre-line;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  transition: transform 0.2s, background-color 0.2s;
-}
+              {ativo && mostrarDropdown && btn.dropdown.length > 0 && (
+                <div className="dropdown-interno">
+                  {btn.dropdown.map((op, i) => (
+                    <button key={i} onClick={op.acao}>
+                      {op.nome}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
-.botao-ativo {
-  background-color: #8c3b1b;
-  transform: scale(1.05);
-}
+      {/* === BOTÃO VOLTAR === */}
+      <button
+        className="botao-voltar"
+        onClick={() => setTela('HomeERP')}
+      >
+        🔙 Voltar
+      </button>
 
-.botao-inativo {
-  opacity: 0.8;
-}
-
-/* Dropdown interno */
-.dropdown-interno {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.dropdown-interno button {
-  width: 360px;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 8px;
-  background: #f9f1e8;
-  color: #5c1d0e;
-  font-size: 1.3rem;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* Botão voltar */
-.botao-voltar {
-  position: absolute;
-  bottom: 100px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 240px;
-  padding: 16px 0;
-  border: none;
-  border-radius: 8px;
-  background-color: #d38b5d;
-  color: white;
-  font-size: 1.3rem;
-  font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  z-index: 2;
-}
-
-/* Rodapé animado */
-.lista-escolas {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 50px;
-  background: rgba(0, 0, 0, 0.8);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  z-index: 999;
-}
-
-/* Esse span é que se move, mantendo o fundo estático */
-.lista-escolas {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 40px;
-  background-color: #8C3B1B; /* mesmo terracota do botão ativo */
-  color:            #FFFFFF; /* texto branco */
-  overflow: hidden;
-  white-space: nowrap;
-  padding-left: 100%; 
-  animation: marquee 20s linear infinite;
-  line-height: 40px;
-  z-index: 5;
-}
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-100%); }
+      {/* === RODAPÉ FIXO COM MARQUEE (seu CSS aprovado) === */}
+      <div className="lista-escolas">
+        <span className="marquee-content">
+          • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
+          Society Show • Degusty • Tio Valter • Vera Cruz • Pinheiros • Dourado •
+          BMQ • CFC • Madre de Deus • Saber Viver • Interativo • Exato Sede •
+          Exato Anexo • Sesi • Motivo • Jesus Salvador
+        </span>
+      </div>
+    </div>
+  );
 }
