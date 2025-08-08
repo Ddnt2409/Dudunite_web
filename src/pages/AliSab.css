@@ -1,102 +1,46 @@
-.alisab-container {
-  padding: 1rem;
-  background: url("/bg001.png") no-repeat center/cover fixed;
-  min-height: 100vh;
-  box-sizing: border-box;
-}
-
-.alisab-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.btn-voltar {
-  background: #8c3b1b;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.postits-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
+/* === Estilo geral do post-it === */
 .postit {
   position: relative;
-  width: 180px;
   background: #fff9c4;
-  padding: 0.8rem;
   border: 2px solid #e0c046;
   border-radius: 6px;
-  box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.postit.ativo {
-  transform: scale(1.05);
-  z-index: 10;
-}
-
-.postit-cabecalho {
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-.postit-itens {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 0.5rem 0;
-}
-
-.sabores-checkboxes {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 0.5rem;
-}
-
-.btn-salvar {
-  width: 100%;
-  padding: 0.4rem;
-  background: #8c3b1b;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* Quando estiver ativo, leva o post-it para o centro e aumenta */
-.postit.ativo {
-  position: fixed;
-  top: 50%; 
-  left: 50%;
-  transform: translate(-50%, -50%) scale(1); /* sem o scale(1.05) anterior */
-  width: 45vw;      /* ocupa cerca de metade da largura da tela */
-  max-width: 400px; /* limite para tablet/desktop */
-  height: auto;     /* deixa o conteúdo definir a altura */
-  max-height: 80vh; /* evitar estourar a tela vertical */
-  overflow-y: auto; /* rolagem interna, se necessário */
   padding: 1rem;
-  z-index: 999;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-  transition: all 0.3s ease;
+  box-shadow: 4px 4px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
 }
 
-/* Oculta os outros post-its atrás */
-.postit.ativo ~ .postit,
-.postit.ativo ~ .postit ~ .postit {
-  opacity: 0.3;
+/* === Aba “dobrada” no canto superior direito === */
+.postit::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-top: 30px solid rgba(255,255,255,0.8);
+  border-left: 30px solid transparent;
+  box-shadow: -3px 3px 3px rgba(0,0,0,0.1);
   pointer-events: none;
+  z-index: 2;
 }
 
-/* Ajuste do transform inicialmente */
-.postit {
-  transform: scale(1);
+/* === Hover e ativo dão profundidade === */
+.postit:hover {
+  transform: translateY(-4px);
+  box-shadow: 6px 6px 12px rgba(0,0,0,0.3);
+}
+
+.postit.ativo-grande {
+  transform: scale(1.02) translateY(-4px);
+  box-shadow: 8px 8px 16px rgba(0,0,0,0.4);
+  z-index: 30;
+}
+
+/* === Conteúdo interno não sobrepõe a aba === */
+.postit-cabecalho,
+.postit-expansao {
+  position: relative;
+  z-index: 1;
 }
