@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState } from 'react';
 import HomeERP from './pages/HomeERP';
 import HomePCP from './pages/HomePCP';
@@ -7,8 +6,6 @@ import AliSab from './pages/AliSab';
 
 export default function App() {
   const [tela, setTela] = useState('HomeERP');
-  console.log('🔄 Tela atual:', tela);
-
   return (
     <>
       {tela === 'HomeERP' && <HomeERP setTela={setTela} />}
