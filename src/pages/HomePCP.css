@@ -117,3 +117,15 @@
   from { transform: translateX(0); }
   to   { transform: translateX(-100%); }
 }
+/* no fim do HomePCP.css, adicione: */
+
+/* estado “zoom” do botão Alimentar Sabores */
+.botao-ativo {
+  transform: scale(1.1);
+  transition: transform 0.2s;
+}
+
+.botao-inativo {
+  transform: scale(1);
+  transition: transform 0.2s;
+}
