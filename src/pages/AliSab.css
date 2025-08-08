@@ -1,11 +1,8 @@
 /* src/pages/AliSab.css */
-
 .alisab-container {
-  /* fundo levemente translucido para validar que o container existe */
-  background: rgba(255, 255, 255, 0.9);
-  min-height: 100vh;
   padding: 1rem;
-  box-sizing: border-box;
+  background: url("/bg001.png") no-repeat center/cover fixed;
+  min-height: 100vh;
   color: #5c1d0e;
 }
 
@@ -13,24 +10,40 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  background: rgba(255,255,255,0.8);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+.alisab-main {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1rem;
+  border-radius: 6px;
+}
+
+.alisab-erro {
+  background: #fdd;
+  color: #900;
+  padding: 0.5rem;
+  border: 1px solid #f00;
+  margin-bottom: 1rem;
+}
+
+.alisab-json {
+  white-space: pre-wrap;
+  background: #eee;
+  padding: 1rem;
+  border-radius: 4px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .botao-voltar {
   background: #8c3b1b;
-  color: #fff;
+  color: white;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
-}
-
-.alisab-main {
-  /* só para ocupar tela */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 60vh;
 }
