@@ -1,12 +1,10 @@
 // src/pages/AliSab.jsx
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import db from '../firebase';
-import './AliSab.css';  // próximo passo: crie este CSS
 
 export default function AliSab({ setTela }) {
-  const [pedidos, setPedidos] = useState([]);
-  const [ativo, setAtivo] = useState(null);
+  const [pedidos, setPedidos] = useState(null);
   const [erro, setErro] = useState(null);
 
   useEffect(() => {
@@ -22,42 +20,28 @@ export default function AliSab({ setTela }) {
     })();
   }, []);
 
-  const toggle = id => {
-    setAtivo(prev => (prev === id ? null : id));
-  };
+  if (erro) {
+    return (
+      <div style={{ padding: 20, color: 'red' }}>
+        <h1>❌ Erro ao carregar pedidos</h1>
+        <pre>{erro}</pre>
+        <button onClick={() => setTela('HomePCP')}>🔙 Voltar ao PCP</button>
+      </div>
+    );
+  }
+
+  if (pedidos === null) {
+    return <div style={{ padding: 20 }}>🔄 Carregando pedidos…</div>;
+  }
 
   return (
-    <div className="alisab-container">
-      <header className="alisab-header">
-        <h1>🍫 Alimentar Sabores</h1>
-        <button className="botao-voltar" onClick={() => setTela('HomePCP')}>
-          🔙 Voltar ao PCP
-        </button>
-      </header>
-
-      {erro && <p className="erro">Erro: {erro}</p>}
-
-      <div className="postits-list">
-        {pedidos.map(p => (
-          <div
-            key={p.id}
-            className={`postit ${ativo === p.id ? 'ativo' : ''}`}
-            onClick={() => toggle(p.id)}
-          >
-            <div className="postit-cabecalho">
-              <strong>{p.escola}</strong>
-            </div>
-            <ul className="postit-itens">
-              <li><em>Qtd:</em> {p.itens.reduce((sum,i) => sum + (i.quantidade||0), 0)}</li>
-              {p.itens.map((it, i) => (
-                <li key={i}>
-                  {it.quantidade}× {it.produto}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+    <div style={{ padding: 20 }}>
+      <h1>🍫 Alimentar Sabores</h1>
+      <button onClick={() => setTela('HomePCP')}>🔙 Voltar ao PCP</button>
+      <h2>Dados brutos:</h2>
+      <pre style={{ whiteSpace: 'pre-wrap', background: '#eee', padding: 10 }}>
+        {JSON.stringify(pedidos, null, 2)}
+      </pre>
     </div>
   );
 }
