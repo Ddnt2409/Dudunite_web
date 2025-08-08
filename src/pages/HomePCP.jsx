@@ -32,8 +32,8 @@ export default function HomePCP({ setTela }) {
         <div className="botao-wrapper">
           <button
             className={`botao-principal ${saboresZoomed ? 'botao-ativo' : 'botao-inativo'}`}
-            onClick={() => setSaboresZoomed(z => !z)}               /* 1º clique: aplica zoom */
-            onDoubleClick={() => setTela('AliSab')}                 /* 2º clique: vai para Alimentar Sabores */
+            onClick={() => setSaboresZoomed(z => !z)}
+            onDoubleClick={() => setTela('AliSab')}
           >
             🍫<br />
             Alimentar Sabores
@@ -55,9 +55,9 @@ export default function HomePCP({ setTela }) {
           • Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
           Interativo • Exato Sede • Exato Anexo • Society Show • Russas • Kaduh •
           Degusty • Bora Gastar • Salesianas • Céu Azul • Pequeno Príncipe •
-          Tio Valter • Vera Vera
+          Tio Valter • Vera Cruz
         </span>
       </div>
     </div>
-);
+  );
 }
