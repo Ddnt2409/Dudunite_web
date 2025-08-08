@@ -1,10 +1,29 @@
 // src/pages/AliSab.jsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './AliSab.css';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import db from '../firebase';
 
 export default function AliSab({ setTela }) {
+  const [pedidos, setPedidos] = useState(null);
+  const [erro, setErro] = useState(null);
+
   useEffect(() => {
-    console.log('AliSab entrou!');
+    async function loadPedidos() {
+      try {
+        const q = query(
+          collection(db, 'PEDIDOS'),
+          where('statusEtapa', '==', 'Lançado')
+        );
+        const snap = await getDocs(q);
+        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setPedidos(list);
+      } catch (err) {
+        console.error(err);
+        setErro(err.message || 'Erro desconhecido');
+      }
+    }
+    loadPedidos();
   }, []);
 
   return (
@@ -16,11 +35,25 @@ export default function AliSab({ setTela }) {
         </button>
       </header>
 
-      {/* Conteúdo provisório */}
       <main className="alisab-main">
-        <p style={{ color: '#000', background: '#fff', padding: '1rem' }}>
-          Se você vê isto, a tela está funcionando!
-        </p>
+        {erro && (
+          <div className="alisab-erro">
+            <strong>Falha ao carregar:</strong><br />
+            {erro}
+          </div>
+        )}
+
+        {!erro && pedidos === null && <p>Carregando pedidos...</p>}
+
+        {!erro && pedidos && pedidos.length === 0 && (
+          <p>Nenhum pedido com status “Lançado” encontrado.</p>
+        )}
+
+        {!erro && pedidos && pedidos.length > 0 && (
+          <pre className="alisab-json">
+            {JSON.stringify(pedidos, null, 2)}
+          </pre>
+        )}
       </main>
     </div>
   );
