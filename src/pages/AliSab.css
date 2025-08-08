@@ -71,3 +71,32 @@
   font-weight: bold;
   cursor: pointer;
 }
+
+/* Quando estiver ativo, leva o post-it para o centro e aumenta */
+.postit.ativo {
+  position: fixed;
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1); /* sem o scale(1.05) anterior */
+  width: 45vw;      /* ocupa cerca de metade da largura da tela */
+  max-width: 400px; /* limite para tablet/desktop */
+  height: auto;     /* deixa o conteúdo definir a altura */
+  max-height: 80vh; /* evitar estourar a tela vertical */
+  overflow-y: auto; /* rolagem interna, se necessário */
+  padding: 1rem;
+  z-index: 999;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: all 0.3s ease;
+}
+
+/* Oculta os outros post-its atrás */
+.postit.ativo ~ .postit,
+.postit.ativo ~ .postit ~ .postit {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Ajuste do transform inicialmente */
+.postit {
+  transform: scale(1);
+}
