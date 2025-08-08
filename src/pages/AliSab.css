@@ -1,17 +1,56 @@
-/* === Estilo geral do post-it === */
+/* src/pages/AliSab.css */
+.alisab-container {
+  padding: 1rem;
+  background: url("/bg001.png") no-repeat center/cover fixed;
+  min-height: 100vh;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Cabeçalho */
+.alisab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.alisab-header h2 {
+  font-size: 1.5rem;
+  color: #5c1d0e;
+}
+.btn-voltar {
+  background: #8c3b1b;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Lista de post-its */
+.postits-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: flex-start;
+  position: relative;
+  z-index: 1;
+}
+
+/* Cada post-it */
 .postit {
   position: relative;
   background: #fff9c4;
-  border: 2px solid #e0c046;
-  border-radius: 6px;
-  padding: 1rem;
-  box-shadow: 4px 4px 8px rgba(0,0,0,0.2);
+  width: 200px;
+  padding: 0.75rem;
+  border: 1px solid #e0c046;
+  border-radius: 4px;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  overflow: hidden;
 }
 
-/* === Aba “dobrada” no canto superior direito === */
+/* Aba dobrada no canto */
 .postit::before {
   content: "";
   position: absolute;
@@ -19,28 +58,74 @@
   right: 0;
   width: 0;
   height: 0;
-  border-top: 30px solid rgba(255,255,255,0.8);
-  border-left: 30px solid transparent;
-  box-shadow: -3px 3px 3px rgba(0,0,0,0.1);
-  pointer-events: none;
-  z-index: 2;
+  border-top: 20px solid #fffbd0;
+  border-left: 20px solid transparent;
+  box-shadow: -2px 2px 4px rgba(0,0,0,0.1);
 }
 
-/* === Hover e ativo dão profundidade === */
-.postit:hover {
-  transform: translateY(-4px);
-  box-shadow: 6px 6px 12px rgba(0,0,0,0.3);
+/* Cabeçalho interno */
+.postit-cabecalho {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
 }
 
-.postit.ativo-grande {
-  transform: scale(1.02) translateY(-4px);
-  box-shadow: 8px 8px 16px rgba(0,0,0,0.4);
-  z-index: 30;
+/* Itens dentro do post-it */
+.postit-itens {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
 }
 
-/* === Conteúdo interno não sobrepõe a aba === */
-.postit-cabecalho,
-.postit-expansao {
-  position: relative;
-  z-index: 1;
+/* Checkboxes de sabores */
+.sabores-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+.sabores-checkboxes label {
+  font-size: 0.9rem;
+}
+
+/* Botão salvar */
+.btn-salvar {
+  display: block;
+  width: 100%;
+  background: #8c3b1b;
+  color: #fff;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Estado expandido (zoom) */
+.postit.ativo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50vw;
+  max-width: 350px;
+  transform: translate(-50%, -50%) scale(1.05);
+  z-index: 10;
+  box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
+  background: #fff9c4;
+  padding: 1rem;
+}
+
+/* Ao expandir, dentro mostra tudo */
+.postit.ativo .postit-itens,
+.postit.ativo .sabores-checkboxes,
+.postit.ativo .btn-salvar {
+  display: block;
+}
+
+/* Esconde detalhes quando não expandido */
+.postit:not(.ativo) .postit-itens,
+.postit:not(.ativo) .sabores-checkboxes,
+.postit:not(.ativo) .btn-salvar {
+  display: none;
 }
