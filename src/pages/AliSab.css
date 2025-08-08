@@ -1,70 +1,36 @@
+/* src/pages/AliSab.css */
+
 .alisab-container {
-  padding: 2rem;
-  background: url("/bg001.png") no-repeat center/cover fixed;
+  /* fundo levemente translucido para validar que o container existe */
+  background: rgba(255, 255, 255, 0.9);
   min-height: 100vh;
+  padding: 1rem;
   box-sizing: border-box;
+  color: #5c1d0e;
 }
 
 .alisab-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.5rem;
 }
 
-.postits-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: flex-start;
-}
-
-.postit {
-  position: relative;
-  width: 200px;
-  background: #fff9c4;
-  padding: 1rem;
-  border: 2px solid #e0c046;
-  border-radius: 6px;
-  box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.postit.ativo {
-  transform: scale(1.05);
-  z-index: 10;
-}
-
-.postit-cabecalho {
-  border-bottom: 1px dashed #e0c046;
-  margin-bottom: 0.5rem;
-}
-
-.postit-itens {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.postit-itens li {
-  margin-bottom: 0.5rem;
-}
-
-.sabores-checkboxes {
-  margin-top: 0.5rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.btn-salvar {
-  margin-top: 0.75rem;
-  width: 100%;
-  padding: 0.5rem;
+.botao-voltar {
   background: #8c3b1b;
   color: #fff;
   border: none;
+  padding: 0.5rem 1rem;
   border-radius: 4px;
-  font-weight: bold;
   cursor: pointer;
+}
+
+.alisab-main {
+  /* só para ocupar tela */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
 }
