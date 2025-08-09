@@ -1,18 +1,24 @@
 import React from "react";
 
-/** Rodapé padrão (botão voltar + marquee de PDVs) */
+/** Rodapé padrão Dudunitê — barra marrom fixa + botão flutuante “Voltar ao PCP” */
 export default function ERPFooter({ onBack }) {
   return (
-    <footer className="alisab-footer">
+    <>
+      {/* Botão flutuante acima do rodapé (como no PCP) */}
       <button type="button" className="btn-voltar-foot" onClick={onBack}>
         ↩ Voltar ao PCP
       </button>
 
-      <div className="marquee">
-        • Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
-        Interativo • Exato Sede • Exato Anexo • Society Show • Russas • Kaduh •
-        Degusty • Bora Gastar • Salesianas
-      </div>
-    </footer>
+      {/* Barra marrom fixa inferior com a “marquee” de PDVs */}
+      <footer className="erp-footer">
+        <div className="erp-footer-inner">
+          <div className="marquee">
+            • Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber
+            Viver • Interativo • Exato Sede • Exato Anexo • Society Show •
+            Russas • Kaduh • Degusty • Bora Gastar • Salesianas
+          </div>
+        </div>
+      </footer>
+    </>
   );
 }
