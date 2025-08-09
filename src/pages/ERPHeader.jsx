@@ -1,6 +1,6 @@
 import React from "react";
 
-/** Cabeçalho padrão (logo + título da página) */
+/** Cabeçalho padrão Dudunitê — igual ao PCP (logo à esquerda e título centralizado) */
 export default function ERPHeader({ title }) {
   return (
     <header className="pcp-header">
@@ -14,4 +14,4 @@ export default function ERPHeader({ title }) {
       </div>
     </header>
   );
-} 
+}
