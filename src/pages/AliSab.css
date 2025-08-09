@@ -178,3 +178,53 @@
   filter: blur(1px);
   pointer-events: none;
 }
+/* --- tamanho maior no grid --- */
+.postits-list { position: relative; }
+
+.postit{
+  /* +20% na largura (antes era ~42vw/360px) */
+  width: clamp(288px, 50vw, 430px);
+  /* +100% na “altura base” – força um cartão bem mais alto */
+  min-height: 220px;
+  padding: 1rem 1.1rem;
+  box-shadow: 3px 4px 12px rgba(0,0,0,.14);
+}
+
+.postit-cabecalho{ font-size: 1.1rem; }
+
+/* dobra maior pra ficar 3D */
+.postit::before{
+  border-top: 24px solid #fffbd0;
+  border-left: 24px solid transparent;
+}
+/* cartão expandido: centralizado e 2× do tamanho base */
+.postit.ativo{
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1.02);
+  width: min(92vw, 860px);     /* ~2× do limite anterior (430px → 860px) */
+  max-height: 80vh;
+  overflow: auto;
+  z-index: 25;
+  padding: 1.35rem;
+  box-shadow: 10px 14px 28px rgba(0,0,0,.28);
+}
+
+.postit.ativo::before{
+  border-top-width: 28px;
+  border-left-width: 28px;
+}
+
+.postit.ativo .postit-cabecalho{ font-size: 1.35rem; }
+.postit.ativo .postit-itens,
+.postit.ativo .sabores-checkboxes label{ font-size: 1.15rem; }
+.postit.ativo .btn-salvar{ font-size: 1.1rem; padding: .8rem 1rem; }
+
+/* desfoque dos demais quando 1 está aberto */
+.postits-list.has-active .postit:not(.ativo){
+  transform: scale(.95);
+  opacity: .55;
+  filter: blur(1px);
+  pointer-events: none;
+}
