@@ -1,305 +1,249 @@
 // src/pages/AliSab.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { collection, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
+import { collection, query, where, getDocs, updateDoc, doc, serverTimestamp } from "firebase/firestore";
 import db from "../firebase";
 import "./AliSab.css";
 
-/* ===== Sabores por PRODUTO (chave CANÔNICA) ===== */
-const SABORES_POR_PRODUTO = {
-  "BRW 7x7": [
-    "Ninho", "Ninho com Nutella", "Brigadeiro branco",
-    "Oreo", "Ovomaltine", "Beijinho", "Paçoca",
-    "Bem casado", "Brigadeiro preto", "Brigadeiro c confete",
-    "Palha italiana", "Prestigio"
-  ],
-  "BRW 6x6": [
-    "Ninho", "Ninho com Nutella", "Brigadeiro branco",
-    "Oreo", "Ovomaltine", "Beijinho", "Paçoca",
-    "Bem casado", "Brigadeiro preto", "Brigadeiro c confete",
-    "Palha italiana", "Prestigio"
-  ],
-  "PKT 5x5": [
-    "Ninho", "Ninho com Nutella", "Brigadeiro branco",
-    "Oreo", "Ovomaltine", "Beijinho", "Paçoca",
-    "Bem casado", "Brigadeiro preto", "Brigadeiro c confete",
-    "Palha italiana", "Prestigio"
-  ],
-  "PKT 6x6": [
-    "Ninho", "Ninho com Nutella", "Brigadeiro branco",
-    "Oreo", "Ovomaltine", "Beijinho", "Paçoca",
-    "Bem casado", "Brigadeiro preto", "Brigadeiro c confete",
-    "Palha italiana", "Prestigio"
-  ],
-  "Esc": [
-    "Ninho", "Ninho com Nutella", "Brigadeiro branco",
-    "Oreo", "Ovomaltine", "Beijinho", "Paçoca",
-    "Bem casado", "Brigadeiro preto", "Brigadeiro c confete",
-    "Palha italiana", "Prestigio"
-  ],
-  "DUDU": [
-    "Dd Oreo", "Dd Ovomaltine", "Dd Ninho com Nutella",
-    "Dd Creme de Maracujá", "Dd KitKat"
-  ],
+// mapa de sabores por produto (ajuste quando quiser)
+const SABORES = {
+  "BROWNIE 7X7": ["Ninho", "Ninho com Nutella", "Brigadeiro", "Oreo", "Bem casado"],
+  "BROWNIE 6X6": ["Ninho", "Ninho com Nutella", "Brigadeiro", "Oreo", "Bem casado"],
+  "POCKET 5X5": ["Ninho", "Ninho com Nutella", "Brigadeiro", "Oreo", "Bem casado"],
+  "POCKET 6X6": ["Ninho", "Ninho com Nutella", "Brigadeiro", "Oreo", "Bem casado"],
+  "ESCONDIDINHO": ["Branco", "Preto", "Bem casado"],
+  "DUDU": ["Dd Oreo", "Dd Ovomaltine", "Dd Ninho c/ Nutella", "Dd Maracujá", "Dd KitKat"],
 };
 
-/* ===== Normaliza o nome do produto que veio do pedido ===== */
-function normalizaProduto(prod) {
-  const t = String(prod || "").toUpperCase();
-  if (t.includes("DUDU")) return "DUDU";
-  if (t.includes("BRW") && t.includes("7X7")) return "BRW 7x7";
-  if (t.includes("BRW") && t.includes("6X6")) return "BRW 6x6";
-  if (t.includes("PKT") && t.includes("5X5")) return "PKT 5x5";
-  if (t.includes("PKT") && t.includes("6X6")) return "PKT 6x6";
-  if (t.includes("ESC")) return "Esc";
-  return prod || "Outros";
-}
-
-/* ===== Rótulo bonitinho para tela (sem sigla) ===== */
-function labelProduto(prod) {
-  const p = normalizaProduto(prod);
-  const map = {
-    "DUDU": "DUDU",
-    "BRW 7x7": "BROWNIE 7X7",
-    "BRW 6x6": "BROWNIE 6X6",
-    "Esc": "ESCONDIDINHO",
-    "PKT 5x5": "POCKET 5X5",
-    "PKT 6x6": "POCKET 6X6",
-  };
-  return map[p] || prod || "—";
-}
-
-/* ordem dentro do post-it */
-const ORDEM_TELA = ["BROWNIE 7X7", "BROWNIE 6X6", "POCKET 6X6", "POCKET 5X5", "ESCONDIDINHO", "DUDU"];
-
-const soma = (arr, sel = (x) => x) => arr.reduce((a, b) => a + sel(b), 0);
+// converte nomes antigos para os nomes “bonitos”
+const normalizaProduto = (p) => {
+  const t = (p || "").toUpperCase();
+  if (t.includes("BRW 7")) return "BROWNIE 7X7";
+  if (t.includes("BRW 6")) return "BROWNIE 6X6";
+  if (t.includes("PKT 5")) return "POCKET 5X5";
+  if (t.includes("PKT 6")) return "POCKET 6X6";
+  if (t.startsWith("ESC")) return "ESCONDIDINHO";
+  if (t.startsWith("DUDU")) return "DUDU";
+  return p || "—";
+};
 
 export default function AliSab({ setTela }) {
   const [pedidos, setPedidos] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
-  const [dist, setDist] = useState([]); // uma entrada por item do pedido expandido
+
+  // estado do formulário de sabores por pedido/produto
+  // draft = { [pedidoId]: { [produtoBonito]: {linhas:[{sabor,qtd}], usados:number} } }
+  const [draft, setDraft] = useState({});
 
   useEffect(() => {
     (async () => {
-      const q = query(collection(db, "PEDIDOS"), where("statusEtapa", "==", "Lançado"));
-      const snap = await getDocs(q);
-      const lista = snap.docs.map((d) => {
-        const data = d.data();
-        return {
-          id: d.id,
-          ...data,
-          itens: Array.isArray(data.itens) ? data.itens : [],
-        };
+      const qy = query(collection(db, "PEDIDOS"), where("statusEtapa", "==", "Lançado"));
+      const snap = await getDocs(qy);
+      const lista = snap.docs.map(d => {
+        const data = d.data() || {};
+        const itens = Array.isArray(data.itens) ? data.itens : [];
+        return { id: d.id, ...data, itens };
       });
       setPedidos(lista);
     })();
   }, []);
 
-  function abrirPedido(p) {
-    setExpandedId(p.id);
-    const novo = p.itens.map(() => ({ linhas: [], addSabor: "", addQtd: "" }));
-    setDist(novo);
-  }
-  function fecharPedido() {
-    setExpandedId(null);
-    setDist([]);
-  }
+  // quando abrir um post-it, inicializa o draft daquele pedido
+  useEffect(() => {
+    if (!expandedId) return;
 
-  function restanteDoItem(pedido, itemIdx) {
-    const item = pedido.itens[itemIdx];
-    const total = Number(item?.quantidade || 0);
-    const usado = soma(dist[itemIdx]?.linhas || [], (l) => Number(l.quantidade || 0));
-    return Math.max(0, total - usado);
-  }
+    const pedido = pedidos.find(p => p.id === expandedId);
+    if (!pedido) return;
 
-  function addLinha(pedido, itemIdx) {
-    const d = dist[itemIdx];
-    const sabor = d.addSabor;
-    const qtd = Number(d.addQtd);
+    setDraft(prev => {
+      if (prev[expandedId]) return prev; // já inicializado
+      const base = {};
+      pedido.itens.forEach((it) => {
+        const produto = normalizaProduto(it.produto);
+        base[produto] = { linhas: [], usados: 0, total: Number(it.quantidade || 0) };
+      });
+      return { ...prev, [expandedId]: base };
+    });
+  }, [expandedId, pedidos]);
 
-    if (!sabor) return alert("Selecione um sabor.");
-    if (!qtd || qtd <= 0) return alert("Informe uma quantidade válida.");
-    const rest = restanteDoItem(pedido, itemIdx);
-    if (qtd > rest) return alert(`Excede o restante (${rest}).`);
+  const pedidosOrdenados = useMemo(() => {
+    // ordena por escola para ficar mais previsível
+    return [...pedidos].sort((a, b) => (a.escola || "").localeCompare(b.escola || ""));
+  }, [pedidos]);
 
-    const ja = d.linhas.find((l) => l.sabor === sabor);
-    let novas;
-    if (ja) {
-      ja.quantidade = Number(ja.quantidade) + qtd;
-      novas = [...d.linhas];
-    } else {
-      novas = [...d.linhas, { sabor, quantidade: qtd }];
-    }
+  const handleAddLinha = (pedidoId, produto, sabor, qtd) => {
+    if (!sabor || !qtd) return;
+    setDraft(prev => {
+      const atual = prev[pedidoId]?.[produto];
+      if (!atual) return prev;
 
-    const copia = [...dist];
-    copia[itemIdx] = { ...d, linhas: novas, addQtd: "", addSabor: "" };
-    setDist(copia);
-  }
+      const usados = atual.usados + Number(qtd);
+      if (usados > atual.total) return prev; // não deixa passar do total
 
-  function removerLinha(itemIdx, sabor) {
-    const d = dist[itemIdx];
-    const novas = d.linhas.filter((l) => l.sabor !== sabor);
-    const copia = [...dist];
-    copia[itemIdx] = { ...d, linhas: novas };
-    setDist(copia);
-  }
-
-  async function salvarDistribuicao(pedido) {
-    for (let i = 0; i < pedido.itens.length; i++) {
-      const totalItem = Number(pedido.itens[i]?.quantidade || 0);
-      const usado = soma(dist[i]?.linhas || [], (l) => Number(l.quantidade || 0));
-      if (usado !== totalItem) {
-        return alert(`O item ${i + 1} (${labelProduto(pedido.itens[i].produto)}) precisa fechar ${totalItem}. Atual: ${usado}.`);
-      }
-    }
-
-    const itensAtualizados = pedido.itens.map((it, i) => {
-      const linhas = dist[i]?.linhas || [];
+      const linhas = [...atual.linhas, { sabor, qtd: Number(qtd) }];
       return {
-        ...it,
-        distribuicaoSabores: linhas.map((l) => ({ sabor: l.sabor, quantidade: Number(l.quantidade) })),
+        ...prev,
+        [pedidoId]: {
+          ...prev[pedidoId],
+          [produto]: { ...atual, linhas, usados }
+        }
       };
     });
+  };
 
-    try {
-      const ref = doc(db, "PEDIDOS", pedido.id);
-      await updateDoc(ref, {
-        itens: itensAtualizados,
-        statusEtapa: "Alimentado",
-        atualizadoEm: new Date(),
-      });
-      alert("Sabores salvos! ✅");
-      setPedidos((prev) => prev.filter((p) => p.id !== pedido.id));
-      fecharPedido();
-    } catch (e) {
-      console.error(e);
-      alert("Falha ao salvar sabores.");
-    }
-  }
+  const handleExcluirLinha = (pedidoId, produto, index) => {
+    setDraft(prev => {
+      const atual = prev[pedidoId]?.[produto];
+      if (!atual) return prev;
 
-  function cabecalhoPedido(p) {
-    const total = soma(p.itens || [], (i) => Number(i.quantidade || 0));
-    const produtos = (p.itens || [])
-      .map((i) => labelProduto(i.produto))
-      .join(", ");
-    return `${p.escola || "—"} – ${total}× ${produtos}`;
-  }
+      const linhas = [...atual.linhas];
+      const removida = linhas.splice(index, 1)[0];
+      const usados = atual.usados - (removida?.qtd || 0);
 
-  const listClass = useMemo(
-    () => `postits-list ${expandedId ? "has-active" : ""}`,
-    [expandedId]
-  );
+      return {
+        ...prev,
+        [pedidoId]: {
+          ...prev[pedidoId],
+          [produto]: { ...atual, linhas, usados }
+        }
+      };
+    });
+  };
+
+  const handleSalvar = async (pedido) => {
+    const dadosPedido = draft[pedido.id];
+    if (!dadosPedido) return;
+
+    // monta um payload simples: { produtoBonito: [{sabor,qtd}, ...], ... }
+    const saboresPayload = {};
+    Object.entries(dadosPedido).forEach(([produto, bloco]) => {
+      saboresPayload[produto] = bloco.linhas;
+    });
+
+    // grava no mesmo doc
+    await updateDoc(doc(db, "PEDIDOS", pedido.id), {
+      sabores: saboresPayload,
+      statusEtapa: "Alimentado",
+      atualizadoEm: serverTimestamp(),
+    });
+
+    // “carimba” no front e mantém no grid
+    setPedidos(prev => prev.map(p => (
+      p.id === pedido.id ? { ...p, statusEtapa: "Alimentado" } : p
+    )));
+    setExpandedId(null);
+  };
 
   return (
     <div className="alisab-container">
       <header className="alisab-header">
         <h2>🍫 Alimentar Sabores</h2>
-        <button onClick={() => setTela("HomePCP")} className="btn-voltar">
-          🔙 Voltar ao PCP
-        </button>
+        <button className="btn-voltar" onClick={() => setTela("HomePCP")}>🔙 Voltar ao PCP</button>
       </header>
 
-      <div className={listClass}>
-        {pedidos.length === 0 && <p>Nenhum pedido pendente.</p>}
+      <div className="postits-list">
+        {pedidosOrdenados.map((p, i) => {
+          const total = p.itens.reduce((s, it) => s + Number(it.quantidade || 0), 0);
+          const resumo = p.itens.map(it => `${Number(it.quantidade || 0)}× ${normalizaProduto(it.produto)}`).join(", ");
 
-        {pedidos.map((p) => {
           const ativo = expandedId === p.id;
-          // ordena dentro do post-it
-          const itensOrdenados = [...(p.itens || [])].sort((a, b) => {
-            const la = labelProduto(a.produto);
-            const lb = labelProduto(b.produto);
-            const ia = ORDEM_TELA.indexOf(la);
-            const ib = ORDEM_TELA.indexOf(lb);
-            return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-          });
+          const tilt = i % 2 ? "tilt-l" : "tilt-r";
 
           return (
-            <div
+            <article
               key={p.id}
-              className={`postit ${ativo ? "ativo" : ""}`}
-              onClick={!ativo ? () => abrirPedido(p) : undefined}
+              className={`postit ${tilt} ${ativo ? "ativo" : ""} ${p.statusEtapa === "Alimentado" ? "carimbado" : ""}`}
+              onClick={() => setExpandedId(ativo ? null : p.id)}
             >
-              <div className="postit-cabecalho">{cabecalhoPedido({ ...p, itens: itensOrdenados })}</div>
+              {/* ====== CABEÇALHO DO POST-IT (onde você perguntou “onde trocar o JSX”) ====== */}
+              <div className="postit-header">
+                <div className="pdv">{p.escola || "—"}</div>
+                <div className="resumo">{total}× — {resumo}</div>
+              </div>
 
+              {/* carimbo “ALIMENTADO” */}
+              {p.statusEtapa === "Alimentado" && (
+                <span className="carimbo">ALIMENTADO</span>
+              )}
+
+              {/* ====== CORPO EXPANDIDO ====== */}
               {ativo && (
-                <div className="dist-wrapper" onClick={(e) => e.stopPropagation()}>
-                  {itensOrdenados.map((item, idx) => {
-                    const key = normalizaProduto(item.produto);
-                    const opcoes = SABORES_POR_PRODUTO[key] || [];
-                    const restante = restanteDoItem({ ...p, itens: itensOrdenados }, idx);
+                <div className="postit-body" onClick={(e) => e.stopPropagation()}>
+                  {p.itens.map((it, idx) => {
+                    const produto = normalizaProduto(it.produto);
+                    const bloco = draft[p.id]?.[produto] || { linhas: [], usados: 0, total: Number(it.quantidade || 0) };
+                    const restantes = Math.max(0, bloco.total - bloco.usados);
+
+                    let inputQtdRef;
+                    let selectRef;
 
                     return (
-                      <div className="dist-card" key={`${p.id}-${idx}`}>
-                        <div className="dist-titulo">
-                          <strong>
-                            {item.quantidade}× {labelProduto(item.produto)}
-                          </strong>
-                          <span className={`restante ${restante === 0 ? "ok" : ""}`}>
-                            Restantes: {restante}
-                          </span>
+                      <div key={idx} className="produto-bloco">
+                        <div className="produto-titulo">
+                          <strong>{bloco.total}× {produto}</strong>
+                          <span>Restantes: {restantes}</span>
                         </div>
 
-                        {dist[idx]?.linhas?.length > 0 && (
-                          <ul className="linhas">
-                            {dist[idx].linhas.map((l) => (
-                              <li key={l.sabor}>
-                                <span className="pill">
-                                  {l.sabor} — <b>{l.quantidade}</b>
-                                </span>
-                                <button className="x" onClick={() => removerLinha(idx, l.sabor)} title="remover">×</button>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-
-                        <div className="dist-form">
-                          <select
-                            value={dist[idx]?.addSabor || ""}
-                            onChange={(e) => {
-                              const c = [...dist];
-                              c[idx] = { ...c[idx], addSabor: e.target.value };
-                              setDist(c);
-                            }}
-                          >
-                            <option value="">Sabor…</option>
-                            {opcoes.map((s) => (
-                              <option key={s} value={s}>{s}</option>
+                        <div className="linha-add">
+                          <select ref={(r) => (selectRef = r)} defaultValue="">
+                            <option value="" disabled>Sabor…</option>
+                            {(SABORES[produto] || []).map(sb => (
+                              <option key={sb} value={sb}>{sb}</option>
                             ))}
                           </select>
-
                           <input
+                            ref={(r) => (inputQtdRef = r)}
                             type="number"
                             min="1"
                             inputMode="numeric"
                             placeholder="Qtd"
-                            value={dist[idx]?.addQtd ?? ""}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              const c = [...dist];
-                              c[idx] = { ...c[idx], addQtd: v };
-                              setDist(c);
-                            }}
+                            className="qtd"
                           />
-
-                          <button className="btn-add" onClick={() => addLinha({ ...p, itens: itensOrdenados }, idx)} disabled={restante === 0}>
+                          <button
+                            type="button"
+                            className="btn-add"
+                            onClick={() => {
+                              const sabor = selectRef?.value;
+                              const qtd = Number(inputQtdRef?.value || 0);
+                              if (!sabor || !qtd) return;
+                              handleAddLinha(p.id, produto, sabor, qtd);
+                              if (inputQtdRef) inputQtdRef.value = "";
+                              if (selectRef) selectRef.value = "";
+                            }}
+                          >
                             ➕ Adicionar
                           </button>
                         </div>
+
+                        {bloco.linhas.length > 0 && (
+                          <ul className="linhas-list">
+                            {bloco.linhas.map((ln, li) => (
+                              <li key={li}>
+                                <span>{ln.qtd}× {ln.sabor}</span>
+                                <button
+                                  type="button"
+                                  className="btn-x"
+                                  onClick={() => handleExcluirLinha(p.id, produto, li)}
+                                >
+                                  ✖
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                     );
                   })}
 
                   <div className="acoes">
-                    <button className="btn-salvar" onClick={() => salvarDistribuicao({ ...p, itens: itensOrdenados })}>
-                      💾 Salvar Sabores
-                    </button>
-                    <button className="btn-cancelar" onClick={fecharPedido}>✖ Cancelar</button>
+                    <button className="btn-salvar" onClick={() => handleSalvar(p)}>💾 Salvar Sabores</button>
+                    <button className="btn-cancelar" onClick={() => setExpandedId(null)}>✖ Cancelar</button>
                   </div>
                 </div>
               )}
-            </div>
+            </article>
           );
         })}
       </div>
     </div>
   );
-                                                           }
+}
