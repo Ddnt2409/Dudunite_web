@@ -129,3 +129,52 @@
 .postit:not(.ativo) .btn-salvar {
   display: none;
 }
+/* --- Tamanho maior no grid --- */
+.postit {
+  width: clamp(240px, 42vw, 360px);   /* ~2x do antigo quando a tela deixa */
+  padding: 0.9rem;
+  box-shadow: 3px 4px 10px rgba(0,0,0,.12);
+}
+
+/* dobra maior para parecer 3D mesmo */
+.postit::before {
+  border-top: 24px solid #fffbd0;
+  border-left: 24px solid transparent;
+}
+
+/* fonte um pouco maior no grid */
+.postit-cabecalho { font-size: 1.05rem; }
+
+/* --- Estado expandido (central) bem grande --- */
+.postit.ativo {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  width: min(92vw, 700px);            /* ~4x do cartão base, limitado no mobile */
+  max-height: 80vh;
+  overflow: auto;
+  transform: translate(-50%, -50%) scale(1.02);
+  z-index: 20;
+  padding: 1.25rem;
+  box-shadow: 8px 12px 24px rgba(0,0,0,.25);
+}
+
+/* dobra maior quando expandido */
+.postit.ativo::before {
+  border-top-width: 28px;
+  border-left-width: 28px;
+}
+
+/* tipografia maior dentro do expandido */
+.postit.ativo .postit-cabecalho { font-size: 1.3rem; }
+.postit.ativo .postit-itens,
+.postit.ativo .sabores-checkboxes label { font-size: 1.1rem; }
+.postit.ativo .btn-salvar { font-size: 1.05rem; padding: .75rem 1rem; }
+
+/* Dim/focus quando um está aberto */
+.postits-list.has-active .postit:not(.ativo) {
+  transform: scale(.96);
+  opacity: .6;
+  filter: blur(1px);
+  pointer-events: none;
+}
