@@ -399,3 +399,114 @@
   .dist-form{ grid-template-columns: 1fr 130px 170px; }
   .dist-titulo{ font-size:1.35rem; }
   }
+/* ----- Cabeçalho do post-it (lista, antes de abrir) ----- */
+.postit-header {
+  display: grid;
+  gap: .25rem;
+  margin-bottom: .35rem;
+}
+.postit-header .pdv {
+  font-size: clamp(1rem, 2.6vw, 1.35rem); /* maior que o texto comum */
+  font-weight: 900;
+  color: #5C1D0E;
+  letter-spacing: .2px;
+}
+.postit-header .resumo {
+  font-size: .95rem;
+  color: #5c1d0ea6;
+  line-height: 1.25;
+}
+
+/* ----- aparência de post-it com “ponta levantada” ----- */
+.postit {
+  position: relative;
+  background: #fff3a7;
+  background-image:
+    radial-gradient(100% 60% at 50% 0%, rgba(255,255,255,.55), rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, #fff7c2 0%, #fde987 100%);
+  border: 1px solid #eedc77;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(92,29,14,.18), 0 1px 0 rgba(255,255,255,.6) inset;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+/* “ponta” dobrada no topo direito */
+.postit::after {
+  content: "";
+  position: absolute;
+  top: -1px; right: -1px;
+  width: 34px; height: 34px;
+  background:
+    linear-gradient(135deg, rgba(0,0,0,.20) 0%, rgba(0,0,0,0) 55%),
+    linear-gradient(135deg, #fffbe0 0%, #f5e073 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  box-shadow: -3px 3px 6px rgba(0,0,0,.22);
+  transform: translate(6px, -6px);
+}
+.postit.ativo::after { display: none; } /* some quando expandido */
+
+/* leve “afundado” ao tocar/hover (desktop) */
+.postit:hover:not(.ativo) { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(92,29,14,.24); }
+
+/* carimbo já foi adicionado antes; sem mudanças */
+/* Post-it com 3D mais forte, canto dobrado e sombra curva */
+.postit {
+  position: relative;
+  background: #fff39f;
+  background-image:
+    radial-gradient(120% 80% at 50% 0%, rgba(255,255,255,.6), rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, #fff7c5 0%, #fde679 100%);
+  border: 1px solid #eed66c;
+  border-radius: 12px;
+  box-shadow:
+    0 14px 24px rgba(92,29,14,.22),
+    0 1px 0 rgba(255,255,255,.7) inset,
+    0 8px 18px rgba(92,29,14,.08) inset;
+  transform: translateZ(0); /* acelera no mobile */
+}
+
+/* “ponta” dobrada no topo-direito (efeito da sua referência) */
+.postit::after {
+  content: "";
+  position: absolute;
+  top: -1px; right: -1px;
+  width: 40px; height: 40px;
+  background:
+    linear-gradient(135deg, rgba(0,0,0,.18) 0%, rgba(0,0,0,0) 58%),
+    linear-gradient(135deg, #fffbe3 0%, #f3d961 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  box-shadow: -4px 4px 8px rgba(0,0,0,.22);
+  transform: translate(8px,-8px);
+}
+
+/* sombra “curvada” na base, imitando papel descolado */
+.postit::before {
+  content: "";
+  position: absolute;
+  left: 10px; right: 10px; bottom: -10px;
+  height: 22px;
+  background:
+    radial-gradient(60% 120% at 50% 0,
+      rgba(0,0,0,.32) 0%,
+      rgba(0,0,0,.18) 35%,
+      rgba(0,0,0,0) 70%);
+  filter: blur(2px);
+  opacity: .55;
+}
+
+/* quando abrir (modal/zoom), some a “ponta” para não poluir */
+.postit.ativo::after { display: none; }
+
+/* leve inclinação aleatória (opcional) */
+.postit.tilt-l { transform: rotate(-1.5deg); }
+.postit.tilt-r { transform: rotate(1.6deg); }
+
+/* Cabeçalho (PDV grande + resumo) */
+.postit-header { display: grid; gap: .3rem; margin-bottom: .35rem; }
+.postit-header .pdv {
+  font-size: clamp(1.05rem, 2.8vw, 1.45rem);
+  font-weight: 900; color: #5C1D0E; letter-spacing: .2px;
+}
+.postit-header .resumo {
+  font-size: .98rem; color: #5c1d0eb3; line-height: 1.25;
+  }
