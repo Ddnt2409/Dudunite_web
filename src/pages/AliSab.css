@@ -308,3 +308,94 @@
   background:#ddd; color:#333; border:none; border-radius:8px;
   padding:.7rem 1rem;
 }
+/* ——— Post-its maiores no grid ——— */
+.postit{
+  width: clamp(300px, 50vw, 460px);
+  min-height: 240px;
+}
+
+/* ——— Post-it expandido: 4× “sensação” no mobile ——— */
+.postit.ativo{
+  position:absolute;
+  top:52%;
+  left:50%;
+  transform: translate(-50%, -50%) scale(1.02);
+  width: min(96vw, 1000px);
+  max-height: 84vh;
+  overflow:auto;
+  z-index:25;
+  padding: 1.4rem;
+  box-shadow: 12px 18px 36px rgba(0,0,0,.30);
+  font-size: 1.15rem;         /* texto maior dentro do expandido */
+}
+
+/* desfoca os outros */
+.postits-list.has-active .postit:not(.ativo){
+  transform: scale(.93);
+  opacity: .5;
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+/* ——— UI da distribuição (caixa de saborização BEM grande) ——— */
+.dist-wrapper{ display:flex; flex-direction:column; gap:1rem; }
+
+.dist-card{
+  background: rgba(255,255,255,0.78);
+  border: 1px dashed #e0c046;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.dist-titulo{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:.75rem;
+  font-size:1.25rem;
+}
+
+.restante{ color:#8c3b1b; font-weight:800; }
+.restante.ok{ color:#0a7a1f; }
+
+.linhas{ list-style:none; margin:0 0 .75rem 0; padding:0; }
+.linhas li{ display:flex; align-items:center; gap:.6rem; margin:.3rem 0; }
+.pill{
+  display:inline-block; background:#fff9c4; border:1px solid #e0c046;
+  border-radius:999px; padding:.4rem .8rem; font-size:1.05rem;
+}
+.linhas .x{
+  border:none; background:transparent; font-size:1.2rem; line-height:1;
+  cursor:pointer; color:#a33;
+}
+
+/* Inputs grandes e confortáveis no touch */
+.dist-form{
+  display:grid; grid-template-columns: 1fr 130px 170px; gap:.6rem;
+}
+.dist-form select, .dist-form input{
+  border:2px solid #a65a3d; border-radius:8px; padding:.7rem .75rem;
+  font-size:1.1rem; height:54px;
+}
+.btn-add{
+  background:#8c3b1b; color:#fff; border:none; border-radius:8px;
+  font-weight:800; padding:.7rem .9rem; font-size:1.05rem; height:54px;
+}
+
+/* Ações */
+.acoes{
+  display:flex; gap:.6rem; margin-top:.75rem; justify-content:flex-end;
+}
+.btn-salvar{
+  background:#8c3b1b; color:#fff; border:none; border-radius:10px;
+  padding:.9rem 1.2rem; font-weight:900; font-size:1.1rem;
+}
+.btn-cancelar{
+  background:#e8e8e8; color:#333; border:none; border-radius:10px;
+  padding:.9rem 1.2rem; font-size:1.05rem;
+}
+
+/* Mobile ainda maior */
+@media (max-width:480px){
+  .postit.ativo{ font-size:1.25rem; }
+  .dist-form{ grid-template-columns: 1fr 130px 170px; }
+  .dist-titulo{ font-size:1.35rem; }
+  }
