@@ -4,7 +4,7 @@ import { collection, query, where, getDocs, updateDoc, doc } from "firebase/fire
 import db from "../firebase";
 import "./AliSab.css";
 
-/** Sabores por tipo de produto — pode ajustar depois se quiser */
+/* ===== Sabores por PRODUTO (chave CANÔNICA) ===== */
 const SABORES_POR_PRODUTO = {
   "BRW 7x7": [
     "Ninho", "Ninho com Nutella", "Brigadeiro branco",
@@ -42,7 +42,7 @@ const SABORES_POR_PRODUTO = {
   ],
 };
 
-/** normaliza rótulos de produto que vêm com variações de escrita */
+/* ===== Normaliza o nome do produto que veio do pedido ===== */
 function normalizaProduto(prod) {
   const t = String(prod || "").toUpperCase();
   if (t.includes("DUDU")) return "DUDU";
@@ -54,16 +54,28 @@ function normalizaProduto(prod) {
   return prod || "Outros";
 }
 
-/** soma utilitária */
+/* ===== Rótulo bonitinho para tela (sem sigla) ===== */
+function labelProduto(prod) {
+  const p = normalizaProduto(prod);
+  const map = {
+    "DUDU": "DUDU",
+    "BRW 7x7": "BROWNIE 7X7",
+    "BRW 6x6": "BROWNIE 6X6",
+    "Esc": "ESCONDIDINHO",
+    "PKT 5x5": "POCKET 5X5",
+    "PKT 6x6": "POCKET 6X6",
+  };
+  return map[p] || prod || "—";
+}
+
+/* ordem dentro do post-it */
+const ORDEM_TELA = ["BROWNIE 7X7", "BROWNIE 6X6", "POCKET 6X6", "POCKET 5X5", "ESCONDIDINHO", "DUDU"];
+
 const soma = (arr, sel = (x) => x) => arr.reduce((a, b) => a + sel(b), 0);
 
 export default function AliSab({ setTela }) {
   const [pedidos, setPedidos] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
-
-  /** estado de distribuição para o pedido expandido
-   * form: array por item do pedido -> { linhas: [{sabor, quantidade}], addSabor, addQtd }
-   */
   const [dist, setDist] = useState([]); // uma entrada por item do pedido expandido
 
   useEffect(() => {
@@ -82,27 +94,19 @@ export default function AliSab({ setTela }) {
     })();
   }, []);
 
-  /** quando abre um post-it, inicializa a estrutura de distribuição */
   function abrirPedido(p) {
     setExpandedId(p.id);
-    // monta estrutura com uma "caixa" por item
-    const novo = p.itens.map((it) => ({
-      linhas: [],           // { sabor, quantidade }
-      addSabor: "",         // select “temporário”
-      addQtd: "",           // input “temporário”
-    }));
+    const novo = p.itens.map(() => ({ linhas: [], addSabor: "", addQtd: "" }));
     setDist(novo);
   }
-
   function fecharPedido() {
     setExpandedId(null);
     setDist([]);
   }
 
-  /** helpers de totais/validações */
   function restanteDoItem(pedido, itemIdx) {
     const item = pedido.itens[itemIdx];
-    const total = item?.quantidade || 0;
+    const total = Number(item?.quantidade || 0);
     const usado = soma(dist[itemIdx]?.linhas || [], (l) => Number(l.quantidade || 0));
     return Math.max(0, total - usado);
   }
@@ -117,7 +121,6 @@ export default function AliSab({ setTela }) {
     const rest = restanteDoItem(pedido, itemIdx);
     if (qtd > rest) return alert(`Excede o restante (${rest}).`);
 
-    // se já existe o sabor, acumula
     const ja = d.linhas.find((l) => l.sabor === sabor);
     let novas;
     if (ja) {
@@ -141,28 +144,19 @@ export default function AliSab({ setTela }) {
   }
 
   async function salvarDistribuicao(pedido) {
-    // valida: cada item precisa somar exatamente a quantidade lançada
     for (let i = 0; i < pedido.itens.length; i++) {
       const totalItem = Number(pedido.itens[i]?.quantidade || 0);
       const usado = soma(dist[i]?.linhas || [], (l) => Number(l.quantidade || 0));
       if (usado !== totalItem) {
-        return alert(
-          `O item ${i + 1} (${pedido.itens[i].produto}) precisa fechar ${totalItem}. Atual: ${usado}.`
-        );
+        return alert(`O item ${i + 1} (${labelProduto(pedido.itens[i].produto)}) precisa fechar ${totalItem}. Atual: ${usado}.`);
       }
     }
 
-    // agrega no formato {produto, quantidade, distribuicaoSabores:[{sabor, quantidade}]}
     const itensAtualizados = pedido.itens.map((it, i) => {
       const linhas = dist[i]?.linhas || [];
-      // garante números
-      const clean = linhas.map((l) => ({
-        sabor: l.sabor,
-        quantidade: Number(l.quantidade),
-      }));
       return {
         ...it,
-        distribuicaoSabores: clean,
+        distribuicaoSabores: linhas.map((l) => ({ sabor: l.sabor, quantidade: Number(l.quantidade) })),
       };
     });
 
@@ -174,7 +168,6 @@ export default function AliSab({ setTela }) {
         atualizadoEm: new Date(),
       });
       alert("Sabores salvos! ✅");
-      // remove da tela (sumiu da fila)
       setPedidos((prev) => prev.filter((p) => p.id !== pedido.id));
       fecharPedido();
     } catch (e) {
@@ -183,14 +176,14 @@ export default function AliSab({ setTela }) {
     }
   }
 
-  /** rótulo do cabeçalho do post-it */
   function cabecalhoPedido(p) {
     const total = soma(p.itens || [], (i) => Number(i.quantidade || 0));
-    const produtos = (p.itens || []).map((i) => i.produto).join(", ");
+    const produtos = (p.itens || [])
+      .map((i) => labelProduto(i.produto))
+      .join(", ");
     return `${p.escola || "—"} – ${total}× ${produtos}`;
   }
 
-  /** classe extra pra desfocar os demais cards */
   const listClass = useMemo(
     () => `postits-list ${expandedId ? "has-active" : ""}`,
     [expandedId]
@@ -210,34 +203,41 @@ export default function AliSab({ setTela }) {
 
         {pedidos.map((p) => {
           const ativo = expandedId === p.id;
+          // ordena dentro do post-it
+          const itensOrdenados = [...(p.itens || [])].sort((a, b) => {
+            const la = labelProduto(a.produto);
+            const lb = labelProduto(b.produto);
+            const ia = ORDEM_TELA.indexOf(la);
+            const ib = ORDEM_TELA.indexOf(lb);
+            return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+          });
+
           return (
             <div
               key={p.id}
               className={`postit ${ativo ? "ativo" : ""}`}
               onClick={!ativo ? () => abrirPedido(p) : undefined}
             >
-              <div className="postit-cabecalho">{cabecalhoPedido(p)}</div>
+              <div className="postit-cabecalho">{cabecalhoPedido({ ...p, itens: itensOrdenados })}</div>
 
-              {/* Conteúdo quando expandido */}
               {ativo && (
                 <div className="dist-wrapper" onClick={(e) => e.stopPropagation()}>
-                  {(p.itens || []).map((item, idx) => {
+                  {itensOrdenados.map((item, idx) => {
                     const key = normalizaProduto(item.produto);
                     const opcoes = SABORES_POR_PRODUTO[key] || [];
-                    const restante = restanteDoItem(p, idx);
+                    const restante = restanteDoItem({ ...p, itens: itensOrdenados }, idx);
 
                     return (
                       <div className="dist-card" key={`${p.id}-${idx}`}>
                         <div className="dist-titulo">
                           <strong>
-                            {item.quantidade}× {item.produto}
+                            {item.quantidade}× {labelProduto(item.produto)}
                           </strong>
                           <span className={`restante ${restante === 0 ? "ok" : ""}`}>
                             Restantes: {restante}
                           </span>
                         </div>
 
-                        {/* linhas já adicionadas */}
                         {dist[idx]?.linhas?.length > 0 && (
                           <ul className="linhas">
                             {dist[idx].linhas.map((l) => (
@@ -245,19 +245,12 @@ export default function AliSab({ setTela }) {
                                 <span className="pill">
                                   {l.sabor} — <b>{l.quantidade}</b>
                                 </span>
-                                <button
-                                  className="x"
-                                  onClick={() => removerLinha(idx, l.sabor)}
-                                  title="remover"
-                                >
-                                  ×
-                                </button>
+                                <button className="x" onClick={() => removerLinha(idx, l.sabor)} title="remover">×</button>
                               </li>
                             ))}
                           </ul>
                         )}
 
-                        {/* formulário: sabor + qtd + adicionar */}
                         <div className="dist-form">
                           <select
                             value={dist[idx]?.addSabor || ""}
@@ -269,9 +262,7 @@ export default function AliSab({ setTela }) {
                           >
                             <option value="">Sabor…</option>
                             {opcoes.map((s) => (
-                              <option key={s} value={s}>
-                                {s}
-                              </option>
+                              <option key={s} value={s}>{s}</option>
                             ))}
                           </select>
 
@@ -289,11 +280,7 @@ export default function AliSab({ setTela }) {
                             }}
                           />
 
-                          <button
-                            className="btn-add"
-                            onClick={() => addLinha(p, idx)}
-                            disabled={restante === 0}
-                          >
+                          <button className="btn-add" onClick={() => addLinha({ ...p, itens: itensOrdenados }, idx)} disabled={restante === 0}>
                             ➕ Adicionar
                           </button>
                         </div>
@@ -302,12 +289,10 @@ export default function AliSab({ setTela }) {
                   })}
 
                   <div className="acoes">
-                    <button className="btn-salvar" onClick={() => salvarDistribuicao(p)}>
+                    <button className="btn-salvar" onClick={() => salvarDistribuicao({ ...p, itens: itensOrdenados })}>
                       💾 Salvar Sabores
                     </button>
-                    <button className="btn-cancelar" onClick={fecharPedido}>
-                      ✖ Cancelar
-                    </button>
+                    <button className="btn-cancelar" onClick={fecharPedido}>✖ Cancelar</button>
                   </div>
                 </div>
               )}
@@ -317,4 +302,4 @@ export default function AliSab({ setTela }) {
       </div>
     </div>
   );
-}
+                                                           }
