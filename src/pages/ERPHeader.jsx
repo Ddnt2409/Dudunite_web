@@ -1,22 +1,16 @@
+// src/pages/ERPHeader.jsx
 import React from "react";
+import "./AliSab.css"; // usa as classes abaixo
 
-/**
- * Cabeçalho padrão das telas PCP/ERP
- * Props:
- *  - title: string (ex.: "PCP – Alimentar Sabores")
- */
-export default function ERPHeader({ title = "" }) {
+export default function ERPHeader({ title = "PCP – Alimentar Sabores" }) {
   return (
-    <header className="pcp-header">
-      <div className="pcp-header-inner">
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Dudunitê"
-          className="pcp-logo"
-        />
-        <h1 className="pcp-title">{title}</h1>
-        {/* Espaçador para centralizar o título no mobile */}
-        <div className="pcp-logo-spacer" />
+    <header className="erp-header">
+      <div className="erp-header__logo">
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
+      </div>
+
+      <div className="erp-header__title">
+        {title}
       </div>
     </header>
   );
