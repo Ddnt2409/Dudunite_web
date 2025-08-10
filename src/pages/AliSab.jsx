@@ -1,436 +1,398 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   collection,
-  getDocs,
   query,
   where,
+  getDocs,
   updateDoc,
   doc,
   serverTimestamp,
 } from "firebase/firestore";
 import db from "../firebase";
-import "./AliSab.css";
+
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
+import "./AliSab.css";
 
-/* ===========================
-   Mapeamentos e constantes
-=========================== */
-
-// Normalização dos nomes de produtos (aceita códigos antigos)
-const normalizeProduto = (p) => {
-  const s = String(p || "").toLowerCase();
-  if (s.includes("7x7")) return "BROWNIE 7X7";
-  if (s.includes("6x6") && s.includes("brw")) return "BROWNIE 6X6";
-  if (s.includes("pkt") && s.includes("5x5")) return "POCKET 5X5";
-  if (s.includes("pkt") && s.includes("6x6")) return "POCKET 6X6";
-  if (s.startsWith("esc") || s.includes("escond")) return "ESCONDIDINHO";
-  if (s.includes("dudu")) return "DUDU";
-  // já no padrão?
-  const up = String(p || "").toUpperCase();
-  return up;
+/* =====================
+ * MAPEAMENTOS / DADOS
+ * ===================== */
+const PRODUTO_NOMES = {
+  "BRW 7x7": "BROWNIE 7X7",
+  "BRW 6x6": "BROWNIE 6X6",
+  "BRW 6X6": "BROWNIE 6X6",
+  "PKT 5x5": "POCKET 5X5",
+  "PKT 6x6": "POCKET 6X6",
+  "ESC": "ESCONDIDINHO",
+  "Esc": "ESCONDIDINHO",
+  "ESCONDIDINHO": "ESCONDIDINHO",
+  "DUDU": "DUDU",
 };
 
-// Lista de sabores por tipo de produto
-const SABORES = {
+const SABORES_POR_PRODUTO = {
   "BROWNIE 7X7": [
-    "Ninho",
-    "Ninho com Nutella",
-    "Oreo",
-    "Ovomaltine",
-    "Beijinho",
-    "Brigadeiro branco",
-    "Brigadeiro branco com confete",
-    "Bem casado",
-    "Paçoca",
-    "KitKat",
-    "Brigadeiro preto",
-    "Brigadeiro preto com confete",
-    "Palha italiana",
+    "Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho",
+    "Brigadeiro branco","Brigadeiro branco com confete",
+    "Bem casado","Paçoca","KitKat","Brigadeiro preto",
+    "Brigadeiro preto com confete","Palha italiana","Prestigio"
   ],
   "BROWNIE 6X6": [
-    "Ninho",
-    "Ninho com Nutella",
-    "Oreo",
-    "Ovomaltine",
-    "Beijinho",
-    "Brigadeiro branco",
-    "Brigadeiro branco com confete",
-    "Bem casado",
-    "Paçoca",
-    "KitKat",
-    "Brigadeiro preto",
-    "Brigadeiro preto com confete",
-    "Palha italiana",
+    "Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho",
+    "Brigadeiro branco","Brigadeiro branco com confete",
+    "Bem casado","Paçoca","KitKat","Brigadeiro preto",
+    "Brigadeiro preto com confete","Palha italiana","Prestigio"
   ],
   "POCKET 5X5": [
-    "Ninho",
-    "Ninho com Nutella",
-    "Oreo",
-    "Ovomaltine",
-    "Beijinho",
-    "Brigadeiro branco",
-    "Brigadeiro branco com confete",
-    "Bem casado",
-    "Paçoca",
-    "KitKat",
-    "Brigadeiro preto",
-    "Brigadeiro preto com confete",
-    "Palha italiana",
+    "Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho",
+    "Brigadeiro branco","Brigadeiro branco com confete",
+    "Bem casado","Paçoca","KitKat","Brigadeiro preto",
+    "Brigadeiro preto com confete","Palha italiana","Prestigio"
   ],
   "POCKET 6X6": [
-    "Ninho",
-    "Ninho com Nutella",
-    "Oreo",
-    "Ovomaltine",
-    "Beijinho",
-    "Brigadeiro branco",
-    "Brigadeiro branco com confete",
-    "Bem casado",
-    "Paçoca",
-    "KitKat",
-    "Brigadeiro preto",
-    "Brigadeiro preto com confete",
-    "Palha italiana",
+    "Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho",
+    "Brigadeiro branco","Brigadeiro branco com confete",
+    "Bem casado","Paçoca","KitKat","Brigadeiro preto",
+    "Brigadeiro preto com confete","Palha italiana","Prestigio"
   ],
-  ESCONDIDINHO: [
-    "Ninho",
-    "Ninho com Nutella",
-    "Oreo",
-    "Ovomaltine",
-    "Beijinho",
-    "Brigadeiro branco",
-    "Brigadeiro branco com confete",
-    "Bem casado",
-    "Paçoca",
-    "KitKat",
-    "Brigadeiro preto",
-    "Brigadeiro preto com confete",
-    "Palha italiana",
+  "ESCONDIDINHO": [
+    "Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho",
+    "Brigadeiro branco","Brigadeiro branco com confete",
+    "Bem casado","Paçoca","KitKat","Brigadeiro preto",
+    "Brigadeiro preto com confete","Palha italiana","Prestigio"
   ],
-  DUDU: ["Dd Oreo", "Dd Ovomaltine", "Dd Ninho com Nutella", "Dd Creme de Maracujá", "Dd KitKat"],
+  "DUDU": ["Dd Oreo","Dd Ovomaltine","Dd Ninho com Nutella","Dd Creme de Maracujá","Dd KitKat"]
 };
 
-// retorna um resumo "100× — 100× POCKET 6X6"
-const resumoDosItens = (itens = []) => {
-  if (!Array.isArray(itens)) return "—";
-  const parts = itens.map((i) => {
-    const qtd = Number(i?.quantidade || 0);
-    const tipo = normalizeProduto(i?.produto);
-    return `${qtd}× ${tipo}`;
-  });
-  return parts.join(", ");
-};
+/* ================ */
+function normalizaProduto(p) {
+  if (!p) return p;
+  return PRODUTO_NOMES[p] || PRODUTO_NOMES[p.toUpperCase()] || p;
+}
 
-// soma quantidades por produto normalizado
-const totaisPorProduto = (itens = []) => {
-  const acc = {};
-  (itens || []).forEach((it) => {
-    const tipo = normalizeProduto(it?.produto);
-    const qtd = Number(it?.quantidade || 0);
-    acc[tipo] = (acc[tipo] || 0) + qtd;
-  });
-  return acc;
-};
-
-/* ===========================
-   Componente principal
-=========================== */
+function proximaSegunda(d) {
+  // retorna a 00:00 da próxima segunda a partir de 'd'
+  const base = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const day = base.getDay(); // 0 = dom, 1 = seg, ...
+  const add = (8 - day) % 7 || 7;
+  const target = new Date(base);
+  target.setDate(base.getDate() + add);
+  return target;
+}
 
 export default function AliSab({ setTela }) {
   const [pedidos, setPedidos] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
 
-  // rascunho da linha por produto dentro do post-it aberto
-  // { "BROWNIE 7X7": [{sabor,qtd}], "POCKET 5X5": [...] }
-  const [linhas, setLinhas] = useState({});
-  // selects/inputs atuais (draft) por produto
-  const [draft, setDraft] = useState({}); // { [produto]: { sabor: "", qtd: "" } }
+  // formState[pedidoId] = { [produtoDisplay]: { linhas:[{sabor,qtd}], restante:number } }
+  const [formState, setFormState] = useState({});
 
-  // Carrega pedidos com status Lançado ou Alimentado
+  /* =====================
+   * CARREGAR PEDIDOS
+   * ===================== */
   useEffect(() => {
     (async () => {
-      try {
-        const pedidosRef = collection(db, "PEDIDOS");
-        const q = query(
-          pedidosRef,
-          where("statusEtapa", "in", ["Lançado", "Alimentado"])
-        );
-        const snap = await getDocs(q);
-        const list = snap.docs.map((d) => {
-          const data = d.data();
-          return {
-            id: d.id,
-            ...data,
-            itens: Array.isArray(data.itens) ? data.itens : [],
-          };
+      const col = collection(db, "PEDIDOS");
+
+      // “Lançado”
+      const qA = query(col, where("statusEtapa", "==", "Lançado"));
+      const snapA = await getDocs(qA);
+
+      // “Alimentado” também aparece (com carimbo)
+      const qB = query(col, where("statusEtapa", "==", "Alimentado"));
+      const snapB = await getDocs(qB);
+
+      const parse = (docSnap) => {
+        const data = docSnap.data();
+        const itens = Array.isArray(data.itens) ? data.itens : [];
+        const itensFmt = itens.map((it) => ({
+          produtoRaw: it.produto,
+          produto: normalizaProduto(it.produto),
+          quantidade: Number(it.quantidade || 0),
+        }));
+        return {
+          id: docSnap.id,
+          escola: data.escola || "—",
+          cidade: data.cidade || "",
+          criadoEm: data.criadoEm?.toDate?.() || new Date(),
+          statusEtapa: data.statusEtapa || "Lançado",
+          dataAlimentado: data.dataAlimentado?.toDate?.() || null,
+          sabores: data.sabores || null, // estrutura salva anteriormente
+          itens: itensFmt,
+        };
+      };
+
+      const lista = [...snapA.docs.map(parse), ...snapB.docs.map(parse)]
+        // ordena por nome da escola (dentro da linha)
+        .sort((a, b) => a.escola.localeCompare(b.escola));
+
+      setPedidos(lista);
+
+      // prepara estado de formulário (restantes)
+      const initial = {};
+      lista.forEach((p) => {
+        const st = {};
+        p.itens.forEach((it) => {
+          const key = it.produto;
+          st[key] = st[key] || { linhas: [], restante: it.quantidade };
         });
-        setPedidos(list);
-      } catch (e) {
-        console.error("Erro ao carregar pedidos:", e);
-      }
+
+        // se já possui sabores alimentados no banco, carrega para exibição/edição
+        if (p.sabores && typeof p.sabores === "object") {
+          Object.entries(p.sabores).forEach(([prod, linhas]) => {
+            const soma = linhas.reduce((acc, l) => acc + Number(l.qtd || 0), 0);
+            if (!st[prod]) st[prod] = { linhas: [], restante: 0 };
+            st[prod].linhas = linhas.map((l) => ({ sabor: l.sabor, qtd: Number(l.qtd || 0) }));
+            const pedido = p.itens.find((x) => x.produto === prod);
+            const total = pedido?.quantidade || soma;
+            st[prod].restante = Math.max(0, total - soma);
+          });
+        }
+
+        initial[p.id] = st;
+      });
+      setFormState(initial);
     })();
   }, []);
 
-  const abrirPostIt = (p) => {
-    setExpandedId(p.id);
-    // prepara estruturas locais
-    const totals = totaisPorProduto(p.itens);
-    const initialLinhas = {};
-    const initialDraft = {};
-    Object.keys(totals).forEach((prod) => {
-      initialLinhas[prod] = []; // começa vazio
-      initialDraft[prod] = { sabor: "", qtd: "" };
-    });
-    setLinhas(initialLinhas);
-    setDraft(initialDraft);
-  };
+  /* =====================
+   * REGRAS DE CARIMBO
+   * ===================== */
+  const agora = useMemo(() => new Date(), []);
+  function mostrarCarimbo(p) {
+    if (p.statusEtapa !== "Alimentado") return false;
+    const base = p.dataAlimentado || p.criadoEm;
+    const limite = proximaSegunda(base);
+    return agora < limite;
+  }
 
-  const fecharPostIt = () => {
-    setExpandedId(null);
-    setLinhas({});
-    setDraft({});
-  };
+  /* =====================
+   * FORM: adicionar / remover linhas
+   * ===================== */
+  function addLinha(pedidoId, prod, sabor, qtd) {
+    if (!sabor || !qtd) return;
+    qtd = Number(qtd);
+    if (qtd <= 0) return;
 
-  const pedidoAberto = useMemo(
-    () => pedidos.find((x) => x.id === expandedId) || null,
-    [expandedId, pedidos]
-  );
+    setFormState((prev) => {
+      const novo = { ...prev };
+      const st = { ...(novo[pedidoId] || {}) };
+      const bloco = { ...(st[prod] || { linhas: [], restante: 0 }) };
 
-  // calcula restantes por produto baseado nas linhas inseridas
-  const restantes = (produto) => {
-    if (!pedidoAberto) return 0;
-    const totals = totaisPorProduto(pedidoAberto.itens);
-    const usado = (linhas[produto] || []).reduce(
-      (s, l) => s + Number(l.qtd || 0),
-      0
-    );
-    return (totals[produto] || 0) - usado;
-  };
+      const permitido = Math.max(0, Math.min(qtd, bloco.restante));
+      if (permitido === 0) return prev;
 
-  const onChangeDraft = (produto, campo, valor) => {
-    setDraft((prev) => ({
-      ...prev,
-      [produto]: { ...(prev[produto] || {}), [campo]: valor },
-    }));
-  };
+      bloco.linhas = [...bloco.linhas, { sabor, qtd: permitido }];
+      bloco.restante = Math.max(0, bloco.restante - permitido);
 
-  const addLinha = (produto) => {
-    const d = draft[produto] || {};
-    const qtd = Number(d.qtd || 0);
-    const sabor = (d.sabor || "").trim();
-    if (!sabor || !qtd || qtd <= 0) return;
-    const rest = restantes(produto);
-    if (qtd > rest) {
-      alert(`Quantidade excede o restante (${rest}).`);
-      return;
-    }
-    setLinhas((prev) => ({
-      ...prev,
-      [produto]: [...(prev[produto] || []), { sabor, qtd }],
-    }));
-    // zera rascunho
-    setDraft((prev) => ({ ...prev, [produto]: { sabor: "", qtd: "" } }));
-  };
-
-  const delLinha = (produto, idx) => {
-    setLinhas((prev) => {
-      const novo = { ...(prev || {}) };
-      novo[produto] = (novo[produto] || []).filter((_, i) => i !== idx);
+      st[prod] = bloco;
+      novo[pedidoId] = st;
       return novo;
     });
-  };
+  }
 
-  const salvarSabores = async () => {
-    if (!pedidoAberto) return;
+  function removeLinha(pedidoId, prod, index) {
+    setFormState((prev) => {
+      const novo = { ...prev };
+      const st = { ...(novo[pedidoId] || {}) };
+      const bloco = { ...(st[prod] || { linhas: [], restante: 0 }) };
+      const linha = bloco.linhas[index];
+      if (!linha) return prev;
 
-    // valida: todos os produtos com suas somas <= total
-    const totals = totaisPorProduto(pedidoAberto.itens);
-    for (const produto of Object.keys(totals)) {
-      const soma = (linhas[produto] || []).reduce(
-        (s, l) => s + Number(l.qtd || 0),
-        0
-      );
-      if (soma !== totals[produto]) {
-        const rest = totals[produto] - soma;
-        const msg =
-          rest > 0
-            ? `Faltam ${rest} para ${produto}.`
-            : `Excedeu em ${Math.abs(rest)} para ${produto}.`;
-        alert(
-          `As quantidades de sabores precisam fechar o total do produto.\n${msg}`
-        );
-        return;
-      }
-    }
+      bloco.linhas = bloco.linhas.filter((_, i) => i !== index);
+      bloco.restante += Number(linha.qtd || 0);
 
-    // monta payload
-    const payload = {
-      saboresDetalhados: linhas, // { "BROWNIE 7X7": [{sabor,qtd}], ... }
+      st[prod] = bloco;
+      novo[pedidoId] = st;
+      return novo;
+    });
+  }
+
+  /* =====================
+   * SALVAR NO FIRESTORE
+   * ===================== */
+  async function salvarSabores(pedido) {
+    const st = formState[pedido.id] || {};
+    // monta objeto compacto: { "BROWNIE 6X6": [{sabor,qtd}, ...], ... }
+    const payload = {};
+    Object.entries(st).forEach(([prod, dados]) => {
+      if (dados.linhas.length) payload[prod] = dados.linhas;
+    });
+
+    const ref = doc(db, "PEDIDOS", pedido.id);
+    await updateDoc(ref, {
+      sabores: payload,
       statusEtapa: "Alimentado",
+      dataAlimentado: serverTimestamp(),
       atualizadoEm: serverTimestamp(),
-    };
+    });
 
-    try {
-      const ref = doc(db, "PEDIDOS", pedidoAberto.id);
-      await updateDoc(ref, payload);
+    // marca localmente (mantém na grade com carimbo)
+    setPedidos((prev) =>
+      prev.map((p) =>
+        p.id === pedido.id
+          ? {
+              ...p,
+              statusEtapa: "Alimentado",
+              sabores: payload,
+              dataAlimentado: new Date(),
+            }
+          : p
+      )
+    );
 
-      // atualiza tela (mantém card, agora com carimbo)
-      setPedidos((prev) =>
-        prev.map((p) =>
-          p.id === pedidoAberto.id ? { ...p, ...payload } : p
-        )
-      );
+    setExpandedId(null);
+  }
 
-      fecharPostIt();
-      alert("Sabores salvos com sucesso!");
-    } catch (e) {
-      console.error(e);
-      alert("Erro ao salvar sabores.");
-    }
-  };
-
+  /* =====================
+   * RENDER
+   * ===================== */
   return (
-    <div className="alisab-container">
-      {/* CABEÇALHO PADRÃO */}
+    <>
       <ERPHeader title="PCP – Alimentar Sabores" />
 
-      {/* Título pequeno/linha de status */}
-      <div className="alisab-header">
-        <h2>🍫 Alimentar Sabores <span className="versao-inline">– v-inline</span></h2>
-        <button className="btn-voltar" onClick={() => setTela("HomePCP")}>
-          Voltar ao PCP
-        </button>
-      </div>
+      <main className="alisab-main">
+        <div className="alisab-header">
+          <div className="alisab-title">
+            <span role="img" aria-label="chocolate">🍫</span> Alimentar Sabores
+            <span className="versao"> — v-inline</span>
+          </div>
+          {/* (o rodapé já tem o botão Voltar) */}
+        </div>
 
-      {/* LISTA DE POST-ITS (3 colunas via CSS) */}
-      <div className="postits-list">
-        {pedidos.map((p, idx) => {
-          const resumo = resumoDosItens(p.itens);
-          const totals = totaisPorProduto(p.itens);
-          const tiltClass = idx % 2 === 0 ? "tilt-l" : "tilt-r";
+        <section className="postits-list">
+          {pedidos.map((p, idx) => {
+            const ativo = expandedId === p.id;
+            const tilt = idx % 2 ? "tilt-r" : "tilt-l";
+            const totalUn = p.itens.reduce((s, i) => s + (i.quantidade || 0), 0);
 
-          const isAtivo = expandedId === p.id;
-          const isAlimentado = String(p.statusEtapa).toLowerCase() === "alimentado";
-
-          return (
-            <div
-              key={p.id}
-              className={`postit ${tiltClass} ${isAtivo ? "ativo" : ""}`}
-              onClick={() => !isAtivo && abrirPostIt(p)}
-            >
-              {/* alfinete */}
-              <span className="pin" />
-
-              {/* dobra */}
-              {/* (pseudo-elemento ::after no CSS) */}
-
-              {/* carimbo ALIMENTADO */}
-              {isAlimentado && <span className="carimbo">ALIMENTADO</span>}
-
-              {/* cabeçalho do card */}
-              <div className="postit-header">
-                <div className="pdv">{p.escola || "—"}</div>
-                <div className="resumo">{resumo || "—"}</div>
-              </div>
-
-              {/* corpo/expansão */}
-              {isAtivo && (
-                <div
-                  className="postit-body"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {Object.keys(totals).map((produto) => {
-                    const sabores = SABORES[produto] || [];
-                    const rest = restantes(produto);
-                    const d = draft[produto] || { sabor: "", qtd: "" };
-
-                    return (
-                      <div className="produto-bloco" key={produto}>
-                        <div className="produto-titulo">
-                          <div>
-                            <strong>{totals[produto]}× {produto}</strong>
-                            <span style={{ marginLeft: 8, opacity: 0.8 }}>
-                              Restantes: {rest}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="linha-add">
-                          <select
-                            value={d.sabor}
-                            onChange={(e) =>
-                              onChangeDraft(produto, "sabor", e.target.value)
-                            }
-                          >
-                            <option value="">Sabor...</option>
-                            {sabores.map((s) => (
-                              <option key={s} value={s}>
-                                {s}
-                              </option>
-                            ))}
-                          </select>
-
-                          <input
-                            className="qtd"
-                            type="number"
-                            inputMode="numeric"
-                            min="1"
-                            placeholder="Qtd"
-                            value={d.qtd}
-                            onChange={(e) =>
-                              onChangeDraft(produto, "qtd", e.target.value)
-                            }
-                          />
-
-                          <button
-                            type="button"
-                            className="btn-add"
-                            onClick={() => addLinha(produto)}
-                          >
-                            ➕ Adicionar
-                          </button>
-                        </div>
-
-                        {/* linhas adicionadas */}
-                        <ul className="linhas-list">
-                          {(linhas[produto] || []).map((l, i) => (
-                            <li key={i}>
-                              <span>
-                                {l.qtd}× {l.sabor}
-                              </span>
-                              <button
-                                type="button"
-                                className="btn-x"
-                                aria-label="Remover"
-                                onClick={() => delLinha(produto, i)}
-                              >
-                                ✕
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    );
-                  })}
-
-                  <div className="acoes">
-                    <button type="button" className="btn-salvar" onClick={salvarSabores}>
-                      💾 Salvar Sabores
-                    </button>
-                    <button type="button" className="btn-cancelar" onClick={fecharPostIt}>
-                      ✖ Cancelar
-                    </button>
+            return (
+              <article
+                key={p.id}
+                className={`postit ${tilt} ${ativo ? "ativo" : ""}`}
+                onClick={() => setExpandedId(ativo ? null : p.id)}
+              >
+                <i className="pin" aria-hidden />
+                <div className="postit-header">
+                  <div className="pdv">{p.escola}</div>
+                  <div className="resumo">
+                    {totalUn}× —{" "}
+                    {p.itens.map((it, i) => (
+                      <span key={i}>
+                        {it.quantidade}× {it.produto}
+                        {i < p.itens.length - 1 ? ", " : ""}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
 
-      {/* RODAPÉ PADRÃO */}
+                {mostrarCarimbo(p) && <div className="carimbo">ALIMENTADO</div>}
+
+                {ativo && (
+                  <div className="postit-body" onClick={(e) => e.stopPropagation()}>
+                    {p.itens.map((it, i) => {
+                      const prod = it.produto;
+                      const sabores = SABORES_POR_PRODUTO[prod] || [];
+                      const bloco = (formState[p.id] && formState[p.id][prod]) || {
+                        linhas: [],
+                        restante: it.quantidade,
+                      };
+
+                      // local controls (sem state global para inputs)
+                      let selectRef, qtdRef;
+
+                      return (
+                        <div className="produto-bloco" key={i}>
+                          <div className="produto-titulo">
+                            <div>
+                              <strong>{it.quantidade}× {prod}</strong>
+                              <span className="restantes">
+                                &nbsp;Restantes: {bloco.restante}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="linha-add">
+                            <select
+                              ref={(r) => (selectRef = r)}
+                              defaultValue=""
+                            >
+                              <option value="" disabled>
+                                Sabor...
+                              </option>
+                              {sabores.map((s) => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
+                            <input
+                              ref={(r) => (qtdRef = r)}
+                              type="number"
+                              min="1"
+                              className="qtd"
+                              placeholder="Qtd"
+                            />
+                            <button
+                              type="button"
+                              className="btn-add"
+                              onClick={() =>
+                                addLinha(
+                                  p.id,
+                                  prod,
+                                  selectRef?.value || "",
+                                  qtdRef?.value || ""
+                                )
+                              }
+                            >
+                              ＋ Adicionar
+                            </button>
+                          </div>
+
+                          {!!bloco.linhas.length && (
+                            <ul className="linhas-list">
+                              {bloco.linhas.map((ln, j) => (
+                                <li key={j}>
+                                  <span>
+                                    {ln.qtd}× {ln.sabor}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="btn-x"
+                                    onClick={() => removeLinha(p.id, prod, j)}
+                                  >
+                                    ×
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    <div className="acoes">
+                      <button
+                        type="button"
+                        className="btn-salvar"
+                        onClick={() => salvarSabores(p)}
+                      >
+                        💾 Salvar Sabores
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-cancelar"
+                        onClick={() => setExpandedId(null)}
+                      >
+                        ✖ Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </section>
+      </main>
+
       <ERPFooter onBack={() => setTela("HomePCP")} />
-    </div>
+    </>
   );
-        }
+              }
