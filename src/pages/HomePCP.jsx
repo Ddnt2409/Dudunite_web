@@ -1,8 +1,12 @@
 // src/pages/HomePCP.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import './HomePCP.css';
 
 export default function HomePCP({ setTela }) {
+  // Deixe true para aparecer aberto (igual ao comportamento antigo).
+  // Se quiser iniciar fechado, troque para false.
+  const [showProducao, setShowProducao] = useState(true);
+
   return (
     <div className="homepcp-container">
       {/* === HEADER === */}
@@ -15,28 +19,55 @@ export default function HomePCP({ setTela }) {
         <h1 className="homepcp-titulo">PCP – Planejamento de Produção</h1>
       </div>
 
-      {/* === BOTÕES PRINCIPAIS === */}
-      <div className="botoes-pcp">
-        <div className="botao-wrapper">
-          <button
-            className="botao-principal"
-            onClick={() => setTela('LanPed')}
-          >
-            📝<br />
-            Lançar Pedido
-          </button>
-        </div>
+      {/* === GRUPO: PRODUÇÃO (accordion) === */}
+      <section className="grupo-pcp">
+        <button
+          className="grupo-header"
+          onClick={() => setShowProducao(v => !v)}
+          aria-expanded={showProducao}
+        >
+          <span>📦 Produção (PCP)</span>
+          <span className={`chevron ${showProducao ? 'aberto' : ''}`}>▾</span>
+        </button>
 
-        <div className="botao-wrapper">
-          <button
-            className="botao-principal"
-            onClick={() => setTela('AliSab')}
-          >
-            🍫<br />
-            Alimentar Sabores
-          </button>
+        <div
+          className={`grupo-body ${showProducao ? 'open' : ''}`}
+          style={{ display: showProducao ? 'block' : 'none' }} // garante visibilidade mesmo sem CSS novo
+        >
+          {/* === BOTÕES INTERNOS === */}
+          <div className="botoes-pcp">
+            <div className="botao-wrapper">
+              <button
+                className="botao-principal"
+                onClick={() => setTela('LanPed')}
+              >
+                📝<br />
+                Lançar Pedido
+              </button>
+            </div>
+
+            <div className="botao-wrapper">
+              <button
+                className="botao-principal"
+                onClick={() => setTela('AliSab')}
+              >
+                🍫<br />
+                Alimentar Sabores
+              </button>
+            </div>
+
+            <div className="botao-wrapper">
+              <button
+                className="botao-principal"
+                onClick={() => setTela('StaPed')}
+              >
+                📊<br />
+                Status dos Pedidos
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* === VOLTAR === */}
       <button
