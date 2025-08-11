@@ -297,3 +297,16 @@
     box-shadow: 0 14px 26px rgba(0,0,0,.22);
   }
 }
+
+/* lista de produtos, um abaixo do outro */
+.resumo-list{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #6a4a20;
+  font-size: 12px;
+}
+.resumo-list li{
+  line-height: 1.2;
+  margin: 2px 0;
+}
