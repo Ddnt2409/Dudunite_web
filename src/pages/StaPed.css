@@ -1,0 +1,82 @@
+/* ===== Plano de fundo e layout ===== */
+.staped-main{
+  min-height: calc(100vh - 36px);
+  padding: 12px 10px 92px;
+  background:
+    url("/bg001.png") center 140px / 1200px no-repeat,
+    #fcf4e9;
+}
+
+.staped-headline{
+  font-weight: 800;
+  color: #5C1D0E;
+  margin: 10px 0 16px;
+}
+
+/* ===== Grid 2x2 (responsivo) ===== */
+.staped-grid{
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 680px){
+  .staped-grid{ grid-template-columns: 1fr; }
+}
+
+/* ===== Card translúcido + cor característica + bolinhas ===== */
+.staped-card{
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 14px 30px rgba(0,0,0,.20);
+  backdrop-filter: blur(6px);
+  min-height: 150px;
+}
+
+/* camada de cor (tinta) */
+.staped-card::before{
+  content:"";
+  position:absolute; inset:0;
+  background: var(--tint, rgba(0,0,0,.35));
+  opacity: .78;              /* translúcido */
+}
+
+/* bolinhas (pontilhado suave) */
+.staped-card::after{
+  content:"";
+  position:absolute; inset:0;
+  background-image:
+    radial-gradient(rgba(255,255,255,.35) 1.6px, transparent 1.6px);
+  background-size: 14px 14px;
+  opacity: .35;
+}
+
+/* conteúdo por cima das camadas */
+.staped-card__content{
+  position: relative;
+  color: #2b1a10;
+  padding: 18px 16px 20px;
+}
+
+.staped-card__content h3{
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #2b1a10;
+}
+.staped-count{
+  margin: 0 0 2px;
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1;
+}
+.staped-card__content small{
+  color: #3d2a1b;
+  opacity: .9;
+}
+
+/* ===== Cores por quadrante ===== */
+.card--lancado   { --tint: rgba(255, 193,   7, 0.65); } /* âmbar */
+.card--alimentado{ --tint: rgba( 76, 175,  80, 0.60); } /* verde */
+.card--producao  { --tint: rgba( 33, 150, 243, 0.60); } /* azul */
+.card--finalizado{ --tint: rgba(156,  39, 176, 0.55); } /* roxo */
