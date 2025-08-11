@@ -13,49 +13,44 @@
   box-sizing: border-box;
 }
 
-/* ===== Cabeçalho ERP (logo 180px + título à direita) ===== */
+/* ====== CABEÇALHO (ERPHeader.jsx) ====== */
 .erp-header{
   position: sticky; top: 0; z-index: 50;
-  background: rgba(246,232,217,.92);      /* bege do PCP */
-  backdrop-filter: blur(4px);
-  border-bottom: 1px solid rgba(92,29,14,.18);
-  overflow: visible;
+  min-height: 84px;                   /* ↑ era ~56px: +50% */
+  background: #f6e8d9;
+  border-bottom: 1px solid rgba(92,29,14,.15);
 }
 
+/* wrapper interno do header */
 .erp-header__inner{
   position: relative;
-  height: 56px;                            /* tarja baixa */
-  max-width: 1100px;
-  margin: 0 auto;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;               /* empurra o título pra direita */
-  padding: 0 12px 6px;                     /* 6px de respiro na base */
+  height: 84px;                       /* mesma altura da tarja */
 }
 
-/* Logo grande sem “engordar” a tarja */
+/* Logo 180px, centralizada VERTICALMENTE na tarja */
 .erp-header__logo{
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);             /* centraliza VERTICAL na tarja */
-  pointer-events: none;
+  position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%);
 }
 .erp-header__logo img{
-  height: 180px;                           /* <<< pedido */
-  width: auto;
-  display: block;
+  height: 180px;                      /* mantém os 180px */
+  width: auto; display: block; pointer-events: none;
 }
 
-/* Título margeando a lateral direita */
+/* Título margeando a direita, tamanho DOBRADO e bold */
 .erp-header__title{
-  margin-left: auto;
-  text-align: right;
-  font-size: 12px;                         /* <<< pedido anterior */
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 24px;                    /* ↑ era 12px: DOBRADO */
   font-weight: 800;
   color: #5C1D0E;
-  line-height: 1.1;
-  padding-right: 2px;                      /* “encosta” na direita */
+  text-align: right;
+  white-space: nowrap;                /* evita quebrar em 2 linhas */
+}
+
+/* (opcional) ajuste em telas muito estreitas */
+@media (max-width: 360px){
+  .erp-header__title{ font-size: 20px; }
 }
 /* ====== RODAPÉ PADRÃO ====== */
 .erp-footer{
