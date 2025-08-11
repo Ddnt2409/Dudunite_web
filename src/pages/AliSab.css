@@ -240,3 +240,36 @@
   line-height: 1.1;
   padding-bottom: 2px;     /* alinha com a base da tarja */
 }
+
+/* Área central da página com o BG */
+.alisab-main{
+  min-height: calc(100vh - 36px);      /* deixa espaço pro rodapé fixo */
+  padding: 10px 10px 92px;
+  background:
+    url("/bg001.png") center 120px / 1200px no-repeat,
+    #fcf4e9; /* cor base */
+}
+
+/* Tarja do cabeçalho – 60% menor, título à direita 12px BOLD */
+.erp-header{
+  position: sticky; top: 0; z-index: 50;
+  min-height: 56px;                      /* tarja bem baixa */
+  background: #f6e8d9;
+  border-bottom: 1px solid rgba(92,29,14,.15);
+}
+
+/* Logo 180px sem “engordar” a tarja */
+.erp-header__logo{
+  position: absolute; left: 10px; top: 6px;
+}
+.erp-header__logo img{
+  height: 180px;                          /* pedido */
+  width: auto; display: block;
+  pointer-events: none;
+}
+
+/* Título “martelado” do lado direito */
+.erp-header__title{
+  position: absolute; right: 12px; bottom: 10px;
+  font-size: 12px; font-weight: 800; color: #5C1D0E; text-align: right;
+}
