@@ -14,38 +14,42 @@
 }
 
 /* ====== HEADER PADRÃO (logo 180px + título 12px BOLD à direita) ====== */
+/* ====== HEADER PADRÃO ====== */
 .erp-header{
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  min-height: 75px;                   /* tarja ~60% menor */
-  background: #f6e8d9;
-  border-bottom: 1px solid rgba(92,29,14,.15);
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(246,232,217,.92);   /* bege do PCP */
+  backdrop-filter: blur(4px);
+  border-bottom: 1px solid rgba(92,29,14,.18);
 }
 
-/* Logo 180px sem engordar a tarja */
+.erp-header__inner{
+  max-width: 1100px; margin: 0 auto;
+  height: 64px;                          /* altura da tarja */
+  display: grid;
+  grid-template-columns: 140px 1fr 140px;/* logo | título | spacer */
+  align-items: center;                   /* << centraliza verticalmente TUDO */
+  padding: 0 12px;
+}
+
 .erp-header__logo{
-  position: absolute;
-  left: 10px;
-  top: 6px;
+  height: 100%;
+  display: flex; align-items: center;    /* << centraliza a imagem na tarja */
 }
 .erp-header__logo img{
-  height: 180px;                      /* pedido */
-  width: auto;
-  display: block;
-  pointer-events: none;
+  height: 42px;                          /* igual ao PCP */
+  width: auto; display: block;
 }
 
-/* Título 12px, BOLD, “martelado” à direita */
 .erp-header__title{
-  position: absolute;
-  right: 12px;
-  bottom: 10px;
-  font-size: 12px;
+  text-align: center;
   font-weight: 800;
-  color: #5C1D0E;
-  text-align: right;
-  line-height: 1.1;
+  font-size: 20px;
+  color: #7b3c21;
+  letter-spacing: .2px;
+}
+
+.erp-header__spacer{ /* só ocupa a 3ª coluna para o título ficar 100% central */
+  height: 100%;
 }
 
 /* ====== RODAPÉ PADRÃO ====== */
