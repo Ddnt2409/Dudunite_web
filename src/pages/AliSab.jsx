@@ -254,7 +254,6 @@ export default function AliSab({ setTela }) {
         <div className="alisab-header">
           <div className="alisab-title">
             <span role="img" aria-label="chocolate">🍫</span> Alimentar Sabores
-            <span className="versao"> — v-inline</span>
           </div>
           {/* (o rodapé já tem o botão Voltar) */}
         </div>
