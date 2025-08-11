@@ -1,17 +1,16 @@
 // src/pages/ERPHeader.jsx
 import React from "react";
-import "./AliSab.css"; // usa as classes abaixo
 
-export default function ERPHeader({ title = "PCP – Alimentar Sabores" }) {
+export default function ERPHeader({ title = "" }) {
   return (
     <header className="erp-header">
+      {/* Logo “flutuante”: 180px e não aumenta a tarja */}
       <div className="erp-header__logo">
         <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
       </div>
 
-      <div className="erp-header__title">
-        {title}
-      </div>
+      {/* Título martelado no lado direito, 12px BOLD */}
+      <div className="erp-header__title">{title}</div>
     </header>
   );
 }
