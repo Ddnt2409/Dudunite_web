@@ -250,4 +250,4 @@ export default function StaPed({ setTela }) {
       <ERPFooter onBack={() => setTela("HomePCP")} />
     </>
   );
-      }
+}
