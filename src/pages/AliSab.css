@@ -1,110 +1,83 @@
-/* =========================
-   ALISAB – ESTILOS COMPLETOS
-   (substituir o arquivo inteiro)
-   ========================= */
-
-/* ====== ÁREA PRINCIPAL (com BG) ====== */
+/* =============== LAYOUT DA PÁGINA =============== */
 .alisab-main{
-  min-height: calc(100vh - 36px);     /* deixa espaço pro rodapé fixo */
+  min-height: calc(100vh - 36px);      /* deixa espaço pro rodapé fixo */
   padding: 10px 10px 92px;
   background:
-    url("/bg001.png") center top / cover no-repeat,
-    #fcf4e9;                          /* cor de fundo se a imagem não carregar */
-  box-sizing: border-box;
+    url("/bg001.png") center 120px / 1200px no-repeat,
+    #fcf4e9; /* cor base */
 }
 
-/* ====== CABEÇALHO (ERPHeader.jsx) ====== */
+/* =============== CABEÇALHO (ERPHeader.jsx) =============== */
 .erp-header{
   position: sticky; top: 0; z-index: 50;
-  min-height: 84px;                   /* ↑ era ~56px: +50% */
   background: #f6e8d9;
   border-bottom: 1px solid rgba(92,29,14,.15);
+  min-height: 66px;                     /* ~10% mais alto */
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
 }
 
-/* wrapper interno do header */
 .erp-header__inner{
+  max-width: 1100px;
+  margin: 0 auto;
+  height: 66px;                         /* acompanha a tarja */
+  padding: 0 12px;
+  display: flex;
+  align-items: center;                  /* centraliza verticalmente tudo */
+  justify-content: space-between;
   position: relative;
-  height: 84px;                       /* mesma altura da tarja */
 }
 
-/* Logo 180px, centralizada VERTICALMENTE na tarja */
 .erp-header__logo{
-  position: absolute; left: 10px; top: 50%;
-  transform: translateY(-50%);
+  height: 66px;                         /* mesma altura da tarja */
+  display: flex;
+  align-items: center;                  /* centraliza a imagem na tarja */
 }
 .erp-header__logo img{
-  height: 180px;                      /* mantém os 180px */
-  width: auto; display: block; pointer-events: none;
+  height: 180px;                        /* pedido */
+  width: auto;
+  display: block;
+  pointer-events: none;
 }
 
-/* Título margeando a direita, tamanho DOBRADO e bold */
 .erp-header__title{
-  position: absolute; right: 12px; top: 50%;
-  transform: translateY(-50%);
-  font-size: 24px;                    /* ↑ era 12px: DOBRADO */
+  margin-left: auto;                    /* cola na direita */
+  padding-right: 2ch;                   /* folga ≈ largura de 2 letras */
+  text-align: right;
+  font-size: 24px;                      /* 12px dobrado */
   font-weight: 800;
   color: #5C1D0E;
-  text-align: right;
-  white-space: nowrap;                /* evita quebrar em 2 linhas */
+  line-height: 1.1;
 }
 
-/* (opcional) ajuste em telas muito estreitas */
-@media (max-width: 360px){
-  .erp-header__title{ font-size: 20px; }
-}
-/* ====== RODAPÉ PADRÃO ====== */
+/* espaçador só para balancear em telas largas, se existir no JSX */
+.erp-header__spacer{ width: 180px; height: 1px; }
+
+/* =============== RODAPÉ PADRÃO (ERPFooter.jsx) =============== */
 .erp-footer{
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 40;
-  background: #7b3c21;
-  color: #fbeee1;
-  font-size: 12px;
-  line-height: 36px;
-  height: 36px;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  background: #7b3c21; color: #fbeee1;
+  font-size: 12px; line-height: 36px; height: 36px;
   box-shadow: 0 -4px 10px rgba(0,0,0,.15);
   text-align: center;
 }
 .erp-footer-track{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   padding: 0 12px;
 }
 .btn-voltar-foot{
-  position: fixed;
-  left: 10px;
-  bottom: 48px;
-  z-index: 45;
-  background:#8c3b1b;
-  color:#fff;
-  border:none;
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-weight: 800;
-  box-shadow: 0 6px 16px rgba(0,0,0,.25);
+  position: fixed; left: 10px; bottom: 48px; z-index: 45;
+  background:#8c3b1b; color:#fff; border:none; border-radius: 12px;
+  padding: 10px 14px; font-weight: 800; box-shadow: 0 6px 16px rgba(0,0,0,.25);
 }
 
-/* ====== TÍTULO LOCAL (subtítulo da página) ====== */
-.alisab-header{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin: 10px 0 14px;
-}
-.alisab-title{
-  font-weight:800;
-  color:#5C1D0E;
-}
-.alisab-title .versao{
-  color:#8b6a4a;
-  font-weight:600;
-}
+/* =============== TÍTULO LOCAL (linha "🍫 Alimentar Sabores") =============== */
+.alisab-header { display:flex; align-items:center; gap:8px; margin: 10px 0 14px; }
+.alisab-title  { font-weight:800; color:#5C1D0E; }
+.alisab-title .versao { color:#8b6a4a; font-weight:600; }
 
-/* ====== GRID: 3 COLUNAS ====== */
+/* =============== GRID DOS POST-ITS (3 colunas) =============== */
 .postits-list{
-  display:grid;
-  gap: 16px;
+  display:grid; gap: 16px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: start;
 }
@@ -115,7 +88,7 @@
   .postits-list{ grid-template-columns: 1fr; }
 }
 
-/* ====== POST-IT BASE ====== */
+/* =============== POST-IT BASE =============== */
 .postit{
   position: relative;
   background: linear-gradient(180deg, #fff3a5 0%, #ffe77a 12%, #ffd95f 100%);
@@ -132,9 +105,7 @@
 
 /* dobra do canto */
 .postit::after{
-  content:"";
-  position:absolute;
-  right:12px; top:12px;
+  content:""; position:absolute; right:12px; top:12px;
   width:28px; height:28px;
   background: linear-gradient(135deg, #fff5b8 0%, #fff 70%);
   clip-path: polygon(0 0, 100% 0, 0 100%);
@@ -143,174 +114,97 @@
 
 /* alfinete vermelho */
 .pin{
-  position:absolute;
-  left:50%; top:-9px;
-  width:18px; height:18px;
-  background:#d32f2f; border-radius:50%;
-  transform: translateX(-50%);
-  box-shadow: 0 2px 0 #7a1b1b, 0 6px 10px rgba(0,0,0,.25);
+  position:absolute; left:50%; top:-9px;
+  width:18px; height:18px; background:#d32f2f; border-radius:50%;
+  transform: translateX(-50%); box-shadow: 0 2px 0 #7a1b1b, 0 6px 10px rgba(0,0,0,.25);
 }
 .pin::after{
-  content:"";
-  position:absolute; left:50%; top:16px;
+  content:""; position:absolute; left:50%; top:16px;
   width:2px; height:14px; background:#d8d8d8;
-  transform: translateX(-50%) rotate(6deg);
-  box-shadow: 0 1px 1px rgba(0,0,0,.3);
+  transform: translateX(-50%) rotate(6deg); box-shadow: 0 1px 1px rgba(0,0,0,.3);
 }
 
 /* cabeçalho do post-it */
 .postit-header .pdv{
-  font-size: 1.7rem;
-  font-weight: 800;
-  color:#4b2a10;
-  margin-bottom: 6px;
+  font-size: 14px;                     /* aumentado para 14 */
+  font-weight: 800; color:#4b2a10; margin-bottom: 6px;
 }
 .postit-header .resumo{
-  font-size: .92rem;
-  color:#6a4a20;
+  font-size: .92rem; color:#6a4a20;
+}
+.postit-header .resumo span{
+  display: block;                      /* cada item em uma linha */
 }
 
-/* carimbo “ALIMENTADO” */
+/* carimbo */
 .carimbo{
-  position:absolute;
-  right:-16px; top:18px;
+  position:absolute; right:-16px; top:18px;
   transform: rotate(-18deg);
   color:#b71c1c;
   border: 3px solid #b71c1c;
   padding: 4px 10px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  background: rgba(255,255,255,.65);
-  text-shadow: 0 1px 0 #fff;
-  box-shadow: 0 6px 18px rgba(0,0,0,.15);
-  border-radius: 6px;
+  font-weight: 900; letter-spacing: 2px;
+  background: rgba(255,255,255,.65); text-shadow: 0 1px 0 #fff;
+  box-shadow: 0 6px 18px rgba(0,0,0,.15); border-radius: 6px;
 }
 
-/* painel expandido central (zoom) */
+/* =============== PAINEL EXPANDIDO (form de sabores) =============== */
 .postit.ativo{
-  position: fixed;
-  top: 50%; left: 50%;
+  position: fixed; top: 50%; left: 50%;
   transform: translate(-50%, -50%) scale(1.0);
   rotate: 0deg;
-  width: min(620px, 94vw);           /* grande no centro */
-  max-height: 84vh;
-  z-index: 1000;
+  width: min(600px, 90vw);             /* +20% de largura */
+  max-height: 84vh; z-index: 1000;
   box-shadow: 0 28px 80px rgba(0,0,0,.35), inset 0 -10px 16px rgba(0,0,0,.08);
   cursor: default;
 }
 .postit.ativo .postit-body{
   margin-top: 10px;
   max-height: calc(84vh - 110px);
-  overflow:auto;
-  padding-right: 4px;
+  overflow:auto; padding-right: 4px;
 }
 
 /* blocos de produto dentro do painel */
 .produto-bloco{
-  background:#fff7c4;
-  border:1px solid #f3da7a;
-  border-radius:10px;
-  padding:10px;
-  margin-bottom:12px;
+  background:#fff7c4; border:1px solid #f3da7a;
+  border-radius:10px; padding:10px; margin-bottom:12px;
   box-shadow: inset 0 -3px 6px rgba(0,0,0,.06);
 }
 .produto-titulo{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-weight:700;
-  color:#4b2a10;
-  margin-bottom:8px;
+  display:flex; justify-content:space-between; align-items:center;
+  font-weight:700; color:#4b2a10; margin-bottom:8px;
 }
-.produto-titulo .restantes{
-  color:#7a5a2a;
-  font-weight:800;
-}
+.produto-titulo .restantes{ color:#7a5a2a; font-weight:800; }
 
 /* linha de adição */
-.linha-add{
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-.linha-add select,
-.linha-add .qtd{
-  flex:1;
-  height: 50px;
-  font-size: 18px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border:1px solid #d2b44b;
-  background:#fff;
+.linha-add{ display:flex; gap:8px; align-items:center; }
+.linha-add select, .linha-add .qtd{
+  flex:1; height: 50px; font-size: 18px;
+  padding: 8px 10px; border-radius: 10px; border:1px solid #d2b44b; background:#fff;
 }
 .linha-add .btn-add{
-  white-space:nowrap;
-  height:50px;
-  padding:0 14px;
-  border:none;
-  border-radius:10px;
-  background:#8c3b1b;
-  color:#fff;
-  font-size:16px;
-  font-weight:800;
+  white-space:nowrap; height:50px; padding:0 14px;
+  border:none; border-radius:10px; background:#8c3b1b; color:#fff; font-size:16px; font-weight:800;
 }
 
 /* lista das linhas adicionadas */
-.linhas-list{
-  list-style:none;
-  margin:10px 0 0;
-  padding:0;
-}
+.linhas-list{ list-style:none; margin:10px 0 0; padding:0; }
 .linhas-list li{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:#fffde3;
-  border:1px dashed #e0c86d;
-  border-radius:8px;
-  padding:6px 10px;
-  margin-bottom:6px;
+  display:flex; justify-content:space-between; align-items:center;
+  background:#fffde3; border:1px dashed #e0c86d;
+  border-radius:8px; padding:6px 10px; margin-bottom:6px;
 }
-.btn-x{
-  border:none;
-  background:transparent;
-  font-size:18px;
-}
+.btn-x{ border:none; background:transparent; font-size:18px; }
 
 /* ações */
-.acoes{
-  display:flex;
-  gap:10px;
-  margin-top:12px;
-}
-.btn-salvar,
-.btn-cancelar{
-  flex:1;
-  height:50px;
-  border:none;
-  border-radius:10px;
-  font-weight:800;
+.acoes{ display:flex; gap:10px; margin-top:12px; }
+.btn-salvar, .btn-cancelar{
+  flex:1; height:50px; border:none; border-radius:10px; font-weight:800;
 }
 .btn-salvar{ background:#8c3b1b; color:#fff; }
 .btn-cancelar{ background:#eee; }
 
 /* toque visual ao passar o mouse (desktop) */
 @media (hover:hover){
-  .postit:hover{
-    filter: brightness(1.02);
-    box-shadow: 0 14px 26px rgba(0,0,0,.22);
-  }
-}
-
-/* lista de produtos, um abaixo do outro */
-.resumo-list{
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: #6a4a20;
-  font-size: 12px;
-}
-.resumo-list li{
-  line-height: 1.2;
-  margin: 2px 0;
-}
+  .postit:hover{ filter: brightness(1.02); box-shadow: 0 14px 26px rgba(0,0,0,.22); }
+             }
