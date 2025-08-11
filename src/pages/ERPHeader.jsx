@@ -1,16 +1,17 @@
 // src/pages/ERPHeader.jsx
-import React from "react";
-
-export default function ERPHeader({ title = "" }) {
+export default function ERPHeader({ title }) {
   return (
-    <header className="erp-header">
-      {/* Logo “flutuante”: 180px e não aumenta a tarja */}
-      <div className="erp-header__logo">
-        <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
-      </div>
+    <header className="erp-header" role="banner">
+      <div className="erp-header__inner">
+        <div className="erp-header__logo">
+          <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
+        </div>
 
-      {/* Título martelado no lado direito, 12px BOLD */}
-      <div className="erp-header__title">{title}</div>
+        <h1 className="erp-header__title">{title}</h1>
+
+        {/* espaçador para manter o título 100% central */}
+        <div className="erp-header__spacer" aria-hidden />
+      </div>
     </header>
   );
 }
