@@ -1,82 +1,88 @@
-/* ===== Plano de fundo e layout ===== */
-.staped-main{
-  min-height: calc(100vh - 36px);
-  padding: 12px 10px 92px;
-  background:
-    url("/bg001.png") center 140px / 1200px no-repeat,
-    #fcf4e9;
+/* === INÍCIO CSS-STA-ACTIONS (complementos para a mesma tela) === */
+
+.staped-actions {
+  margin-top: 1.25rem; /* mt-5 */
+  padding: 0 0.75rem;  /* px-3 */
 }
 
-.staped-headline{
-  font-weight: 800;
-  color: #5C1D0E;
-  margin: 10px 0 16px;
-}
-
-/* ===== Grid 2x2 (responsivo) ===== */
-.staped-grid{
+.staped-actions__grid {
   display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-@media (max-width: 680px){
-  .staped-grid{ grid-template-columns: 1fr; }
+  grid-template-columns: 1fr;
+  gap: 0.75rem; /* gap-3 */
 }
 
-/* ===== Card translúcido + cor característica + bolinhas ===== */
-.staped-card{
-  position: relative;
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 14px 30px rgba(0,0,0,.20);
-  backdrop-filter: blur(6px);
-  min-height: 150px;
+@media (min-width: 640px) {
+  .staped-actions__grid {
+    grid-template-columns: repeat(2, 1fr); /* sm:grid-cols-2 */
+  }
 }
 
-/* camada de cor (tinta) */
-.staped-card::before{
-  content:"";
-  position:absolute; inset:0;
-  background: var(--tint, rgba(0,0,0,.35));
-  opacity: .78;              /* translúcido */
+.staped-btn {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  font-weight: 600;
+  color: #fff;
+  backdrop-filter: saturate(120%) blur(2px);
+  transition: transform .06s ease-out, filter .06s ease-out;
+}
+.staped-btn:active { transform: translateY(1px) scale(0.995); }
+
+.staped-btn--dark70 { background: rgba(63, 49, 46, 0.70); } /* terracota escuro translúcido */
+.staped-btn--dark60 { background: rgba(63, 49, 46, 0.60); }
+
+.staped-report {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  background: rgba(255,255,255,0.85);
+  border-radius: 1rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 8px 20px rgba(0,0,0,0.08);
 }
 
-/* bolinhas (pontilhado suave) */
-.staped-card::after{
-  content:"";
-  position:absolute; inset:0;
-  background-image:
-    radial-gradient(rgba(255,255,255,.35) 1.6px, transparent 1.6px);
-  background-size: 14px 14px;
-  opacity: .35;
+.staped-report__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #3f312e; /* terracota escuro */
 }
 
-/* conteúdo por cima das camadas */
-.staped-card__content{
-  position: relative;
-  color: #2b1a10;
-  padding: 18px 16px 20px;
+.staped-report__pre {
+  max-height: 22rem;
+  overflow: auto;
+  font-size: 0.8rem;
+  background: #f8f6f4;
+  border: 1px solid #efe7e3;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
 }
 
-.staped-card__content h3{
-  margin: 0 0 8px;
-  font-size: 18px;
-  font-weight: 800;
-  color: #2b1a10;
-}
-.staped-count{
-  margin: 0 0 2px;
-  font-size: 36px;
-  font-weight: 900;
-  line-height: 1;
-}
-.staped-card__content small{
-  color: #3d2a1b;
-  opacity: .9;
+.staped-report__actions {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
-/* ===== Cores por quadrante ===== */
-.card--lancado   { --tint: rgba(255, 193,   7, 0.65); } /* âmbar */
-.card--alimentado{ --tint: rgba( 76, 175,  80, 0.60); } /* verde */
-.card--producao  { --tint: rgba( 33, 150, 243, 0.60); } /* azul */
-.card--finalizado{ --tint: rgba(156,  39, 176, 0.55); } /* roxo */
+.staped-chip {
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.75rem;
+  background: #e6ded8;
+  color: #3f312e;
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.staped-chip--ok {
+  background: #0d7a46;
+  color: #fff;
+}
+
+/* feedback de cor nos contadores (mantém consistência) */
+.card--pendente   .staped-count { color: #8a5a3c; } /* terracota médio */
+.card--lancado    .staped-count { color: #3f312e; }
+.card--alimentado .staped-count { color: #0d7a46; } /* verde produção */
+.card--produzido  .staped-count { color: #1e3a8a; } /* azul concluído */
+
+/* === FIM CSS-STA-ACTIONS === */
