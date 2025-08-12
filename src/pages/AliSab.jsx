@@ -1,18 +1,20 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  collection,
-  query,
-  where,
-  getDocs,
-  updateDoc,
-  doc,
-  serverTimestamp,
+  collection, query, where, getDocs,
+  updateDoc, doc, serverTimestamp,
+  getDoc, deleteDoc
 } from "firebase/firestore";
 import db from "../firebase";
 
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
 import "./AliSab.css";
+
+import {
+  upsertPedidoInCiclo,
+  deletePedidoInCiclo,
+  semanaRefFromDate
+} from "../util/Ciclo";
 
 /* =====================
  * MAPEAMENTOS / DADOS
@@ -28,38 +30,12 @@ const PRODUTO_NOMES = {
   "ESCONDIDINHO": "ESCONDIDINHO",
   "DUDU": "DUDU",
 };
-
 const SABORES_POR_PRODUTO = {
-  "BROWNIE 7X7": [
-    "Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho",
-    "Brigadeiro branco","Brigadeiro branco com confete",
-    "Bem casado","Paçoca","KitKat","Brigadeiro preto",
-    "Brigadeiro preto com confete","Palha italiana","Prestigio"
-  ],
-  "BROWNIE 6X6": [
-    "Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho",
-    "Brigadeiro branco","Brigadeiro branco com confete",
-    "Bem casado","Paçoca","KitKat","Brigadeiro preto",
-    "Brigadeiro preto com confete","Palha italiana","Prestigio"
-  ],
-  "POCKET 5X5": [
-    "Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho",
-    "Brigadeiro branco","Brigadeiro branco com confete",
-    "Bem casado","Paçoca","KitKat","Brigadeiro preto",
-    "Brigadeiro preto com confete","Palha italiana","Prestigio"
-  ],
-  "POCKET 6X6": [
-    "Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho",
-    "Brigadeiro branco","Brigadeiro branco com confete",
-    "Bem casado","Paçoca","KitKat","Brigadeiro preto",
-    "Brigadeiro preto com confete","Palha italiana","Prestigio"
-  ],
-  "ESCONDIDINHO": [
-    "Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho",
-    "Brigadeiro branco","Brigadeiro branco com confete",
-    "Bem casado","Paçoca","KitKat","Brigadeiro preto",
-    "Brigadeiro preto com confete","Palha italiana","Prestigio"
-  ],
+  "BROWNIE 7X7": ["Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho","Brigadeiro branco","Brigadeiro branco com confete","Bem casado","Paçoca","KitKat","Brigadeiro preto","Brigadeiro preto com confete","Palha italiana","Prestigio"],
+  "BROWNIE 6X6": ["Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho","Brigadeiro branco","Brigadeiro branco com confete","Bem casado","Paçoca","KitKat","Brigadeiro preto","Brigadeiro preto com confete","Palha italiana","Prestigio"],
+  "POCKET 5X5":  ["Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho","Brigadeiro branco","Brigadeiro branco com confete","Bem casado","Paçoca","KitKat","Brigadeiro preto","Brigadeiro preto com confete","Palha italiana","Prestigio"],
+  "POCKET 6X6":  ["Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho","Brigadeiro branco","Brigadeiro branco com confete","Bem casado","Paçoca","KitKat","Brigadeiro preto","Brigadeiro preto com confete","Palha italiana","Prestigio"],
+  "ESCONDIDINHO":["Ninho","Ninho com Nutella","Oreo","Ovomaltine","Beijinho","Brigadeiro branco","Brigadeiro branco com confete","Bem casado","Paçoca","KitKat","Brigadeiro preto","Brigadeiro preto com confete","Palha italiana","Prestigio"],
   "DUDU": ["Dd Oreo","Dd Ovomaltine","Dd Ninho com Nutella","Dd Creme de Maracujá","Dd KitKat"]
 };
 
@@ -70,9 +46,8 @@ function normalizaProduto(p) {
 }
 
 function proximaSegunda(d) {
-  // retorna a 00:00 da próxima segunda a partir de 'd'
   const base = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const day = base.getDay(); // 0 = dom, 1 = seg, ...
+  const day = base.getDay(); // 0 dom ... 1 seg
   const add = (8 - day) % 7 || 7;
   const target = new Date(base);
   target.setDate(base.getDate() + add);
@@ -82,7 +57,6 @@ function proximaSegunda(d) {
 export default function AliSab({ setTela }) {
   const [pedidos, setPedidos] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
-
   // formState[pedidoId] = { [produtoDisplay]: { linhas:[{sabor,qtd}], restante:number } }
   const [formState, setFormState] = useState({});
 
@@ -92,12 +66,8 @@ export default function AliSab({ setTela }) {
   useEffect(() => {
     (async () => {
       const col = collection(db, "PEDIDOS");
-
-      // “Lançado”
       const qA = query(col, where("statusEtapa", "==", "Lançado"));
       const snapA = await getDocs(qA);
-
-      // “Alimentado” também aparece (com carimbo)
       const qB = query(col, where("statusEtapa", "==", "Alimentado"));
       const snapB = await getDocs(qB);
 
@@ -113,21 +83,19 @@ export default function AliSab({ setTela }) {
           id: docSnap.id,
           escola: data.escola || "—",
           cidade: data.cidade || "",
-          criadoEm: data.criadoEm?.toDate?.() || new Date(),
+          criadoEm: data.criadoEm?.toDate?.() || data.createdEm?.toDate?.() || new Date(),
           statusEtapa: data.statusEtapa || "Lançado",
           dataAlimentado: data.dataAlimentado?.toDate?.() || null,
-          sabores: data.sabores || null, // estrutura salva anteriormente
+          sabores: data.sabores || null,
           itens: itensFmt,
         };
       };
 
       const lista = [...snapA.docs.map(parse), ...snapB.docs.map(parse)]
-        // ordena por nome da escola (dentro da linha)
         .sort((a, b) => a.escola.localeCompare(b.escola));
 
       setPedidos(lista);
 
-      // prepara estado de formulário (restantes)
       const initial = {};
       lista.forEach((p) => {
         const st = {};
@@ -135,8 +103,6 @@ export default function AliSab({ setTela }) {
           const key = it.produto;
           st[key] = st[key] || { linhas: [], restante: it.quantidade };
         });
-
-        // se já possui sabores alimentados no banco, carrega para exibição/edição
         if (p.sabores && typeof p.sabores === "object") {
           Object.entries(p.sabores).forEach(([prod, linhas]) => {
             const soma = linhas.reduce((acc, l) => acc + Number(l.qtd || 0), 0);
@@ -147,7 +113,6 @@ export default function AliSab({ setTela }) {
             st[prod].restante = Math.max(0, total - soma);
           });
         }
-
         initial[p.id] = st;
       });
       setFormState(initial);
@@ -208,38 +173,82 @@ export default function AliSab({ setTela }) {
   }
 
   /* =====================
-   * SALVAR NO FIRESTORE
+   * SALVAR / REABRIR / EXCLUIR
    * ===================== */
   async function salvarSabores(pedido) {
     const st = formState[pedido.id] || {};
-    // monta objeto compacto: { "BROWNIE 6X6": [{sabor,qtd}, ...], ... }
     const payload = {};
     Object.entries(st).forEach(([prod, dados]) => {
       if (dados.linhas.length) payload[prod] = dados.linhas;
     });
 
+    // atualiza raiz
     const ref = doc(db, "PEDIDOS", pedido.id);
     await updateDoc(ref, {
       sabores: payload,
       statusEtapa: "Alimentado",
       dataAlimentado: serverTimestamp(),
       atualizadoEm: serverTimestamp(),
+      semanaRef: semanaRefFromDate(pedido.criadoEm || new Date()),
     });
 
-    // marca localmente (mantém na grade com carimbo)
+    // espelha na coleção semanal (sem timestamps de server para manter simples)
+    await upsertPedidoInCiclo(
+      db,
+      pedido.id,
+      {
+        ...pedido,
+        sabores: payload,
+        statusEtapa: "Alimentado",
+        dataAlimentado: new Date(),
+      },
+      pedido.criadoEm || new Date()
+    );
+
+    // estado local
     setPedidos((prev) =>
       prev.map((p) =>
         p.id === pedido.id
-          ? {
-              ...p,
-              statusEtapa: "Alimentado",
-              sabores: payload,
-              dataAlimentado: new Date(),
-            }
+          ? { ...p, statusEtapa: "Alimentado", sabores: payload, dataAlimentado: new Date() }
           : p
       )
     );
+    setExpandedId(null);
+  }
 
+  async function reabrirPedido(pedido) {
+    if (!confirm("Reabrir este pedido? Ele voltará para 'Lançado'.")) return;
+
+    const ref = doc(db, "PEDIDOS", pedido.id);
+    // mantém sabores (ou zera: comente/descomente abaixo)
+    await updateDoc(ref, {
+      statusEtapa: "Lançado",
+      atualizadoEm: serverTimestamp(),
+      // Para zerar sabores, descomente:
+      // sabores: {},
+      // dataAlimentado: null,
+    });
+
+    await upsertPedidoInCiclo(
+      db,
+      pedido.id,
+      { ...pedido, statusEtapa: "Lançado" },
+      pedido.criadoEm || new Date()
+    );
+
+    setPedidos((prev) => prev.map((p) => (p.id === pedido.id ? { ...p, statusEtapa: "Lançado" } : p)));
+    setExpandedId(null);
+  }
+
+  async function excluirPedido(pedido) {
+    if (!confirm("Excluir este pedido? Esta ação não pode ser desfeita.")) return;
+
+    // apaga da raiz
+    await deleteDoc(doc(db, "PEDIDOS", pedido.id));
+    // apaga do ciclo semanal
+    await deletePedidoInCiclo(db, pedido.id, pedido.criadoEm || new Date());
+
+    setPedidos((prev) => prev.filter((p) => p.id !== pedido.id));
     setExpandedId(null);
   }
 
@@ -255,7 +264,6 @@ export default function AliSab({ setTela }) {
           <div className="alisab-title">
             <span role="img" aria-label="chocolate">🍫</span> Alimentar Sabores
           </div>
-          {/* (o rodapé já tem o botão Voltar) */}
         </div>
 
         <section className="postits-list">
@@ -296,7 +304,6 @@ export default function AliSab({ setTela }) {
                         restante: it.quantidade,
                       };
 
-                      // local controls (sem state global para inputs)
                       let selectRef, qtdRef;
 
                       return (
@@ -311,36 +318,13 @@ export default function AliSab({ setTela }) {
                           </div>
 
                           <div className="linha-add">
-                            <select
-                              ref={(r) => (selectRef = r)}
-                              defaultValue=""
-                            >
-                              <option value="" disabled>
-                                Sabor...
-                              </option>
-                              {sabores.map((s) => (
-                                <option key={s} value={s}>{s}</option>
-                              ))}
+                            <select ref={(r) => (selectRef = r)} defaultValue="">
+                              <option value="" disabled>Sabor...</option>
+                              {sabores.map((s) => (<option key={s} value={s}>{s}</option>))}
                             </select>
-                            <input
-                              ref={(r) => (qtdRef = r)}
-                              type="number"
-                              min="1"
-                              className="qtd"
-                              placeholder="Qtd"
-                            />
-                            <button
-                              type="button"
-                              className="btn-add"
-                              onClick={() =>
-                                addLinha(
-                                  p.id,
-                                  prod,
-                                  selectRef?.value || "",
-                                  qtdRef?.value || ""
-                                )
-                              }
-                            >
+                            <input ref={(r) => (qtdRef = r)} type="number" min="1" className="qtd" placeholder="Qtd" />
+                            <button type="button" className="btn-add"
+                              onClick={() => addLinha(p.id, prod, selectRef?.value || "", qtdRef?.value || "")}>
                               ＋ Adicionar
                             </button>
                           </div>
@@ -349,16 +333,8 @@ export default function AliSab({ setTela }) {
                             <ul className="linhas-list">
                               {bloco.linhas.map((ln, j) => (
                                 <li key={j}>
-                                  <span>
-                                    {ln.qtd}× {ln.sabor}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    className="btn-x"
-                                    onClick={() => removeLinha(p.id, prod, j)}
-                                  >
-                                    ×
-                                  </button>
+                                  <span>{ln.qtd}× {ln.sabor}</span>
+                                  <button type="button" className="btn-x" onClick={() => removeLinha(p.id, prod, j)}>×</button>
                                 </li>
                               ))}
                             </ul>
@@ -368,18 +344,16 @@ export default function AliSab({ setTela }) {
                     })}
 
                     <div className="acoes">
-                      <button
-                        type="button"
-                        className="btn-salvar"
-                        onClick={() => salvarSabores(p)}
-                      >
+                      <button type="button" className="btn-salvar" onClick={() => salvarSabores(p)}>
                         💾 Salvar Sabores
                       </button>
-                      <button
-                        type="button"
-                        className="btn-cancelar"
-                        onClick={() => setExpandedId(null)}
-                      >
+                      <button type="button" className="btn-outline" onClick={() => reabrirPedido(p)}>
+                        ↩ Reabrir
+                      </button>
+                      <button type="button" className="btn-danger" onClick={() => excluirPedido(p)}>
+                        🗑 Excluir
+                      </button>
+                      <button type="button" className="btn-cancelar" onClick={() => setExpandedId(null)}>
                         ✖ Cancelar
                       </button>
                     </div>
@@ -394,4 +368,4 @@ export default function AliSab({ setTela }) {
       <ERPFooter onBack={() => setTela("HomePCP")} />
     </>
   );
-              }
+                     }
