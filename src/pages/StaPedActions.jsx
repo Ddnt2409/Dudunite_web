@@ -8,47 +8,59 @@ import {
 
 /*
 Props:
-pedidos: Array<{
-  cidade: string;
-  pdv: string;
-  itens: Array<{ produto: string; qtd: number }>;
-  sabores?: Record<string, Array<{ sabor: string; qtd: number }>>;
-  statusEtapa: "Lançado" | "Alimentado" | "Produzido";
-}>
+- pedidos: Array<Pedido>
+- semanaVazia: boolean
 */
 
-export default function StaPedActions({ pedidos = [] }) {
+export default function StaPedActions({ pedidos = [], semanaVazia = false }) {
   const [relatorioTipo, setRelatorioTipo] = useState(null);
   const [relatorioDados, setRelatorioDados] = useState(null);
+  const [mensagemVazia, setMensagemVazia] = useState("");
+
+  function abrirMensagemAmigavel(titulo) {
+    setRelatorioDados(null);
+    setRelatorioTipo(titulo);
+    setMensagemVazia(
+      "Nenhum dado disponível nesta semana. Volte após registrar pedidos."
+    );
+  }
 
   function gerarPlanejamentoGeral() {
+    if (semanaVazia) return abrirMensagemAmigavel("Planejamento de Produção – Geral");
     const filtrados = filtrarPorStatus(pedidos, "PLAN_GERAL");
     const plan = montarPlanejamento(filtrados, "GERAL");
     const compras = montarListaCompras(filtrados, plan);
+    setMensagemVazia("");
     setRelatorioTipo("Planejamento de Produção – Geral");
     setRelatorioDados({ plan, compras });
   }
 
   function gerarPlanejamentoTempoReal() {
+    if (semanaVazia) return abrirMensagemAmigavel("Planejamento de Produção – Tempo Real");
     const filtrados = filtrarPorStatus(pedidos, "PLAN_TEMPO_REAL");
     const plan = montarPlanejamento(filtrados, "TEMPO_REAL");
     const compras = montarListaCompras(filtrados, plan);
+    setMensagemVazia("");
     setRelatorioTipo("Planejamento de Produção – Tempo Real");
     setRelatorioDados({ plan, compras });
   }
 
   function gerarListaComprasGeral() {
+    if (semanaVazia) return abrirMensagemAmigavel("Lista de Compras – Geral");
     const filtrados = filtrarPorStatus(pedidos, "COMPRAS_GERAL");
     const plan = montarPlanejamento(filtrados, "GERAL");
     const compras = montarListaCompras(filtrados, plan);
+    setMensagemVazia("");
     setRelatorioTipo("Lista de Compras – Geral");
     setRelatorioDados({ plan, compras });
   }
 
   function gerarListaComprasTempoReal() {
+    if (semanaVazia) return abrirMensagemAmigavel("Lista de Compras – Tempo Real");
     const filtrados = filtrarPorStatus(pedidos, "COMPRAS_TEMPO_REAL");
     const plan = montarPlanejamento(filtrados, "TEMPO_REAL");
     const compras = montarListaCompras(filtrados, plan);
+    setMensagemVazia("");
     setRelatorioTipo("Lista de Compras – Tempo Real");
     setRelatorioDados({ plan, compras });
   }
@@ -76,23 +88,37 @@ export default function StaPedActions({ pedidos = [] }) {
         </div>
       </section>
 
-      {/* Prévia */}
-      {relatorioDados && (
+      {/* Prévia (dados ou mensagem amigável) */}
+      {(relatorioDados || mensagemVazia) && (
         <section className="staped-report">
           <div className="staped-report__title">{relatorioTipo}</div>
-          <pre className="staped-report__pre">
-            {JSON.stringify(relatorioDados, null, 2)}
-          </pre>
+
+          {mensagemVazia ? (
+            <div className="staped-empty-box">
+              {mensagemVazia}
+            </div>
+          ) : (
+            <pre className="staped-report__pre">
+              {JSON.stringify(relatorioDados, null, 2)}
+            </pre>
+          )}
+
           <div className="staped-report__actions">
-            <button
-              className="staped-chip staped-chip--ok"
-              onClick={() => { /* TODO: PDF */ }}
-            >
-              Gerar PDF
-            </button>
+            {!mensagemVazia && (
+              <button
+                className="staped-chip staped-chip--ok"
+                onClick={() => { /* TODO: PDF */ }}
+              >
+                Gerar PDF
+              </button>
+            )}
             <button
               className="staped-chip"
-              onClick={() => { setRelatorioTipo(null); setRelatorioDados(null); }}
+              onClick={() => {
+                setRelatorioTipo(null);
+                setRelatorioDados(null);
+                setMensagemVazia("");
+              }}
             >
               Fechar
             </button>
