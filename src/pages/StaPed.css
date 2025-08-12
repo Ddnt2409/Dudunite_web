@@ -213,3 +213,48 @@ header.erp-header img {
   font-size: 2rem;   /* pode aumentar para 2.2rem se quiser mais destaque */
   line-height: 1.05;
 }
+/* === OVERRIDES: Fonte e tamanho dentro dos cards === */
+
+/* Título do card */
+.staped-card h3 {
+  font-size: 12px !important;
+  font-weight: bold !important;
+  margin-bottom: 0.5rem;
+}
+
+/* Qualquer texto interno do card (inclusive PDV e cidade) */
+.staped-card *:not(h3) {
+  font-size: 12px !important;
+  font-weight: normal !important;
+  line-height: 1.3;
+}
+
+/* Nome da cidade */
+.badge-cidade {
+  font-size: 12px !important;
+  font-weight: normal !important;
+}
+
+/* Lista de PDVs */
+.staped-pendentes-item {
+  font-size: 12px !important;
+  font-weight: normal !important;
+}
+
+/* Altura ampliada dos cards */
+.staped-card__content {
+  min-height: 304px !important; /* +60% de altura */
+  padding: 1.1rem 1.2rem;
+}
+
+/* Lista de PDVs com mais área para rolar */
+.staped-pendentes-list {
+  max-height: 272px !important;
+}
+
+/* Contagem permanece grande */
+.staped-count {
+  font-size: 2rem;
+  font-weight: bold;
+  line-height: 1.05;
+}
