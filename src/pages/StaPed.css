@@ -258,3 +258,47 @@ header.erp-header img {
   font-weight: bold;
   line-height: 1.05;
 }
+/* === OVERRIDES – tamanho das fontes dos cards alinhado ao cabeçalho === */
+/* Ajuste fino centralizado por variáveis (troque os valores se quiser) */
+:root {
+  --staped-card-title-size: 16px;  /* ~título do cabeçalho da página */
+  --staped-card-text-size:  16px;  /* texto interno (cidade/PDV/descrição) */
+  --staped-count-size:      2.6rem;/* número grande dos quadrantes */
+}
+
+/* Altura dos cards (+60%) e respiro */
+.staped-card__content {
+  min-height: 304px !important;
+  padding: 1.15rem 1.25rem;
+}
+
+/* TÍTULO do card: bold e grande */
+.staped-card h3 {
+  font-size: var(--staped-card-title-size) !important;
+  font-weight: 800 !important;
+  line-height: 1.25;
+  margin-bottom: .55rem;
+  color: #2f2725;
+}
+
+/* TEXTOS internos do card (mesmo tamanho do título, porém peso normal) */
+.staped-card small,
+.staped-pendentes-item,
+.staped-pendentes-item .pdv-nome,
+.badge-cidade {
+  font-size: var(--staped-card-text-size) !important;
+  font-weight: 400 !important;
+  line-height: 1.35;
+}
+
+/* Número grande do quadrante (maior que antes) */
+.staped-count {
+  font-size: var(--staped-count-size) !important;
+  font-weight: 900;
+  line-height: 1.02;
+}
+
+/* Lista de pendentes com área maior (acompanha card mais alto) */
+.staped-pendentes-list {
+  max-height: 272px !important;
+}
