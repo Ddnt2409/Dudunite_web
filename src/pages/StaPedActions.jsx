@@ -7,7 +7,7 @@ import {
 } from "../util/MemProd";
 
 /*
-Props esperadas:
+Props:
 pedidos: Array<{
   cidade: string;
   pdv: string;
@@ -55,7 +55,7 @@ export default function StaPedActions({ pedidos = [] }) {
 
   return (
     <>
-      {/* === INÍCIO RT30 – Grade de Botões (mesma tela) === */}
+      {/* Botões */}
       <section className="staped-actions">
         <div className="staped-actions__grid">
           <button onClick={gerarPlanejamentoGeral} className="staped-btn staped-btn--dark70">
@@ -75,21 +75,18 @@ export default function StaPedActions({ pedidos = [] }) {
           </button>
         </div>
       </section>
-      {/* === FIM RT30 === */}
 
-      {/* === INÍCIO RT31 – Prévia do Relatório (para PDF) === */}
+      {/* Prévia */}
       {relatorioDados && (
         <section className="staped-report">
           <div className="staped-report__title">{relatorioTipo}</div>
-
           <pre className="staped-report__pre">
             {JSON.stringify(relatorioDados, null, 2)}
           </pre>
-
           <div className="staped-report__actions">
             <button
               className="staped-chip staped-chip--ok"
-              onClick={() => { /* TODO: gerar PDF dessa estrutura */ }}
+              onClick={() => { /* TODO: PDF */ }}
             >
               Gerar PDF
             </button>
@@ -102,7 +99,6 @@ export default function StaPedActions({ pedidos = [] }) {
           </div>
         </section>
       )}
-      {/* === FIM RT31 === */}
     </>
   );
 }
