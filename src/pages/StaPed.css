@@ -182,88 +182,13 @@ header.erp-header img {
   .print-area, .print-area * { visibility: visible !important; }
   .print-area { position: absolute; left: 0; top: 0; width: 100%; }
 }
-/* === OVERRIDES: cards +60% de altura e fonte interna = 12px === */
+/* === OVERRIDE ÚNICO — Tamanhos e pesos dos cards (alinhados ao cabeçalho) === */
 
-/* altura dos cards (era ~190px) → +60% = ~304px */
-.staped-card__content {
-  min-height: 304px !important;
-  padding: 1.1rem 1.2rem; /* um pouquinho mais de respiro */
-}
-
-/* título e textos internos TODOS em 12px */
-.staped-card h3 {
-  font-size: 12px !important;
-  line-height: 1.25;
-}
-
-.staped-card small,
-.staped-pendentes-item,
-.staped-pendentes-item .pdv-nome,
-.badge-cidade {
-  font-size: 12px !important;
-}
-
-/* lista de PDVs pendentes com área maior (era 170px) */
-.staped-pendentes-list {
-  max-height: 272px !important; /* ~170px * 1.6 */
-}
-
-/* contagem continua grande para leitura; ajuste fino opcional */
-.staped-count {
-  font-size: 2rem;   /* pode aumentar para 2.2rem se quiser mais destaque */
-  line-height: 1.05;
-}
-/* === OVERRIDES: Fonte e tamanho dentro dos cards === */
-
-/* Título do card */
-.staped-card h3 {
-  font-size: 12px !important;
-  font-weight: bold !important;
-  margin-bottom: 0.5rem;
-}
-
-/* Qualquer texto interno do card (inclusive PDV e cidade) */
-.staped-card *:not(h3) {
-  font-size: 12px !important;
-  font-weight: normal !important;
-  line-height: 1.3;
-}
-
-/* Nome da cidade */
-.badge-cidade {
-  font-size: 12px !important;
-  font-weight: normal !important;
-}
-
-/* Lista de PDVs */
-.staped-pendentes-item {
-  font-size: 12px !important;
-  font-weight: normal !important;
-}
-
-/* Altura ampliada dos cards */
-.staped-card__content {
-  min-height: 304px !important; /* +60% de altura */
-  padding: 1.1rem 1.2rem;
-}
-
-/* Lista de PDVs com mais área para rolar */
-.staped-pendentes-list {
-  max-height: 272px !important;
-}
-
-/* Contagem permanece grande */
-.staped-count {
-  font-size: 2rem;
-  font-weight: bold;
-  line-height: 1.05;
-}
-/* === OVERRIDES – tamanho das fontes dos cards alinhado ao cabeçalho === */
-/* Ajuste fino centralizado por variáveis (troque os valores se quiser) */
+/* Ajuste centralizado: se o título do cabeçalho mudar, basta trocar aqui */
 :root {
-  --staped-card-title-size: 16px;  /* ~título do cabeçalho da página */
-  --staped-card-text-size:  16px;  /* texto interno (cidade/PDV/descrição) */
-  --staped-count-size:      2.6rem;/* número grande dos quadrantes */
+  --hdr-like-size: 20px;         /* ~tamanho do título do cabeçalho */
+  --count-size-mobile: 1.5rem;   /* igual ao aviso "SEMANA..." no mobile */
+  --count-size-desktop: 1.9rem;  /* igual ao aviso "SEMANA..." no desktop */
 }
 
 /* Altura dos cards (+60%) e respiro */
@@ -272,30 +197,38 @@ header.erp-header img {
   padding: 1.15rem 1.25rem;
 }
 
-/* TÍTULO do card: bold e grande */
+/* Título do card = tamanho do cabeçalho, em bold */
 .staped-card h3 {
-  font-size: var(--staped-card-title-size) !important;
+  font-size: var(--hdr-like-size) !important;
   font-weight: 800 !important;
   line-height: 1.25;
   margin-bottom: .55rem;
   color: #2f2725;
 }
 
-/* TEXTOS internos do card (mesmo tamanho do título, porém peso normal) */
+/* Texto interno dos cards (descrições, itens, PDV) = tamanho do cabeçalho, peso normal */
 .staped-card small,
 .staped-pendentes-item,
 .staped-pendentes-item .pdv-nome,
 .badge-cidade {
-  font-size: var(--staped-card-text-size) !important;
+  font-size: var(--hdr-like-size) !important;
   font-weight: 400 !important;
   line-height: 1.35;
 }
 
-/* Número grande do quadrante (maior que antes) */
+/* Nome da cidade em negrito */
+.badge-cidade {
+  font-weight: 800 !important;
+}
+
+/* Número dos quadrantes = tamanho do aviso "SEMANA..." (bold) */
 .staped-count {
-  font-size: var(--staped-count-size) !important;
-  font-weight: 900;
+  font-size: var(--count-size-mobile) !important;
+  font-weight: 900 !important;
   line-height: 1.02;
+}
+@media (min-width: 640px) {
+  .staped-count { font-size: var(--count-size-desktop) !important; }
 }
 
 /* Lista de pendentes com área maior (acompanha card mais alto) */
