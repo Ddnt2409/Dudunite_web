@@ -24,12 +24,15 @@
   z-index: -1;
 }
 
-/* === Cabeçalho +20% (tentativa de override) === */
-.erp-header, header.erp-header, .erp-header__bar {
-  min-height: 20% !important; /* fallback */
+/* === Cabeçalho +20% (override seguro) === */
+.erp-header,
+header.erp-header {
+  padding-top: 1.2rem;            /* +20% vertical aproximado */
+  padding-bottom: 1.2rem;
 }
-.erp-header img, header.erp-header img {
-  max-height: 216px; /* 180px * 1.2 */
+.erp-header img,
+header.erp-header img {
+  max-height: 216px;              /* 180px * 1.2 */
 }
 
 /* === Estrutura base da página === */
@@ -37,71 +40,71 @@
 .staped-headline {
   display: flex; align-items: center; gap: .5rem;
   font-weight: 700; color: #3f312e;
-  margin: .25rem 2px .5rem;
+  margin: .25rem 2px .75rem;
 }
 
 /* Banner semana vazia */
 .semana-sem-pedidos {
-  margin: .5rem .5rem .75rem;
+  margin: 0 .5rem .75rem;
   padding: 1rem;
   background: rgba(255, 244, 244, .85);
   border: 1px solid #ffdada;
-  border-radius: 14px;
+  border-radius: 16px;
   text-align: center;
-  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  box-shadow: 0 8px 22px rgba(0,0,0,.10);
   backdrop-filter: blur(2px);
 }
 .semana-sem-pedidos h2 {
   margin: 0; font-weight: 900; letter-spacing: .5px;
-  color: #8b1e1e; font-size: 1.4rem;
+  color: #8b1e1e; font-size: 1.5rem;
 }
-@media (min-width: 640px) { .semana-sem-pedidos h2 { font-size: 1.8rem; } }
+@media (min-width: 640px) { .semana-sem-pedidos h2 { font-size: 1.9rem; } }
 
 /* Quadrantes */
 .staped-grid {
   display: grid; grid-template-columns: 1fr;
-  gap: .75rem; margin-bottom: .75rem;
+  gap: .85rem; margin-bottom: .85rem;
 }
 @media (min-width: 640px) { .staped-grid { grid-template-columns: repeat(2, 1fr); } }
 
 .staped-card {
   border-radius: 16px;
-  box-shadow: 0 10px 26px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,.4);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,.5);
   border: 1px solid rgba(255,255,255,0.6);
   backdrop-filter: blur(3px) saturate(120%);
   transform: translateZ(0); /* 3D */
 }
-.staped-card__content { padding: .9rem 1rem; }
+.staped-card__content { padding: 1.05rem 1.1rem; min-height: 190px; }
 
 /* cores translúcidas por status */
-.card--pendente   { background: rgba(138, 90, 60, 0.12); }
-.card--lancado    { background: rgba(63,  49, 46, 0.10); }
-.card--alimentado { background: rgba(13, 122, 70, 0.10); }
-.card--produzido  { background: rgba(30,  58,138, 0.10); }
+.card--pendente   { background: rgba(138, 90, 60, 0.14); }
+.card--lancado    { background: rgba(63,  49, 46, 0.12); }
+.card--alimentado { background: rgba(13, 122, 70, 0.12); }
+.card--produzido  { background: rgba(30,  58,138, 0.12); }
 
 .staped-card h3 {
-  margin: 0 0 .25rem; font-size: 1rem; font-weight: 800; color: #3f312e;
+  margin: 0 0 .35rem; font-size: 1.12rem; font-weight: 900; color: #2f2725;
 }
-.staped-count { margin: 0; font-size: 1.8rem; line-height: 1.1; font-weight: 800; }
-.staped-card small { display: block; color: #433e3b; margin-top: .25rem; }
+.staped-count { margin: 0; font-size: 2rem; line-height: 1.05; font-weight: 900; }
+.staped-card small { display: block; color: #433e3b; margin-top: .3rem; font-size: .92rem; }
 
 /* lista de PDVs pendentes dentro do card */
 .staped-pendentes-list {
-  margin-top: .5rem;
-  max-height: 180px;
+  margin-top: .6rem;
+  max-height: 170px;
   overflow: auto;
   padding-right: .25rem;
 }
 .staped-pendentes-item {
   display: flex; align-items: center; gap: .5rem;
-  padding: .25rem 0; border-bottom: 1px dashed rgba(63,49,46,.15);
-  font-size: .9rem;
+  padding: .3rem 0; border-bottom: 1px dashed rgba(63,49,46,.15);
+  font-size: .95rem;
 }
 .staped-pendentes-item:last-child { border-bottom: 0; }
 .badge-cidade {
-  font-size: .72rem; font-weight: 800; letter-spacing: .3px;
+  font-size: .74rem; font-weight: 900; letter-spacing: .3px;
   color: #3f312e; background: rgba(63,49,46,.12);
-  padding: .15rem .4rem; border-radius: .5rem;
+  padding: .18rem .45rem; border-radius: .5rem;
 }
 .pdv-nome { color: #3f312e; }
 
@@ -111,8 +114,11 @@
 .card--alimentado .staped-count { color: #0d7a46; }
 .card--produzido  .staped-count { color: #1e3a8a; }
 
-/* Ações (botões) */
-.staped-actions { margin-top: 1rem; padding: 0 .5rem; }
+/* Ações (botões) – mais compacto e com scroll */
+.staped-actions {
+  margin-top: .9rem; padding: 0 .5rem;
+  max-height: 220px; overflow: auto; /* rolagem quando necessário */
+}
 .staped-actions__grid {
   display: grid; grid-template-columns: 1fr; gap: .6rem;
 }
@@ -121,8 +127,8 @@
   width: 100%;
   padding: .95rem 1rem;
   border-radius: 14px;
-  color: #fff; font-weight: 700;
-  box-shadow: 0 14px 30px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.25);
+  color: #fff; font-weight: 800;
+  box-shadow: 0 16px 36px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.25);
   transform: translateZ(0);
   transition: transform .06s ease-out, filter .06s ease-out, box-shadow .1s;
   backdrop-filter: saturate(120%) blur(2px);
@@ -133,36 +139,46 @@
 
 /* Prévia do relatório / mensagem amigável */
 .staped-report {
-  margin: 1rem .5rem 0; padding: .85rem;
-  background: rgba(255,255,255,.88);
-  border-radius: 14px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 12px 30px rgba(0,0,0,.12);
+  margin: 1rem .5rem 0; padding: .95rem;
+  background: rgba(255,255,255,.90);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 14px 34px rgba(0,0,0,.14);
   border: 1px solid rgba(255,255,255,.7);
   backdrop-filter: blur(2px);
 }
 .staped-report__title {
-  font-size: .95rem; font-weight: 800; color: #3f312e; margin-bottom: .5rem;
+  font-size: 1.02rem; font-weight: 900; color: #2f2725; margin-bottom: .6rem;
 }
 .staped-report__pre {
-  max-height: 46vh; overflow: auto; font-size: .8rem;
+  max-height: 46vh; overflow: auto; font-size: .9rem;
   background: #f8f6f4; border: 1px solid #efe7e3;
-  border-radius: 10px; padding: .6rem;
+  border-radius: 12px; padding: .7rem;
 }
 .staped-empty-box {
   padding: 1rem;
   border-radius: 12px;
-  background: rgba(255, 245, 230, .85);
-  border: 1px solid rgba(255, 210, 170, .9);
+  background: rgba(255, 245, 230, .9);
+  border: 1px solid rgba(255, 210, 170, .95);
   color: #3f312e;
   text-align: center;
-  box-shadow: 0 8px 22px rgba(0,0,0,.08);
+  box-shadow: 0 10px 26px rgba(0,0,0,.10);
+}
+.staped-report__meta {
+  margin-top: .6rem; font-size: .82rem; color: #5a514d;
 }
 .staped-report__actions {
-  margin-top: .6rem; display: flex; gap: .5rem; flex-wrap: wrap;
+  margin-top: .7rem; display: flex; gap: .5rem; flex-wrap: wrap;
 }
 .staped-chip {
-  padding: .45rem .7rem; border-radius: 10px;
-  background: #e6ded8; color: #3f312e; font-size: .8rem; font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  padding: .5rem .8rem; border-radius: 12px;
+  background: #e6ded8; color: #3f312e; font-size: .85rem; font-weight: 800;
+  box-shadow: 0 6px 16px rgba(0,0,0,.12);
 }
 .staped-chip--ok { background: #0d7a46; color: #fff; }
+
+/* === PRINT: imprime apenas a área do relatório === */
+@media print {
+  body * { visibility: hidden !important; }
+  .print-area, .print-area * { visibility: visible !important; }
+  .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+}
