@@ -9,7 +9,7 @@ import "./StaPed.css";
 
 import StaPedActions from "./StaPedActions";
 import { PDVS_VALIDOS, chavePDV, totalPDVsValidos } from "../util/PDVsValidos";
-import { caminhoCicloAtual } from "../util/semana";
+import { caminhoCicloAtual } from "../util/Semana";
 
 /* === INÍCIO FN-SP-STATUS – Normalizações (visual/core) === */
 function normalizaStatusVisual(raw) {
