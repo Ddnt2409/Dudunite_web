@@ -86,3 +86,110 @@
 .card--produzido  .staped-count { color: #1e3a8a; } /* azul concluído */
 
 /* === FIM CSS-STA-ACTIONS === */
+
+/* === FIX-PACK: estrutura e respiro geral === */
+.staped-main {
+  padding: 0 10px 88px; /* espaço p/ footer fixo */
+}
+
+.staped-headline {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-weight: 700;
+  color: #3f312e;
+  margin: .25rem 2px .5rem;
+}
+
+/* Quadrantes */
+.staped-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .75rem;
+  margin-bottom: .75rem;
+}
+
+@media (min-width: 640px) {
+  .staped-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.staped-card {
+  border-radius: 16px;
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  border: 1px solid #efe7e3;
+}
+
+.staped-card__content {
+  padding: .9rem 1rem;
+}
+
+.staped-card h3 {
+  margin: 0 0 .25rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #3f312e;
+}
+
+.staped-count {
+  margin: 0;
+  font-size: 1.8rem;
+  line-height: 1.1;
+  font-weight: 800;
+}
+
+.staped-card small {
+  display: block;
+  color: #6b5c56;
+  margin-top: .25rem;
+}
+
+/* Botões de ação */
+.staped-actions { margin-top: 1rem; padding: 0 .5rem; }
+.staped-actions__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .6rem;
+}
+@media (min-width: 640px) {
+  .staped-actions__grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.staped-btn {
+  width: 100%;
+  padding: .85rem 1rem;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  font-weight: 700;
+  color: #fff;
+  transition: transform .06s ease-out, filter .06s ease-out;
+}
+.staped-btn:active { transform: translateY(1px) scale(.995); }
+.staped-btn--dark70 { background: rgba(63,49,46,.70); }
+.staped-btn--dark60 { background: rgba(63,49,46,.60); }
+
+/* Relatório */
+.staped-report {
+  margin: 1rem .5rem 0;
+  padding: .85rem;
+  background: rgba(255,255,255,.9);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 8px 20px rgba(0,0,0,.08);
+  border: 1px solid #efe7e3;
+}
+.staped-report__title {
+  font-size: .95rem; font-weight: 800; color: #3f312e; margin-bottom: .5rem;
+}
+.staped-report__pre {
+  max-height: 46vh; overflow: auto; font-size: .8rem;
+  background: #f8f6f4; border: 1px solid #efe7e3; border-radius: 10px; padding: .6rem;
+}
+.staped-report__actions { margin-top: .6rem; display: flex; gap: .5rem; flex-wrap: wrap; }
+.staped-chip { padding: .45rem .7rem; border-radius: 10px; background: #e6ded8; color: #3f312e; font-size: .8rem; font-weight: 700; }
+.staped-chip--ok { background: #0d7a46; color: #fff; }
+
+/* Cores dos contadores */
+.card--pendente   .staped-count { color: #8a5a3c; }
+.card--lancado    .staped-count { color: #3f312e; }
+.card--alimentado .staped-count { color: #0d7a46; }
+.card--produzido  .staped-count { color: #1e3a8a; }
