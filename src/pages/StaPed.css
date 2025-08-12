@@ -1,93 +1,4 @@
-/* === INÍCIO CSS-STA-ACTIONS (complementos para a mesma tela) === */
-
-.staped-actions {
-  margin-top: 1.25rem; /* mt-5 */
-  padding: 0 0.75rem;  /* px-3 */
-}
-
-.staped-actions__grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem; /* gap-3 */
-}
-
-@media (min-width: 640px) {
-  .staped-actions__grid {
-    grid-template-columns: repeat(2, 1fr); /* sm:grid-cols-2 */
-  }
-}
-
-.staped-btn {
-  width: 100%;
-  padding: 0.9rem 1rem;
-  border-radius: 1rem; /* rounded-2xl */
-  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-  font-weight: 600;
-  color: #fff;
-  backdrop-filter: saturate(120%) blur(2px);
-  transition: transform .06s ease-out, filter .06s ease-out;
-}
-.staped-btn:active { transform: translateY(1px) scale(0.995); }
-
-.staped-btn--dark70 { background: rgba(63, 49, 46, 0.70); } /* terracota escuro translúcido */
-.staped-btn--dark60 { background: rgba(63, 49, 46, 0.60); }
-
-.staped-report {
-  margin-top: 1.25rem;
-  padding: 1rem;
-  background: rgba(255,255,255,0.85);
-  border-radius: 1rem;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 8px 20px rgba(0,0,0,0.08);
-}
-
-.staped-report__title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: #3f312e; /* terracota escuro */
-}
-
-.staped-report__pre {
-  max-height: 22rem;
-  overflow: auto;
-  font-size: 0.8rem;
-  background: #f8f6f4;
-  border: 1px solid #efe7e3;
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-}
-
-.staped-report__actions {
-  margin-top: 0.75rem;
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.staped-chip {
-  padding: 0.4rem 0.7rem;
-  border-radius: 0.75rem;
-  background: #e6ded8;
-  color: #3f312e;
-  font-size: 0.8rem;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-}
-
-.staped-chip--ok {
-  background: #0d7a46;
-  color: #fff;
-}
-
-/* feedback de cor nos contadores (mantém consistência) */
-.card--pendente   .staped-count { color: #8a5a3c; } /* terracota médio */
-.card--lancado    .staped-count { color: #3f312e; }
-.card--alimentado .staped-count { color: #0d7a46; } /* verde produção */
-.card--produzido  .staped-count { color: #1e3a8a; } /* azul concluído */
-
-/* === FIM CSS-STA-ACTIONS === */
-
-/* === FIX-PACK: estrutura e respiro geral === */
+/* === Estrutura base da página === */
 .staped-main {
   padding: 0 10px 88px; /* espaço p/ footer fixo */
 }
@@ -101,6 +12,27 @@
   margin: .25rem 2px .5rem;
 }
 
+/* Banner semana vazia */
+.semana-sem-pedidos {
+  margin: .5rem .5rem .75rem;
+  padding: 1rem;
+  background: #fff4f4;
+  border: 1px solid #ffdada;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,.05);
+}
+.semana-sem-pedidos h2 {
+  margin: 0;
+  font-weight: 900;
+  letter-spacing: .5px;
+  color: #8b1e1e;
+  font-size: 1.4rem;
+}
+@media (min-width: 640px) {
+  .semana-sem-pedidos h2 { font-size: 1.8rem; }
+}
+
 /* Quadrantes */
 .staped-grid {
   display: grid;
@@ -108,7 +40,6 @@
   gap: .75rem;
   margin-bottom: .75rem;
 }
-
 @media (min-width: 640px) {
   .staped-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -119,10 +50,7 @@
   box-shadow: 0 8px 20px rgba(0,0,0,0.06);
   border: 1px solid #efe7e3;
 }
-
-.staped-card__content {
-  padding: .9rem 1rem;
-}
+.staped-card__content { padding: .9rem 1rem; }
 
 .staped-card h3 {
   margin: 0 0 .25rem;
@@ -130,21 +58,25 @@
   font-weight: 800;
   color: #3f312e;
 }
-
 .staped-count {
   margin: 0;
   font-size: 1.8rem;
   line-height: 1.1;
   font-weight: 800;
 }
-
 .staped-card small {
   display: block;
   color: #6b5c56;
   margin-top: .25rem;
 }
 
-/* Botões de ação */
+/* Cores dos contadores */
+.card--pendente   .staped-count { color: #8a5a3c; }
+.card--lancado    .staped-count { color: #3f312e; }
+.card--alimentado .staped-count { color: #0d7a46; }
+.card--produzido  .staped-count { color: #1e3a8a; }
+
+/* Ações (botões) */
 .staped-actions { margin-top: 1rem; padding: 0 .5rem; }
 .staped-actions__grid {
   display: grid;
@@ -154,7 +86,6 @@
 @media (min-width: 640px) {
   .staped-actions__grid { grid-template-columns: repeat(2, 1fr); }
 }
-
 .staped-btn {
   width: 100%;
   padding: .85rem 1rem;
@@ -168,7 +99,7 @@
 .staped-btn--dark70 { background: rgba(63,49,46,.70); }
 .staped-btn--dark60 { background: rgba(63,49,46,.60); }
 
-/* Relatório */
+/* Prévia do relatório */
 .staped-report {
   margin: 1rem .5rem 0;
   padding: .85rem;
@@ -178,18 +109,32 @@
   border: 1px solid #efe7e3;
 }
 .staped-report__title {
-  font-size: .95rem; font-weight: 800; color: #3f312e; margin-bottom: .5rem;
+  font-size: .95rem;
+  font-weight: 800;
+  color: #3f312e;
+  margin-bottom: .5rem;
 }
 .staped-report__pre {
-  max-height: 46vh; overflow: auto; font-size: .8rem;
-  background: #f8f6f4; border: 1px solid #efe7e3; border-radius: 10px; padding: .6rem;
+  max-height: 46vh;
+  overflow: auto;
+  font-size: .8rem;
+  background: #f8f6f4;
+  border: 1px solid #efe7e3;
+  border-radius: 10px;
+  padding: .6rem;
 }
-.staped-report__actions { margin-top: .6rem; display: flex; gap: .5rem; flex-wrap: wrap; }
-.staped-chip { padding: .45rem .7rem; border-radius: 10px; background: #e6ded8; color: #3f312e; font-size: .8rem; font-weight: 700; }
+.staped-report__actions {
+  margin-top: .6rem;
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+.staped-chip {
+  padding: .45rem .7rem;
+  border-radius: 10px;
+  background: #e6ded8;
+  color: #3f312e;
+  font-size: .8rem;
+  font-weight: 700;
+}
 .staped-chip--ok { background: #0d7a46; color: #fff; }
-
-/* Cores dos contadores */
-.card--pendente   .staped-count { color: #8a5a3c; }
-.card--lancado    .staped-count { color: #3f312e; }
-.card--alimentado .staped-count { color: #0d7a46; }
-.card--produzido  .staped-count { color: #1e3a8a; }
