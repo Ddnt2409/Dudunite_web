@@ -8,10 +8,10 @@ import ERPFooter from "./ERPFooter";
 import "./StaPed.css";
 
 import StaPedActions from "./StaPedActions";
-import { PDVS_VALIDOS, chavePDV, totalPDVsValidos } from "../util/PDVsValidos";
+import { PDVs_VALIDOS, chavePDV, totalPDVsValidos } from "../util/PDVsValidos";
 import { caminhoCicloAtual } from "../util/Semana";
 
-/* === INÍCIO FN-SP-STATUS – Normalizações (visual/core) === */
+// Normalizações de status
 function normalizaStatusVisual(raw) {
   const s = (raw || "").toLowerCase();
   if (s.includes("produz")) return "Produzido";
@@ -19,7 +19,6 @@ function normalizaStatusVisual(raw) {
   if (s.includes("lanç") || s.includes("lanc") || s === "pendente") return "Lançado";
   return "Lançado";
 }
-
 function normalizaStatusCore(raw) {
   const s = (raw || "").toLowerCase();
   if (s.includes("produz")) return "Produzido";
@@ -27,7 +26,6 @@ function normalizaStatusCore(raw) {
   if (s.includes("lanç") || s.includes("lanc") || s === "pendente") return "Lançado";
   return "Lançado";
 }
-/* === FIM FN-SP-STATUS === */
 
 export default function StaPed({ setTela }) {
   const [counts, setCounts] = useState({
@@ -36,15 +34,29 @@ export default function StaPed({ setTela }) {
     Alimentado: 0,
     Produzido: 0,
   });
-
-  // Lista de pedidos normalizados (única leitura; repassada ao filho)
   const [pedidos, setPedidos] = useState([]);
+  const [semanaVazia, setSemanaVazia] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        // Lê a coleção da SEMANA ATUAL (segunda 11h)
+        // Lê a coleção da semana atual (segunda 11h)
         const snap = await getDocs(collection(db, caminhoCicloAtual()));
+
+        if (snap.empty) {
+          // Semana sem pedidos → banner + todos PDVs como Pendente
+          setSemanaVazia(true);
+          setCounts({
+            Pendente: totalPDVsValidos(),
+            Lançado: 0,
+            Alimentado: 0,
+            Produzido: 0,
+          });
+          setPedidos([]);
+          return;
+        } else {
+          setSemanaVazia(false);
+        }
 
         const acc = { Lançado: 0, Alimentado: 0, Produzido: 0 };
         const pdvsComPedido = new Set();
@@ -55,15 +67,12 @@ export default function StaPed({ setTela }) {
           const vis = normalizaStatusVisual(d.statusEtapa);
           const core = normalizaStatusCore(d.statusEtapa);
 
-          // contagem para quadrantes (3 estados reais de pedido)
           if (acc[vis] !== undefined) acc[vis] += 1;
 
-          // chave PDV para cálculo de “Pendente”
           const cidade = d.cidade || d.city || "";
           const pdv = d.pdv || d.escola || "";
           if (cidade && pdv) pdvsComPedido.add(chavePDV(cidade, pdv));
 
-          // itens/sabores para relatórios
           const itens = Array.isArray(d.itens)
             ? d.itens
             : Array.isArray(d.items)
@@ -79,7 +88,6 @@ export default function StaPed({ setTela }) {
           });
         });
 
-        // PENDENTE = (total da lista mestre) – (PDVs com pedido) da semana
         const pendentes = Math.max(totalPDVsValidos() - pdvsComPedido.size, 0);
 
         setCounts({
@@ -88,7 +96,6 @@ export default function StaPed({ setTela }) {
           Alimentado: acc.Alimentado,
           Produzido: acc.Produzido,
         });
-
         setPedidos(lista);
       } catch (e) {
         console.error("Erro ao carregar status:", e);
@@ -101,13 +108,17 @@ export default function StaPed({ setTela }) {
       <ERPHeader title="PCP – Status dos Pedidos" />
 
       <main className="staped-main">
-        {/* === INÍCIO RT01 – Cabeçalho === */}
         <div className="staped-headline">
           <span role="img" aria-label="status">📊</span> Status dos Pedidos
         </div>
-        {/* === FIM RT01 === */}
 
-        {/* === INÍCIO RT02 – Quadrantes (PENDENTE, LANÇADO, ALIMENTADO, PRODUZIDO) === */}
+        {semanaVazia && (
+          <div className="semana-sem-pedidos">
+            <h2>SEMANA AINDA SEM PEDIDOS</h2>
+          </div>
+        )}
+
+        {/* Quadrantes */}
         <section className="staped-grid">
           <article className="staped-card card--pendente">
             <div className="staped-card__content">
@@ -141,11 +152,9 @@ export default function StaPed({ setTela }) {
             </div>
           </article>
         </section>
-        {/* === FIM RT02 === */}
 
-        {/* === INÍCIO RT20 – Painel de Ações (mesma tela) === */}
+        {/* Ações (mesma tela) */}
         <StaPedActions pedidos={pedidos} />
-        {/* === FIM RT20 === */}
       </main>
 
       <ERPFooter onBack={() => setTela("HomePCP")} />
