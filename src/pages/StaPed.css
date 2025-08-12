@@ -182,3 +182,34 @@ header.erp-header img {
   .print-area, .print-area * { visibility: visible !important; }
   .print-area { position: absolute; left: 0; top: 0; width: 100%; }
 }
+/* === OVERRIDES: cards +60% de altura e fonte interna = 12px === */
+
+/* altura dos cards (era ~190px) → +60% = ~304px */
+.staped-card__content {
+  min-height: 304px !important;
+  padding: 1.1rem 1.2rem; /* um pouquinho mais de respiro */
+}
+
+/* título e textos internos TODOS em 12px */
+.staped-card h3 {
+  font-size: 12px !important;
+  line-height: 1.25;
+}
+
+.staped-card small,
+.staped-pendentes-item,
+.staped-pendentes-item .pdv-nome,
+.badge-cidade {
+  font-size: 12px !important;
+}
+
+/* lista de PDVs pendentes com área maior (era 170px) */
+.staped-pendentes-list {
+  max-height: 272px !important; /* ~170px * 1.6 */
+}
+
+/* contagem continua grande para leitura; ajuste fino opcional */
+.staped-count {
+  font-size: 2rem;   /* pode aumentar para 2.2rem se quiser mais destaque */
+  line-height: 1.05;
+}
