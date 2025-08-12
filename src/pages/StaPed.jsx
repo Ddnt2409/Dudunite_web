@@ -1,6 +1,6 @@
 // src/pages/StaPed.jsx
 import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import db from "../firebase";
 
 import ERPHeader from "./ERPHeader";
@@ -9,7 +9,7 @@ import "./StaPed.css";
 
 import StaPedActions from "./StaPedActions";
 import { PDVs_VALIDOS, chavePDV, totalPDVsValidos } from "../util/PDVsValidos";
-import { caminhoCicloAtual } from "../util/Semana";
+import { caminhoCicloFromDate } from "../util/Ciclo";
 
 // Normalizações de status
 function normalizaStatusVisual(raw) {
@@ -39,11 +39,10 @@ export default function StaPed({ setTela }) {
   const [listaPendentes, setListaPendentes] = useState([]); // [{cidade, pdv}]
 
   useEffect(() => {
-    (async () => {
-      try {
-        // Lê coleção da SEMANA ATUAL (segunda 11h)
-        const snap = await getDocs(collection(db, caminhoCicloAtual()));
-
+    const colRef = collection(db, caminhoCicloFromDate(new Date()));
+    const unsub = onSnapshot(
+      colRef,
+      (snap) => {
         const acc = { Lançado: 0, Alimentado: 0, Produzido: 0 };
         const pdvsComPedido = new Set();
         const lista = [];
@@ -52,8 +51,8 @@ export default function StaPed({ setTela }) {
           setSemanaVazia(true);
         } else {
           setSemanaVazia(false);
-          snap.forEach((doc) => {
-            const d = doc.data() || {};
+          snap.forEach((docu) => {
+            const d = docu.data() || {};
             const vis = normalizaStatusVisual(d.statusEtapa);
             const core = normalizaStatusCore(d.statusEtapa);
 
@@ -79,20 +78,16 @@ export default function StaPed({ setTela }) {
           });
         }
 
-        // monta lista de pendentes comparando com a lista mestre
+        // pendentes = PDVs na lista mestre – PDVs com pedido
         const todos = [];
         PDVs_VALIDOS.forEach(({ cidade, pdvs }) => {
           pdvs.forEach((p) => {
             const key = chavePDV(cidade, p);
-            if (!pdvsComPedido.has(key)) {
-              todos.push({ cidade, pdv: p });
-            }
+            if (!pdvsComPedido.has(key)) todos.push({ cidade, pdv: p });
           });
         });
-
         setListaPendentes(todos);
 
-        // contagens
         const pendentesCount = todos.length || Math.max(totalPDVsValidos() - pdvsComPedido.size, 0);
         setCounts({
           Pendente: pendentesCount,
@@ -102,17 +97,15 @@ export default function StaPed({ setTela }) {
         });
 
         setPedidos(lista);
-      } catch (e) {
-        console.error("Erro ao carregar status:", e);
-      }
-    })();
+      },
+      (e) => console.error("StaPed onSnapshot:", e)
+    );
+    return () => unsub();
   }, []);
 
   return (
     <>
       <ERPHeader title="PCP – Status dos Pedidos" />
-
-      {/* wrapper com BG */}
       <div className="staped-page">
         <main className="staped-main">
           <div className="staped-headline">
@@ -134,7 +127,6 @@ export default function StaPed({ setTela }) {
                 <p className="staped-count">{counts.Pendente}</p>
                 <small>PDVs sem pedidos lançados.</small>
 
-                {/* lista de PDVs pendentes */}
                 {listaPendentes.length > 0 && (
                   <div className="staped-pendentes-list">
                     {listaPendentes.map((it, idx) => (
@@ -180,7 +172,6 @@ export default function StaPed({ setTela }) {
           <StaPedActions pedidos={pedidos} semanaVazia={semanaVazia} />
         </main>
       </div>
-
       <ERPFooter onBack={() => setTela("HomePCP")} />
     </>
   );
