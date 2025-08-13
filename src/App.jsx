@@ -18,8 +18,8 @@ import FluxCx from "./pages/FluxCx";
 // import "./pages/fade.css";
 
 export default function App() {
-  // Tela inicial — ajuste se quiser abrir direto no PCP/Financeiro
-  const [tela, setTela] = useState("HomeERP");
+  // >>> Iniciar na Tabela de Preços para testar no celular/Vercel <<<
+  const [tela, setTela] = useState("TabPrec");
 
   // volta pro topo quando troca de tela (UX mobile)
   useEffect(() => {
