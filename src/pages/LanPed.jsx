@@ -1,195 +1,292 @@
 // src/pages/LanPed.jsx
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  collection,
   addDoc,
-  onSnapshot,
-  query,
-  orderBy,
+  collection,
+  doc,
   serverTimestamp,
+  setDoc,
 } from "firebase/firestore";
 import db from "../firebase";
-import "./LanPed.css";
 
+import ERPHeader from "./ERPHeader";
+import ERPFooter from "./ERPFooter";
+
+import { PDVs_VALIDOS } from "../util/PDVsValidos";
+import { caminhoCicloAtual } from "../util/Semana";
+
+/* ================================
+   TABELA DE PREÇOS (fallback)
+   — use os mesmos rótulos do <select>
+=================================== */
+const PRECOS = {
+  "BRW 7x7": 6.0,
+  "BRW 6x6": 5.25,
+  "PKT 5x5": 4.5,
+  "PKT 6x6": 5.0,
+  ESC: 4.65, // Escondidinho
+  DUDU: 6.0,
+};
+
+const PRODUTOS = Object.keys(PRECOS); // opções do select
+
+/* ================================
+   HELPERS
+=================================== */
+function resolvePreco(produto, valorInput) {
+  const n = Number(String(valorInput ?? "").replace(",", "."));
+  if (Number.isFinite(n) && n > 0) return n; // usa o digitado
+  return PRECOS[produto] || 0; // fallback da tabela
+}
+function formatBRL(n) {
+  return Number(n || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+  });
+}
+
+/* ================================
+   COMPONENTE
+=================================== */
 export default function LanPed({ setTela }) {
-  // ─── STATES ───────────────────────
+  // seleção básica
   const [cidade, setCidade] = useState("");
   const [pdv, setPdv] = useState("");
+
+  // item em edição
   const [produto, setProduto] = useState("");
   const [quantidade, setQuantidade] = useState(1);
-  const [valorUnitario, setValorUnitario] = useState("");
-  const [formaPagamento, setFormaPagamento] = useState("");
-  const [dataVencimento, setDataVencimento] = useState("");
+  const [valorUnitarioInput, setValorUnitarioInput] = useState("");
+
+  // itens do pedido
   const [itens, setItens] = useState([]);
-  const [totalPedido, setTotalPedido] = useState("0.00");
-  const [statusPorPdv, setStatusPorPdv] = useState({});
 
-  // ─── DADOS FIXOS ───────────────────
-  const cidades = ["Gravatá", "Recife", "Caruaru"];
-  const pdvsPorCidade = {
-    Gravatá: ["Pequeno Príncipe", "Salesianas", "Céu Azul", "Russas", "Bora Gastar", "Kaduh", "Society Show", "Degusty"],
-    Recife: ["Tio Valter", "Vera Cruz", "Pinheiros", "Dourado", "BMQ", "CFC", "Madre de Deus", "Saber Viver"],
-    Caruaru: ["Interativo", "Exato Sede", "Exato Anexo", "Sesi", "Motivo", "Jesus Salvador"],
-  };
-  const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
-  const formasPagamento = ["PIX", "Espécie", "Cartão", "Boleto"];
+  // extras do pedido
+  const [formaPagamento, setFormaPagamento] = useState("");
+  const [vencimento, setVencimento] = useState("");
 
-  // ─── CALCULA TOTAL ───────────────────
-  useEffect(() => {
-    const t = parseFloat(quantidade) * parseFloat(valorUnitario || 0);
-    setTotalPedido(t.toFixed(2));
-  }, [quantidade, valorUnitario]);
+  // opções dinâmicas de PDV por cidade
+  const pdvsDaCidade = useMemo(() => {
+    const entry = PDVs_VALIDOS.find((c) => c.cidade === cidade);
+    return entry ? entry.pdvs : [];
+  }, [cidade]);
 
-  // ─── ADICIONA ITEM ──────────────────
-  function adicionarItem() {
-    if (!produto || quantidade <= 0 || !valorUnitario) {
-      alert("Preencha todos os campos de item.");
+  // total do pedido
+  const total = useMemo(
+    () =>
+      itens.reduce(
+        (s, i) =>
+          s + Number(i.quantidade || 0) * Number(i.valorUnitario || 0),
+        0
+      ),
+    [itens]
+  );
+
+  /* ================================
+     AÇÕES
+  =================================== */
+  function onChangeProduto(e) {
+    const p = e.target.value;
+    setProduto(p);
+    // sugere preço ao trocar produto (se houver na tabela)
+    const sugerido = PRECOS[p];
+    setValorUnitarioInput(sugerido ? String(sugerido) : "");
+  }
+
+  function addItem() {
+    if (!produto) {
+      alert("Selecione um produto.");
       return;
     }
-    setItens(old => [
-      ...old,
+    const qtd = Number(quantidade || 0);
+    if (!Number.isFinite(qtd) || qtd <= 0) {
+      alert("Informe uma quantidade válida.");
+      return;
+    }
+    const preco = resolvePreco(produto, valorUnitarioInput);
+    if (preco <= 0) {
+      alert(
+        "Preço zerado. Digite o valor unitário ou ajuste a tabela de preços."
+      );
+      return;
+    }
+
+    setItens((prev) => [
+      ...prev,
       {
         produto,
-        quantidade,
-        valorUnitario,
-        total: (quantidade * parseFloat(valorUnitario)).toFixed(2),
+        quantidade: qtd,
+        valorUnitario: preco,
       },
     ]);
-    setProduto("");
+
+    // reset parcial
     setQuantidade(1);
-    setValorUnitario("");
+    setValorUnitarioInput("");
   }
 
-  // ─── SALVA PEDIDO ───────────────────
-  async function handleSalvar() {
-    if (!cidade || !pdv || itens.length === 0 || !formaPagamento) {
-      alert("Preencha todos os campos obrigatórios.");
+  function removeItem(index) {
+    setItens((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function salvarPedido() {
+    if (!cidade) {
+      alert("Selecione a cidade.");
       return;
     }
-    const novo = {
+    if (!pdv) {
+      alert("Selecione o ponto de venda.");
+      return;
+    }
+    if (!itens.length) {
+      alert("Adicione pelo menos um item ao pedido.");
+      return;
+    }
+    if (total <= 0) {
+      alert("Total zerado. Verifique os preços dos itens.");
+      return;
+    }
+
+    const payload = {
       cidade,
-      escola: pdv,
-      itens,
-      formaPagamento,
-      dataVencimento: dataVencimento || null,
-      total: parseFloat(totalPedido),
+      pdv, // StaPed entende 'pdv' ou 'escola'
+      itens: itens.map((i) => ({
+        produto: i.produto,
+        quantidade: Number(i.quantidade || 0),
+        valorUnitario: Number(i.valorUnitario || 0),
+      })),
+      formaPagamento: formaPagamento || null,
+      vencimento: vencimento || null,
       statusEtapa: "Lançado",
       criadoEm: serverTimestamp(),
+      atualizadoEm: serverTimestamp(),
     };
+
     try {
-      await addDoc(collection(db, "PEDIDOS"), novo);
-      alert("✅ Pedido salvo!");
-      setCidade("");
-      setPdv("");
+      // 1) grava na coleção base
+      const ref = await addDoc(collection(db, "PEDIDOS"), payload);
+
+      // 2) espelha no ciclo atual (lido pelo StaPed)
+      await setDoc(doc(db, caminhoCicloAtual(), ref.id), payload);
+
+      alert("Pedido salvo com sucesso!");
+
+      // limpa o formulário
+      setProduto("");
+      setQuantidade(1);
+      setValorUnitarioInput("");
       setItens([]);
       setFormaPagamento("");
-      setDataVencimento("");
-      setTotalPedido("0.00");
-    } catch {
-      alert("❌ Falha ao salvar.");
+      setVencimento("");
+    } catch (err) {
+      console.error(err);
+      alert("Falha ao salvar no Firestore: " + (err?.message || "erro"));
     }
   }
 
-  // ─── MONITORA STATUS DOS PDVs ───────
-  useEffect(() => {
-    const ref = collection(db, "PEDIDOS");
-    const q = query(ref, orderBy("criadoEm", "asc"));
-    return onSnapshot(q, snap => {
-      const m = {};
-      snap.docs.forEach(doc => {
-        const d = doc.data();
-        if (d.escola) m[d.escola] = d.statusEtapa;
-      });
-      setStatusPorPdv(m);
-    });
-  }, []);
-
+  /* ================================
+     RENDER
+  =================================== */
   return (
-    <div className="lanped-container">
-      {/* HEADER */}
-      <div className="lanped-header">
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logo Dudunitê"
-          className="lanped-logo"
-        />
-        <h1 className="lanped-titulo">Lançar Pedido</h1>
-      </div>
+    <>
+      <ERPHeader title="Lançar Pedido" />
 
-      {/* FORMULÁRIO */}
-      <div className="lanped-formulario">
-        <div className="lanped-field">
+      <main className="lanped-main" style={{ paddingBottom: 88 }}>
+        {/* Cidade */}
+        <div className="field">
           <label>Cidade</label>
-          <select
-            value={cidade}
-            onChange={e => { setCidade(e.target.value); setPdv(""); }}
-          >
-            <option value="">Selecione</option>
-            {cidades.map(c => (
-              <option key={c} value={c}>{c}</option>
+          <select value={cidade} onChange={(e) => setCidade(e.target.value)}>
+            <option value="" disabled>
+              Selecione
+            </option>
+            {PDVs_VALIDOS.map((c) => (
+              <option key={c.cidade} value={c.cidade}>
+                {c.cidade}
+              </option>
             ))}
           </select>
         </div>
 
-        <div className="lanped-field">
+        {/* PDV */}
+        <div className="field">
           <label>Ponto de Venda</label>
           <select
             value={pdv}
-            onChange={e => setPdv(e.target.value)}
+            onChange={(e) => setPdv(e.target.value)}
             disabled={!cidade}
           >
-            <option value="">Selecione</option>
-            {cidade && pdvsPorCidade[cidade].map(p => (
-              <option key={p} value={p}>{p}</option>
+            <option value="" disabled>
+              Selecione
+            </option>
+            {pdvsDaCidade.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
             ))}
           </select>
         </div>
 
-        <div className="lanped-field">
+        {/* Produto */}
+        <div className="field">
           <label>Produto</label>
-          <select
-            value={produto}
-            onChange={e => setProduto(e.target.value)}
-          >
-            <option value="">Selecione</option>
-            {produtos.map(p => (
-              <option key={p} value={p}>{p}</option>
+          <select value={produto} onChange={onChangeProduto}>
+            <option value="" disabled>
+              Selecione
+            </option>
+            {PRODUTOS.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
             ))}
           </select>
         </div>
 
-        <div className="lanped-field">
+        {/* Quantidade */}
+        <div className="field">
           <label>Quantidade</label>
           <input
             type="number"
+            min="1"
             value={quantidade}
-            onChange={e => setQuantidade(Number(e.target.value))}
+            onChange={(e) => setQuantidade(e.target.value)}
           />
         </div>
 
-        <div className="lanped-field">
+        {/* Valor Unitário */}
+        <div className="field">
           <label>Valor Unitário</label>
           <input
             type="number"
+            min="0"
             step="0.01"
-            value={valorUnitario}
-            onChange={e => setValorUnitario(e.target.value)}
+            placeholder={
+              produto && PRECOS[produto] ? String(PRECOS[produto]) : ""
+            }
+            value={valorUnitarioInput}
+            onChange={(e) => setValorUnitarioInput(e.target.value)}
           />
         </div>
 
-        <button className="botao-adicionar" onClick={adicionarItem}>
-          ➕ Adicionar Item
-        </button>
+        {/* Botão adicionar */}
+        <div style={{ margin: "12px 0" }}>
+          <button className="btn primary" onClick={addItem}>
+            ➕ Adicionar Item
+          </button>
+        </div>
 
-        {itens.length > 0 && (
-          <ul className="lista-itens">
-            {itens.map((it, i) => (
-              <li key={i}>
-                {it.quantidade}× {it.produto} — R$ {it.valorUnitario} (Total: R$ {it.total})
-                <button
-                  className="botao-excluir"
-                  onClick={() => setItens(itens.filter((_, j) => j !== i))}
-                >
+        {/* Lista de itens */}
+        {!!itens.length && (
+          <ul className="itens-list">
+            {itens.map((i, idx) => (
+              <li key={idx} className="item-row">
+                <span>
+                  {i.quantidade}× {i.produto} — {formatBRL(i.valorUnitario)}{" "}
+                  <em style={{ opacity: 0.7 }}>
+                    (Total: {formatBRL(i.quantidade * i.valorUnitario)})
+                  </em>
+                </span>
+                <button className="btn ghost" onClick={() => removeItem(idx)}>
                   ✖
                 </button>
               </li>
@@ -197,73 +294,83 @@ export default function LanPed({ setTela }) {
           </ul>
         )}
 
-        <div className="total-pedido">
-          <strong>Total:</strong> R$ {totalPedido}
+        {/* Total */}
+        <div
+          style={{
+            margin: "12px 0 18px",
+            fontSize: 20,
+            fontWeight: 800,
+            textAlign: "right",
+          }}
+        >
+          Total: {formatBRL(total)}
         </div>
 
-        <div className="lanped-field">
+        {/* Forma de pagamento */}
+        <div className="field">
           <label>Forma de Pagamento</label>
           <select
             value={formaPagamento}
-            onChange={e => setFormaPagamento(e.target.value)}
+            onChange={(e) => setFormaPagamento(e.target.value)}
           >
-            <option value="">Selecione</option>
-            {formasPagamento.map(f => (
-              <option key={f} value={f}>{f}</option>
-            ))}
+            <option value="" disabled>
+              Selecione
+            </option>
+            <option value="Espécie">Espécie</option>
+            <option value="Pix">Pix</option>
+            <option value="Cartão">Cartão</option>
+            <option value="Boleto">Boleto</option>
           </select>
         </div>
 
-        {formaPagamento === "Boleto" && (
-          <>
-            <div className="lanped-field">
-              <label>Anexar Nota Fiscal</label>
-              <input type="file" accept=".pdf,.jpg,.png" />
-            </div>
-            <div className="lanped-field">
-              <label>Anexar Boleto</label>
-              <input type="file" accept=".pdf,.jpg,.png" />
-            </div>
-          </>
-        )}
-
-        <div className="lanped-field">
+        {/* Vencimento */}
+        <div className="field">
           <label>Data de Vencimento</label>
           <input
             type="date"
-            value={dataVencimento}
-            onChange={e => setDataVencimento(e.target.value)}
+            value={vencimento}
+            onChange={(e) => setVencimento(e.target.value)}
           />
         </div>
 
-        <button className="botao-salvar" onClick={handleSalvar}>
-          💾 Salvar Pedido
-        </button>
-      </div>
-
-      {/* BOTÃO VOLTAR ABAIXO DO FORMULÁRIO */}
-      <button
-        className="botao-voltar"
-        onClick={() => setTela("HomePCP")}
-      >
-        🔙 Voltar
-      </button>
-
-      {/* RODAPÉ */}
-      <footer className="lanped-footer">
-        <div className="lista-escolas-marquee">
-          <span className="marquee-content">
-            • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz
-          </span>
+        {/* Salvar */}
+        <div style={{ margin: "14px 0 22px" }}>
+          <button className="btn primary big" onClick={salvarPedido}>
+            💾 Salvar Pedido
+          </button>
         </div>
-        <div className="status-pdvs">
-          {Object.entries(statusPorPdv).map(([p, s]) => (
-            <span key={p} className="status-item">
-              {p}: <strong>{s}</strong>
-            </span>
-          ))}
+
+        {/* Voltar */}
+        <div style={{ textAlign: "center" }}>
+          <button className="btn" onClick={() => setTela("HomePCP")}>
+            ⬅ Voltar
+          </button>
         </div>
-      </footer>
-    </div>
+      </main>
+
+      <ERPFooter onBack={() => setTela("HomeERP")} />
+    </>
   );
 }
+
+/* =========================================
+   Estilos mínimos (opcional, mantêm o visual)
+   — se já houver CSS da tela, pode remover
+============================================ */
+const style = document.createElement("style");
+style.innerHTML = `
+.lanped-main { padding: 10px 12px 92px; }
+.field { margin: 10px 0; display:flex; flex-direction:column; gap:6px; }
+.field label { font-weight: 700; color: #7b3c21; }
+.field select, .field input {
+  height: 54px; border-radius: 12px; border:1px solid #e6d2c2; padding: 8px 12px;
+  background: rgba(255,255,255,.88); font-size: 16px;
+}
+.btn { background:#8c3b1b; color:#fff; border:none; border-radius:12px; padding:12px 16px; font-weight:800; }
+.btn.ghost { background:transparent; color:#8c3b1b; border:1px solid #8c3b1b; }
+.btn.primary { background:#8c3b1b; }
+.btn.big { width:100%; height:54px; font-size:16px; }
+.itens-list { list-style:none; padding:0; margin: 8px 0 0; display:flex; flex-direction:column; gap:8px; }
+.item-row { display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,.9); border:1px dashed #e6d2c2; padding:10px 12px; border-radius:10px; }
+`;
+document.head.appendChild(style);
