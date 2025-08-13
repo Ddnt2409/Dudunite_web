@@ -13,7 +13,7 @@ export default function HomePCP({ setTela }) {
           <div className="pcp-actions__grid">
             <button
               type="button"
-              className="pcp-btn"
+              className="pcp-btn pcp-btn--dark70"
               onClick={() => setTela("LanPed")}
             >
               📌 Lançar Pedido
@@ -21,7 +21,7 @@ export default function HomePCP({ setTela }) {
 
             <button
               type="button"
-              className="pcp-btn"
+              className="pcp-btn pcp-btn--dark70"
               onClick={() => setTela("AliSab")}
             >
               🍫 Alimentar Sabores
@@ -29,7 +29,7 @@ export default function HomePCP({ setTela }) {
 
             <button
               type="button"
-              className="pcp-btn"
+              className="pcp-btn pcp-btn--dark70"
               onClick={() => setTela("StaPed")}
             >
               📊 Status dos Pedidos
@@ -37,7 +37,7 @@ export default function HomePCP({ setTela }) {
 
             <button
               type="button"
-              className="pcp-btn"
+              className="pcp-btn pcp-btn--dark70"
               onClick={() => setTela("Suprimentos")}
             >
               🧺 Suprimentos
