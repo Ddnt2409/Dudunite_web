@@ -1,337 +1,266 @@
 // src/pages/TabPrec.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   collection,
   doc,
-  getDoc,
   getDocs,
   limit,
   orderBy,
   query,
   setDoc,
-  updateDoc,
-  FieldPath,
+  serverTimestamp,
+  documentId,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import db from "../firebase";
 
 const PRODUTOS = [
-  { key: "brw7x7", label: "BRW 7x7" },
-  { key: "brw6x6", label: "BRW 6x6" },
-  { key: "pkt5x5", label: "PKT 5x5" },
-  { key: "pkt6x6", label: "PKT 6x6" },
-  { key: "esc", label: "Escondidinho" },
+  { key: "brw7x7", nome: "BRW 7x7" },
+  { key: "brw6x6", nome: "BRW 6x6" },
+  { key: "pkt5x5", nome: "PKT 5x5" },
+  { key: "pkt6x6", nome: "PKT 6x6" },
+  { key: "esc", nome: "Escondidinho" },
 ];
 
-const CAMPOS_IGNORAR = new Set(["data", "updatedAt", "_seed"]);
-
-const sanitizeMoneyStr = (v) => {
-  if (typeof v !== "string") v = String(v ?? "");
-  return v.replace(/[^\d,.\-]/g, "").replace(",", ".");
+const estiloInput = {
+  width: "110px",
+  fontSize: "18px",
+  padding: "6px 8px",
+  textAlign: "right",
 };
-const toNumberBR = (v) => {
-  const s = sanitizeMoneyStr(v);
-  const n = Number(s);
-  return Number.isFinite(n) ? n : 0;
-};
-const toStrBR = (n) =>
-  Number(n).toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
-const buildEmptyState = () => ({
-  brw7x7: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
-  brw6x6: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
-  pkt5x5: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
-  pkt6x6: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
-  esc: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
-});
+const estiloTh = { fontWeight: 700, fontSize: 18, padding: "8px" };
+const estiloTd = { padding: "6px 8px", fontSize: 18 };
+
+function formatView(n) {
+  if (n == null || isNaN(n)) return "0,00";
+  const v = Number(n);
+  return v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function parseToNumber(txt) {
+  if (txt == null) return 0;
+  // aceita "6", "6,00", "6.00"
+  const s = String(txt).replace(/\./g, "").replace(",", ".");
+  const v = Number(s);
+  return isNaN(v) ? 0 : v;
+}
 
 export default function TabPrec({ setTela }) {
   const [vigencia, setVigencia] = useState(() => {
-    const d = new Date();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${d.getFullYear()}-${m}-${day}`;
+    const hoje = new Date();
+    const yyyy = hoje.getFullYear();
+    const mm = String(hoje.getMonth() + 1).padStart(2, "0");
+    const dd = String(hoje.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
   });
+
   const [docAtual, setDocAtual] = useState("-");
-  const [form, setForm] = useState(buildEmptyState());
-  const [status, setStatus] = useState("");
+  const [msg, setMsg] = useState("");
+  const [carregando, setCarregando] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
-  const tabelaCol = useMemo(() => collection(db, "tabela_precos_revenda"), []);
+  const [precos, setPrecos] = useState({
+    brw7x7: { rev1: 0, rev2: 0, rev3: 0 },
+    brw6x6: { rev1: 0, rev2: 0, rev3: 0 },
+    pkt5x5: { rev1: 0, rev2: 0, rev3: 0 },
+    pkt6x6: { rev1: 0, rev2: 0, rev3: 0 },
+    esc: { rev1: 0, rev2: 0, rev3: 0 },
+  });
 
-  // === mapeia um documento em qualquer formato (com 'precos' ou na raiz) ===
-  const mapDocToForm = (id, dataObj) => {
-    const novo = buildEmptyState();
-
-    // 1) Padrão novo: data.precos.{produto}.{rev}
-    if (dataObj?.precos && typeof dataObj.precos === "object") {
-      for (const p of PRODUTOS) {
-        const linha = dataObj.precos[p.key] || {};
-        novo[p.key] = {
-          rev1: toStrBR(linha.rev1 ?? 0),
-          rev2: toStrBR(linha.rev2 ?? 0),
-          rev3: toStrBR(linha.rev3 ?? 0),
-        };
-      }
-      return { docIdOuData: dataObj.data || id, form: novo };
-    }
-
-    // 2) Padrão antigo: campos na raiz (brw7x7, brw6x6, ...)
-    for (const [k, v] of Object.entries(dataObj || {})) {
-      if (CAMPOS_IGNORAR.has(k)) continue;
-      if (!novo[k]) continue; // ignora chaves desconhecidas
-      novo[k] = {
-        rev1: toStrBR(v?.rev1 ?? 0),
-        rev2: toStrBR(v?.rev2 ?? 0),
-        rev3: toStrBR(v?.rev3 ?? 0),
-      };
-    }
-    return { docIdOuData: dataObj?.data || id, form: novo };
-  };
-
-  const carregarUltima = async () => {
+  // === CARREGAR ÚLTIMA (forçando por documentId) ============================
+  async function carregarUltima() {
+    setMsg("Carregando última...");
+    setCarregando(true);
     try {
-      setStatus("Carregando última...");
-      // 1) Tenta pelo campo 'data'
-      let snap = await getDocs(query(tabelaCol, orderBy("data", "desc"), limit(1)));
-      // 2) Fallback: se não tiver 'data', pega pelo ID do doc (YYYY-MM-DD)
-      if (snap.empty) {
-        snap = await getDocs(
-          query(tabelaCol, orderBy(FieldPath.documentId(), "desc"), limit(1))
-        );
-      }
+      const col = collection(db, "tabela_precos_revenda");
+
+      // 1) ordenar pelo ID do documento (ex.: "2025-08-12")
+      const q = query(col, orderBy(documentId(), "desc"), limit(1));
+      const snap = await getDocs(q);
 
       if (snap.empty) {
         setDocAtual("-");
-        setForm(buildEmptyState());
-        setStatus("Sem registros. Preencha e salve uma nova vigência.");
+        setMsg("Sem registros. Preencha e salve uma nova vigência.");
+        setCarregando(false);
         return;
       }
 
-      const ref = snap.docs[0];
-      const data = ref.data();
-      const { docIdOuData, form } = mapDocToForm(ref.id, data);
-      setDocAtual(docIdOuData || ref.id);
-      setVigencia(docIdOuData || ref.id);
-      setForm(form);
-      setStatus("Última tabela carregada.");
+      const d = snap.docs[0];
+      const data = d.data() || {};
+      setDocAtual(d.id);
+
+      // 2) Normaliza: se existir "precos", usa; senão, usa chaves na raiz
+      let novo = {};
+      if (data.precos && typeof data.precos === "object") {
+        PRODUTOS.forEach((p) => {
+          const m = data.precos[p.key] || {};
+          novo[p.key] = {
+            rev1: Number(m.rev1 || 0),
+            rev2: Number(m.rev2 || 0),
+            rev3: Number(m.rev3 || 0),
+          };
+        });
+      } else {
+        PRODUTOS.forEach((p) => {
+          const m = data[p.key] || {};
+          novo[p.key] = {
+            rev1: Number(m.rev1 || 0),
+            rev2: Number(m.rev2 || 0),
+            rev3: Number(m.rev3 || 0),
+          };
+        });
+      }
+
+      setPrecos(novo);
+      setMsg("Última tabela carregada.");
     } catch (err) {
-      console.error(err);
-      setStatus("Falha ao carregar a última vigência.");
+      console.error("Falha ao carregar:", err);
+      setMsg("Falha ao carregar a última vigência.");
+    } finally {
+      setCarregando(false);
     }
-  };
+  }
+
+  // === SALVAR NOVA VIGÊNCIA (raiz + mapa 'precos') =========================
+  async function salvarNova() {
+    const id = vigencia?.trim() || docAtual || "0000-00-00";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(id)) {
+      setMsg("Vigência inválida. Use YYYY-MM-DD.");
+      return;
+    }
+
+    setMsg("Salvando...");
+    setSalvando(true);
+    try {
+      // Monta payload duplo (retrocompatível)
+      const payloadRaiz = {};
+      const payloadPrecos = {};
+
+      PRODUTOS.forEach((p) => {
+        payloadRaiz[p.key] = {
+          rev1: parseToNumber(precos[p.key]?.rev1),
+          rev2: parseToNumber(precos[p.key]?.rev2),
+          rev3: parseToNumber(precos[p.key]?.rev3),
+        };
+        payloadPrecos[p.key] = { ...payloadRaiz[p.key] };
+      });
+
+      const ref = doc(db, "tabela_precos_revenda", id);
+      await setDoc(
+        ref,
+        {
+          // campo data (agora passamos a gravar também)
+          data: id,
+          updatedAt: serverTimestamp(),
+          // novo padrão (map)
+          precos: payloadPrecos,
+          // padrão antigo (raiz)
+          ...payloadRaiz,
+        },
+        { merge: true }
+      );
+
+      setDocAtual(id);
+      setMsg("Vigência salva com sucesso.");
+    } catch (err) {
+      console.error("Falha ao salvar:", err);
+      setMsg("Falha ao salvar. Verifique regras do Firestore e tente novamente.");
+    } finally {
+      setSalvando(false);
+    }
+  }
 
   useEffect(() => {
     carregarUltima();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onChangeValor = (prodKey, revKey, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [prodKey]: { ...prev[prodKey], [revKey]: value },
-    }));
-  };
-
-  const salvar = async () => {
-    if (salvando) return;
-    setSalvando(true);
-    setStatus("Salvando...");
-
-    try {
-      const id = String(vigencia || "").trim();
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(id)) {
-        setStatus("Data inválida. Use YYYY-MM-DD.");
-        return;
-      }
-
-      // monta payload em número e valida soma
-      let soma = 0;
-      const payloadPrecos = {};
-      for (const p of PRODUTOS) {
-        const f = form[p.key] || {};
-        const n1 = toNumberBR(f.rev1);
-        const n2 = toNumberBR(f.rev2);
-        const n3 = toNumberBR(f.rev3);
-        payloadPrecos[p.key] = { rev1: n1, rev2: n2, rev3: n3 };
-        soma += (n1 || 0) + (n2 || 0) + (n3 || 0);
-      }
-      if (soma === 0) {
-        setStatus("Tabela está toda com 0,00. Preencha antes de salvar.");
-        return;
-      }
-
-      const ref = doc(tabelaCol, id);
-      const exist = await getDoc(ref);
-
-      if (exist.exists()) {
-        // Atualização compatível:
-        // - novo:  precos.<produto>.revX
-        // - legado: <produto>.revX
-        const updates = { updatedAt: new Date().toISOString() };
-        for (const p of PRODUTOS) {
-          const { rev1, rev2, rev3 } = payloadPrecos[p.key];
-          updates[`precos.${p.key}.rev1`] = rev1;
-          updates[`precos.${p.key}.rev2`] = rev2;
-          updates[`precos.${p.key}.rev3`] = rev3;
-          updates[`${p.key}.rev1`] = rev1;
-          updates[`${p.key}.rev2`] = rev2;
-          updates[`${p.key}.rev3`] = rev3;
-        }
-        await updateDoc(ref, updates);
-      } else {
-        await setDoc(ref, {
-          data: id,
-          updatedAt: new Date().toISOString(),
-          precos: payloadPrecos,
-        });
-      }
-
-      await carregarUltima();
-      setStatus("Salvo com sucesso e conferido.");
-    } catch (err) {
-      console.error(err);
-      setStatus("Erro ao salvar tabela.");
-    } finally {
-      setSalvando(false);
-    }
-  };
-
-  const baseInput =
-    "w-[110px] px-3 py-2 rounded border border-[#d9b8a8] bg-white focus:outline-none focus:ring-2 focus:ring-[#c96f4a]";
-  const tdCls = "py-2 px-2 border-b border-[#efd6c9]";
-  const thCls =
-    "py-2 px-2 text-left border-b border-[#dcb7a4] text-[#5C1D0E] font-semibold";
-
+  // === UI ===================================================================
   return (
-    <div className="min-h-screen bg-[#FDEBDF] text-[#5C1D0E] p-3 sm:p-6">
-      <div className="flex items-center gap-2 mb-3">
+    <div style={{ background: "#FCE8D8", minHeight: "100vh", padding: 12, color: "#5C1D0E" }}>
+      <div style={{ marginBottom: 10, display: "flex", gap: 8 }}>
         <button
-          onClick={() => setTela?.("HomeERP")}
-          className="bg-[#d0b9ae] text-[#5C1D0E] px-3 py-2 rounded"
-          style={{ fontSize: 18, fontWeight: 600 }}
+          onClick={() => (setTela ? setTela("HomeERP") : window.history.back())}
+          disabled={carregando || salvando}
         >
           ← Voltar
         </button>
-        <button
-          onClick={carregarUltima}
-          className="bg-[#8c3b1b] text-white px-3 py-2 rounded"
-          style={{ fontSize: 18, fontWeight: 700 }}
-        >
-          Carregar última
+        <button onClick={carregarUltima} disabled={carregando || salvando}>
+          {carregando ? "Carregando..." : "Carregar última"}
         </button>
-        <button
-          onClick={salvar}
-          disabled={salvando}
-          className={`${
-            salvando ? "bg-[#3e7f4f]/70" : "bg-[#3e7f4f]"
-          } text-white px-3 py-2 rounded`}
-          style={{ fontSize: 18, fontWeight: 700 }}
-        >
+        <button onClick={salvarNova} disabled={carregando || salvando}>
           {salvando ? "Salvando..." : "Salvar nova vigência"}
         </button>
       </div>
 
-      <div className="mb-2" style={{ fontSize: 22, fontWeight: 800 }}>
-        Tabela de Preços (Revenda)
-      </div>
+      <div style={{ marginBottom: 8, fontWeight: 700, fontSize: 18 }}>Tabela de Preços (Revenda)</div>
+      <div style={{ marginBottom: 6, fontSize: 16 }}>Doc atual: {docAtual}</div>
 
-      <div className="mb-2" style={{ fontSize: 18 }}>
-        <strong>Doc atual:</strong> {docAtual || "-"}
-      </div>
-
-      <div className="flex items-center gap-2 mb-4">
-        <label style={{ fontSize: 18 }}>Vigência (YYYY-MM-DD):</label>
+      <div style={{ marginBottom: 6, fontSize: 16 }}>
+        Vigência (YYYY-MM-DD):{" "}
         <input
           type="text"
           value={vigencia}
           onChange={(e) => setVigencia(e.target.value)}
-          className="px-3 py-2 rounded border border-[#d9b8a8] bg-white"
-          style={{ fontSize: 20, width: 180 }}
-          placeholder="YYYY-MM-DD"
+          style={{ fontSize: 18, padding: "6px 8px", width: 160 }}
         />
       </div>
 
-      {status && (
+      {msg && (
         <div
-          className="mb-3 px-3 py-2 rounded"
           style={{
-            background: status.includes("sucesso") ? "#c6f6d5" : "#fdebd3",
-            fontSize: 18,
+            marginBottom: 12,
+            background: msg.includes("Falha") ? "#ffd6d6" : "#d6f5d6",
+            padding: 8,
+            borderRadius: 6,
+            fontSize: 16,
           }}
         >
-          {status}
+          {msg}
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="min-w-[680px] w-full bg-[#fde6d9] rounded">
-          <thead>
-            <tr className="bg-[#f3d1bf]">
-              <th className={thCls} style={{ fontSize: 20 }}>
-                Produto
-              </th>
-              <th className={thCls} style={{ fontSize: 20 }}>
-                rev1
-              </th>
-              <th className={thCls} style={{ fontSize: 20 }}>
-                rev2
-              </th>
-              <th className={thCls} style={{ fontSize: 20 }}>
-                rev3
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {PRODUTOS.map((p) => (
-              <tr key={p.key}>
-                <td className={tdCls} style={{ fontSize: 20 }}>
-                  {p.label}
+      <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 6px" }}>
+        <thead>
+          <tr>
+            <th style={{ ...stiloTh, textAlign: "left" }}>Produto</th>
+            <th style={stiloTh}>rev1</th>
+            <th style={stiloTh}>rev2</th>
+            <th style={stiloTh}>rev3</th>
+          </tr>
+        </thead>
+        <tbody>
+          {PRODUTOS.map((p) => (
+            <tr key={p.key}>
+              <td style={{ ...estiloTd, fontWeight: 600 }}>{p.nome}</td>
+              {["rev1", "rev2", "rev3"].map((rev) => (
+                <td key={rev} style={estiloTd}>
+                  <input
+                    inputMode="decimal"
+                    style={estiloInput}
+                    value={formatView(precos[p.key]?.[rev])}
+                    onChange={(e) => {
+                      const v = parseToNumber(e.target.value);
+                      setPrecos((old) => ({
+                        ...old,
+                        [p.key]: { ...old[p.key], [rev]: v },
+                      }));
+                    }}
+                  />
                 </td>
-                {["rev1", "rev2", "rev3"].map((rev) => (
-                  <td key={rev} className={tdCls}>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={form[p.key][rev]}
-                      onChange={(e) => onChangeValor(p.key, rev, e.target.value)}
-                      className={baseInput}
-                      style={{ fontSize: 20, textAlign: "right" }}
-                      placeholder="0,00"
-                    />
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        <button
-          onClick={() => setTela?.("CtsReceber")}
-          className="bg-[#cbbdb7] px-3 py-2 rounded"
-          style={{ fontSize: 18 }}
-        >
-          → Contas a Receber
-        </button>
-        <button
-          onClick={() => setTela?.("CtsPagar")}
-          className="bg-[#cbbdb7] px-3 py-2 rounded"
-          style={{ fontSize: 18 }}
-        >
-          → Contas a Pagar
-        </button>
-        <button
-          onClick={() => setTela?.("FluxCx")}
-          className="bg-[#cbbdb7] px-3 py-2 rounded"
-          style={{ fontSize: 18 }}
-        >
-          → Fluxo de Caixa
-        </button>
+      <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+        <button onClick={() => setTela && setTela("CtsReceber")}>→ Contas a Receber</button>
+        <button onClick={() => setTela && setTela("CtsPagar")}>→ Contas a Pagar</button>
+        <button onClick={() => setTela && setTela("FluxoCaixa")}>→ Fluxo de Caixa</button>
       </div>
     </div>
   );
-          }
+}
+
+const stiloTh = estiloTh; // apenas para evitar erro de lint por const acima
