@@ -1,14 +1,8 @@
 // src/pages/TabPrec.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  collection,
-  query,
-  orderBy,
-  limit,
-  getDocs,
-  doc,
-  setDoc,
-  getDoc,
+  collection, query, orderBy, limit, getDocs,
+  doc, setDoc, getDoc
 } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -19,9 +13,7 @@ const NOME_PRODUTO = {
   pkt6x6: "PKT 6x6",
   esc: "Escondidinho",
 };
-
 const ORDEM = ["brw7x7", "brw6x6", "pkt5x5", "pkt6x6", "esc"];
-
 const DEFAULT_PRECOS = {
   brw7x7: { rev1: 6.0, rev2: 6.0, rev3: null },
   brw6x6: { rev1: 5.5, rev2: 5.5, rev3: null },
@@ -29,6 +21,8 @@ const DEFAULT_PRECOS = {
   pkt6x6: { rev1: 4.4, rev2: 4.4, rev3: null },
   esc: { rev1: 4.65, rev2: 4.65, rev3: null },
 };
+
+const baseFont = 24; // AUMENTO GERAL DE FONTE
 
 function toNumberLoose(v) {
   if (v === "" || v === null || v === undefined) return null;
@@ -48,6 +42,11 @@ function hojeISO() {
   const dd = String(d.getDate()).padStart(2, "0");
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
+const withTimeout = (p, ms = 12000) =>
+  Promise.race([
+    p,
+    new Promise((_, rej) => setTimeout(() => rej(new Error("Tempo esgotado.")), ms)),
+  ]);
 
 export default function TabPrec({ setTela }) {
   const [carregando, setCarregando] = useState(true);
@@ -58,23 +57,23 @@ export default function TabPrec({ setTela }) {
   const [docId, setDocId] = useState("");
   const [vigencia, setVigencia] = useState(hojeISO());
   const [precos, setPrecos] = useState(DEFAULT_PRECOS);
+  const [edit, setEdit] = useState({}); // edição livre por campo
 
-  // estado de edição livre (string) por campo
-  const [edit, setEdit] = useState({});
   const linhas = useMemo(() => ORDEM, []);
 
   async function carregarUltima() {
+    if (salvando) return; // não concorre com salvar
     setCarregando(true);
     setErro("");
     setOk("");
     setEdit({});
     try {
-      const q = query(
+      const qy = query(
         collection(db, "tabela_precos_revenda"),
         orderBy("data", "desc"),
         limit(1)
       );
-      const snap = await getDocs(q);
+      const snap = await withTimeout(getDocs(qy));
       if (snap.empty) {
         setDocId("");
         setVigencia(hojeISO());
@@ -115,8 +114,7 @@ export default function TabPrec({ setTela }) {
     const key = keyOf(k, campo);
     const raw = edit[key];
     if (raw === undefined) return;
-    const n = toNumberLoose(raw);
-    setPrecos((old) => ({ ...old, [k]: { ...old[k], [campo]: n } }));
+    setPrecos((old) => ({ ...old, [k]: { ...old[k], [campo]: toNumberLoose(raw) } }));
     setEdit((e) => {
       const cp = { ...e };
       delete cp[key];
@@ -138,6 +136,7 @@ export default function TabPrec({ setTela }) {
   }
 
   async function salvarNovaVigencia() {
+    if (carregando || salvando) return; // evita concorrência
     setErro("");
     setOk("");
     commitAll();
@@ -161,15 +160,18 @@ export default function TabPrec({ setTela }) {
     setSalvando(true);
     try {
       const ref = doc(db, "tabela_precos_revenda", dataStr);
-      await setDoc(ref, payload, { merge: false });
-
-      const chk = await getDoc(ref);
-      if (chk.exists() && chk.data()?.data === dataStr) {
-        setDocId(dataStr);
-        setOk("Salvo com sucesso.");
-      } else {
-        setErro("Não foi possível confirmar a gravação.");
-      }
+      // timeout para nunca travar a UI
+      await withTimeout(
+        (async () => {
+          await setDoc(ref, payload, { merge: false });
+          const chk = await getDoc(ref);
+          if (!(chk.exists() && chk.data()?.data === dataStr)) {
+            throw new Error("Não foi possível confirmar a gravação.");
+          }
+        })()
+      );
+      setDocId(dataStr);
+      setOk("Salvo com sucesso.");
     } catch (e) {
       setErro(e?.message || String(e));
     } finally {
@@ -183,7 +185,15 @@ export default function TabPrec({ setTela }) {
     return fmt2(precos[k]?.[campo]);
   }
 
-  const baseFont = 20; // <= TAMANHO 20PX EM TODA A TELA
+  const btn = (extra = {}) => ({
+    background: "#e5e7eb",
+    border: "1px solid #d1d5db",
+    borderRadius: 12,
+    padding: "12px 16px",
+    cursor: "pointer",
+    fontSize: baseFont,
+    ...extra,
+  });
 
   return (
     <div
@@ -197,49 +207,35 @@ export default function TabPrec({ setTela }) {
       }}
     >
       {/* Ações */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
-        <button
-          onClick={() => setTela("HomeERP")}
-          style={{
-            background: "#e5e7eb",
-            border: "1px solid #d1d5db",
-            borderRadius: 10,
-            padding: "10px 14px",
-            cursor: "pointer",
-            fontSize: baseFont,
-          }}
-        >
+      <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+        <button onClick={() => setTela("HomeERP")} style={btn()}>
           ← Voltar
         </button>
+
         <button
           onClick={carregarUltima}
-          disabled={carregando}
-          style={{
+          disabled={carregando || salvando}
+          style={btn({
             background: "#8c3b1b",
             color: "#fff",
             border: "none",
-            borderRadius: 10,
-            padding: "10px 14px",
-            cursor: carregando ? "not-allowed" : "pointer",
-            opacity: carregando ? 0.6 : 1,
-            fontSize: baseFont,
-          }}
+            opacity: carregando || salvando ? 0.6 : 1,
+            cursor: carregando || salvando ? "not-allowed" : "pointer",
+          })}
         >
           {carregando ? "Carregando…" : "Carregar última"}
         </button>
+
         <button
           onClick={salvarNovaVigencia}
-          disabled={salvando}
-          style={{
+          disabled={carregando || salvando}
+          style={btn({
             background: "#14532d",
             color: "#fff",
             border: "none",
-            borderRadius: 10,
-            padding: "10px 14px",
-            cursor: salvando ? "not-allowed" : "pointer",
-            opacity: salvando ? 0.7 : 1,
-            fontSize: baseFont,
-          }}
+            opacity: carregando || salvando ? 0.7 : 1,
+            cursor: carregando || salvando ? "not-allowed" : "pointer",
+          })}
         >
           {salvando ? "Salvando…" : "Salvar nova vigência"}
         </button>
@@ -249,19 +245,19 @@ export default function TabPrec({ setTela }) {
       <h1 style={{ fontWeight: 800, marginBottom: 8, fontSize: baseFont }}>
         Tabela de Preços (Revenda)
       </h1>
-      <div style={{ marginBottom: 14, opacity: 0.95 }}>
+      <div style={{ marginBottom: 16, opacity: 0.95 }}>
         <div style={{ marginBottom: 6 }}>
           <strong>Doc atual:</strong> {docId || "—"}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
           <strong>Vigência (YYYY-MM-DD):</strong>
           <input
             value={vigencia}
             onChange={(e) => setVigencia(e.target.value)}
             placeholder="2025-08-13"
             style={{
-              padding: "10px 12px",
-              borderRadius: 10,
+              padding: "12px 14px",
+              borderRadius: 12,
               border: "1px solid #d1d5db",
               outline: "none",
               fontSize: baseFont,
@@ -274,11 +270,11 @@ export default function TabPrec({ setTela }) {
       {erro && (
         <div
           style={{
-            marginBottom: 12,
-            padding: 12,
+            marginBottom: 14,
+            padding: 14,
             border: "1px solid #fecaca",
             background: "#fee2e2",
-            borderRadius: 12,
+            borderRadius: 14,
             color: "#7a1b1b",
             fontSize: baseFont,
           }}
@@ -289,11 +285,11 @@ export default function TabPrec({ setTela }) {
       {ok && (
         <div
           style={{
-            marginBottom: 12,
-            padding: 12,
+            marginBottom: 14,
+            padding: 14,
             border: "1px solid #bbf7d0",
             background: "#dcfce7",
-            borderRadius: 12,
+            borderRadius: 14,
             color: "#166534",
             fontSize: baseFont,
           }}
@@ -307,7 +303,7 @@ export default function TabPrec({ setTela }) {
         style={{
           background: "#fff",
           border: "1px solid #eadfce",
-          borderRadius: 14,
+          borderRadius: 16,
           overflow: "hidden",
         }}
       >
@@ -315,7 +311,7 @@ export default function TabPrec({ setTela }) {
           style={{
             display: "grid",
             gridTemplateColumns: "2fr 1fr 1fr 1fr",
-            padding: "12px 14px",
+            padding: "14px 16px",
             fontWeight: 700,
             background: "#f7efe4",
             borderBottom: "1px solid #eadfce",
@@ -334,7 +330,7 @@ export default function TabPrec({ setTela }) {
             style={{
               display: "grid",
               gridTemplateColumns: "2fr 1fr 1fr 1fr",
-              padding: "12px 14px",
+              padding: "14px 16px",
               borderBottom: "1px solid #f2e8da",
               alignItems: "center",
               fontSize: baseFont,
@@ -354,8 +350,8 @@ export default function TabPrec({ setTela }) {
                   style={{
                     width: "100%",
                     textAlign: "right",
-                    padding: "10px 12px",
-                    borderRadius: 10,
+                    padding: "12px 14px",
+                    borderRadius: 12,
                     border: "1px solid #e5e7eb",
                     outline: "none",
                     fontSize: baseFont,
@@ -368,17 +364,11 @@ export default function TabPrec({ setTela }) {
       </div>
 
       {/* Atalhos */}
-      <div style={{ marginTop: 18, display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <button onClick={() => setTela("CtsReceber")} style={{ fontSize: baseFont }}>
-          → Contas a Receber
-        </button>
-        <button onClick={() => setTela("CtsPagar")} style={{ fontSize: baseFont }}>
-          → Contas a Pagar
-        </button>
-        <button onClick={() => setTela("FluxCx")} style={{ fontSize: baseFont }}>
-          → Fluxo de Caixa
-        </button>
+      <div style={{ marginTop: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <button onClick={() => setTela("CtsReceber")} style={btn()}>→ Contas a Receber</button>
+        <button onClick={() => setTela("CtsPagar")} style={btn()}>→ Contas a Pagar</button>
+        <button onClick={() => setTela("FluxCx")} style={btn()}>→ Fluxo de Caixa</button>
       </div>
     </div>
   );
-}
+              }
