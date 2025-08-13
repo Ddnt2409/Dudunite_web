@@ -26,6 +26,9 @@ const estiloInput = {
   fontSize: "18px",
   padding: "6px 8px",
   textAlign: "right",
+  borderRadius: 6,
+  border: "1px solid #d2b7a0",
+  background: "#fff",
 };
 
 const estiloTh = { fontWeight: 700, fontSize: 18, padding: "8px" };
@@ -39,7 +42,6 @@ function formatView(n) {
 
 function parseToNumber(txt) {
   if (txt == null) return 0;
-  // aceita "6", "6,00", "6.00"
   const s = String(txt).replace(/\./g, "").replace(",", ".");
   const v = Number(s);
   return isNaN(v) ? 0 : v;
@@ -67,29 +69,49 @@ export default function TabPrec({ setTela }) {
     esc: { rev1: 0, rev2: 0, rev3: 0 },
   });
 
-  // === CARREGAR ÚLTIMA (forçando por documentId) ============================
+  // == CARGA RESILIENTE ======================================================
   async function carregarUltima() {
     setMsg("Carregando última...");
     setCarregando(true);
     try {
       const col = collection(db, "tabela_precos_revenda");
+      let chosenDoc = null;
 
-      // 1) ordenar pelo ID do documento (ex.: "2025-08-12")
-      const q = query(col, orderBy(documentId(), "desc"), limit(1));
-      const snap = await getDocs(q);
+      // 1) tentar por campo 'data'
+      try {
+        const q1 = query(col, orderBy("data", "desc"), limit(1));
+        const s1 = await getDocs(q1);
+        if (!s1.empty) chosenDoc = s1.docs[0];
+      } catch (_) {}
 
-      if (snap.empty) {
+      // 2) se não deu, tentar por documentId()
+      if (!chosenDoc) {
+        try {
+          const q2 = query(col, orderBy(documentId(), "desc"), limit(1));
+          const s2 = await getDocs(q2);
+          if (!s2.empty) chosenDoc = s2.docs[0];
+        } catch (_) {}
+      }
+
+      // 3) fallback: lê tudo e pega maior ID
+      if (!chosenDoc) {
+        const all = await getDocs(col);
+        if (!all.empty) {
+          const arr = all.docs.slice().sort((a, b) => (a.id > b.id ? -1 : 1));
+          chosenDoc = arr[0];
+        }
+      }
+
+      if (!chosenDoc) {
         setDocAtual("-");
         setMsg("Sem registros. Preencha e salve uma nova vigência.");
-        setCarregando(false);
         return;
       }
 
-      const d = snap.docs[0];
-      const data = d.data() || {};
-      setDocAtual(d.id);
+      const data = chosenDoc.data() || {};
+      setDocAtual(chosenDoc.id);
 
-      // 2) Normaliza: se existir "precos", usa; senão, usa chaves na raiz
+      // normalização (map 'precos' OU chaves na raiz)
       let novo = {};
       if (data.precos && typeof data.precos === "object") {
         PRODUTOS.forEach((p) => {
@@ -121,7 +143,7 @@ export default function TabPrec({ setTela }) {
     }
   }
 
-  // === SALVAR NOVA VIGÊNCIA (raiz + mapa 'precos') =========================
+  // == SALVAR (raiz + mapa 'precos' p/ retrocompatibilidade) =================
   async function salvarNova() {
     const id = vigencia?.trim() || docAtual || "0000-00-00";
     if (!/^\d{4}-\d{2}-\d{2}$/.test(id)) {
@@ -132,7 +154,6 @@ export default function TabPrec({ setTela }) {
     setMsg("Salvando...");
     setSalvando(true);
     try {
-      // Monta payload duplo (retrocompatível)
       const payloadRaiz = {};
       const payloadPrecos = {};
 
@@ -149,13 +170,10 @@ export default function TabPrec({ setTela }) {
       await setDoc(
         ref,
         {
-          // campo data (agora passamos a gravar também)
           data: id,
           updatedAt: serverTimestamp(),
-          // novo padrão (map)
-          precos: payloadPrecos,
-          // padrão antigo (raiz)
-          ...payloadRaiz,
+          precos: payloadPrecos, // padrão novo
+          ...payloadRaiz,        // padrão antigo (raiz)
         },
         { merge: true }
       );
@@ -164,7 +182,7 @@ export default function TabPrec({ setTela }) {
       setMsg("Vigência salva com sucesso.");
     } catch (err) {
       console.error("Falha ao salvar:", err);
-      setMsg("Falha ao salvar. Verifique regras do Firestore e tente novamente.");
+      setMsg("Falha ao salvar. Verifique as regras do Firestore.");
     } finally {
       setSalvando(false);
     }
@@ -175,10 +193,9 @@ export default function TabPrec({ setTela }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // === UI ===================================================================
   return (
     <div style={{ background: "#FCE8D8", minHeight: "100vh", padding: 12, color: "#5C1D0E" }}>
-      <div style={{ marginBottom: 10, display: "flex", gap: 8 }}>
+      <div style={{ marginBottom: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
         <button
           onClick={() => (setTela ? setTela("HomeERP") : window.history.back())}
           disabled={carregando || salvando}
@@ -193,10 +210,10 @@ export default function TabPrec({ setTela }) {
         </button>
       </div>
 
-      <div style={{ marginBottom: 8, fontWeight: 700, fontSize: 18 }}>Tabela de Preços (Revenda)</div>
+      <div style={{ marginBottom: 4, fontWeight: 700, fontSize: 18 }}>Tabela de Preços (Revenda)</div>
       <div style={{ marginBottom: 6, fontSize: 16 }}>Doc atual: {docAtual}</div>
 
-      <div style={{ marginBottom: 6, fontSize: 16 }}>
+      <div style={{ marginBottom: 10, fontSize: 16 }}>
         Vigência (YYYY-MM-DD):{" "}
         <input
           type="text"
@@ -210,7 +227,7 @@ export default function TabPrec({ setTela }) {
         <div
           style={{
             marginBottom: 12,
-            background: msg.includes("Falha") ? "#ffd6d6" : "#d6f5d6",
+            background: msg.startsWith("Falha") ? "#ffd6d6" : "#d6f5d6",
             padding: 8,
             borderRadius: 6,
             fontSize: 16,
@@ -223,10 +240,10 @@ export default function TabPrec({ setTela }) {
       <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 6px" }}>
         <thead>
           <tr>
-            <th style={{ ...stiloTh, textAlign: "left" }}>Produto</th>
-            <th style={stiloTh}>rev1</th>
-            <th style={stiloTh}>rev2</th>
-            <th style={stiloTh}>rev3</th>
+            <th style={{ ...estiloTh, textAlign: "left" }}>Produto</th>
+            <th style={estiloTh}>rev1</th>
+            <th style={estiloTh}>rev2</th>
+            <th style={estiloTh}>rev3</th>
           </tr>
         </thead>
         <tbody>
@@ -254,7 +271,7 @@ export default function TabPrec({ setTela }) {
         </tbody>
       </table>
 
-      <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+      <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
         <button onClick={() => setTela && setTela("CtsReceber")}>→ Contas a Receber</button>
         <button onClick={() => setTela && setTela("CtsPagar")}>→ Contas a Pagar</button>
         <button onClick={() => setTela && setTela("FluxoCaixa")}>→ Fluxo de Caixa</button>
@@ -262,5 +279,3 @@ export default function TabPrec({ setTela }) {
     </div>
   );
 }
-
-const stiloTh = estiloTh; // apenas para evitar erro de lint por const acima
