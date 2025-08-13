@@ -4,7 +4,6 @@ import { db } from "../firebase";
 import {
   collection,
   doc,
-  getDoc,
   getDocs,
   limit,
   orderBy,
@@ -21,20 +20,46 @@ const PRODUTOS = [
   { key: "esc", nome: "Escondidinho" },
 ];
 
+// estado inicial como STRING (permite digitação natural com vírgula)
 const VAZIO = () =>
   PRODUTOS.reduce((acc, p) => {
-    acc[p.key] = { rev1: 0, rev2: 0, rev3: 0 };
+    acc[p.key] = { rev1: "0,00", rev2: "0,00", rev3: "0,00" };
     return acc;
   }, {});
 
-const fmt = (n) => (isFinite(n) ? n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00");
+// string → número
 const toNum = (v) => {
   if (typeof v === "number") return v;
   if (!v) return 0;
+  // troca pontos de milhar e mantém vírgula como decimal
   const s = String(v).replace(/\./g, "").replace(",", ".");
   const n = Number(s);
   return isNaN(n) ? 0 : n;
 };
+
+// número → "9,99"
+const nToStr = (n) =>
+  isFinite(n)
+    ? n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : "0,00";
+
+// limpa o que não é dígito ou vírgula e limita a UMA vírgula
+function sanitizeTyping(str) {
+  if (!str) return "";
+  let s = String(str).replace(/\./g, ","); // força ponto -> vírgula
+  // remove caracteres não numéricos/virgula
+  s = s.replace(/[^0-9,]/g, "");
+  // mantém só a primeira vírgula
+  const parts = s.split(",");
+  if (parts.length > 2) s = parts[0] + "," + parts.slice(1).join("").replace(/,/g, "");
+  return s;
+}
+
+// normaliza para 2 casas
+function normalizeStr(str) {
+  const n = toNum(str);
+  return nToStr(n);
+}
 
 export default function TabPrec({ setTela }) {
   const [vigencia, setVigencia] = useState(() => {
@@ -44,16 +69,15 @@ export default function TabPrec({ setTela }) {
     return `${d.getFullYear()}-${mm}-${dd}`;
   });
   const [docAtual, setDocAtual] = useState("-");
-  const [itens, setItens] = useState(VAZIO);
+  const [itens, setItens] = useState(VAZIO); // strings
   const [msg, setMsg] = useState("");
-  const [tipoMsg, setTipoMsg] = useState("info"); // info | ok | erro
+  const [tipoMsg, setTipoMsg] = useState("info");
   const [salvando, setSalvando] = useState(false);
   const [carregando, setCarregando] = useState(false);
 
   const colRef = useMemo(() => collection(db, "tabela_precos_revenda"), []);
 
   useEffect(() => {
-    // carrega última vigente ao abrir
     handleCarregarUltima();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -61,16 +85,28 @@ export default function TabPrec({ setTela }) {
   function setBanner(t, tipo = "info") {
     setTipoMsg(tipo);
     setMsg(t);
-    if (tipo !== "erro") {
-      setTimeout(() => setMsg(""), 2500);
-    }
+    if (tipo !== "erro") setTimeout(() => setMsg(""), 2500);
   }
 
-  function handleChange(prodKey, revKey, val) {
+  // digitação livre (não formata aqui)
+  function handleTyping(prodKey, revKey, val) {
+    const limpo = sanitizeTyping(val);
     setItens((old) => ({
       ...old,
-      [prodKey]: { ...old[prodKey], [revKey]: toNum(val) },
+      [prodKey]: { ...old[prodKey], [revKey]: limpo },
     }));
+  }
+
+  // ao sair do campo, normaliza para 2 casas
+  function handleBlur(prodKey, revKey) {
+    setItens((old) => {
+      const atual = old[prodKey]?.[revKey] ?? "0";
+      const norm = normalizeStr(atual);
+      return {
+        ...old,
+        [prodKey]: { ...old[prodKey], [revKey]: norm },
+      };
+    });
   }
 
   async function handleCarregarUltima() {
@@ -88,15 +124,15 @@ export default function TabPrec({ setTela }) {
         const dados = d.data();
         setDocAtual(dados?.data || d.id);
         setVigencia(dados?.data || d.id);
-        const precos = dados?.precos || {};
-        // normaliza
+
         const base = VAZIO();
+        const precos = dados?.precos || {};
         for (const p of PRODUTOS) {
-          const linha = precos[p.key] || {};
+          const lin = precos[p.key] || {};
           base[p.key] = {
-            rev1: toNum(linha.rev1),
-            rev2: toNum(linha.rev2),
-            rev3: toNum(linha.rev3),
+            rev1: nToStr(toNum(lin.rev1)),
+            rev2: nToStr(toNum(lin.rev2)),
+            rev3: nToStr(toNum(lin.rev3)),
           };
         }
         setItens(base);
@@ -117,7 +153,7 @@ export default function TabPrec({ setTela }) {
     setSalvando(true);
     setBanner("Salvando...", "info");
     try {
-      // monta payload
+      // converte strings → números
       const precos = {};
       for (const p of PRODUTOS) {
         const row = itens[p.key] || {};
@@ -149,10 +185,7 @@ export default function TabPrec({ setTela }) {
   return (
     <div style={{ background: "#ffeede", minHeight: "100vh", padding: 12 }}>
       <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-        <button
-          onClick={() => setTela?.("HomeERP")}
-          style={btn("ghost")}
-        >
+        <button onClick={() => setTela?.("HomeERP")} style={btn("ghost")}>
           ← Voltar
         </button>
         <button onClick={handleCarregarUltima} disabled={carregando} style={btn("brown")}>
@@ -171,7 +204,7 @@ export default function TabPrec({ setTela }) {
         <input
           value={vigencia}
           onChange={(e) => setVigencia(e.target.value)}
-          style={inp({ width: 180 })}
+          style={inp({ width: 180, textAlign: "left" })}
           placeholder="YYYY-MM-DD"
         />
       </div>
@@ -210,10 +243,9 @@ export default function TabPrec({ setTela }) {
                   <Td key={rev}>
                     <input
                       inputMode="decimal"
-                      value={fmt(itens[p.key]?.[rev] ?? 0)}
-                      onChange={(e) =>
-                        handleChange(p.key, rev, e.target.value)
-                      }
+                      value={itens[p.key]?.[rev] ?? "0,00"}
+                      onChange={(e) => handleTyping(p.key, rev, e.target.value)}
+                      onBlur={() => handleBlur(p.key, rev)}
                       onFocus={(e) => e.target.select()}
                       style={inp()}
                     />
@@ -225,7 +257,6 @@ export default function TabPrec({ setTela }) {
         </table>
       </div>
 
-      {/* navegação simples */}
       <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
         <button style={btn()} onClick={() => setTela?.("CtsReceber")}>→ Contas a Receber</button>
         <button style={btn()} onClick={() => setTela?.("CtsPagar")}>→ Contas a Pagar</button>
@@ -237,34 +268,18 @@ export default function TabPrec({ setTela }) {
 
 function Th({ children }) {
   return (
-    <th
-      style={{
-        textAlign: "left",
-        padding: "10px 8px",
-        fontSize: 18,
-        color: "#5C1D0E",
-      }}
-    >
+    <th style={{ textAlign: "left", padding: "10px 8px", fontSize: 18, color: "#5C1D0E" }}>
       {children}
     </th>
   );
 }
-
 function Td({ children, rotulo = false }) {
   return (
-    <td
-      style={{
-        padding: "8px 6px",
-        verticalAlign: "middle",
-        fontSize: rotulo ? 18 : 18,
-        color: "#5C1D0E",
-      }}
-    >
+    <td style={{ padding: "8px 6px", verticalAlign: "middle", fontSize: rotulo ? 18 : 18, color: "#5C1D0E" }}>
       {children}
     </td>
   );
 }
-
 function inp(extra = {}) {
   return {
     width: "110px",
@@ -279,7 +294,6 @@ function inp(extra = {}) {
     ...extra,
   };
 }
-
 function btn(kind = "gray") {
   const base = {
     fontSize: 16,
