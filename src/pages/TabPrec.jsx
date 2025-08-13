@@ -1,255 +1,310 @@
 // src/pages/TabPrec.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { db } from "../firebase";
-import {
-  collection,
-  doc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-} from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, limit, orderBy, query, setDoc } from "firebase/firestore";
+import { db } from "../firebase"; // <- nomeado (sem default)
 
 const PRODUTOS = [
-  { key: "brw7x7", nome: "BRW 7x7" },
-  { key: "brw6x6", nome: "BRW 6x6" },
-  { key: "pkt5x5", nome: "PKT 5x5" },
-  { key: "pkt6x6", nome: "PKT 6x6" },
-  { key: "esc", nome: "Escondidinho" },
+  { key: "brw7x7", label: "BRW 7x7" },
+  { key: "brw6x6", label: "BRW 6x6" },
+  { key: "pkt5x5", label: "PKT 5x5" },
+  { key: "pkt6x6", label: "PKT 6x6" },
+  { key: "esc",    label: "Escondidinho" },
 ];
 
-// estado inicial como STRING (permite digitação natural com vírgula)
-const VAZIO = () =>
-  PRODUTOS.reduce((acc, p) => {
-    acc[p.key] = { rev1: "0,00", rev2: "0,00", rev3: "0,00" };
-    return acc;
-  }, {});
-
-// string → número
-const toNum = (v) => {
-  if (typeof v === "number") return v;
-  if (!v) return 0;
-  // troca pontos de milhar e mantém vírgula como decimal
-  const s = String(v).replace(/\./g, "").replace(",", ".");
-  const n = Number(s);
-  return isNaN(n) ? 0 : n;
+// =========================
+// Helpers
+// =========================
+const sanitizeMoneyStr = (v) => {
+  // Mantém apenas dígitos e vírgula/ponto, troca vírgula por ponto
+  if (typeof v !== "string") v = String(v ?? "");
+  const s = v.replace(/[^\d,.\-]/g, "").replace(",", ".");
+  return s;
 };
 
-// número → "9,99"
-const nToStr = (n) =>
-  isFinite(n)
-    ? n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    : "0,00";
+const toNumberBR = (v) => {
+  const s = sanitizeMoneyStr(v);
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
+};
 
-// limpa o que não é dígito ou vírgula e limita a UMA vírgula
-function sanitizeTyping(str) {
-  if (!str) return "";
-  let s = String(str).replace(/\./g, ","); // força ponto -> vírgula
-  // remove caracteres não numéricos/virgula
-  s = s.replace(/[^0-9,]/g, "");
-  // mantém só a primeira vírgula
-  const parts = s.split(",");
-  if (parts.length > 2) s = parts[0] + "," + parts.slice(1).join("").replace(/,/g, "");
-  return s;
-}
+const toStrBR = (n) => {
+  const num = Number(n);
+  if (!Number.isFinite(num)) return "0,00";
+  return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
 
-// normaliza para 2 casas
-function normalizeStr(str) {
-  const n = toNum(str);
-  return nToStr(n);
-}
+// Estado base (strings para inputs)
+const buildEmptyState = () => ({
+  brw7x7: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
+  brw6x6: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
+  pkt5x5: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
+  pkt6x6: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
+  esc:    { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
+});
 
 export default function TabPrec({ setTela }) {
   const [vigencia, setVigencia] = useState(() => {
+    // YYYY-MM-DD de hoje como default
     const d = new Date();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${d.getFullYear()}-${mm}-${dd}`;
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${m}-${day}`;
   });
-  const [docAtual, setDocAtual] = useState("-");
-  const [itens, setItens] = useState(VAZIO); // strings
-  const [msg, setMsg] = useState("");
-  const [tipoMsg, setTipoMsg] = useState("info");
-  const [salvando, setSalvando] = useState(false);
-  const [carregando, setCarregando] = useState(false);
 
-  const colRef = useMemo(() => collection(db, "tabela_precos_revenda"), []);
+  const [docAtual, setDocAtual] = useState("-");
+  const [form, setForm] = useState(buildEmptyState());
+  const [status, setStatus] = useState(""); // mensagens curtas
+  const [salvando, setSalvando] = useState(false);
+  const tabelaCol = useMemo(() => collection(db, "tabela_precos_revenda"), []);
+
+  // -------------------------
+  // Carregar a última vigência
+  // -------------------------
+  const carregarUltima = async () => {
+    try {
+      setStatus("Carregando última...");
+      const q = query(tabelaCol, orderBy("data", "desc"), limit(1));
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        setDocAtual("-");
+        setForm(buildEmptyState());
+        setStatus("Sem registros. Preencha e salve uma nova vigência.");
+        return;
+      }
+
+      const docRef = snap.docs[0];
+      const data = docRef.data();
+      setDocAtual(data?.data || "-");
+      setVigencia(data?.data || vigencia);
+
+      const precos = data?.precos || {};
+      // Monta form (string BR)
+      const novo = buildEmptyState();
+      for (const p of PRODUTOS) {
+        const linha = precos[p.key] || {};
+        novo[p.key] = {
+          rev1: toStrBR(linha.rev1 ?? 0),
+          rev2: toStrBR(linha.rev2 ?? 0),
+          rev3: toStrBR(linha.rev3 ?? 0),
+        };
+      }
+      setForm(novo);
+      setStatus("Última tabela carregada.");
+    } catch (err) {
+      console.error(err);
+      setStatus("Falha ao carregar a última vigência.");
+    }
+  };
 
   useEffect(() => {
-    handleCarregarUltima();
+    // Auto-carrega ao abrir
+    carregarUltima();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function setBanner(t, tipo = "info") {
-    setTipoMsg(tipo);
-    setMsg(t);
-    if (tipo !== "erro") setTimeout(() => setMsg(""), 2500);
-  }
-
-  // digitação livre (não formata aqui)
-  function handleTyping(prodKey, revKey, val) {
-    const limpo = sanitizeTyping(val);
-    setItens((old) => ({
-      ...old,
-      [prodKey]: { ...old[prodKey], [revKey]: limpo },
+  // -------------------------
+  // Handlers de input
+  // -------------------------
+  const onChangeValor = (prodKey, revKey, value) => {
+    // mantemos string; só normalizamos vírgula/ponto na gravação
+    setForm((prev) => ({
+      ...prev,
+      [prodKey]: {
+        ...prev[prodKey],
+        [revKey]: value,
+      },
     }));
-  }
+  };
 
-  // ao sair do campo, normaliza para 2 casas
-  function handleBlur(prodKey, revKey) {
-    setItens((old) => {
-      const atual = old[prodKey]?.[revKey] ?? "0";
-      const norm = normalizeStr(atual);
-      return {
-        ...old,
-        [prodKey]: { ...old[prodKey], [revKey]: norm },
-      };
-    });
-  }
-
-  async function handleCarregarUltima() {
-    setCarregando(true);
-    setBanner("Carregando...", "info");
-    try {
-      const q = query(colRef, orderBy("data", "desc"), limit(1));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        setItens(VAZIO());
-        setDocAtual("-");
-        setBanner("Sem registros ainda.");
-      } else {
-        const d = snap.docs[0];
-        const dados = d.data();
-        setDocAtual(dados?.data || d.id);
-        setVigencia(dados?.data || d.id);
-
-        const base = VAZIO();
-        const precos = dados?.precos || {};
-        for (const p of PRODUTOS) {
-          const lin = precos[p.key] || {};
-          base[p.key] = {
-            rev1: nToStr(toNum(lin.rev1)),
-            rev2: nToStr(toNum(lin.rev2)),
-            rev3: nToStr(toNum(lin.rev3)),
-          };
-        }
-        setItens(base);
-        setBanner("Última tabela carregada.", "ok");
-      }
-    } catch (e) {
-      setBanner(`Falha ao carregar: ${e.message}`, "erro");
-    } finally {
-      setCarregando(false);
-    }
-  }
-
-  async function handleSalvar() {
-    if (!vigencia || !/^\d{4}-\d{2}-\d{2}$/.test(vigencia)) {
-      setBanner("Informe a vigência no formato YYYY-MM-DD.", "erro");
-      return;
-    }
+  // -------------------------
+  // Salvar
+  // -------------------------
+  const salvar = async () => {
+    if (salvando) return;
     setSalvando(true);
-    setBanner("Salvando...", "info");
+    setStatus("Salvando...");
+
     try {
-      // converte strings → números
-      const precos = {};
+      // Validação de data
+      const id = String(vigencia || "").trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(id)) {
+        setStatus("Data inválida. Use YYYY-MM-DD.");
+        return;
+      }
+
+      // Converte todos para número
+      const payloadPrecos = {};
+      let soma = 0;
       for (const p of PRODUTOS) {
-        const row = itens[p.key] || {};
-        precos[p.key] = {
-          rev1: toNum(row.rev1),
-          rev2: toNum(row.rev2),
-          rev3: toNum(row.rev3),
+        const f = form[p.key] || {};
+        const n1 = toNumberBR(f.rev1);
+        const n2 = toNumberBR(f.rev2);
+        const n3 = toNumberBR(f.rev3);
+        payloadPrecos[p.key] = { rev1: n1, rev2: n2, rev3: n3 };
+        soma += (n1 || 0) + (n2 || 0) + (n3 || 0);
+      }
+
+      // Bloqueio: tudo zero
+      if (soma === 0) {
+        setStatus("Tabela está toda com 0,00. Preencha antes de salvar.");
+        return;
+      }
+
+      // Confirma sobrescrever se já existir
+      const ref = doc(tabelaCol, id);
+      const exist = await getDoc(ref);
+      if (exist.exists()) {
+        const ok = window.confirm(
+          `Já existe uma vigência ${id}. Deseja sobrescrever?`
+        );
+        if (!ok) {
+          setStatus("Operação cancelada.");
+          return;
+        }
+      }
+
+      const payload = {
+        data: id,
+        precos: payloadPrecos,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await setDoc(ref, payload, { merge: false });
+
+      // Atualiza docAtual e normaliza form para BR (assegura exibição com vírgula)
+      setDocAtual(id);
+      const norm = buildEmptyState();
+      for (const p of PRODUTOS) {
+        norm[p.key] = {
+          rev1: toStrBR(payloadPrecos[p.key].rev1),
+          rev2: toStrBR(payloadPrecos[p.key].rev2),
+          rev3: toStrBR(payloadPrecos[p.key].rev3),
         };
       }
-      const ref = doc(colRef, vigencia);
-      await setDoc(
-        ref,
-        {
-          data: vigencia,
-          precos,
-          updatedAt: serverTimestamp(),
-        },
-        { merge: false }
-      );
-      setDocAtual(vigencia);
-      setBanner("Salvo com sucesso.", "ok");
-    } catch (e) {
-      setBanner(`Erro ao salvar: ${e.message}`, "erro");
+      setForm(norm);
+
+      setStatus("Salvo com sucesso.");
+    } catch (err) {
+      console.error(err);
+      setStatus("Erro ao salvar tabela.");
     } finally {
       setSalvando(false);
     }
-  }
+  };
+
+  // -------------------------
+  // Render
+  // -------------------------
+  const baseInput =
+    "w-[110px] px-3 py-2 rounded border border-[#d9b8a8] bg-white focus:outline-none focus:ring-2 focus:ring-[#c96f4a]";
+  const tdCls = "py-2 px-2 border-b border-[#efd6c9]";
+  const thCls = "py-2 px-2 text-left border-b border-[#dcb7a4] text-[#5C1D0E] font-semibold";
 
   return (
-    <div style={{ background: "#ffeede", minHeight: "100vh", padding: 12 }}>
-      <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-        <button onClick={() => setTela?.("HomeERP")} style={btn("ghost")}>
+    <div className="min-h-screen bg-[#FDEBDF] text-[#5C1D0E] p-3 sm:p-6">
+      {/* Cabeçalho simples */}
+      <div className="flex items-center gap-2 mb-3">
+        <button
+          onClick={() => setTela?.("HomeERP")}
+          className="bg-[#d0b9ae] text-[#5C1D0E] px-3 py-2 rounded"
+          style={{ fontSize: 18, fontWeight: 600 }}
+        >
           ← Voltar
         </button>
-        <button onClick={handleCarregarUltima} disabled={carregando} style={btn("brown")}>
-          {carregando ? "Carregando..." : "Carregar última"}
+
+        <button
+          onClick={carregarUltima}
+          className="bg-[#8c3b1b] text-white px-3 py-2 rounded"
+          style={{ fontSize: 18, fontWeight: 700 }}
+        >
+          Carregar última
         </button>
-        <button onClick={handleSalvar} disabled={salvando} style={btn("green")}>
+
+        <button
+          onClick={salvar}
+          disabled={salvando}
+          className={`${
+            salvando ? "bg-[#3e7f4f]/70" : "bg-[#3e7f4f]"
+          } text-white px-3 py-2 rounded`}
+          style={{ fontSize: 18, fontWeight: 700 }}
+        >
           {salvando ? "Salvando..." : "Salvar nova vigência"}
         </button>
       </div>
 
-      <div style={{ fontWeight: 700, color: "#5C1D0E", fontSize: 18 }}>Tabela de Preços (Revenda)</div>
-      <div style={{ marginTop: 6, marginBottom: 6 }}>Doc atual: <strong>{docAtual}</strong></div>
+      {/* Título e status */}
+      <div className="mb-2" style={{ fontSize: 22, fontWeight: 800 }}>
+        Tabela de Preços (Revenda)
+      </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-        <label>Vigência (YYYY-MM-DD):</label>
+      <div className="mb-2" style={{ fontSize: 18 }}>
+        <strong>Doc atual:</strong> {docAtual || "-"}
+      </div>
+
+      <div className="flex items-center gap-2 mb-4">
+        <label style={{ fontSize: 18 }}>Vigência (YYYY-MM-DD):</label>
         <input
+          type="text"
           value={vigencia}
           onChange={(e) => setVigencia(e.target.value)}
-          style={inp({ width: 180, textAlign: "left" })}
+          className="px-3 py-2 rounded border border-[#d9b8a8] bg-white"
+          style={{ fontSize: 20, width: 180 }}
           placeholder="YYYY-MM-DD"
         />
       </div>
 
-      {!!msg && (
+      {status && (
         <div
+          className="mb-3 px-3 py-2 rounded"
           style={{
-            background: tipoMsg === "erro" ? "#ffd5d5" : tipoMsg === "ok" ? "#dcf5d8" : "#fde4c8",
-            border: "1px solid #c9b9a7",
-            color: "#5C1D0E",
-            borderRadius: 8,
-            padding: "8px 10px",
-            marginBottom: 10,
-            fontSize: 16,
+            background: status.includes("sucesso") ? "#c6f6d5" : "#fdebd3",
+            fontSize: 18,
           }}
         >
-          {msg}
+          {status}
         </div>
       )}
 
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
+      {/* Tabela */}
+      <div className="overflow-x-auto">
+        <table className="min-w-[680px] w-full bg-[#fde6d9] rounded">
           <thead>
-            <tr>
-              <Th>Produto</Th>
-              <Th>rev1</Th>
-              <Th>rev2</Th>
-              <Th>rev3</Th>
+            <tr className="bg-[#f3d1bf]">
+              <th className={thCls} style={{ fontSize: 20 }}>
+                Produto
+              </th>
+              <th className={thCls} style={{ fontSize: 20 }}>
+                rev1
+              </th>
+              <th className={thCls} style={{ fontSize: 20 }}>
+                rev2
+              </th>
+              <th className={thCls} style={{ fontSize: 20 }}>
+                rev3
+              </th>
             </tr>
           </thead>
+
           <tbody>
             {PRODUTOS.map((p) => (
               <tr key={p.key}>
-                <Td rotulo>{p.nome}</Td>
+                <td className={tdCls} style={{ fontSize: 20 }}>
+                  {p.label}
+                </td>
+
                 {["rev1", "rev2", "rev3"].map((rev) => (
-                  <Td key={rev}>
+                  <td key={rev} className={tdCls}>
                     <input
+                      type="text"
                       inputMode="decimal"
-                      value={itens[p.key]?.[rev] ?? "0,00"}
-                      onChange={(e) => handleTyping(p.key, rev, e.target.value)}
-                      onBlur={() => handleBlur(p.key, rev)}
-                      onFocus={(e) => e.target.select()}
-                      style={inp()}
+                      value={form[p.key][rev]}
+                      onChange={(e) => onChangeValor(p.key, rev, e.target.value)}
+                      className={baseInput}
+                      style={{ fontSize: 20, textAlign: "right" }}
+                      placeholder="0,00"
                     />
-                  </Td>
+                  </td>
                 ))}
               </tr>
             ))}
@@ -257,58 +312,30 @@ export default function TabPrec({ setTela }) {
         </table>
       </div>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
-        <button style={btn()} onClick={() => setTela?.("CtsReceber")}>→ Contas a Receber</button>
-        <button style={btn()} onClick={() => setTela?.("CtsPagar")}>→ Contas a Pagar</button>
-        <button style={btn()} onClick={() => setTela?.("FluxCx")}>→ Fluxo de Caixa</button>
+      {/* Navegação simples */}
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button
+          onClick={() => setTela?.("CtsReceber")}
+          className="bg-[#cbbdb7] px-3 py-2 rounded"
+          style={{ fontSize: 18 }}
+        >
+          → Contas a Receber
+        </button>
+        <button
+          onClick={() => setTela?.("CtsPagar")}
+          className="bg-[#cbbdb7] px-3 py-2 rounded"
+          style={{ fontSize: 18 }}
+        >
+          → Contas a Pagar
+        </button>
+        <button
+          onClick={() => setTela?.("FluxCx")}
+          className="bg-[#cbbdb7] px-3 py-2 rounded"
+          style={{ fontSize: 18 }}
+        >
+          → Fluxo de Caixa
+        </button>
       </div>
     </div>
   );
-}
-
-function Th({ children }) {
-  return (
-    <th style={{ textAlign: "left", padding: "10px 8px", fontSize: 18, color: "#5C1D0E" }}>
-      {children}
-    </th>
-  );
-}
-function Td({ children, rotulo = false }) {
-  return (
-    <td style={{ padding: "8px 6px", verticalAlign: "middle", fontSize: rotulo ? 18 : 18, color: "#5C1D0E" }}>
-      {children}
-    </td>
-  );
-}
-function inp(extra = {}) {
-  return {
-    width: "110px",
-    fontSize: 20,
-    padding: "8px 10px",
-    borderRadius: 8,
-    border: "1px solid #d3c1b2",
-    outline: "none",
-    background: "#fff",
-    color: "#5C1D0E",
-    textAlign: "right",
-    ...extra,
-  };
-}
-function btn(kind = "gray") {
-  const base = {
-    fontSize: 16,
-    padding: "8px 12px",
-    borderRadius: 10,
-    border: "none",
-    cursor: "pointer",
-    color: "#fff",
-    background: "#b8b1ab",
-  };
-  if (kind === "green") base.background = "#2e7d32";
-  if (kind === "brown") base.background = "#8c3b1b";
-  if (kind === "ghost") {
-    base.background = "#e0d7cf";
-    base.color = "#3b2a22";
-  }
-  return base;
 }
