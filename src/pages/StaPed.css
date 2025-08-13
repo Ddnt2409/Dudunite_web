@@ -235,3 +235,10 @@ header.erp-header img {
 .staped-pendentes-list {
   max-height: 272px !important;
 }
+
+/* Esconde o preview técnico em JSON nos painéis de relatório */
+.staped-page pre,
+.staped-main pre,
+.staped-grid pre {
+  display: none !important;
+}
