@@ -1,91 +1,35 @@
 // src/pages/HomePCP.jsx
-import React, { useState } from 'react';
-import './HomePCP.css';
+import React from "react";
+import ERPHeader from "./ERPHeader";
+import ERPFooter from "./ERPFooter";
+import "./HomePCP.css"; // se houver
 
 export default function HomePCP({ setTela }) {
-  // Deixe true para aparecer aberto (igual ao comportamento antigo).
-  // Se quiser iniciar fechado, troque para false.
-  const [showProducao, setShowProducao] = useState(true);
-
   return (
-    <div className="homepcp-container">
-      {/* === HEADER === */}
-      <div className="homepcp-header">
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logo Dudunitê"
-          className="logo-pcp"
-        />
-        <h1 className="homepcp-titulo">PCP – Planejamento de Produção</h1>
-      </div>
-
-      {/* === GRUPO: PRODUÇÃO (accordion) === */}
-      <section className="grupo-pcp">
-        <button
-          className="grupo-header"
-          onClick={() => setShowProducao(v => !v)}
-          aria-expanded={showProducao}
-        >
-          <span>📦 Produção (PCP)</span>
-          <span className={`chevron ${showProducao ? 'aberto' : ''}`}>▾</span>
-        </button>
-
-        <div
-          className={`grupo-body ${showProducao ? 'open' : ''}`}
-          style={{ display: showProducao ? 'block' : 'none' }} // garante visibilidade mesmo sem CSS novo
-        >
-          {/* === BOTÕES INTERNOS === */}
-          <div className="botoes-pcp">
-            <div className="botao-wrapper">
-              <button
-                className="botao-principal"
-                onClick={() => setTela('LanPed')}
-              >
-                📝<br />
-                Lançar Pedido
-              </button>
-            </div>
-
-            <div className="botao-wrapper">
-              <button
-                className="botao-principal"
-                onClick={() => setTela('AliSab')}
-              >
-                🍫<br />
-                Alimentar Sabores
-              </button>
-            </div>
-
-            <div className="botao-wrapper">
-              <button
-                className="botao-principal"
-                onClick={() => setTela('StaPed')}
-              >
-                📊<br />
-                Status dos Pedidos
-              </button>
-            </div>
-          </div>
+    <>
+      <ERPHeader title="PCP – Planejamento" />
+      <main style={{ padding: "10px 10px 92px", minHeight: "calc(100vh - 36px)",
+                     background: 'url("/bg001.png") center 140px/cover no-repeat, #fcf4e9' }}>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gap: "12px",
+        }}>
+          <button className="pcp-btn staped-btn staped-btn--dark70" onClick={() => setTela("LanPed")}>
+            ➕ Lançar Pedido
+          </button>
+          <button className="pcp-btn staped-btn staped-btn--dark60" onClick={() => setTela("AliSab")}>
+            🍫 Alimentar Sabores
+          </button>
+          <button className="pcp-btn staped-btn staped-btn--dark70" onClick={() => setTela("StaPed")}>
+            📊 Status dos Pedidos
+          </button>
+          <button className="pcp-btn staped-btn staped-btn--dark60" onClick={() => setTela("Suprimentos")}>
+            🧺 Suprimentos
+          </button>
         </div>
-      </section>
-
-      {/* === VOLTAR === */}
-      <button
-        className="botao-voltar"
-        onClick={() => setTela('HomeERP')}
-      >
-        🔙 Voltar ao ERP
-      </button>
-
-      {/* === RODAPÉ ANIMADO === */}
-      <div className="lista-escolas">
-        <span className="marquee-content">
-          • Cruz • Pinheiros • Dourado • BMQ • CFC • Madre de Deus • Saber Viver •
-          Interativo • Exato Sede • Exato Anexo • Society Show • Russas • Kaduh •
-          Degusty • Bora Gastar • Salesianas • Céu Azul • Pequeno Príncipe •
-          Tio Valter • Vera Cruz
-        </span>
-      </div>
-    </div>
+      </main>
+      <ERPFooter onBack={() => setTela("HomeERP")} />
+    </>
   );
 }
