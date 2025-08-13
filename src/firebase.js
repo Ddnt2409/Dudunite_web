@@ -1,13 +1,11 @@
 // src/firebase.js
-// Ponto único de inicialização do Firebase para todo o app (Módulo 1 + Financeiro)
+// Ponto único de inicialização do Firebase (Módulo 1 + Financeiro)
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-// >>> IMPORTANTE <<<
-// Use o MESMO firebaseConfig que você já usa hoje no Módulo 1.
-// Se o seu arquivo atual já tem esse objeto, mantenha-o aqui.
-// Exemplo/placeholder abaixo — SUBSTITUA pelos seus valores reais:
+// MANTENHA AQUI o mesmo firebaseConfig que você já está usando
+// (não altere seus valores)
 const firebaseConfig = {
   apiKey: "SEU_API_KEY",
   authDomain: "SEU_AUTH_DOMAIN",
@@ -17,11 +15,12 @@ const firebaseConfig = {
   appId: "SEU_APP_ID",
 };
 
-// Evita re-inicializar em hot reload / múltiplas entradas
+// Evita re-inicializar (hot reload / múltiplas entradas)
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-// Firestore único do projeto (usado por Módulo 1 e Financeiro)
-export const db = getFirestore(app);
+// Firestore único
+const db = getFirestore(app);
 
-// Exporta app caso seja necessário em outro lugar
-export { app };
+// Exports compatíveis com ambos os estilos de import
+export { db, app };   // uso: import { db } from "../firebase";
+export default db;     // uso: import db from "../firebase";
