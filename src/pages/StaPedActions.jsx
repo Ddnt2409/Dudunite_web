@@ -1,142 +1,111 @@
 // src/pages/StaPedActions.jsx
-import React, { useRef, useState } from "react";
-import {
-  filtrarPorStatus,
-  montarPlanejamento,
-  montarListaCompras,
-} from "../util/MemProd";
+import React, { useMemo, useState } from "react";
+import "./StaPed.css";
+import { calculaPlanejamento } from "../util/MemProd"; // usa seus cálculos já existentes
 
-/*
-Props:
-- pedidos: Array<Pedido>
-- semanaVazia: boolean
-*/
+export default function StaPedActions({ pedidos, semanaVazia }) {
+  const [report, setReport] = useState(null); // {title, html}
 
-function tsString(d = new Date()) {
-  const pad = (n) => String(n).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  const mm = pad(d.getMonth() + 1);
-  const dd = pad(d.getDate());
-  const hh = pad(d.getHours());
-  const mi = pad(d.getMinutes());
-  const ss = pad(d.getSeconds());
-  return `${yyyy}-${mm}-${dd}_${hh}-${mi}-${ss}`;
-}
+  const temDados = useMemo(() => Array.isArray(pedidos) && pedidos.length > 0, [pedidos]);
 
-export default function StaPedActions({ pedidos = [], semanaVazia = false }) {
-  const [relatorioTipo, setRelatorioTipo] = useState(null);
-  const [relatorioDados, setRelatorioDados] = useState(null);
-  const [mensagemVazia, setMensagemVazia] = useState("");
-  const [geradoEm, setGeradoEm] = useState(null);
-
-  const reportRef = useRef(null);
-
-  function abrirMensagemAmigavel(titulo) {
-    setRelatorioTipo(titulo);
-    setRelatorioDados(null);
-    setGeradoEm(new Date());
-    setMensagemVazia("Nenhum dado disponível nesta semana. Volte após registrar pedidos.");
+  function renderEmpty(title) {
+    setReport({
+      title,
+      html: `
+        <div class="staped-empty-box">
+          Nenhum dado disponível nesta semana. Volte após registrar pedidos.
+        </div>
+      `,
+    });
   }
 
-  function gerar(tipoFiltro, titulo, modo) {
-    if (semanaVazia) return abrirMensagemAmigavel(titulo);
-    const filtrados = filtrarPorStatus(pedidos, tipoFiltro);
-    const plan = montarPlanejamento(filtrados, modo);
-    const compras = montarListaCompras(filtrados, plan);
-    setMensagemVazia("");
-    setRelatorioTipo(titulo);
-    setRelatorioDados({ plan, compras });
-    setGeradoEm(new Date());
+  function toHTML(obj) {
+    return `<pre class="staped-report__pre">${escapeHtml(JSON.stringify(obj, null, 2))}</pre>`;
   }
 
-  function gerarPlanejamentoGeral() {
-    gerar("PLAN_GERAL", "Planejamento de Produção – Geral", "GERAL");
-  }
-  function gerarPlanejamentoTempoReal() {
-    gerar("PLAN_TEMPO_REAL", "Planejamento de Produção – Tempo Real", "TEMPO_REAL");
-  }
-  function gerarListaComprasGeral() {
-    gerar("COMPRAS_GERAL", "Lista de Compras – Geral", "GERAL");
-  }
-  function gerarListaComprasTempoReal() {
-    gerar("COMPRAS_TEMPO_REAL", "Lista de Compras – Tempo Real", "TEMPO_REAL");
-  }
-
-  // Gera PDF via print: muda temporariamente o título p/ virar nome do arquivo
-  function handleGerarPDF() {
-    const base = relatorioTipo || "Relatorio";
-    const stamp = tsString(geradoEm || new Date());
-    const oldTitle = document.title;
-    document.title = `${base} - ${stamp}`;
+  function gerarPDF() {
+    // imprime apenas a área do relatório
     window.print();
-    document.title = oldTitle;
+  }
+
+  // Botões
+  function onPlanGeral() {
+    if (!temDados) return renderEmpty("Planejamento de Produção – Geral");
+    const plan = calculaPlanejamento(pedidos, { modo: "GERAL" });
+    setReport({
+      title: "Planejamento de Produção – Geral",
+      html: toHTML(plan),
+    });
+  }
+
+  function onPlanTempoReal() {
+    if (!temDados) return renderEmpty("Planejamento de Produção – Tempo Real");
+    const plan = calculaPlanejamento(pedidos, { modo: "TEMPO_REAL" });
+    setReport({
+      title: "Planejamento de Produção – Tempo Real",
+      html: toHTML(plan),
+    });
+  }
+
+  function onCompraGeral() {
+    if (!temDados) return renderEmpty("Lista de Compras – Geral");
+    const plan = calculaPlanejamento(pedidos, { modo: "GERAL", compras: true });
+    setReport({
+      title: "Lista de Compras – Geral",
+      html: toHTML(plan),
+    });
+  }
+
+  function onCompraTempoReal() {
+    if (!temDados) return renderEmpty("Lista de Compras – Tempo Real");
+    const plan = calculaPlanejamento(pedidos, { modo: "TEMPO_REAL", compras: true });
+    setReport({
+      title: "Lista de Compras – Tempo Real",
+      html: toHTML(plan),
+    });
   }
 
   return (
     <>
-      {/* Botões (área compacta e rolável) */}
       <section className="staped-actions">
         <div className="staped-actions__grid">
-          <button onClick={gerarPlanejamentoGeral} className="staped-btn staped-btn--dark70">
+          <button className="staped-btn staped-btn--dark70" onClick={onPlanGeral}>
             Planejamento de Produção – Geral
           </button>
-
-          <button onClick={gerarPlanejamentoTempoReal} className="staped-btn staped-btn--dark60">
+          <button className="staped-btn staped-btn--dark60" onClick={onPlanTempoReal}>
             Planejamento de Produção – Tempo Real
           </button>
-
-          <button onClick={gerarListaComprasGeral} className="staped-btn staped-btn--dark70">
+          <button className="staped-btn staped-btn--dark70" onClick={onCompraGeral}>
             Lista de Compras – Geral
           </button>
-
-          <button onClick={gerarListaComprasTempoReal} className="staped-btn staped-btn--dark60">
+          <button className="staped-btn staped-btn--dark60" onClick={onCompraTempoReal}>
             Lista de Compras – Tempo Real
           </button>
         </div>
       </section>
 
-      {/* Prévia (dados ou mensagem amigável) */}
-      {(relatorioDados || mensagemVazia) && (
-        <section className="staped-report print-area" ref={reportRef}>
-          <div className="staped-report__title">{relatorioTipo}</div>
-
-          {mensagemVazia ? (
-            <div className="staped-empty-box">
-              {mensagemVazia}
-            </div>
-          ) : (
-            <pre className="staped-report__pre">
-              {JSON.stringify(relatorioDados, null, 2)}
-            </pre>
-          )}
-
-          <div className="staped-report__meta">
-            {geradoEm && (
-              <span>
-                Gerado em:&nbsp;
-                {new Date(geradoEm).toLocaleString()}
-              </span>
-            )}
-          </div>
-
+      {report && (
+        <section className="staped-report print-area">
+          <div className="staped-report__title">{report.title}</div>
+          <div dangerouslySetInnerHTML={{ __html: report.html }} />
           <div className="staped-report__actions">
-            <button className="staped-chip staped-chip--ok" onClick={handleGerarPDF}>
+            <button className="staped-btn staped-btn--dark70" onClick={gerarPDF}>
               Gerar PDF
             </button>
-            <button
-              className="staped-chip"
-              onClick={() => {
-                setRelatorioTipo(null);
-                setRelatorioDados(null);
-                setMensagemVazia("");
-                setGeradoEm(null);
-              }}
-            >
-              Fechar
-            </button>
+            <span className="staped-report__meta">
+              {new Date().toLocaleString()}
+            </span>
+            <span className="staped-chip staped-chip--ok">OK</span>
           </div>
         </section>
       )}
     </>
   );
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
