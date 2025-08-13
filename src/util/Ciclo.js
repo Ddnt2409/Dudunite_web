@@ -2,32 +2,30 @@
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import db from "../firebase";
 
-/** Retorna o Date do INÍCIO DO CICLO da semana da data informada:
- *  segunda-feira às 11:00 (hora local). */
+/**
+ * Início do ciclo semanal (segunda 11:00, horário local).
+ * Se a data/hora atual for antes de seg 11:00, volta uma semana.
+ */
 export function inicioDoCiclo(date = new Date()) {
   const d = new Date(date);
-  // zera minutos/segundos/ms e mantém data local
-  d.setSeconds(0, 0);
-  d.setMinutes(0);
-  d.setHours(11); // 11:00
+  const dow = d.getDay(); // 0=Dom ... 1=Seg ... 6=Sáb
 
-  // volta até a segunda desta semana
-  const today = new Date(d);
-  const dow = today.getDay(); // 0 dom, 1 seg, ..., 6 sáb
-  const diffToMonday = (dow + 6) % 7; // quantos dias voltar para chegar em seg
-  today.setDate(today.getDate() - diffToMonday);
+  // Chega na segunda desta semana às 11:00
+  const segunda = new Date(d);
+  segunda.setHours(11, 0, 0, 0);
 
-  // se a data original (date) ainda era ANTES das 11:00 da segunda,
-  // então o ciclo válido é a segunda anterior
-  const base = new Date(today); // segunda às 11
-  base.setHours(11, 0, 0, 0);
-  if (date < base) {
-    base.setDate(base.getDate() - 7); // volta 1 semana
+  // recua até segunda
+  const diffToMonday = (dow + 6) % 7; // seg=0
+  segunda.setDate(segunda.getDate() - diffToMonday);
+
+  // Se a "date" ainda era antes dessa segunda 11:00, usamos a segunda anterior
+  if (date < segunda) {
+    segunda.setDate(segunda.getDate() - 7);
   }
-  return base;
+  return segunda; // Date da segunda às 11:00 que abre o ciclo
 }
 
-/** ID legível do ciclo, ex: 2025-08-11-11h */
+/** ID legível do ciclo, ex.: 2025-08-11-11h */
 export function idDoCiclo(date = new Date()) {
   const base = inicioDoCiclo(date);
   const y = base.getFullYear();
@@ -36,20 +34,32 @@ export function idDoCiclo(date = new Date()) {
   return `${y}-${m}-${d}-11h`;
 }
 
-/** Caminho completo da subcoleção PEDIDOS do ciclo de 'date' */
+/**
+ * Caminho da subcoleção de pedidos do ciclo de 'date'.
+ * Ex.: CICLOS/2025-08-11-11h/PEDIDOS
+ */
 export function semanaRefFromDate(date = new Date()) {
   return `CICLOS/${idDoCiclo(date)}/PEDIDOS`;
 }
 
-/** Atalho para o caminho da semana/ciclo ATUAL */
+/**
+ * Alias semântico usado pela StaPed: mesmo caminho do ciclo.
+ * Mantido para compatibilidade com imports existentes.
+ */
+export function caminhoCicloFromDate(date = new Date()) {
+  return semanaRefFromDate(date);
+}
+
+/** Atalho para o caminho do ciclo ATUAL */
 export function caminhoCicloAtual() {
   return semanaRefFromDate(new Date());
 }
 
-/** Upsert de um pedido dentro do ciclo (espelha no bucket da semana).
- *  - id: ID do pedido
- *  - dados: objeto do pedido (será feito merge)
- *  - date?: opcional, para forçar outro ciclo
+/**
+ * Upsert de um pedido no bucket do ciclo (espelho semanal).
+ * - id: id do documento do pedido
+ * - dados: objeto a gravar (merge)
+ * - date?: opcional para forçar outro ciclo
  */
 export async function upsertPedidoInCiclo(id, dados, date = new Date()) {
   const path = semanaRefFromDate(date);
@@ -57,9 +67,19 @@ export async function upsertPedidoInCiclo(id, dados, date = new Date()) {
   await setDoc(ref, dados || {}, { merge: true });
 }
 
-/** Remove um pedido do bucket da semana (ex.: ao desfazer alimentação) */
+/** Remove um pedido do bucket do ciclo (ex.: desfazer alimentação) */
 export async function deletePedidoInCiclo(id, date = new Date()) {
   const path = semanaRefFromDate(date);
   const ref = doc(db, path, id);
   await deleteDoc(ref);
 }
+
+export default {
+  inicioDoCiclo,
+  idDoCiclo,
+  semanaRefFromDate,
+  caminhoCicloFromDate,
+  caminhoCicloAtual,
+  upsertPedidoInCiclo,
+  deletePedidoInCiclo,
+};
