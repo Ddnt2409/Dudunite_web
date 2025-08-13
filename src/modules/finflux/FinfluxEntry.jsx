@@ -1,12 +1,30 @@
 // === PORTO SEGURO DO MÓDULO 2 ===
-// === FNintroFinFlux – APP COMPLETO COM FORMULÁRIOS DE CTS A PAGAR, A RECEBER E FLUXO DE CAIXA ===
+// === FNintroFinFlux – ENTRY ÚNICO (sem imports externos) ===
 
 import React, { useState } from 'react';
-import FnFin006_TabelaPrecos from './components/financeiro/FnFin006_TabelaPrecos';
-import FnFin007_CtsReceber from './components/financeiro/FnFin007_CtsReceber';
-import FnFin008_CtsPagar from './components/financeiro/FnFin008_CtsPagar';
-import FnFin009_FluxoCaixa from './components/financeiro/FnFin009_FluxoCaixa';
 
+// ---- Componentes internos (stubs) para não precisar criar arquivos ----
+const FnFin006_TabelaPrecos = () => (
+  <div className="text-lg">🧾 Tabela de Preços — em breve (integração com Firestore do Módulo 1).</div>
+);
+
+const FnFin007_CtsReceber = ({ planoContas = [] }) => (
+  <div className="text-lg">
+    💙 Contas a Receber — em breve. Plano de contas: {planoContas.length} grupos.
+  </div>
+);
+
+const FnFin008_CtsPagar = ({ planoContas = [] }) => (
+  <div className="text-lg">
+    ❤️ Contas a Pagar — em breve. Plano de contas: {planoContas.length} grupos.
+  </div>
+);
+
+const FnFin009_FluxoCaixa = () => (
+  <div className="text-lg">📊 Fluxo de Caixa — em breve.</div>
+);
+
+// ---- Planos de contas (conforme escopo) ----
 const planoContasReceber = [
   { codigo: '0201', nome: 'Receita de PDV', filhos: [
     { codigo: '0201001', nome: 'Cidade', filhos: [
@@ -30,7 +48,8 @@ const planoContasPagar = [
   { codigo: '0105', nome: 'Outras Despesas' },
 ];
 
-const App = () => {
+// ---- Entry do módulo financeiro (renomeado para não colidir com App do M1) ----
+const FinfluxEntry = () => {
   const [tela, setTela] = useState('inicio');
 
   return (
@@ -38,7 +57,7 @@ const App = () => {
       {tela === 'inicio' && (
         <div>
           <h1 className="text-2xl font-bold mb-2">Módulo Financeiro – Dudunitê</h1>
-          <p className="mb-4">Bem-vindo ao sistema! Selecione uma opção no menu.</p>
+          <p className="mb-4">Bem-vindo! Selecione uma opção.</p>
 
           <div className="flex flex-col gap-2">
             <button
@@ -102,4 +121,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default FinfluxEntry;
