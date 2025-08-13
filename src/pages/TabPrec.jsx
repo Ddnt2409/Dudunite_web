@@ -10,6 +10,7 @@ import {
   query,
   setDoc,
   updateDoc,
+  FieldPath,
 } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -21,7 +22,8 @@ const PRODUTOS = [
   { key: "esc", label: "Escondidinho" },
 ];
 
-// ===== Helpers =====
+const CAMPOS_IGNORAR = new Set(["data", "updatedAt", "_seed"]);
+
 const sanitizeMoneyStr = (v) => {
   if (typeof v !== "string") v = String(v ?? "");
   return v.replace(/[^\d,.\-]/g, "").replace(",", ".");
@@ -59,33 +61,61 @@ export default function TabPrec({ setTela }) {
 
   const tabelaCol = useMemo(() => collection(db, "tabela_precos_revenda"), []);
 
-  const carregarUltima = async () => {
-    try {
-      setStatus("Carregando última...");
-      const q = query(tabelaCol, orderBy("data", "desc"), limit(1));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        setDocAtual("-");
-        setForm(buildEmptyState());
-        setStatus("Sem registros. Preencha e salve uma nova vigência.");
-        return;
-      }
-      const docRef = snap.docs[0];
-      const data = docRef.data();
-      setDocAtual(data?.data || "-");
-      setVigencia(data?.data || vigencia);
+  // === mapeia um documento em qualquer formato (com 'precos' ou na raiz) ===
+  const mapDocToForm = (id, dataObj) => {
+    const novo = buildEmptyState();
 
-      const precos = data?.precos || {};
-      const novo = buildEmptyState();
+    // 1) Padrão novo: data.precos.{produto}.{rev}
+    if (dataObj?.precos && typeof dataObj.precos === "object") {
       for (const p of PRODUTOS) {
-        const linha = precos[p.key] || {};
+        const linha = dataObj.precos[p.key] || {};
         novo[p.key] = {
           rev1: toStrBR(linha.rev1 ?? 0),
           rev2: toStrBR(linha.rev2 ?? 0),
           rev3: toStrBR(linha.rev3 ?? 0),
         };
       }
-      setForm(novo);
+      return { docIdOuData: dataObj.data || id, form: novo };
+    }
+
+    // 2) Padrão antigo: campos na raiz (brw7x7, brw6x6, ...)
+    for (const [k, v] of Object.entries(dataObj || {})) {
+      if (CAMPOS_IGNORAR.has(k)) continue;
+      if (!novo[k]) continue; // ignora chaves desconhecidas
+      novo[k] = {
+        rev1: toStrBR(v?.rev1 ?? 0),
+        rev2: toStrBR(v?.rev2 ?? 0),
+        rev3: toStrBR(v?.rev3 ?? 0),
+      };
+    }
+    return { docIdOuData: dataObj?.data || id, form: novo };
+  };
+
+  const carregarUltima = async () => {
+    try {
+      setStatus("Carregando última...");
+      // 1) Tenta pelo campo 'data'
+      let snap = await getDocs(query(tabelaCol, orderBy("data", "desc"), limit(1)));
+      // 2) Fallback: se não tiver 'data', pega pelo ID do doc (YYYY-MM-DD)
+      if (snap.empty) {
+        snap = await getDocs(
+          query(tabelaCol, orderBy(FieldPath.documentId(), "desc"), limit(1))
+        );
+      }
+
+      if (snap.empty) {
+        setDocAtual("-");
+        setForm(buildEmptyState());
+        setStatus("Sem registros. Preencha e salve uma nova vigência.");
+        return;
+      }
+
+      const ref = snap.docs[0];
+      const data = ref.data();
+      const { docIdOuData, form } = mapDocToForm(ref.id, data);
+      setDocAtual(docIdOuData || ref.id);
+      setVigencia(docIdOuData || ref.id);
+      setForm(form);
       setStatus("Última tabela carregada.");
     } catch (err) {
       console.error(err);
@@ -117,7 +147,7 @@ export default function TabPrec({ setTela }) {
         return;
       }
 
-      // converte para número e soma
+      // monta payload em número e valida soma
       let soma = 0;
       const payloadPrecos = {};
       for (const p of PRODUTOS) {
@@ -137,16 +167,21 @@ export default function TabPrec({ setTela }) {
       const exist = await getDoc(ref);
 
       if (exist.exists()) {
-        // Atualiza somente os campos que controlamos (preserva "dudu" e outros)
+        // Atualização compatível:
+        // - novo:  precos.<produto>.revX
+        // - legado: <produto>.revX
         const updates = { updatedAt: new Date().toISOString() };
         for (const p of PRODUTOS) {
-          updates[`precos.${p.key}.rev1`] = payloadPrecos[p.key].rev1;
-          updates[`precos.${p.key}.rev2`] = payloadPrecos[p.key].rev2;
-          updates[`precos.${p.key}.rev3`] = payloadPrecos[p.key].rev3;
+          const { rev1, rev2, rev3 } = payloadPrecos[p.key];
+          updates[`precos.${p.key}.rev1`] = rev1;
+          updates[`precos.${p.key}.rev2`] = rev2;
+          updates[`precos.${p.key}.rev3`] = rev3;
+          updates[`${p.key}.rev1`] = rev1;
+          updates[`${p.key}.rev2`] = rev2;
+          updates[`${p.key}.rev3`] = rev3;
         }
         await updateDoc(ref, updates);
       } else {
-        // Cria doc completo (só com as chaves que controlamos)
         await setDoc(ref, {
           data: id,
           updatedAt: new Date().toISOString(),
@@ -154,7 +189,6 @@ export default function TabPrec({ setTela }) {
         });
       }
 
-      // Releitura para confirmar persistência
       await carregarUltima();
       setStatus("Salvo com sucesso e conferido.");
     } catch (err) {
@@ -300,4 +334,4 @@ export default function TabPrec({ setTela }) {
       </div>
     </div>
   );
-                }
+          }
