@@ -9,11 +9,11 @@ import {
   doc,
   setDoc,
   getDoc,
-  documentId,
 } from "firebase/firestore";
 import { db } from "../firebase";
 
-// ==== Constantes ============================================================
+/* -------------------- Constantes e helpers -------------------- */
+
 const NOME_PRODUTO = {
   brw7x7: "BRW 7x7",
   brw6x6: "BRW 6x6",
@@ -24,27 +24,26 @@ const NOME_PRODUTO = {
 const ORDEM = ["brw7x7", "brw6x6", "pkt5x5", "pkt6x6", "esc"];
 
 const DEFAULT_PRECOS = {
-  brw7x7: { rev1: 6.0, rev2: 6.0, rev3: 0 },
-  brw6x6: { rev1: 5.5, rev2: 5.5, rev3: 0 },
-  pkt5x5: { rev1: 3.9, rev2: 3.9, rev3: 0 },
-  pkt6x6: { rev1: 4.4, rev2: 4.4, rev3: 0 },
-  esc: { rev1: 4.65, rev2: 4.65, rev3: 0 },
+  brw7x7: { rev1: 6.0, rev2: 6.0, rev3: null },
+  brw6x6: { rev1: 5.5, rev2: 5.5, rev3: null },
+  pkt5x5: { rev1: 3.9, rev2: 3.9, rev3: null },
+  pkt6x6: { rev1: 4.4, rev2: 4.4, rev3: null },
+  esc: { rev1: 4.65, rev2: 4.65, rev3: null },
 };
 
-const baseFont = 24; // tamanho de fonte elevado para mobile
+const baseFont = 20; // fonte maior, conforme solicitado
 
-// ==== Utilitários ===========================================================
 function toNumberLoose(v) {
-  if (v === "" || v === null || v === undefined) return 0;
-  const s = String(v).replace(/\./g, "").replace(",", ".").trim();
-  const n = Number(s);
-  return Number.isFinite(n) ? n : 0;
+  if (v === "" || v === null || v === undefined) return null;
+  const n = Number(String(v).replace(",", ".").trim());
+  return Number.isFinite(n) ? n : null;
 }
 
-function fmt2(v) {
-  const n = Number(v);
-  if (!Number.isFinite(n)) return "0,00";
-  return n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// formata "BR" (6,00)
+function fmt2BR(v) {
+  const n = toNumberLoose(v);
+  if (n === null) return "";
+  return n.toFixed(2).replace(".", ",");
 }
 
 function hojeISO() {
@@ -54,11 +53,31 @@ function hojeISO() {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
+const withTimeout = (p, ms = 20000) =>
+  Promise.race([
+    p,
+    new Promise((_, rej) =>
+      setTimeout(() => rej(new Error("Tempo esgotado.")), ms)
+    ),
+  ]);
+
+// normaliza qualquer documento vindo do Firestore (formato novo ou antigo)
+function normalizarPrecosDoFirestore(val) {
+  const base = JSON.parse(JSON.stringify(DEFAULT_PRECOS));
+  const fonte =
+    val && typeof val.precos === "object" ? val.precos : val || {};
+  for (const k of ORDEM) {
+    base[k] = {
+      rev1: toNumberLoose(fonte?.[k]?.rev1 ?? base[k].rev1),
+      rev2: toNumberLoose(fonte?.[k]?.rev2 ?? base[k].rev2),
+      rev3: toNumberLoose(fonte?.[k]?.rev3 ?? base[k].rev3),
+    };
+  }
+  return base;
 }
 
-// ==== Componente ============================================================
+/* -------------------- Componente -------------------- */
+
 export default function TabPrec({ setTela }) {
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
@@ -67,12 +86,12 @@ export default function TabPrec({ setTela }) {
 
   const [docId, setDocId] = useState("");
   const [vigencia, setVigencia] = useState(hojeISO());
-  const [precos, setPrecos] = useState({ ...DEFAULT_PRECOS });
-  const [edit, setEdit] = useState({}); // edições pendentes por campo
+  const [precos, setPrecos] = useState(DEFAULT_PRECOS);
+  const [edit, setEdit] = useState({});
 
   const linhas = useMemo(() => ORDEM, []);
 
-  // --------- Carga resiliente ----------------------------------------------
+  // Busca: tenta por 'data'. Se vazio/falha, tenta por ID do doc.
   async function carregarUltima() {
     if (salvando) return;
     setCarregando(true);
@@ -81,35 +100,40 @@ export default function TabPrec({ setTela }) {
     setEdit({});
 
     try {
-      const col = collection(db, "tabela_precos_revenda");
-      let snap = null;
+      let docData = null;
 
-      // 1) tentar por 'data'
+      // 1) orderBy('data')
       try {
-        const q1 = query(col, orderBy("data", "desc"), limit(1));
-        const s1 = await getDocs(q1);
-        if (!s1.empty) snap = s1;
-      } catch (_) {}
-
-      // 2) documentId (caso não exista campo 'data' ou índice)
-      if (!snap) {
-        try {
-          const q2 = query(col, orderBy(documentId(), "desc"), limit(1));
-          const s2 = await getDocs(q2);
-          if (!s2.empty) snap = s2;
-        } catch (_) {}
+        const q1 = query(
+          collection(db, "tabela_precos_revenda"),
+          orderBy("data", "desc"),
+          limit(1)
+        );
+        const s1 = await withTimeout(getDocs(q1));
+        if (!s1.empty) {
+          const d = s1.docs[0];
+          docData = { id: d.id, val: d.data() || {} };
+        }
+      } catch {
+        // ignora e cai no fallback
       }
 
-      // 3) fallback: lê todos e pega o maior ID
-      if (!snap) {
-        const sAll = await getDocs(col);
-        if (!sAll.empty) {
-          const docsSorted = sAll.docs.slice().sort((a, b) => (a.id > b.id ? -1 : 1));
-          snap = { docs: [docsSorted[0]], empty: false };
+      // 2) fallback por ID
+      if (!docData) {
+        const q2 = query(
+          collection(db, "tabela_precos_revenda"),
+          orderBy("__name__", "desc"),
+          limit(1)
+        );
+        const s2 = await withTimeout(getDocs(q2));
+        if (!s2.empty) {
+          const d = s2.docs[0];
+          docData = { id: d.id, val: d.data() || {} };
         }
       }
 
-      if (!snap || snap.empty) {
+      if (!docData) {
+        // Sem documentos: mantém defaults e pede para salvar
         setDocId("");
         setVigencia(hojeISO());
         setPrecos({ ...DEFAULT_PRECOS });
@@ -117,32 +141,10 @@ export default function TabPrec({ setTela }) {
         return;
       }
 
-      const d = snap.docs[0];
-      const val = d.data() || {};
-      setDocId(d.id);
-      setVigencia(val.data || d.id || hojeISO());
-
-      // aceitar 'precos' (map) OU chaves na raiz
-      const merged = { ...DEFAULT_PRECOS };
-      if (val.precos && typeof val.precos === "object") {
-        for (const k of ORDEM) {
-          merged[k] = {
-            rev1: toNumberLoose(val.precos[k]?.rev1 ?? merged[k].rev1),
-            rev2: toNumberLoose(val.precos[k]?.rev2 ?? merged[k].rev2),
-            rev3: toNumberLoose(val.precos[k]?.rev3 ?? merged[k].rev3),
-          };
-        }
-      } else {
-        for (const k of ORDEM) {
-          merged[k] = {
-            rev1: toNumberLoose(val[k]?.rev1 ?? merged[k].rev1),
-            rev2: toNumberLoose(val[k]?.rev2 ?? merged[k].rev2),
-            rev3: toNumberLoose(val[k]?.rev3 ?? merged[k].rev3),
-          };
-        }
-      }
-
-      setPrecos(merged);
+      const { id, val } = docData;
+      setDocId(id);
+      setVigencia(val?.data || id || hojeISO());
+      setPrecos(normalizarPrecosDoFirestore(val));
       setOk("Última tabela carregada.");
     } catch (e) {
       setErro(e?.message || String(e));
@@ -156,7 +158,7 @@ export default function TabPrec({ setTela }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // --------- Edição local ---------------------------------------------------
+  // edição local controlada
   const keyOf = (k, campo) => `${k}.${campo}`;
   function onChangeEdit(k, campo, v) {
     setEdit((e) => ({ ...e, [keyOf(k, campo)]: v }));
@@ -165,7 +167,10 @@ export default function TabPrec({ setTela }) {
     const key = keyOf(k, campo);
     const raw = edit[key];
     if (raw === undefined) return;
-    setPrecos((old) => ({ ...old, [k]: { ...old[k], [campo]: toNumberLoose(raw) } }));
+    setPrecos((old) => ({
+      ...old,
+      [k]: { ...old[k], [campo]: toNumberLoose(raw) },
+    }));
     setEdit((e) => {
       const cp = { ...e };
       delete cp[key];
@@ -173,33 +178,17 @@ export default function TabPrec({ setTela }) {
     });
   }
   function commitAll() {
-    if (!Object.keys(edit).length) return;
+    const entries = Object.entries(edit);
+    if (entries.length === 0) return;
     setPrecos((old) => {
       const next = { ...old };
-      for (const [key, raw] of Object.entries(edit)) {
+      for (const [key, raw] of entries) {
         const [k, campo] = key.split(".");
         next[k] = { ...next[k], [campo]: toNumberLoose(raw) };
       }
       return next;
     });
     setEdit({});
-  }
-
-  // --------- Salvar com confirmação (backoff) -------------------------------
-  async function confirmarGravacao(ref, esperadoData, tentativas = 6) {
-    // 6 tentativas: ~200ms, 400ms, 800ms, 1200ms, 1800ms, 2500ms  ≈ 7s
-    const delays = [200, 400, 800, 1200, 1800, 2500];
-    for (let i = 0; i < Math.min(tentativas, delays.length); i++) {
-      await sleep(delays[i]);
-      try {
-        const snap = await getDoc(ref);
-        const ok = snap.exists() && (snap.data()?.data === esperadoData || snap.id === esperadoData);
-        if (ok) return true;
-      } catch (_) {
-        // ignora e tenta novamente
-      }
-    }
-    return false;
   }
 
   async function salvarNovaVigencia() {
@@ -210,57 +199,49 @@ export default function TabPrec({ setTela }) {
 
     const dataStr = (vigencia || "").trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dataStr)) {
-      setErro("Informe a vigência no formato YYYY-MM-DD (ex.: 2025-08-13).");
+      setErro("Informe a vigência no formato YYYY-MM-DD (ex.: 2025-08-12).");
       return;
     }
 
-    // Monta payload em dois formatos (retrocompatível)
-    const payloadRaiz = {};
-    const payloadPrecos = {};
+    // monta payload padronizado
+    const payload = { data: dataStr, precos: {} };
     for (const k of ORDEM) {
-      const item = precos[k] || {};
-      const linha = {
-        rev1: toNumberLoose(item.rev1),
-        rev2: toNumberLoose(item.rev2),
-        rev3: toNumberLoose(item.rev3),
+      const p = precos[k] || {};
+      payload.precos[k] = {
+        rev1: toNumberLoose(p.rev1),
+        rev2: toNumberLoose(p.rev2),
+        rev3: toNumberLoose(p.rev3),
       };
-      payloadRaiz[k] = linha;
-      payloadPrecos[k] = linha;
     }
 
     setSalvando(true);
     try {
       const ref = doc(db, "tabela_precos_revenda", dataStr);
-      await setDoc(
-        ref,
-        {
-          data: dataStr,
-          precos: payloadPrecos, // novo
-          ...payloadRaiz,        // antigo (na raiz)
-        },
-        { merge: true }
+      await withTimeout(
+        (async () => {
+          await setDoc(ref, payload, { merge: false });
+          const chk = await getDoc(ref);
+          if (!(chk.exists() && (chk.data()?.data === dataStr))) {
+            throw new Error("Não foi possível confirmar a gravação.");
+          }
+        })(),
+        20000
       );
-
-      // Confirmação real com backoff
-      const confirmado = await confirmarGravacao(ref, dataStr);
-      if (!confirmado) throw new Error("Tempo esgotado ao confirmar a gravação.");
-
       setDocId(dataStr);
       setOk("Salvo com sucesso.");
     } catch (e) {
-      const msg = e?.message || String(e);
-      // dica útil quando regra expira / permissão cai
-      if (msg.includes("permission") || msg.includes("PERMISSION")) {
-        setErro("Permissão negada no Firestore. Verifique as regras de segurança.");
-      } else {
-        setErro(msg);
-      }
+      setErro(e?.message || String(e));
     } finally {
       setSalvando(false);
     }
   }
 
-  // --------- Estilos de botões ---------------------------------------------
+  function getValueForInput(k, campo) {
+    const key = keyOf(k, campo);
+    if (edit[key] !== undefined) return edit[key]; // edição em curso
+    return fmt2BR(precos[k]?.[campo]);
+  }
+
   const btn = (extra = {}) => ({
     background: "#e5e7eb",
     border: "1px solid #d1d5db",
@@ -271,7 +252,7 @@ export default function TabPrec({ setTela }) {
     ...extra,
   });
 
-  // --------- Render ---------------------------------------------------------
+  /* -------------------- UI -------------------- */
   return (
     <div
       style={{
@@ -300,7 +281,7 @@ export default function TabPrec({ setTela }) {
             cursor: carregando || salvando ? "not-allowed" : "pointer",
           })}
         >
-          {carregando ? "Carregando…" : "Carregar última"}
+          {carregando ? "Carregando..." : "Carregar última"}
         </button>
 
         <button
@@ -314,7 +295,7 @@ export default function TabPrec({ setTela }) {
             cursor: carregando || salvando ? "not-allowed" : "pointer",
           })}
         >
-          {salvando ? "Salvando…" : "Salvar nova vigência"}
+          {salvando ? "Salvando..." : "Salvar nova vigência"}
         </button>
       </div>
 
@@ -322,23 +303,24 @@ export default function TabPrec({ setTela }) {
       <h1 style={{ fontWeight: 800, marginBottom: 8, fontSize: baseFont }}>
         Tabela de Preços (Revenda)
       </h1>
+
       <div style={{ marginBottom: 16, opacity: 0.95 }}>
         <div style={{ marginBottom: 6 }}>
           <strong>Doc atual:</strong> {docId || "—"}
         </div>
+
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
           <strong>Vigência (YYYY-MM-DD):</strong>
           <input
             value={vigencia}
             onChange={(e) => setVigencia(e.target.value)}
-            placeholder="2025-08-13"
+            placeholder="2025-08-12"
             style={{
               padding: "12px 14px",
               borderRadius: 12,
               border: "1px solid #d1d5db",
               outline: "none",
               fontSize: baseFont,
-              width: 200,
             }}
           />
         </div>
@@ -360,6 +342,7 @@ export default function TabPrec({ setTela }) {
           {erro}
         </div>
       )}
+
       {ok && (
         <div
           style={{
@@ -421,7 +404,7 @@ export default function TabPrec({ setTela }) {
                 <input
                   type="text"
                   inputMode="decimal"
-                  value={edit[`${k}.${campo}`] !== undefined ? edit[`${k}.${campo}`] : fmt2(precos[k]?.[campo])}
+                  value={getValueForInput(k, campo)}
                   onChange={(e) => onChangeEdit(k, campo, e.target.value)}
                   onBlur={() => commitOne(k, campo)}
                   placeholder="0,00"
@@ -455,4 +438,4 @@ export default function TabPrec({ setTela }) {
       </div>
     </div>
   );
-}
+        }
