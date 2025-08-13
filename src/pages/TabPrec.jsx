@@ -1,85 +1,81 @@
 // src/pages/TabPrec.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { collection, doc, getDoc, getDocs, limit, orderBy, query, setDoc } from "firebase/firestore";
-import { db } from "../firebase"; // <- nomeado (sem default)
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { db } from "../firebase";
 
 const PRODUTOS = [
   { key: "brw7x7", label: "BRW 7x7" },
   { key: "brw6x6", label: "BRW 6x6" },
   { key: "pkt5x5", label: "PKT 5x5" },
   { key: "pkt6x6", label: "PKT 6x6" },
-  { key: "esc",    label: "Escondidinho" },
+  { key: "esc", label: "Escondidinho" },
 ];
 
-// =========================
-// Helpers
-// =========================
+// ===== Helpers =====
 const sanitizeMoneyStr = (v) => {
-  // Mantém apenas dígitos e vírgula/ponto, troca vírgula por ponto
   if (typeof v !== "string") v = String(v ?? "");
-  const s = v.replace(/[^\d,.\-]/g, "").replace(",", ".");
-  return s;
+  return v.replace(/[^\d,.\-]/g, "").replace(",", ".");
 };
-
 const toNumberBR = (v) => {
   const s = sanitizeMoneyStr(v);
   const n = Number(s);
   return Number.isFinite(n) ? n : 0;
 };
+const toStrBR = (n) =>
+  Number(n).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
-const toStrBR = (n) => {
-  const num = Number(n);
-  if (!Number.isFinite(num)) return "0,00";
-  return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
-
-// Estado base (strings para inputs)
 const buildEmptyState = () => ({
   brw7x7: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
   brw6x6: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
   pkt5x5: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
   pkt6x6: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
-  esc:    { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
+  esc: { rev1: "0,00", rev2: "0,00", rev3: "0,00" },
 });
 
 export default function TabPrec({ setTela }) {
   const [vigencia, setVigencia] = useState(() => {
-    // YYYY-MM-DD de hoje como default
     const d = new Date();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
     return `${d.getFullYear()}-${m}-${day}`;
   });
-
   const [docAtual, setDocAtual] = useState("-");
   const [form, setForm] = useState(buildEmptyState());
-  const [status, setStatus] = useState(""); // mensagens curtas
+  const [status, setStatus] = useState("");
   const [salvando, setSalvando] = useState(false);
+
   const tabelaCol = useMemo(() => collection(db, "tabela_precos_revenda"), []);
 
-  // -------------------------
-  // Carregar a última vigência
-  // -------------------------
   const carregarUltima = async () => {
     try {
       setStatus("Carregando última...");
       const q = query(tabelaCol, orderBy("data", "desc"), limit(1));
       const snap = await getDocs(q);
-
       if (snap.empty) {
         setDocAtual("-");
         setForm(buildEmptyState());
         setStatus("Sem registros. Preencha e salve uma nova vigência.");
         return;
       }
-
       const docRef = snap.docs[0];
       const data = docRef.data();
       setDocAtual(data?.data || "-");
       setVigencia(data?.data || vigencia);
 
       const precos = data?.precos || {};
-      // Monta form (string BR)
       const novo = buildEmptyState();
       for (const p of PRODUTOS) {
         const linha = precos[p.key] || {};
@@ -98,44 +94,32 @@ export default function TabPrec({ setTela }) {
   };
 
   useEffect(() => {
-    // Auto-carrega ao abrir
     carregarUltima();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // -------------------------
-  // Handlers de input
-  // -------------------------
   const onChangeValor = (prodKey, revKey, value) => {
-    // mantemos string; só normalizamos vírgula/ponto na gravação
     setForm((prev) => ({
       ...prev,
-      [prodKey]: {
-        ...prev[prodKey],
-        [revKey]: value,
-      },
+      [prodKey]: { ...prev[prodKey], [revKey]: value },
     }));
   };
 
-  // -------------------------
-  // Salvar
-  // -------------------------
   const salvar = async () => {
     if (salvando) return;
     setSalvando(true);
     setStatus("Salvando...");
 
     try {
-      // Validação de data
       const id = String(vigencia || "").trim();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(id)) {
         setStatus("Data inválida. Use YYYY-MM-DD.");
         return;
       }
 
-      // Converte todos para número
-      const payloadPrecos = {};
+      // converte para número e soma
       let soma = 0;
+      const payloadPrecos = {};
       for (const p of PRODUTOS) {
         const f = form[p.key] || {};
         const n1 = toNumberBR(f.rev1);
@@ -144,47 +128,35 @@ export default function TabPrec({ setTela }) {
         payloadPrecos[p.key] = { rev1: n1, rev2: n2, rev3: n3 };
         soma += (n1 || 0) + (n2 || 0) + (n3 || 0);
       }
-
-      // Bloqueio: tudo zero
       if (soma === 0) {
         setStatus("Tabela está toda com 0,00. Preencha antes de salvar.");
         return;
       }
 
-      // Confirma sobrescrever se já existir
       const ref = doc(tabelaCol, id);
       const exist = await getDoc(ref);
+
       if (exist.exists()) {
-        const ok = window.confirm(
-          `Já existe uma vigência ${id}. Deseja sobrescrever?`
-        );
-        if (!ok) {
-          setStatus("Operação cancelada.");
-          return;
+        // Atualiza somente os campos que controlamos (preserva "dudu" e outros)
+        const updates = { updatedAt: new Date().toISOString() };
+        for (const p of PRODUTOS) {
+          updates[`precos.${p.key}.rev1`] = payloadPrecos[p.key].rev1;
+          updates[`precos.${p.key}.rev2`] = payloadPrecos[p.key].rev2;
+          updates[`precos.${p.key}.rev3`] = payloadPrecos[p.key].rev3;
         }
+        await updateDoc(ref, updates);
+      } else {
+        // Cria doc completo (só com as chaves que controlamos)
+        await setDoc(ref, {
+          data: id,
+          updatedAt: new Date().toISOString(),
+          precos: payloadPrecos,
+        });
       }
 
-      const payload = {
-        data: id,
-        precos: payloadPrecos,
-        updatedAt: new Date().toISOString(),
-      };
-
-      await setDoc(ref, payload, { merge: false });
-
-      // Atualiza docAtual e normaliza form para BR (assegura exibição com vírgula)
-      setDocAtual(id);
-      const norm = buildEmptyState();
-      for (const p of PRODUTOS) {
-        norm[p.key] = {
-          rev1: toStrBR(payloadPrecos[p.key].rev1),
-          rev2: toStrBR(payloadPrecos[p.key].rev2),
-          rev3: toStrBR(payloadPrecos[p.key].rev3),
-        };
-      }
-      setForm(norm);
-
-      setStatus("Salvo com sucesso.");
+      // Releitura para confirmar persistência
+      await carregarUltima();
+      setStatus("Salvo com sucesso e conferido.");
     } catch (err) {
       console.error(err);
       setStatus("Erro ao salvar tabela.");
@@ -193,17 +165,14 @@ export default function TabPrec({ setTela }) {
     }
   };
 
-  // -------------------------
-  // Render
-  // -------------------------
   const baseInput =
     "w-[110px] px-3 py-2 rounded border border-[#d9b8a8] bg-white focus:outline-none focus:ring-2 focus:ring-[#c96f4a]";
   const tdCls = "py-2 px-2 border-b border-[#efd6c9]";
-  const thCls = "py-2 px-2 text-left border-b border-[#dcb7a4] text-[#5C1D0E] font-semibold";
+  const thCls =
+    "py-2 px-2 text-left border-b border-[#dcb7a4] text-[#5C1D0E] font-semibold";
 
   return (
     <div className="min-h-screen bg-[#FDEBDF] text-[#5C1D0E] p-3 sm:p-6">
-      {/* Cabeçalho simples */}
       <div className="flex items-center gap-2 mb-3">
         <button
           onClick={() => setTela?.("HomeERP")}
@@ -212,7 +181,6 @@ export default function TabPrec({ setTela }) {
         >
           ← Voltar
         </button>
-
         <button
           onClick={carregarUltima}
           className="bg-[#8c3b1b] text-white px-3 py-2 rounded"
@@ -220,7 +188,6 @@ export default function TabPrec({ setTela }) {
         >
           Carregar última
         </button>
-
         <button
           onClick={salvar}
           disabled={salvando}
@@ -233,7 +200,6 @@ export default function TabPrec({ setTela }) {
         </button>
       </div>
 
-      {/* Título e status */}
       <div className="mb-2" style={{ fontSize: 22, fontWeight: 800 }}>
         Tabela de Preços (Revenda)
       </div>
@@ -266,7 +232,6 @@ export default function TabPrec({ setTela }) {
         </div>
       )}
 
-      {/* Tabela */}
       <div className="overflow-x-auto">
         <table className="min-w-[680px] w-full bg-[#fde6d9] rounded">
           <thead>
@@ -285,14 +250,12 @@ export default function TabPrec({ setTela }) {
               </th>
             </tr>
           </thead>
-
           <tbody>
             {PRODUTOS.map((p) => (
               <tr key={p.key}>
                 <td className={tdCls} style={{ fontSize: 20 }}>
                   {p.label}
                 </td>
-
                 {["rev1", "rev2", "rev3"].map((rev) => (
                   <td key={rev} className={tdCls}>
                     <input
@@ -312,7 +275,6 @@ export default function TabPrec({ setTela }) {
         </table>
       </div>
 
-      {/* Navegação simples */}
       <div className="mt-4 flex flex-wrap gap-3">
         <button
           onClick={() => setTela?.("CtsReceber")}
@@ -338,4 +300,4 @@ export default function TabPrec({ setTela }) {
       </div>
     </div>
   );
-}
+                }
