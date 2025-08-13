@@ -1,19 +1,30 @@
 // src/App.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense, lazy } from "react";
 
-// Páginas
+// Páginas (Módulo 1)
 import HomeERP from "./pages/HomeERP";
 import HomePCP from "./pages/HomePCP";
 import LanPed from "./pages/LanPed";
 import AliSab from "./pages/AliSab";
 import StaPed from "./pages/StaPed"; // << NOVA TELA
 
-// (opcional) estilos base globais do projeto, se existirem
-// import "./pages/fade.css";
+// Entry do Módulo 2 (Financeiro) – carregamento sob demanda via hash #finflux
+const FinfluxEntry = lazy(() => import("./modules/finflux/FinfluxEntry"));
 
 export default function App() {
   // Tela inicial — ajuste se quiser abrir direto no PCP:
   const [tela, setTela] = useState("HomeERP");
+
+  // Observa o hash para abrir o Financeiro sem mexer no roteamento atual
+  const [hash, setHash] = useState(
+    typeof window !== "undefined" ? window.location.hash : ""
+  );
+  useEffect(() => {
+    const onHash = () => setHash(window.location.hash || "");
+    onHash(); // sincroniza já na primeira renderização
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
 
   // volta pro topo quando troca de tela (melhora UX no mobile)
   useEffect(() => {
@@ -23,6 +34,15 @@ export default function App() {
       window.scrollTo(0, 0);
     }
   }, [tela]);
+
+  // Acesso rápido ao Financeiro: navegue para /#finflux
+  if (hash === "#finflux") {
+    return (
+      <Suspense fallback={<div />}>
+        <FinfluxEntry />
+      </Suspense>
+    );
+  }
 
   // Render simples por estado (sem react-router)
   switch (tela) {
