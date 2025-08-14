@@ -294,3 +294,40 @@ header.erp-header img {
   .print-area { position: absolute; left: 0; top: 0; width: 100%; }
   .staped-side, .staped-actions { display: none !important; }
 }
+
+/* ---- Blocos e kpis do relatório (coluna esquerda) ---- */
+.staped-block { margin-top: .6rem; }
+.staped-block-title {
+  font-weight: 800; color: #3f312e;
+  margin: .35rem 0 .35rem;
+}
+.staped-kpis { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .4rem; }
+.kpi {
+  background:#fff; border:1px solid rgba(0,0,0,.06);
+  border-radius:.5rem; padding:.28rem .55rem;
+  font-weight:700; color:#3f312e;
+}
+.kpi small { opacity:.7; font-weight:600; margin-right:.25rem; }
+
+/* Tabelas básicas do relatório */
+.staped-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: .5rem;
+  overflow: hidden;
+}
+.staped-table th, .staped-table td {
+  padding: .45rem .6rem;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  font-size: .92rem;
+}
+.staped-table th {
+  text-align: left;
+  background: #faf8f6;
+  font-weight: 800;
+  color: #3f312e;
+}
+.staped-table td.num { text-align: right; font-weight: 800; color: #5f2f1d; }
+.staped-table tr:last-child td { border-bottom: 0; }
