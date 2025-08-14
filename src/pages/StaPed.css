@@ -175,13 +175,16 @@ header.erp-header img {
 /* === Área inferior DIVIDIDA: Relatório (esq) + Painel (dir) === */
 .staped-split {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: 1fr;   /* mobile: empilhado */
   gap: 1rem;
   align-items: start;
   margin: 1rem .5rem 0;
 }
-@media (max-width: 1060px) {
-  .staped-split { grid-template-columns: 1fr; }
+@media (min-width: 480px) {
+  .staped-split { grid-template-columns: 1.5fr 0.9fr; }
+}
+@media (min-width: 768px) {
+  .staped-split { grid-template-columns: 2fr 1fr; }
 }
 .staped-left { min-width: 0; } /* permite overflow interno do pre */
 
@@ -197,12 +200,15 @@ header.erp-header img {
 .staped-report__title {
   font-size: 1.02rem; font-weight: 900; color: #2f2725; margin-bottom: .6rem;
 }
-.staped-report__pre {
-  display: block !important; /* garante que o relatório apareça */
-  max-height: 46vh; overflow: auto; font-size: .9rem;
-  background: #f8f6f4; border: 1px solid #efe7e3;
-  border-radius: 12px; padding: .7rem;
-  white-space: pre-wrap; word-break: break-word;
+.staped-report__pre{
+  display:block !important;             /* garante que o relatório apareça */
+  white-space:pre-wrap;
+  word-break:break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size:.90rem; line-height:1.35;
+  max-height:46vh; overflow:auto;
+  background:#f8f6f4; border:1px solid #efe7e3; border-radius:12px; padding:.7rem;
+  color:#2f2725;
 }
 .staped-empty-box {
   padding: 1rem;
@@ -267,9 +273,12 @@ header.erp-header img {
 .staped-side__pill-main { font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .staped-side__pill-badge { font-size: .7rem; padding: .05rem .35rem; border-radius: .45rem; background: #eee; color: #333; }
 .staped-side__pill-meta  { font-size: .8rem; color: #5f2f1d; font-weight: 900; }
+
+/* realce por status – cobre com e sem acento */
 .st-alimentado .staped-side__pill-badge { background: #e7f5e7; color: #2e7d32; }
-.st-lançado    .staped-side__pill-badge { background: #fff4e5; color: #8a5a00; }
-.st-pendente   .staped-side__pill-badge { background: #fdecea; color: #b71c1c; }
+.st-lancado  .staped-side__pill-badge,
+.st-lançado  .staped-side__pill-badge { background: #fff4e5; color: #8a5a00; }
+.st-pendente .staped-side__pill-badge { background: #fdecea; color: #b71c1c; }
 
 /* tags (PDVs) */
 .staped-side__tags { display: flex; flex-wrap: wrap; gap: .35rem; list-style: none; margin: 0; padding: 0; }
