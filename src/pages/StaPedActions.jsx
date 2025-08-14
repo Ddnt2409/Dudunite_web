@@ -1,17 +1,19 @@
 // src/pages/StaPedActions.jsx
 import React, { useMemo, useState } from "react";
 import "./StaPed.css";
-import { calculaPlanejamento } from "../util/MemProd"; // mantém sua regra atual
+import { calculaPlanejamento } from "../util/MemProd";
 
 export default function StaPedActions({ pedidos, semanaVazia }) {
-  const [report, setReport] = useState(null); // { title, html, payload }
+  const [report, setReport] = useState(null); // { title, body, payload }
 
   const temDados = useMemo(
     () => Array.isArray(pedidos) && pedidos.length > 0,
     [pedidos]
   );
 
-  // ===== Agregadores p/ painel lateral (robustos a estrutura) =====
+  // =========================
+  // Painel lateral (referências)
+  // =========================
   const contexto = useMemo(() => deriveContexto(pedidos), [pedidos]);
 
   function deriveContexto(peds = []) {
@@ -20,15 +22,12 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
     const porProduto = new Map();
 
     peds.forEach((p) => {
-      const pdv =
-        p?.escola ?? p?.pdv ?? p?.pontoDeVenda ?? p?.ponto ?? "—";
+      const pdv = p?.escola ?? p?.pdv ?? p?.pontoDeVenda ?? p?.ponto ?? "—";
       if (pdv) pdvsSet.add(pdv);
 
-      const itens =
-        Array.isArray(p?.items) ? p.items :
-        Array.isArray(p?.itens) ? p.itens : [];
-
+      const itens = Array.isArray(p?.items) ? p.items : Array.isArray(p?.itens) ? p.itens : [];
       let total = 0;
+
       itens.forEach((it) => {
         const prod = it?.produto ?? it?.item ?? it?.nome ?? "";
         const q = Number(it?.quantidade ?? it?.qtd ?? it?.qtde ?? 0);
@@ -39,10 +38,15 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
       const status = p?.dataAlimentado || p?.alimentadoEm
         ? "ALIMENTADO"
         : itens.length > 0
-        ? "LANÇADO"
+        ? "LANCADO"
         : "PENDENTE";
 
-      pedidosList.push({ pdv, total, status });
+      pedidosList.push({
+        id: p?.id ?? p?.docId ?? `${pdv}-${Math.random().toString(36).slice(2)}`,
+        pdv,
+        total,
+        status,
+      });
     });
 
     const pdvs = Array.from(pdvsSet).sort((a, b) => a.localeCompare(b));
@@ -53,32 +57,35 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
     return { pedidosList, pdvs, totaisProdutos };
   }
 
-  // ===== Utilidades do relatório =====
+  // =========================
+  // Utilidades do relatório
+  // =========================
   function renderEmpty(title) {
     setReport({
       title,
-      html: `<div class="staped-empty-box">Nenhum dado disponível nesta semana. Volte após registrar pedidos.</div>`,
+      body:
+        "Nenhum dado disponível nesta semana. Volte após registrar pedidos.",
       payload: null,
     });
   }
 
-  function toHTML(obj) {
-    return `<pre class="staped-report__pre">${escapeHtml(
-      JSON.stringify(obj, null, 2)
-    )}</pre>`;
+  function stringifyBlock(obj) {
+    return JSON.stringify(obj, null, 2);
   }
 
   function gerarPDF() {
     window.print();
   }
 
-  // ===== Botões =====
+  // =========================
+  // Ações (4 botões)
+  // =========================
   function onPlanGeral() {
     if (!temDados) return renderEmpty("Planejamento de Produção – Geral");
     const plano = calculaPlanejamento(pedidos, { modo: "GERAL" });
     setReport({
       title: "Planejamento de Produção – Geral",
-      html: toHTML(plano),
+      body: stringifyBlock(plano),
       payload: plano,
     });
   }
@@ -88,7 +95,7 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
     const plano = calculaPlanejamento(pedidos, { modo: "TEMPO_REAL" });
     setReport({
       title: "Planejamento de Produção – Tempo Real",
-      html: toHTML(plano),
+      body: stringifyBlock(plano),
       payload: plano,
     });
   }
@@ -98,7 +105,7 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
     const plano = calculaPlanejamento(pedidos, { modo: "GERAL", compras: true });
     setReport({
       title: "Lista de Compras – Geral",
-      html: toHTML(plano),
+      body: stringifyBlock(plano),
       payload: plano,
     });
   }
@@ -108,10 +115,14 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
     const plano = calculaPlanejamento(pedidos, { modo: "TEMPO_REAL", compras: true });
     setReport({
       title: "Lista de Compras – Tempo Real",
-      html: toHTML(plano),
+      body: stringifyBlock(plano),
       payload: plano,
     });
   }
+
+  // helper: slug sem acento p/ classe CSS
+  const statusToSlug = (s) =>
+    String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
   return (
     <>
@@ -140,7 +151,12 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
           <div className="staped-left print-area">
             <div className="staped-report">
               <div className="staped-report__title">{report.title}</div>
-              <div dangerouslySetInnerHTML={{ __html: report.html }} />
+
+              {/* mostro texto monoespaçado, sem usar <pre> */}
+              <div className="staped-report__pre" role="document">
+                {report.body}
+              </div>
+
               <div className="staped-report__actions">
                 <button className="staped-btn staped-btn--dark70" onClick={gerarPDF}>
                   Gerar PDF
@@ -162,8 +178,11 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
                 Pedidos ({contexto.pedidosList.length})
               </div>
               <ul className="staped-side__list">
-                {contexto.pedidosList.map((p, i) => (
-                  <li key={i} className={`staped-side__pill st-${p.status.toLowerCase()}`}>
+                {contexto.pedidosList.map((p) => (
+                  <li
+                    key={p.id}
+                    className={`staped-side__pill st-${statusToSlug(p.status)}`}
+                  >
                     <span className="staped-side__pill-main">{p.pdv}</span>
                     <span className="staped-side__pill-badge">{p.status}</span>
                     <span className="staped-side__pill-meta">{p.total} itens</span>
@@ -178,7 +197,9 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
               </div>
               <ul className="staped-side__tags">
                 {contexto.pdvs.map((n, i) => (
-                  <li key={i} className="staped-tag">{n}</li>
+                  <li key={i} className="staped-tag">
+                    {n}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -200,10 +221,3 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
     </>
   );
 }
-
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-          }
