@@ -4,16 +4,14 @@ import "./StaPed.css";
 import { calculaPlanejamento } from "../util/MemProd";
 
 export default function StaPedActions({ pedidos, semanaVazia }) {
-  const [report, setReport] = useState(null); // { title, body, payload }
+  const [report, setReport] = useState(null); // { title, html, payload }
 
   const temDados = useMemo(
     () => Array.isArray(pedidos) && pedidos.length > 0,
     [pedidos]
   );
 
-  // =========================
-  // Painel lateral (referências)
-  // =========================
+  // ===== Agregadores p/ painel lateral (robustos a estrutura) =====
   const contexto = useMemo(() => deriveContexto(pedidos), [pedidos]);
 
   function deriveContexto(peds = []) {
@@ -25,9 +23,13 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
       const pdv = p?.escola ?? p?.pdv ?? p?.pontoDeVenda ?? p?.ponto ?? "—";
       if (pdv) pdvsSet.add(pdv);
 
-      const itens = Array.isArray(p?.items) ? p.items : Array.isArray(p?.itens) ? p.itens : [];
-      let total = 0;
+      const itens = Array.isArray(p?.items)
+        ? p.items
+        : Array.isArray(p?.itens)
+        ? p.itens
+        : [];
 
+      let total = 0;
       itens.forEach((it) => {
         const prod = it?.produto ?? it?.item ?? it?.nome ?? "";
         const q = Number(it?.quantidade ?? it?.qtd ?? it?.qtde ?? 0);
@@ -38,15 +40,10 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
       const status = p?.dataAlimentado || p?.alimentadoEm
         ? "ALIMENTADO"
         : itens.length > 0
-        ? "LANCADO"
+        ? "LANÇADO"
         : "PENDENTE";
 
-      pedidosList.push({
-        id: p?.id ?? p?.docId ?? `${pdv}-${Math.random().toString(36).slice(2)}`,
-        pdv,
-        total,
-        status,
-      });
+      pedidosList.push({ pdv, total, status });
     });
 
     const pdvs = Array.from(pdvsSet).sort((a, b) => a.localeCompare(b));
@@ -57,35 +54,104 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
     return { pedidosList, pdvs, totaisProdutos };
   }
 
-  // =========================
-  // Utilidades do relatório
-  // =========================
+  // ===== helpers de layout do relatório (HTML bonito, sem JSON) =====
+  const n = (v) => Number(v || 0).toLocaleString("pt-BR");
+  const esc = (s) =>
+    String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  function totalFromObj(obj = {}) {
+    return Object.values(obj).reduce((a, b) => a + Number(b || 0), 0);
+  }
+
+  function buildReportHTML(plano, modo) {
+    const p = plano?.plan || {};
+    const tabuleiros = p.tabuleiros || plano?.tabuleiros || {};
+    const totalTabs = Number(
+      p.totalTabuleiros ?? (Object.keys(tabuleiros).length ? totalFromObj(tabuleiros) : 0)
+    );
+
+    const b = p.bacias || {};
+    const totalBacias =
+      Number(p.totalBacias ?? b.total ?? (Number(b.branco || 0) + Number(b.preto || 0)));
+
+    const linhasTabs = Object.entries(tabuleiros)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(
+        ([nome, q]) =>
+          `<tr><td>${esc(nome)}</td><td class="num">${n(q)}</td></tr>`
+      )
+      .join("") || `<tr><td>—</td><td class="num">0</td></tr>`;
+
+    const blocoBacias =
+      modo === "TEMPO_REAL"
+        ? `
+          <table class="staped-table">
+            <thead><tr><th>Bacias por cor</th><th>Qtde</th></tr></thead>
+            <tbody>
+              <tr><td>Branco</td><td class="num">${n(b.branco || 0)}</td></tr>
+              <tr><td>Preto</td><td class="num">${n(b.preto || 0)}</td></tr>
+              <tr><td><strong>Total</strong></td><td class="num"><strong>${n(totalBacias)}</strong></td></tr>
+            </tbody>
+          </table>`
+        : `
+          <table class="staped-table">
+            <thead><tr><th>Bacias (neutras)</th><th>Qtde</th></tr></thead>
+            <tbody>
+              <tr><td>Total</td><td class="num">${n(totalBacias)}</td></tr>
+            </tbody>
+          </table>`;
+
+    return `
+      <div class="staped-block">
+        <div class="staped-block-title">Resumo</div>
+        <div class="staped-kpis">
+          <span class="kpi"><small>Modo:</small> ${esc(modo)}</span>
+          <span class="kpi"><small>Total de Tabuleiros:</small> ${n(totalTabs)}</span>
+          <span class="kpi"><small>Total de Bacias:</small> ${n(totalBacias)}</span>
+          ${
+            modo === "TEMPO_REAL"
+              ? `<span class="kpi"><small>Branco:</small> ${n(b.branco || 0)}</span>
+                 <span class="kpi"><small>Preto:</small> ${n(b.preto || 0)}</span>`
+              : ""
+          }
+        </div>
+      </div>
+
+      <div class="staped-block">
+        <div class="staped-block-title">Tabuleiros</div>
+        <table class="staped-table">
+          <thead><tr><th>Produto</th><th>Qtde</th></tr></thead>
+          <tbody>${linhasTabs}</tbody>
+        </table>
+      </div>
+
+      <div class="staped-block">
+        <div class="staped-block-title">Bacias</div>
+        ${blocoBacias}
+      </div>
+    `;
+  }
+
   function renderEmpty(title) {
     setReport({
       title,
-      body:
-        "Nenhum dado disponível nesta semana. Volte após registrar pedidos.",
+      html:
+        '<div class="staped-empty-box">Nenhum dado disponível nesta semana. Volte após registrar pedidos.</div>',
       payload: null,
     });
-  }
-
-  function stringifyBlock(obj) {
-    return JSON.stringify(obj, null, 2);
   }
 
   function gerarPDF() {
     window.print();
   }
 
-  // =========================
-  // Ações (4 botões)
-  // =========================
+  // ===== Botões =====
   function onPlanGeral() {
     if (!temDados) return renderEmpty("Planejamento de Produção – Geral");
     const plano = calculaPlanejamento(pedidos, { modo: "GERAL" });
     setReport({
       title: "Planejamento de Produção – Geral",
-      body: stringifyBlock(plano),
+      html: buildReportHTML(plano, "GERAL"),
       payload: plano,
     });
   }
@@ -95,7 +161,7 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
     const plano = calculaPlanejamento(pedidos, { modo: "TEMPO_REAL" });
     setReport({
       title: "Planejamento de Produção – Tempo Real",
-      body: stringifyBlock(plano),
+      html: buildReportHTML(plano, "TEMPO_REAL"),
       payload: plano,
     });
   }
@@ -105,7 +171,7 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
     const plano = calculaPlanejamento(pedidos, { modo: "GERAL", compras: true });
     setReport({
       title: "Lista de Compras – Geral",
-      body: stringifyBlock(plano),
+      html: buildReportHTML(plano, "GERAL"),
       payload: plano,
     });
   }
@@ -115,14 +181,10 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
     const plano = calculaPlanejamento(pedidos, { modo: "TEMPO_REAL", compras: true });
     setReport({
       title: "Lista de Compras – Tempo Real",
-      body: stringifyBlock(plano),
+      html: buildReportHTML(plano, "TEMPO_REAL"),
       payload: plano,
     });
   }
-
-  // helper: slug sem acento p/ classe CSS
-  const statusToSlug = (s) =>
-    String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
   return (
     <>
@@ -152,10 +214,8 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
             <div className="staped-report">
               <div className="staped-report__title">{report.title}</div>
 
-              {/* mostro texto monoespaçado, sem usar <pre> */}
-              <div className="staped-report__pre" role="document">
-                {report.body}
-              </div>
+              {/* HTML bonito (sem JSON) */}
+              <div dangerouslySetInnerHTML={{ __html: report.html }} />
 
               <div className="staped-report__actions">
                 <button className="staped-btn staped-btn--dark70" onClick={gerarPDF}>
@@ -178,11 +238,8 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
                 Pedidos ({contexto.pedidosList.length})
               </div>
               <ul className="staped-side__list">
-                {contexto.pedidosList.map((p) => (
-                  <li
-                    key={p.id}
-                    className={`staped-side__pill st-${statusToSlug(p.status)}`}
-                  >
+                {contexto.pedidosList.map((p, i) => (
+                  <li key={i} className={`staped-side__pill st-${p.status.toLowerCase()}`}>
                     <span className="staped-side__pill-main">{p.pdv}</span>
                     <span className="staped-side__pill-badge">{p.status}</span>
                     <span className="staped-side__pill-meta">{p.total} itens</span>
@@ -197,9 +254,7 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
               </div>
               <ul className="staped-side__tags">
                 {contexto.pdvs.map((n, i) => (
-                  <li key={i} className="staped-tag">
-                    {n}
-                  </li>
+                  <li key={i} className="staped-tag">{n}</li>
                 ))}
               </ul>
             </div>
@@ -220,4 +275,4 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
       )}
     </>
   );
-}
+            }
