@@ -331,3 +331,20 @@ header.erp-header img {
 }
 .staped-table td.num { text-align: right; font-weight: 800; color: #5f2f1d; }
 .staped-table tr:last-child td { border-bottom: 0; }
+
+
+/* notas/avisos (Lista de Compras – Tempo Real) */
+.staped-notes { margin:.2rem 0 .4rem 1.2rem; }
+.staped-notes li { margin:.15rem 0; }
+
+/* blocos/tabelas do relatório (se ainda não tiver) */
+.staped-block { margin-top:.6rem; }
+.staped-block-title { font-weight:800; color:#3f312e; margin:.35rem 0 .35rem; }
+.staped-kpis { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.4rem; }
+.kpi { background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:.5rem; padding:.28rem .55rem; font-weight:700; color:#3f312e; }
+.kpi small { opacity:.7; font-weight:600; margin-right:.25rem; }
+.staped-table { width:100%; border-collapse:collapse; background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:.5rem; overflow:hidden; }
+.staped-table th, .staped-table td { padding:.45rem .6rem; border-bottom:1px solid rgba(0,0,0,.06); font-size:.92rem; }
+.staped-table th { text-align:left; background:#faf8f6; font-weight:800; color:#3f312e; }
+.staped-table td.num { text-align:right; font-weight:800; color:#5f2f1d; }
+.staped-table tr:last-child td { border-bottom:0; }
