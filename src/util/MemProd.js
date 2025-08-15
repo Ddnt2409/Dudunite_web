@@ -16,25 +16,25 @@ const UNID_POR_BACIA = {
   "BRW 7x7": 25,
   "BRW 6x6": 35,
   "ESC": 26,
-  "PKT 5x5": 65, // ≈ 20 g/un
-  "PKT 6x6": 43, // ≈ 30 g/un
+  "PKT 5x5": 65, // ≈20g/un
+  "PKT 6x6": 43, // ≈30g/un
 };
 
 // ===== MASSA & UNTAR =====
 const MARG_MASSA_G_POR_TAB = 76;        // g
-const OVOS_MASSA_G_POR_TAB = 190;       // g
-const OVO_PESO_MEDIO_G     = 52;        // g/un
+const OVOS_MASSA_G_POR_TAB  = 190;      // g
+const OVO_PESO_MEDIO_G      = 52;       // g/un
 const FARINHA_MASSA_PACOTES_450_POR_TAB = 2; // 900 g = 2×450 g
 
 const FARINHA_UNTAR_G_POR_TAB = 150 / 12; // 12,5 g/tab
-const MARG_UNTAR_G_POR_TAB    = 40 / 3;   // 13,33 g/tab
+const MARG_UNTAR_G_POR_TAB    = 40 / 3;   // ~13,33 g/tab
 
 // ===== RECHEIOS =====
-const LATA_LEITE_POR_BACIA        = 4;   // un
-const CREME_LEITE_G_POR_BACIA     = 650; // g
-const GLUCOSE_G_CADA_6_BACIAS     = 500; // g a cada 6 bacias
-const GLUCOSE_FRASCO_G            = 500; // g (frasco)
-const ACHOCOLATADO_G_PRETO        = 360; // g/bacia (preto)
+const LATA_LEITE_POR_BACIA    = 4;    // un
+const CREME_LEITE_G_POR_BACIA = 650;  // g
+const GLUCOSE_G_CADA_6_BACIAS = 500;  // g a cada 6 bacias
+const GLUCOSE_FRASCO_G        = 500;  // g (frasco)
+const ACHOCOLATADO_G_PRETO    = 360;  // g/bacia preta
 
 // ===== normalização de produto =====
 const PROD_ALIASES = [
@@ -58,18 +58,22 @@ function normProduto(s) {
 // ===== acesso seguro aos itens =====
 function itensDoPedido(p) {
   if (!p) return [];
-  if (Array.isArray(p.items)) return p.items;
-  if (Array.isArray(p.itens)) return p.itens;
+  if (Array.isArray(p.items))    return p.items;
+  if (Array.isArray(p.itens))    return p.itens;
   if (Array.isArray(p.produtos)) return p.produtos;
   return [];
 }
 function qtdDoItem(it) {
   return Number(it?.quantidade ?? it?.qtd ?? it?.qtde ?? 0) || 0;
 }
+function countProdutosNoPedido(p) {
+  return itensDoPedido(p)
+    .map(it => normProduto(it?.produto ?? it?.item ?? it?.nome ?? ""))
+    .filter(Boolean).length;
+}
 
 // ===== sabores em QUALQUER formato comum =====
 function parseListaStringsComoSabores(list) {
-  // aceita ["15x Brigadeiro preto", "10x Bem casado", ...]
   const out = [];
   for (const raw of list) {
     const s = String(raw || "").trim();
@@ -79,46 +83,57 @@ function parseListaStringsComoSabores(list) {
   }
   return out;
 }
-function saboresDoItem(it, p) {
-  // 1) arrays de objetos
-  let arr =
-    it?.sabores ?? it?.flavors ?? it?.alimentadoSabores ?? it?.saboresAlimentados;
-  if (Array.isArray(arr)) {
-    return arr
-      .map(s => ({
-        nome: (s?.nome ?? s?.sabor ?? s?.label ?? s)?.toString(),
-        qtd: Number(s?.quantidade ?? s?.qtd ?? s?.qtde ?? s?.q ?? 0) || 0,
-      }))
-      .filter(s => s.nome && s.qtd > 0);
+function saboresFromValue(v) {
+  if (Array.isArray(v)) {
+    if (!v.length) return [];
+    if (typeof v[0] === "string") return parseListaStringsComoSabores(v);
+    return v.map(s => ({
+      nome: (s?.nome ?? s?.sabor ?? s?.label ?? s)?.toString(),
+      qtd: Number(s?.quantidade ?? s?.qtd ?? s?.qtde ?? s?.q ?? 0) || 0,
+    })).filter(x => x.nome && x.qtd > 0);
   }
-
-  // 2) lista de strings
-  const listStr =
-    it?.saboresLista ?? it?.saboresStrs ?? it?.saboresTxt ?? it?.saboresTexto;
-  if (Array.isArray(listStr)) return parseListaStringsComoSabores(listStr);
-  if (typeof listStr === "string")
+  if (typeof v === "string") {
     return parseListaStringsComoSabores(
-      listStr.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean)
+      v.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean)
     );
-
-  // 3) fallback: sabores no pedido por produto
-  const produto = normProduto(it?.produto ?? it?.item ?? it?.nome ?? "");
-  const porProd = p?.saboresPorProduto || p?.flavorsByProduct;
-  if (porProd && porProd[produto]) {
-    const v = porProd[produto];
-    if (Array.isArray(v)) return saboresDoItem({ sabores: v }, p);
-    if (typeof v === "string") return parseListaStringsComoSabores(v.split(/\r?\n|,/));
   }
-
+  return [];
+}
+function saboresNivelPedido(p) {
+  const candidates = [
+    p?.alimentadoSabores, p?.alimentado_sabores,
+    p?.saboresAlimentados, p?.saboresSelecionados,
+    p?.saboresLista, p?.saboresStrs, p?.saboresTxt, p?.sabores,
+  ];
+  for (const v of candidates) {
+    const arr = saboresFromValue(v);
+    if (arr.length) return arr;
+  }
+  return [];
+}
+function saboresDoItem(it, p) {
+  // 1) campos no item
+  const candidatesItem = [
+    it?.sabores, it?.flavors, it?.alimentadoSabores, it?.saboresAlimentados,
+    it?.saboresSelecionados, it?.saboresLista, it?.saboresStrs, it?.saboresTxt
+  ];
+  for (const v of candidatesItem) {
+    const arr = saboresFromValue(v);
+    if (arr.length) return arr;
+  }
+  // 2) fallback: sabores no nível do pedido (se houver apenas 1 produto)
+  const prodCount = countProdutosNoPedido(p);
+  if (prodCount === 1) {
+    const arr = saboresNivelPedido(p);
+    if (arr.length) return arr;
+  }
   return [];
 }
 
 // ===== Sabor → cor =====
 const TOKENS_PRETO = [
-  "brigadeiro preto",
-  "palha italiana",
-  "preto com confete",
-  "brigadeiro preto com confete",
+  "brigadeiro preto", "palha italiana",
+  "preto com confete", "brigadeiro preto com confete",
 ];
 const TOKENS_BRANCO = [
   "ninho", "oreo", "ovomaltine", "beijinho",
@@ -133,29 +148,25 @@ function classificaSaborCor(nome) {
   return { branco: 0, preto: 0 }; // desconhecido
 }
 
-// ===== é alimentado? (bem permissivo) =====
-function hasSaboresNoPedido(p) {
+// ===== é alimentado? (permissivo) =====
+function hasSaboresQualquerLugar(p) {
+  if (saboresNivelPedido(p).length) return true;
   return itensDoPedido(p).some(it => saboresDoItem(it, p).length > 0);
 }
 function isAlimentadoPedido(p) {
-  if (p?.alimentado === true) return true;
-  if (p?.dataAlimentado || p?.alimentadoEm) return true;
-
-  const s = (p?.status ?? p?.etapa ?? p?.situacao ?? p?.fase ?? "")
-    .toString().toUpperCase();
+  if (p?.alimentado === true || p?.dataAlimentado || p?.alimentadoEm) return true;
+  const s = [p?.status, p?.etapa, p?.situacao, p?.fase, p?.etiqueta]
+    .map(x => String(x || "")).join(" ").toUpperCase();
   if (s.includes("ALIMENT")) return true;
-
-  return hasSaboresNoPedido(p);
+  return hasSaboresQualquerLugar(p);
 }
 
 // ===== Filtra base =====
 function filtraPedidos(pedidos, modo) {
   if (!Array.isArray(pedidos)) return [];
   if (modo === "TEMPO_REAL") {
-    // inclui se marcados como alimentados OU se eu identificar sabores
     return pedidos.filter(p => isAlimentadoPedido(p));
   }
-  // GERAL = tem itens
   return pedidos.filter(p => itensDoPedido(p).length > 0);
 }
 
@@ -170,7 +181,6 @@ function tabuleirosPorProduto(pedidos, modo) {
       if (!rend) continue;
 
       if (modo === "TEMPO_REAL") {
-        // só contam unidades com sabor
         const sab = saboresDoItem(it, p);
         const unid = sab.reduce((a, s) => a + s.qtd, 0);
         porProdutoUn.set(produto, (porProdutoUn.get(produto) || 0) + unid);
@@ -193,7 +203,7 @@ function baciasNeutras(pedidos) {
   let total = 0;
   for (const p of pedidos) {
     for (const it of itensDoPedido(p)) {
-      const prod = normProduto(it?.produto ?? it?.item ?? it?.nome ?? "");
+      const prod  = normProduto(it?.produto ?? it?.item ?? it?.nome ?? "");
       const rendB = UNID_POR_BACIA[prod];
       if (!rendB) continue;
       const unid = qtdDoItem(it) || saboresDoItem(it, p).reduce((a, s) => a + s.qtd, 0);
@@ -259,7 +269,7 @@ function comprasRecheiosGeral(baciasTotal) {
     totais: {
       leite_cond_395g_un: leite,
       creme_de_leite_g: Math.round(creme),
-      achocolatado_g: 0, // GERAL não separa por cor
+      achocolatado_g: 0,
     },
     glucose: { frascos: glucose_fr, gramas: Math.round(glucose_g) },
   };
@@ -296,21 +306,19 @@ function comprasRecheiosTempoReal(baciasPorCor) {
   };
 }
 
-// ===== util p/ “linhas prontas” (evita NaN na UI) =====
+// ===== util p/ “linhas prontas” =====
 function montarComprasFlat({ modo, massa_untar, recheios }) {
   const lines = [];
 
-  // MASSA & UNTAR
   lines.push(
     { grupo: "Massa e Untar", item: "margarina total (g)", unidade: "g",  qtd: massa_untar.margarina_total_g },
     { grupo: "Massa e Untar", item: "ovos (un)",            unidade: "un", qtd: massa_untar.ovos_un },
-    { grupo: "Massa e Untar", item: "farinha massa caixas12", unidade: "cx", qtd: massa_untar.farinha_massa_caixas12 },
+    { grupo: "Massa e Untar", item: "farinha massa caixas12", unidade: "cx",  qtd: massa_untar.farinha_massa_caixas12 },
     { grupo: "Massa e Untar", item: "farinha massa pacotes avulsos", unidade: "pct", qtd: massa_untar.farinha_massa_pacotes_avulsos },
     { grupo: "Massa e Untar", item: "farinha massa pacotes 450", unidade: "pct", qtd: massa_untar.farinha_massa_pacotes_450 },
     { grupo: "Massa e Untar", item: "farinha untar (g)",    unidade: "g",  qtd: massa_untar.farinha_untar_g },
   );
 
-  // RECHEIOS
   if (modo === "TEMPO_REAL") {
     const b = recheios.por_cor.branco, p = recheios.por_cor.preto;
     lines.push(
@@ -336,7 +344,6 @@ function montarComprasFlat({ modo, massa_untar, recheios }) {
       { grupo: "Recheios — Totais", item: "glucose",         unidade: "g",  qtd: recheios.glucose.gramas },
     );
   }
-
   return lines;
 }
 
@@ -382,4 +389,4 @@ export function calculaPlanejamento(pedidos, opts = {}) {
   }
 
   return out;
-  }
+    }
