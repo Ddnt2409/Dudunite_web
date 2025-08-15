@@ -1,7 +1,5 @@
-// src/util/MemProd.js
 // ---------------------------------------------------------
-// Planejamento + Lista de Compras (GERAL e TEMPO_REAL)
-// Baseado no README (rendimentos) e regras definidas no chat
+// Planejamento + Compras (GERAL e TEMPO_REAL) — ERP Dudunitê
 // ---------------------------------------------------------
 
 // ===== RENDIMENTOS (README) =====
@@ -18,27 +16,27 @@ const UNID_POR_BACIA = {
   "BRW 7x7": 25,
   "BRW 6x6": 35,
   "ESC": 26,
-  "PKT 5x5": 65, // 20 g/un (≈ 65 un/bacia)
-  "PKT 6x6": 43, // 30 g/un (≈ 43 un/bacia)
+  "PKT 5x5": 65, // ≈ 20 g/un
+  "PKT 6x6": 43, // ≈ 30 g/un
 };
 
-// ===== INSUMOS — MASSA & UNTAR =====
+// ===== MASSA & UNTAR =====
 const MARG_MASSA_G_POR_TAB = 76;        // g
 const OVOS_MASSA_G_POR_TAB = 190;       // g
-const OVO_PESO_MEDIO_G     = 52;        // g/un → converter p/ unidades
+const OVO_PESO_MEDIO_G     = 52;        // g/un
 const FARINHA_MASSA_PACOTES_450_POR_TAB = 2; // 900 g = 2×450 g
 
-const FARINHA_UNTAR_G_POR_TAB = 150 / 12; // 12,5 g/tabuleiro
-const MARG_UNTAR_G_POR_TAB    = 40 / 3;   // 13,333... g/tabuleiro
+const FARINHA_UNTAR_G_POR_TAB = 150 / 12; // 12,5 g/tab
+const MARG_UNTAR_G_POR_TAB    = 40 / 3;   // 13,33 g/tab
 
-// ===== INSUMOS — RECHEIOS =====
+// ===== RECHEIOS =====
 const LATA_LEITE_POR_BACIA        = 4;   // un
 const CREME_LEITE_G_POR_BACIA     = 650; // g
 const GLUCOSE_G_CADA_6_BACIAS     = 500; // g a cada 6 bacias
 const GLUCOSE_FRASCO_G            = 500; // g (frasco)
-const ACHOCOLATADO_G_PRETO        = 360; // g/bacia (apenas preto)
+const ACHOCOLATADO_G_PRETO        = 360; // g/bacia (preto)
 
-// ===== NORMALIZAÇÕES =====
+// ===== normalização de produto =====
 const PROD_ALIASES = [
   [/^brownie\s*7x7$/i, "BRW 7x7"],
   [/^brw\s*7x7$/i,     "BRW 7x7"],
@@ -51,13 +49,13 @@ const PROD_ALIASES = [
   [/^esc/i,            "ESC"],
   [/^escondid/i,       "ESC"],
 ];
-
 function normProduto(s) {
   const t = String(s || "").trim();
   for (const [re, key] of PROD_ALIASES) if (re.test(t)) return key;
-  return t.toUpperCase(); // último recurso (ex.: "BRW 7X7")
+  return t.toUpperCase();
 }
 
+// ===== acesso seguro aos itens =====
 function itensDoPedido(p) {
   if (!p) return [];
   if (Array.isArray(p.items)) return p.items;
@@ -65,191 +63,191 @@ function itensDoPedido(p) {
   if (Array.isArray(p.produtos)) return p.produtos;
   return [];
 }
-
 function qtdDoItem(it) {
   return Number(it?.quantidade ?? it?.qtd ?? it?.qtde ?? 0) || 0;
 }
 
-function saboresDoItem(it) {
-  // Esperado: array de { nome/sabor, quantidade/qtd }
-  const arr = it?.sabores ?? it?.flavors ?? [];
+// ===== sabores em QUALQUER formato comum =====
+function parseListaStringsComoSabores(list) {
+  // aceita ["15x Brigadeiro preto", "10x Bem casado", ...]
+  const out = [];
+  for (const raw of list) {
+    const s = String(raw || "").trim();
+    if (!s) continue;
+    const m = s.match(/^(\d+)\s*x?\s*(.+)$/i);
+    if (m) out.push({ nome: m[2].trim(), qtd: Number(m[1]) || 0 });
+  }
+  return out;
+}
+function saboresDoItem(it, p) {
+  // 1) arrays de objetos
+  let arr =
+    it?.sabores ?? it?.flavors ?? it?.alimentadoSabores ?? it?.saboresAlimentados;
   if (Array.isArray(arr)) {
     return arr
       .map(s => ({
-        nome: (s?.nome ?? s?.sabor ?? s?.label ?? s)?.toString() ?? "",
+        nome: (s?.nome ?? s?.sabor ?? s?.label ?? s)?.toString(),
         qtd: Number(s?.quantidade ?? s?.qtd ?? s?.qtde ?? s?.q ?? 0) || 0,
       }))
       .filter(s => s.nome && s.qtd > 0);
   }
+
+  // 2) lista de strings
+  const listStr =
+    it?.saboresLista ?? it?.saboresStrs ?? it?.saboresTxt ?? it?.saboresTexto;
+  if (Array.isArray(listStr)) return parseListaStringsComoSabores(listStr);
+  if (typeof listStr === "string")
+    return parseListaStringsComoSabores(
+      listStr.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean)
+    );
+
+  // 3) fallback: sabores no pedido por produto
+  const produto = normProduto(it?.produto ?? it?.item ?? it?.nome ?? "");
+  const porProd = p?.saboresPorProduto || p?.flavorsByProduct;
+  if (porProd && porProd[produto]) {
+    const v = porProd[produto];
+    if (Array.isArray(v)) return saboresDoItem({ sabores: v }, p);
+    if (typeof v === "string") return parseListaStringsComoSabores(v.split(/\r?\n|,/));
+  }
+
   return [];
 }
 
-// ===== SABOR → COR =====
+// ===== Sabor → cor =====
 const TOKENS_PRETO = [
   "brigadeiro preto",
-  "brigadeirao preto",
-  "com confete (preto)",
-  "preto com confete",
   "palha italiana",
+  "preto com confete",
+  "brigadeiro preto com confete",
 ];
 const TOKENS_BRANCO = [
-  "ninho",
-  "oreo",
-  "ovomaltine",
-  "beijinho",
-  "brigadeiro branco",
-  "branco com confete",
-  "kitkat",
-  "ninho com nutella",
-  "paçoca",
+  "ninho", "oreo", "ovomaltine", "beijinho",
+  "brigadeiro branco", "branco com confete",
+  "kitkat", "ninho com nutella", "paçoca"
 ];
-function classificaSaborCor(sNome) {
-  const s = (sNome || "").toString().toLowerCase();
-
+function classificaSaborCor(nome) {
+  const s = String(nome || "").toLowerCase();
   if (s.includes("bem casado")) return { branco: 0.5, preto: 0.5 };
-
-  for (const t of TOKENS_PRETO)  if (s.includes(t)) return { branco: 0, preto: 1 };
-  for (const t of TOKENS_BRANCO) if (s.includes(t)) return { branco: 1, preto: 0 };
-
-  // Se não reconhecer, não atribui cor (0/0)
-  return { branco: 0, preto: 0 };
+  if (TOKENS_PRETO.some(t => s.includes(t)))  return { branco: 0,   preto: 1 };
+  if (TOKENS_BRANCO.some(t => s.includes(t))) return { branco: 1,   preto: 0 };
+  return { branco: 0, preto: 0 }; // desconhecido
 }
 
-// ===== FILTRO TEMPO REAL =====
+// ===== é alimentado? (bem permissivo) =====
+function hasSaboresNoPedido(p) {
+  return itensDoPedido(p).some(it => saboresDoItem(it, p).length > 0);
+}
 function isAlimentadoPedido(p) {
   if (p?.alimentado === true) return true;
   if (p?.dataAlimentado || p?.alimentadoEm) return true;
 
-  const sx = (p?.status ?? p?.etapa ?? "").toString()
-    .toUpperCase()
-    .normalize("NFD");
-  if (sx.includes("ALIMENT")) return true;
+  const s = (p?.status ?? p?.etapa ?? p?.situacao ?? p?.fase ?? "")
+    .toString().toUpperCase();
+  if (s.includes("ALIMENT")) return true;
 
-  // inferência: existe algum item com sabores lançados?
-  const its = itensDoPedido(p);
-  return its.some(it => saboresDoItem(it).length > 0);
+  return hasSaboresNoPedido(p);
 }
 
+// ===== Filtra base =====
 function filtraPedidos(pedidos, modo) {
   if (!Array.isArray(pedidos)) return [];
-  if (modo === "TEMPO_REAL") return pedidos.filter(isAlimentadoPedido);
-  // GERAL: tudo que tem itens
+  if (modo === "TEMPO_REAL") {
+    // inclui se marcados como alimentados OU se eu identificar sabores
+    return pedidos.filter(p => isAlimentadoPedido(p));
+  }
+  // GERAL = tem itens
   return pedidos.filter(p => itensDoPedido(p).length > 0);
 }
 
-// ===== TABULEIROS =====
+// ===== Tabuleiros =====
 function tabuleirosPorProduto(pedidos, modo) {
-  const porProduto = new Map();
+  const porProdutoUn = new Map();
 
   for (const p of pedidos) {
-    const its = itensDoPedido(p);
-    for (const it of its) {
+    for (const it of itensDoPedido(p)) {
       const produto = normProduto(it?.produto ?? it?.item ?? it?.nome ?? "");
-      if (!REND_TAB[produto]) continue;
+      const rend = REND_TAB[produto];
+      if (!rend) continue;
 
       if (modo === "TEMPO_REAL") {
-        const sabores = saboresDoItem(it);
-        let unidades = 0;
-        if (sabores.length) {
-          unidades = sabores.reduce((acc, s) => acc + s.qtd, 0);
-        } else {
-          unidades = qtdDoItem(it); // fallback
-        }
-        porProduto.set(produto, (porProduto.get(produto) || 0) + unidades);
+        // só contam unidades com sabor
+        const sab = saboresDoItem(it, p);
+        const unid = sab.reduce((a, s) => a + s.qtd, 0);
+        porProdutoUn.set(produto, (porProdutoUn.get(produto) || 0) + unid);
       } else {
-        // GERAL: usa a quantidade do item
-        porProduto.set(produto, (porProduto.get(produto) || 0) + qtdDoItem(it));
+        porProdutoUn.set(produto, (porProdutoUn.get(produto) || 0) + qtdDoItem(it));
       }
     }
   }
 
   const tabs = {};
-  for (const [produto, unidades] of porProduto.entries()) {
-    const rend = REND_TAB[produto];
-    tabs[produto] = Math.ceil(unidades / rend);
+  for (const [produto, un] of porProdutoUn.entries()) {
+    tabs[produto] = Math.ceil((un || 0) / REND_TAB[produto]);
   }
   const totalTabuleiros = Object.values(tabs).reduce((a, b) => a + b, 0);
-  return { tabs, totalTabuleiros, unidadesPorProduto: Object.fromEntries(porProduto) };
+  return { tabs, totalTabuleiros, unidadesPorProduto: Object.fromEntries(porProdutoUn) };
 }
 
-// ===== BACIAS =====
+// ===== Bacias =====
 function baciasNeutras(pedidos) {
-  // sem cor/sabor
   let total = 0;
-
   for (const p of pedidos) {
-    const its = itensDoPedido(p);
-    for (const it of its) {
-      const produto = normProduto(it?.produto ?? it?.item ?? it?.nome ?? "");
-      const unid = qtdDoItem(it) || saboresDoItem(it).reduce((a, s) => a + s.qtd, 0);
-      const rendB = UNID_POR_BACIA[produto];
-      if (!rendB || !unid) continue;
-      total += Math.ceil(unid / rendB);
+    for (const it of itensDoPedido(p)) {
+      const prod = normProduto(it?.produto ?? it?.item ?? it?.nome ?? "");
+      const rendB = UNID_POR_BACIA[prod];
+      if (!rendB) continue;
+      const unid = qtdDoItem(it) || saboresDoItem(it, p).reduce((a, s) => a + s.qtd, 0);
+      total += Math.ceil((unid || 0) / rendB);
     }
   }
-  return Math.max(0, total | 0);
+  return total | 0;
 }
-
 function baciasPorCorTempoReal(pedidos) {
-  let branco = 0;
-  let preto  = 0;
-
+  let branco = 0, preto = 0;
   for (const p of pedidos) {
-    const its = itensDoPedido(p);
-    for (const it of its) {
-      const produto = normProduto(it?.produto ?? it?.item ?? it?.nome ?? "");
-      const rendB = UNID_POR_BACIA[produto];
+    for (const it of itensDoPedido(p)) {
+      const prod  = normProduto(it?.produto ?? it?.item ?? it?.nome ?? "");
+      const rendB = UNID_POR_BACIA[prod];
       if (!rendB) continue;
 
-      const sabores = saboresDoItem(it);
-      if (!sabores.length) continue; // no tempo real, sem sabor não soma
-
-      for (const s of sabores) {
-        const fator = classificaSaborCor(s.nome);
-        if (!fator.branco && !fator.preto) continue;
-
-        const baciasFracionadas = (s.qtd / rendB);
-        branco += baciasFracionadas * fator.branco;
-        preto  += baciasFracionadas * fator.preto;
+      const sab = saboresDoItem(it, p);
+      for (const s of sab) {
+        const f = classificaSaborCor(s.nome);
+        if (!f.branco && !f.preto) continue;
+        const b = (s.qtd / rendB);
+        branco += b * f.branco;
+        preto  += b * f.preto;
       }
     }
   }
-
-  const out = {
-    branco: Math.ceil(branco),
-    preto:  Math.ceil(preto),
-  };
+  const out = { branco: Math.ceil(branco), preto: Math.ceil(preto) };
   out.total = out.branco + out.preto;
   return out;
 }
 
-// ===== COMPRAS — MASSA & UNTAR =====
+// ===== Compras — Massa & Untar =====
 function comprasMassaUntar(totalTabuleiros) {
   const marg_massa_g = totalTabuleiros * MARG_MASSA_G_POR_TAB;
   const marg_untar_g = totalTabuleiros * MARG_UNTAR_G_POR_TAB;
   const marg_total_g = Math.round(marg_massa_g + marg_untar_g);
 
-  const ovos_g  = totalTabuleiros * OVOS_MASSA_G_POR_TAB;
-  const ovos_un = Math.ceil(ovos_g / OVO_PESO_MEDIO_G);
+  const ovos_un = Math.ceil((totalTabuleiros * OVOS_MASSA_G_POR_TAB) / OVO_PESO_MEDIO_G);
 
-  const far_pacotes_total = totalTabuleiros * FARINHA_MASSA_PACOTES_450_POR_TAB;
-  const far_caixas12      = Math.floor(far_pacotes_total / 12);
-  const far_avulsos       = far_pacotes_total % 12;
+  const pacotes = totalTabuleiros * FARINHA_MASSA_PACOTES_450_POR_TAB; // exato
+  const caixas12 = Math.floor(pacotes / 12);
+  const avulsos  = pacotes % 12;
 
   return {
     margarina_total_g: marg_total_g,
     ovos_un,
-    // Farinha de massa apenas em pacotes + caixas/avulsos (número exato)
-    farinha_massa_caixas12: far_caixas12,
-    farinha_massa_pacotes_avulsos: far_avulsos,
-    farinha_massa_pacotes_450: far_pacotes_total,
-
-    // Para referência, se quiser mostrar também os grams (opcional):
+    farinha_massa_caixas12: caixas12,
+    farinha_massa_pacotes_avulsos: avulsos,
+    farinha_massa_pacotes_450: pacotes,
     farinha_untar_g: Math.round(totalTabuleiros * FARINHA_UNTAR_G_POR_TAB),
   };
 }
 
-// ===== COMPRAS — RECHEIOS =====
+// ===== Compras — Recheios =====
 function comprasRecheiosGeral(baciasTotal) {
   const leite = baciasTotal * LATA_LEITE_POR_BACIA;
   const creme = baciasTotal * CREME_LEITE_G_POR_BACIA;
@@ -261,12 +259,11 @@ function comprasRecheiosGeral(baciasTotal) {
     totais: {
       leite_cond_395g_un: leite,
       creme_de_leite_g: Math.round(creme),
-      achocolatado_g: 0, // sem cor no GERAL
+      achocolatado_g: 0, // GERAL não separa por cor
     },
     glucose: { frascos: glucose_fr, gramas: Math.round(glucose_g) },
   };
 }
-
 function comprasRecheiosTempoReal(baciasPorCor) {
   const bBranco = Math.max(0, baciasPorCor?.branco || 0);
   const bPreto  = Math.max(0, baciasPorCor?.preto  || 0);
@@ -283,9 +280,9 @@ function comprasRecheiosTempoReal(baciasPorCor) {
   };
 
   const totais = {
-    leite_cond_395g_un: (branco.leite_cond_395g_un + preto.leite_cond_395g_un),
-    creme_de_leite_g:   (branco.creme_de_leite_g   + preto.creme_de_leite_g),
-    achocolatado_g:     (preto.achocolatado_g || 0),
+    leite_cond_395g_un: branco.leite_cond_395g_un + preto.leite_cond_395g_un,
+    creme_de_leite_g:   branco.creme_de_leite_g   + preto.creme_de_leite_g,
+    achocolatado_g:     preto.achocolatado_g || 0,
     bacias_total:       bTotal,
   };
 
@@ -299,20 +296,64 @@ function comprasRecheiosTempoReal(baciasPorCor) {
   };
 }
 
-// ====== API PRINCIPAL ======
+// ===== util p/ “linhas prontas” (evita NaN na UI) =====
+function montarComprasFlat({ modo, massa_untar, recheios }) {
+  const lines = [];
+
+  // MASSA & UNTAR
+  lines.push(
+    { grupo: "Massa e Untar", item: "margarina total (g)", unidade: "g",  qtd: massa_untar.margarina_total_g },
+    { grupo: "Massa e Untar", item: "ovos (un)",            unidade: "un", qtd: massa_untar.ovos_un },
+    { grupo: "Massa e Untar", item: "farinha massa caixas12", unidade: "cx", qtd: massa_untar.farinha_massa_caixas12 },
+    { grupo: "Massa e Untar", item: "farinha massa pacotes avulsos", unidade: "pct", qtd: massa_untar.farinha_massa_pacotes_avulsos },
+    { grupo: "Massa e Untar", item: "farinha massa pacotes 450", unidade: "pct", qtd: massa_untar.farinha_massa_pacotes_450 },
+    { grupo: "Massa e Untar", item: "farinha untar (g)",    unidade: "g",  qtd: massa_untar.farinha_untar_g },
+  );
+
+  // RECHEIOS
+  if (modo === "TEMPO_REAL") {
+    const b = recheios.por_cor.branco, p = recheios.por_cor.preto;
+    lines.push(
+      { grupo: "Recheios — Branco", item: "leite cond 395g", unidade: "un", qtd: b.leite_cond_395g_un },
+      { grupo: "Recheios — Branco", item: "creme de leite",  unidade: "g",  qtd: b.creme_de_leite_g },
+
+      { grupo: "Recheios — Preto",  item: "leite cond 395g", unidade: "un", qtd: p.leite_cond_395g_un },
+      { grupo: "Recheios — Preto",  item: "creme de leite",  unidade: "g",  qtd: p.creme_de_leite_g },
+      { grupo: "Recheios — Preto",  item: "achocolatado",    unidade: "g",  qtd: p.achocolatado_g },
+
+      { grupo: "Recheios — Totais", item: "leite cond 395g", unidade: "un", qtd: recheios.totais.leite_cond_395g_un },
+      { grupo: "Recheios — Totais", item: "creme de leite",  unidade: "g",  qtd: recheios.totais.creme_de_leite_g },
+      { grupo: "Recheios — Totais", item: "achocolatado",    unidade: "g",  qtd: recheios.totais.achocolatado_g },
+      { grupo: "Recheios — Totais", item: "glucose",         unidade: "fr", qtd: recheios.glucose.frascos },
+      { grupo: "Recheios — Totais", item: "glucose",         unidade: "g",  qtd: recheios.glucose.gramas },
+    );
+  } else {
+    lines.push(
+      { grupo: "Recheios — Totais", item: "leite cond 395g", unidade: "un", qtd: recheios.totais.leite_cond_395g_un },
+      { grupo: "Recheios — Totais", item: "creme de leite",  unidade: "g",  qtd: recheios.totais.creme_de_leite_g },
+      { grupo: "Recheios — Totais", item: "achocolatado",    unidade: "g",  qtd: 0 },
+      { grupo: "Recheios — Totais", item: "glucose",         unidade: "fr", qtd: recheios.glucose.frascos },
+      { grupo: "Recheios — Totais", item: "glucose",         unidade: "g",  qtd: recheios.glucose.gramas },
+    );
+  }
+
+  return lines;
+}
+
+// ===== API =====
 export function calculaPlanejamento(pedidos, opts = {}) {
   const { modo = "GERAL", compras = false } = opts;
 
   const base = filtraPedidos(pedidos, modo);
   const { tabs, totalTabuleiros } = tabuleirosPorProduto(base, modo);
 
-  let baciasOut;
+  let bacias;
   if (modo === "TEMPO_REAL") {
     const porCor = baciasPorCorTempoReal(base);
-    baciasOut = { branco: porCor.branco, preto: porCor.preto, total: porCor.total };
+    bacias = { ...porCor };
   } else {
     const total = baciasNeutras(base);
-    baciasOut = { total };
+    bacias = { total };
   }
 
   const out = {
@@ -320,9 +361,9 @@ export function calculaPlanejamento(pedidos, opts = {}) {
       modo,
       tabuleiros: tabs,
       totalTabuleiros,
-      bacias: baciasOut,
-      baciasPorCor: modo === "TEMPO_REAL" ? { branco: baciasOut.branco, preto: baciasOut.preto } : undefined,
-      totalBacias: baciasOut.total,
+      bacias: bacias,
+      baciasPorCor: modo === "TEMPO_REAL" ? { branco: bacias.branco, preto: bacias.preto } : undefined,
+      totalBacias: bacias.total ?? (bacias.branco + bacias.preto),
     },
   };
 
@@ -330,14 +371,15 @@ export function calculaPlanejamento(pedidos, opts = {}) {
     const massa_untar = comprasMassaUntar(totalTabuleiros);
     const recheios =
       modo === "TEMPO_REAL"
-        ? comprasRecheiosTempoReal(baciasOut)
-        : comprasRecheiosGeral(baciasOut.total);
+        ? comprasRecheiosTempoReal(bacias)
+        : comprasRecheiosGeral(bacias.total);
 
     out.compras = {
       massa_untar,
       recheios,
+      comprasFlat: montarComprasFlat({ modo, massa_untar, recheios }),
     };
   }
 
   return out;
-}
+  }
