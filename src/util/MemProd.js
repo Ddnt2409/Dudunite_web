@@ -1,214 +1,275 @@
 // src/util/MemProd.js
+// ===== Memória de cálculo oficial (centralizada em um arquivo) =====
 
-/** ============================================================
- *  CÁLCULOS DE PRODUÇÃO
- *  - Rendimentos por tabuleiro
- *  - Cálculo de bacias (branco x preto) com regra de bem‑casado 50/50
- *  - Compras: margarina e farinha para untar (valores ajustáveis)
- *  ============================================================ */
-
-/** Ajuste aqui os rendimentos (unidades por tabuleiro) */
-export const RENDIMENTO_TABULEIRO = {
-  "BROWNIE 7X7": 20,
-  "BROWNIE 6X6": 24,
-  "POCKET 5X5": 35,
-  "POCKET 6X6": 24,
-  "ESCONDIDINHO": 12,
-  "DUDU": 1, // unidade avulsa
+/* =========================
+ * CHAVES / NORMALIZAÇÃO
+ * ========================= */
+const PROD_KEYS = {
+  BRW7x7: "BROWNIE 7X7",
+  BRW6x6: "BROWNIE 6X6",
+  ESC:    "ESCONDIDINHO",
+  PKT5x5: "POCKET 5X5",
+  PKT6x6: "POCKET 6X6",
 };
 
-/** Quantas unidades equivalem a 1 bacia de recheio (aproximação) */
-export const RENDIMENTO_BACIA = 50;
-
-/** Margarina e farinha para UNTar por tabuleiro (em gramas) — AJUSTE OFICIAL AQUI */
-export const MARGARINA_UNTAR_G_POR_TAB = 12; // TODO: confirmar valor oficial
-export const FARINHA_UNTAR_G_POR_TAB = 8;    // TODO: confirmar valor oficial
-
-/** Classificação de sabores por cor (para bacias) */
-const BRANCOS = new Set([
-  "Ninho", "Beijinho", "Brigadeiro branco", "Brigadeiro branco com confete",
-  "Paçoca", "Bem casado", "Ninho com Nutella", "Palha italiana (branca)"
-]);
-const PRETOS = new Set([
-  "Brigadeiro preto", "Brigadeiro preto com confete", "Oreo", "Ovomaltine",
-  "KitKat", "Prestigio", "Palha italiana", "Palha italiana (preta)"
-]);
-
-/** Normalização mínima de produto */
-export function normalizaProduto(p = "") {
-  const pUp = String(p).toUpperCase();
-  if (pUp.includes("7X7")) return "BROWNIE 7X7";
-  if (pUp.includes("6X6") && pUp.includes("BROW")) return "BROWNIE 6X6";
-  if (pUp.includes("5X5")) return "POCKET 5X5";
-  if (pUp.includes("6X6") && pUp.includes("POC")) return "POCKET 6X6";
-  if (pUp.includes("ESC")) return "ESCONDIDINHO";
-  if (pUp.includes("DUDU")) return "DUDU";
-  return p.trim();
+function normalizaProduto(p) {
+  if (!p) return p;
+  const s = String(p).trim().toUpperCase();
+  if (s.includes("BRW") && s.includes("7X7")) return PROD_KEYS.BRW7x7;
+  if (s.includes("BRW") && s.includes("6X6")) return PROD_KEYS.BRW6x6;
+  if ((s.includes("PKT") || s.includes("POCKET")) && s.includes("5X5")) return PROD_KEYS.PKT5x5;
+  if ((s.includes("PKT") || s.includes("POCKET")) && s.includes("6X6")) return PROD_KEYS.PKT6x6;
+  if (s.startsWith("ESC")) return PROD_KEYS.ESC;
+  if (Object.values(PROD_KEYS).includes(s)) return s;
+  return s;
 }
 
-/** Soma tabuleiros por produto a partir de itens */
-function agregaTabuleiros(itens = []) {
+/* =========================
+ * RENDIMENTOS (README)
+ * ========================= */
+
+// Unidades por TABULEIRO
+const REND_TAB = {
+  [PROD_KEYS.BRW7x7]: 12,
+  [PROD_KEYS.BRW6x6]: 17,
+  [PROD_KEYS.PKT5x5]: 20,
+  [PROD_KEYS.PKT6x6]: 15,
+  [PROD_KEYS.ESC]:    26,
+};
+
+// Unidades por BACIA de recheio
+const REND_BACIA_UN = {
+  [PROD_KEYS.BRW7x7]: 25,
+  [PROD_KEYS.BRW6x6]: 35,
+  [PROD_KEYS.ESC]:    26,
+  [PROD_KEYS.PKT5x5]: 65, // ≅20 g/un
+  [PROD_KEYS.PKT6x6]: 43, // ≅30 g/un
+};
+
+// Base da BACIA (para compras)
+const BACIA_BASE = {
+  leiteCondensado_por_bacia_latas: 4,     // 4 × 395 g
+  leiteCondensado_lata_g: 395,
+  cremeDeLeite_por_bacia_g: 650,
+  glucose_extra_g_a_cada_6_bacias: 500,   // +500 g a cada 6 bacias
+};
+
+// Base da MASSA por TABULEIRO (Finna sabor brownie)
+const MASSA_POR_TAB_G = {
+  margarina: 76,
+  ovos: 190,
+  farinhaMassa: 900, // = 2 massas (450 g cada)
+};
+
+// UNTAR por TABULEIRO
+const UNTAR_POR_TAB_G = {
+  // 40 g untam 3 assadeiras  -> 13.333... g/tab
+  margarina: 40 / 3,
+  // 150 g untam 12 tabuleiros -> 12.5 g/tab
+  farinha: 150 / 12,
+};
+
+// Nutella (apenas onde o sabor pede)
+const NUTELLA_POTE_G = 650;
+const NUTELLA_G_UN = {
+  [PROD_KEYS.BRW7x7]: NUTELLA_POTE_G / 60, // ≈10.833 g/un
+  [PROD_KEYS.BRW6x6]: NUTELLA_POTE_G / 85, // ≈7.647 g/un
+  [PROD_KEYS.ESC]:    0,
+  [PROD_KEYS.PKT5x5]: 0,
+  [PROD_KEYS.PKT6x6]: 0,
+};
+
+const SABORES_BRANCOS = [
+  "ninho", "ninho com nutella", "oreo", "ovomaltine", "beijinho",
+  "brigadeiro branco", "brigadeiro branco com confete",
+  "paçoca", "pacoca", "kitkat"
+];
+const SABORES_PRETOS  = [
+  "brigadeiro preto", "brigadeiro preto com confete", "palha italiana"
+];
+
+function corDoSabor(nome) {
+  const s = String(nome || "").toLowerCase();
+  if (s.includes("bem casado")) return "bem_casado"; // 50/50
+  if (SABORES_BRANCOS.some(k => s.includes(k))) return "branco";
+  if (SABORES_PRETOS.some(k  => s.includes(k))) return "preto";
+  // default seguro
+  return "branco";
+}
+const saborUsaNutella = (s) => /nutella/i.test(String(s || ""));
+
+/* =========================
+ * HELPERS
+ * ========================= */
+function ceilDiv(a, b) { return b ? Math.ceil(a / b) : 0; }
+
+function somaItensPorProduto(pedidos) {
+  const acc = {};
+  (pedidos || []).forEach((p) => {
+    const itens = Array.isArray(p?.itens) ? p.itens
+               : Array.isArray(p?.items) ? p.items : [];
+    itens.forEach((it) => {
+      const prod = normalizaProduto(it?.produto || it?.item || it?.nome);
+      const q = Number(it?.quantidade ?? it?.qtd ?? it?.qtde ?? 0);
+      if (!prod || !q) return;
+      acc[prod] = (acc[prod] || 0) + q;
+    });
+  });
+  return acc;
+}
+
+function somaSaboresPorProduto(pedidos) {
+  const acc = {};
+  (pedidos || []).forEach((p) => {
+    const sabores = p?.sabores && typeof p.sabores === "object" ? p.sabores : null;
+    if (!sabores) return;
+    Object.entries(sabores).forEach(([prodRaw, linhas]) => {
+      const prod = normalizaProduto(prodRaw);
+      if (!acc[prod]) acc[prod] = [];
+      (linhas || []).forEach((ln) => {
+        const qtd = Number(ln?.qtd || 0);
+        if (!ln?.sabor || !qtd) return;
+        acc[prod].push({ sabor: ln.sabor, qtd });
+      });
+    });
+  });
+  return acc;
+}
+
+/* =========================
+ * CÁLCULO PRINCIPAL
+ * ========================= */
+export function calculaPlanejamento(pedidos, { modo = "GERAL", compras = false } = {}) {
+  const MODO_GERAL = String(modo).toUpperCase() === "GERAL";
+
+  // Filtro por status:
+  // - GERAL: tudo >= Lançado
+  // - TEMPO_REAL: somente Alimentado (exclui Produzido)
+  const selecionados = (pedidos || []).filter((p) => {
+    const s = String(p?.statusEtapa || "").toLowerCase();
+    if (MODO_GERAL) return s.includes("lanç") || s.includes("lanc") || s.includes("aliment") || s.includes("produz");
+    if (s.includes("produz")) return false;
+    return s.includes("aliment");
+  });
+
+  // TABULEIROS
+  const unPorProd = somaItensPorProduto(selecionados);
   const tabuleiros = {};
-  let totalTabuleiros = 0;
-
-  itens.forEach(({ produto, quantidade }) => {
-    const prod = normalizaProduto(produto);
-    const qtd = Number(quantidade || 0);
-    const rend = RENDIMENTO_TABULEIRO[prod] || RENDIMENTO_TABULEIRO["BROWNIE 7X7"]; // fallback
-    const tabs = Math.ceil(qtd / rend);
-
-    tabuleiros[prod] = (tabuleiros[prod] || 0) + tabs;
-    totalTabuleiros += tabs;
+  let totalTab = 0;
+  Object.entries(unPorProd).forEach(([prod, un]) => {
+    const tabs = ceilDiv(un, REND_TAB[prod] || 0);
+    tabuleiros[prod] = tabs;
+    totalTab += tabs;
   });
+  tabuleiros.total = totalTab;
 
-  return { tabuleiros, totalTabuleiros };
-}
-
-/** Bacias por cor a partir dos sabores { PRODUTO: [{sabor, qtd}] } */
-function baciasPorCorFromSabores(saboresObj = {}) {
-  let branco = 0;
-  let preto = 0;
-
-  Object.values(saboresObj).forEach((linhas = []) => {
-    linhas.forEach(({ sabor, qtd }) => {
-      const q = Number(qtd || 0);
-      const s = String(sabor || "").trim();
-
-      if (s.toLowerCase().includes("bem casado")) {
-        // 50/50
-        branco += q / 2;
-        preto  += q / 2;
-      } else if (BRANCOS.has(s)) {
-        branco += q;
-      } else if (PRETOS.has(s)) {
-        preto += q;
-      } else {
-        // não classificado: não soma (ou decidir uma default)
-      }
-    });
-  });
-
-  const baciasBranco = Math.ceil(branco / RENDIMENTO_BACIA);
-  const baciasPreto  = Math.ceil(preto  / RENDIMENTO_BACIA);
-  return {
-    branco: baciasBranco,
-    preto: baciasPreto,
-    total: baciasBranco + baciasPreto,
+  // MASSA por tabuleiro (para compras)
+  const massaBase = {
+    tabuleiros: totalTab,
+    margarina_g: totalTab * MASSA_POR_TAB_G.margarina,
+    ovos_g:      totalTab * MASSA_POR_TAB_G.ovos,
+    farinhaMassa_g: totalTab * MASSA_POR_TAB_G.farinhaMassa,
   };
-}
 
-/** Agrega itens e sabores dos pedidos já filtrados */
-function agregaDosPedidos(pedidos = []) {
-  const itensAcum = [];
-  const saboresAcum = {};
-
-  pedidos.forEach((p) => {
-    // itens
-    (p.itens || []).forEach((it) => {
-      itensAcum.push({
-        produto: normalizaProduto(it.produto),
-        quantidade: Number(it.quantidade || 0),
-      });
-    });
-
-    // sabores
-    if (p.sabores && typeof p.sabores === "object") {
-      Object.entries(p.sabores).forEach(([prod, linhas]) => {
-        const key = normalizaProduto(prod);
-        saboresAcum[key] = [...(saboresAcum[key] || []), ...linhas.map(l => ({
-          sabor: l.sabor, qtd: Number(l.qtd || 0),
-        }))];
-      });
-    }
-  });
-
-  return { itensAcum, saboresAcum };
-}
-
-/** Compras (massa para untar) a partir do total de tabuleiros */
-function comprasFromTabuleiros(totalTabuleiros) {
-  const margU = Math.round(totalTabuleiros * MARGARINA_UNTAR_G_POR_TAB);
-  const farU  = Math.round(totalTabuleiros * FARINHA_UNTAR_G_POR_TAB);
-
-  return {
-    massa_e_untar: {
-      tabuleiros: totalTabuleiros,
-      margarina_untar_g: margU,
-      farinha_untar_g: farU,
-      // placeholders (mantidos para compatibilidade com relatórios)
-      margarina_massa_g: 0,
-      ovos_total_g: 0,
-      ovos_un_aprox: 0,
-      ovos_bandejas_30: 0,
-      farinha_massa_total_g: 0,
-      massa_450g_pacotes: 0,
-    },
-    recheios: {
-      total_bacias_aprox: 0,
-      leite_cond_395g_un: 0,
-      creme_de_leite_g: 0,
-      glucose_g: 0,
-    },
-    embalagens: {},
-    adesivos: {},
+  // UNTAR por tabuleiro
+  const untar = {
+    margarina_g: totalTab * UNTAR_POR_TAB_G.margarina,
+    farinha_g:   totalTab * UNTAR_POR_TAB_G.farinha,
   };
-}
 
-/** ===========================================
- *  API PRINCIPAL
- *  pedidos: Array<{ itens, sabores?, statusEtapa }>
- *  opt.modo: "GERAL" | "TEMPO_REAL"
- *   - GERAL: todos com statusEtapa >= "Lançado" (Lançado + Alimentado)
- *   - TEMPO_REAL: somente "Alimentado"
- *  =========================================== */
-export function calculaPlanejamento(pedidos = [], opt = { modo: "GERAL" }) {
-  const modo = opt?.modo === "TEMPO_REAL" ? "TEMPO_REAL" : "GERAL";
+  // RECHEIO / BACIAS
+  let bacias = { total: 0 };
+  let recheioUnidades = { branco: 0, preto: 0, total: 0 };
+  let avisosCompras = []; // confete, coco, etc. (tempo real)
+  let nutellaResumo = { g: 0, potes: 0, porProduto: {} };
 
-  // Filtragem por modo
-  const filtrados = pedidos.filter((p) => {
-    const st = (p.statusEtapa || "Lançado").toLowerCase();
-    if (modo === "TEMPO_REAL") return st.includes("aliment");
-    // Geral = lançados + alimentados
-    return st.includes("lanc") || st.includes("lanç") || st.includes("aliment");
-  });
-
-  const { itensAcum, saboresAcum } = agregaDosPedidos(filtrados);
-
-  const { tabuleiros, totalTabuleiros } = agregaTabuleiros(itensAcum);
-
-  // Bacias:
-  // - No geral, podemos estimar pelas quantidades (se quisesse).
-  // - No tempo real, usamos sabores (mais preciso).
-  let bacias = { branco: 0, preto: 0, total: 0 };
-  if (modo === "TEMPO_REAL") {
-    bacias = baciasPorCorFromSabores(saboresAcum);
+  if (MODO_GERAL) {
+    // Não considera sabor/cor — usa unidades/bacia por produto
+    let totalBacias = 0;
+    Object.entries(unPorProd).forEach(([prod, un]) => {
+      const porBacia = REND_BACIA_UN[prod] || 0;
+      totalBacias += ceilDiv(un, porBacia);
+    });
+    bacias = { total: totalBacias };
+    recheioUnidades = { branco: 0, preto: 0, total: Object.values(unPorProd).reduce((a,b)=>a+b,0) };
   } else {
-    // Estimativa simples no "GERAL": distribui 50/50
-    const unidadesTotais = itensAcum.reduce((s, it) => s + Number(it.quantidade || 0), 0);
-    const aprox = Math.ceil(unidadesTotais / RENDIMENTO_BACIA);
-    bacias = { branco: Math.ceil(aprox / 2), preto: Math.floor(aprox / 2), total: aprox };
+    // TEMPO_REAL: separa por cor a partir de sabores
+    const sabPorProd = somaSaboresPorProduto(selecionados);
+    const corUn = { branco: 0, preto: 0 };
+
+    Object.entries(sabPorProd).forEach(([prod, linhas]) => {
+      let brancoProd = 0, pretoProd = 0, nutellaUn = 0;
+      (linhas || []).forEach(({ sabor, qtd }) => {
+        const cor = corDoSabor(sabor);
+        if (cor === "bem_casado") { brancoProd += qtd * 0.5; pretoProd += qtd * 0.5; }
+        else if (cor === "branco") { brancoProd += qtd; }
+        else if (cor === "preto")  { pretoProd  += qtd; }
+
+        if (saborUsaNutella(sabor)) nutellaUn += qtd;
+
+        // avisos compras (regras fornecidas)
+        const s = String(sabor).toLowerCase();
+        if (s.includes("confete"))         avisosCompras.push("Confete");
+        if (s.includes("prestigio") || s.includes("prestígio")) avisosCompras.push("Coco ralado");
+        if (s.includes("palha italiana"))  avisosCompras.push("Biscoito maizena");
+        if (s.includes("paçoca") || s.includes("pacoca")) avisosCompras.push("Paçoca");
+        if (s.includes("brigadeiro preto")) avisosCompras.push("Granulado");
+      });
+
+      // Bacias por produto/cor
+      const porBacia = REND_BACIA_UN[prod] || 0;
+      bacias[`${prod}#branco`] = ceilDiv(brancoProd, porBacia);
+      bacias[`${prod}#preto`]  = ceilDiv(pretoProd , porBacia);
+      bacias.total            += bacias[`${prod}#branco`] + bacias[`${prod}#preto`];
+
+      // Acumula unidades por cor
+      corUn.branco += brancoProd;
+      corUn.preto  += pretoProd;
+
+      // Nutella (g/potes) por produto
+      const gUn = NUTELLA_G_UN[prod] || 0;
+      const gTotalProd = nutellaUn * gUn;
+      nutellaResumo.porProduto[prod] = {
+        unidadesNutella: nutellaUn,
+        g: gTotalProd,
+        potes: Math.ceil(gTotalProd / NUTELLA_POTE_G),
+      };
+      nutellaResumo.g += gTotalProd;
+      nutellaResumo.potes = Math.ceil(nutellaResumo.g / NUTELLA_POTE_G);
+    });
+
+    recheioUnidades = { ...corUn, total: corUn.branco + corUn.preto };
+    avisosCompras = Array.from(new Set(avisosCompras));
   }
 
-  const compras = comprasFromTabuleiros(totalTabuleiros);
+  // GLICOSE extra por bacias (compras)
+  const lotes6 = Math.floor((bacias.total || 0) / 6);
+  const glucose_g_total = lotes6 * (BACIA_BASE.glucose_extra_g_a_cada_6_bacias || 0);
+
+  // Ingredientes base das bacias (compras)
+  const compraBaseBacia = {
+    bacias: bacias.total || 0,
+    leiteCondensado_latas: (bacias.total || 0) * (BACIA_BASE.leiteCondensado_por_bacia_latas || 0),
+    cremeDeLeite_g: (bacias.total || 0) * (BACIA_BASE.cremeDeLeite_por_bacia_g || 0),
+    glucose_g_total,
+  };
 
   return {
-    plan: {
-      modo,
-      tabuleiros,
-      totalTabuleiros,
-      bacias,
-      baciasPorCor: { branco: bacias.branco, preto: bacias.preto },
-      totalBacias: bacias.total,
+    modo: MODO_GERAL ? "GERAL" : "TEMPO_REAL",
+
+    tabuleiros, // por produto + total
+
+    recheio: {
+      unidades: recheioUnidades, // GERAL: total; TEMPO_REAL: {branco,preto,total}
+      bacias,                    // GERAL: total; TEMPO_REAL: detalhado por produto/cor
     },
-    compras,
+
+    compras: {
+      massa: massaBase,          // por tabuleiro (margarina/ovos/farinha)
+      untar,                     // margarina/farinha por tabuleiro
+      baseBacia: compraBaseBacia,// l.condensado/creme/glucose
+      avisosEspeciais: avisosCompras, // confete, coco, etc. (apenas TEMPO_REAL)
+      nutella: MODO_GERAL ? { g: 0, potes: 0, porProduto: {} } : nutellaResumo,
+    },
   };
 }
-
-export default {
-  calculaPlanejamento,
-  normalizaProduto,
-  RENDIMENTO_TABULEIRO,
-  RENDIMENTO_BACIA,
-  MARGARINA_UNTAR_G_POR_TAB,
-  FARINHA_UNTAR_G_POR_TAB,
-};
