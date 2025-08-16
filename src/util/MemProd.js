@@ -36,31 +36,30 @@ const GLUCOSE_G_CADA_6_BACIAS = 500;  // g a cada 6 bacias
 const GLUCOSE_FRASCO_G        = 500;  // 1 frasco = 500 g (mínimo 1 se houver bacia)
 const ACHOCOLATADO_G_PRETO    = 360;  // g/bacia preta
 
+// ===== util de texto =====
+const deaccent = (s) =>
+  String(s || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
 // ===== normalização de produto (robusta) =====
 function normProduto(s) {
-  // uniformiza: troca underscores/hífens por espaço, comprime espaços, uppercase
   const t = String(s || "")
     .trim()
     .replace(/[_\-]+/g, " ")
     .replace(/\s+/g, " ")
     .toUpperCase();
 
-  // BRW / BROWNIE
   if (/^(BROWNIE|BRW)\s*7X7$/.test(t)) return "BRW 7x7";
   if (/^(BROWNIE|BRW)\s*6X6$/.test(t)) return "BRW 6x6";
-
-  // PKT / POCKET
   if (/^(PKT|POCKET)\s*5X5$/.test(t)) return "PKT 5x5";
   if (/^(PKT|POCKET)\s*6X6$/.test(t)) return "PKT 6x6";
-
-  // ESC / ESCONDIDINHO
   if (/^ESC(ONDIDINHO)?$/.test(t)) return "ESC";
-
-  // fallback: já vem padronizado
   return t;
 }
 
-// ===== util =====
+// ===== util: pega itens do pedido =====
 function itensDoPedido(p) {
   if (!p) return [];
   if (Array.isArray(p.items))    return p.items;
@@ -77,83 +76,158 @@ function countProdutosNoPedido(p) {
     .filter(Boolean).length;
 }
 
-// ===== parser de sabores =====
+// ===== lista de sabores conhecidos (para varredura agressiva) =====
+const FLAVORS = [
+  "brigadeiro preto",
+  "brigadeiro preto com confete",
+  "palha italiana",
+  "ninho",
+  "ninho com nutella",
+  "oreo",
+  "ovomaltine",
+  "beijinho",
+  "brigadeiro branco",
+  "brigadeiro branco com confete",
+  "bem casado",
+  "paçoca",
+  "kitkat",
+].map(deaccent);
+
+// ===== parsers básicos de lista de sabores =====
 function parseListaStrings(list) {
   const out = [];
   for (const raw of list) {
     const s = String(raw || "").trim();
     if (!s) continue;
-    const m = s.match(/^(\d+)\s*x?\s*(.+)$/i);
-    if (m) out.push({ nome: m[2].trim(), qtd: Number(m[1]) || 0 });
+
+    // 1) "15x Brigadeiro preto" / "15× Brigadeiro preto"
+    let m = s.match(/^(\d+)\s*[x×]\s*(.+)$/i);
+    if (m) { out.push({ nome: m[2].trim(), qtd: Number(m[1]) || 0 }); continue; }
+
+    // 2) "Brigadeiro preto: 15"
+    m = s.match(/^(.+?)\s*[:\-–]\s*(\d+)$/);
+    if (m) { out.push({ nome: m[1].trim(), qtd: Number(m[2]) || 0 }); continue; }
+
+    // 3) "Brigadeiro preto 15"
+    m = s.match(/^(.+?)\s+(\d+)$/);
+    if (m) { out.push({ nome: m[1].trim(), qtd: Number(m[2]) || 0 }); continue; }
   }
   return out;
 }
+
 function saboresFromAny(v) {
   if (!v) return [];
   if (Array.isArray(v)) {
     if (!v.length) return [];
     if (typeof v[0] === "string") return parseListaStrings(v);
     return v.map(s => ({
-      nome: (s?.nome ?? s?.sabor ?? s?.label ?? s)?.toString(),
-      qtd: Number(s?.quantidade ?? s?.qtd ?? s?.qtde ?? s?.q ?? 0) || 0,
+      nome: (s?.nome ?? s?.sabor ?? s?.label ?? s?.title ?? s)?.toString(),
+      qtd: Number(s?.quantidade ?? s?.qtd ?? s?.qtde ?? s?.qty ?? s?.q ?? s?.value ?? 0) || 0,
     })).filter(x => x.nome && x.qtd > 0);
   }
   if (typeof v === "string") {
-    return parseListaStrings(v.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean));
+    const parts = v.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean);
+    return parseListaStrings(parts);
   }
   if (typeof v === "object") {
     const out = [];
     for (const [k, val] of Object.entries(v)) {
-      const qtd = Number(val?.qtd ?? val?.qtde ?? val ?? 0);
+      const qtd = Number(val?.qtd ?? val?.qtde ?? val?.qty ?? val ?? 0);
       if (qtd > 0) out.push({ nome: k, qtd });
     }
     return out;
   }
   return [];
 }
-function deepFindSabores(obj, depth = 0) {
-  if (!obj || typeof obj !== "object" || depth > 4) return [];
-  for (const k of Object.keys(obj)) {
-    if (/sabor|flavor/i.test(k)) {
-      const arr = saboresFromAny(obj[k]);
-      if (arr.length) return arr;
+
+// ===== scanner agressivo: vasculha o pedido inteiro atrás de sabores =====
+function scanAllForSabores(obj, acc = []) {
+  if (obj == null) return acc;
+
+  // strings soltas: tenta casar sabor + número
+  if (typeof obj === "string") {
+    const s = obj;
+    const parsed = parseListaStrings([s]);
+    if (parsed.length) acc.push(...parsed);
+
+    // também tenta achar "número + flavor" mesmo dentro de um texto maior
+    const sNorm = deaccent(s);
+    for (const fl of FLAVORS) {
+      if (sNorm.includes(fl)) {
+        // pega um número vizinho (antes) se houver
+        const m = sNorm.match(new RegExp(`(\\d+)\\s*[x×]?\\s*.*?${fl}`));
+        if (m) acc.push({ nome: s, qtd: Number(m[1]) || 0 });
+      }
+    }
+    return acc;
+  }
+
+  // arrays
+  if (Array.isArray(obj)) {
+    for (const v of obj) scanAllForSabores(v, acc);
+    return acc;
+  }
+
+  // objetos
+  if (typeof obj === "object") {
+    // se for mapa de { "sabor": 15 }
+    const asList = saboresFromAny(obj);
+    if (asList.length) acc.push(...asList);
+
+    for (const [k, v] of Object.entries(obj)) {
+      // pega campos com nome sugestivo
+      if (/sabor|flavor|sabores|flavors|itensAlimentados|alimentado/i.test(k)) {
+        const arr = saboresFromAny(v);
+        if (arr.length) acc.push(...arr);
+      }
+      scanAllForSabores(v, acc);
     }
   }
-  for (const k of Object.keys(obj)) {
-    const v = obj[k];
-    if (v && typeof v === "object") {
-      const got = deepFindSabores(v, depth + 1);
-      if (got.length) return got;
-    }
-  }
-  return [];
+  return acc;
 }
+
 function saboresNivelPedido(p) {
+  // candidatos diretos comuns
   const cand = [
     p?.alimentadoSabores, p?.alimentado_sabores,
     p?.saboresAlimentados, p?.saboresSelecionados,
     p?.sabores, p?.saboresLista, p?.saboresTxt, p?.saboresStrs,
+    p?.observacao, p?.observacoes, p?.descricao, p?.description, p?.notes,
   ];
   for (const v of cand) {
     const arr = saboresFromAny(v);
     if (arr.length) return arr;
   }
-  const scanned = deepFindSabores(p);
-  if (scanned.length) return scanned;
+  // scanner full
+  const scanned = scanAllForSabores(p, []);
+  if (scanned.length) {
+    // normaliza: extrai só nome e qtd válidos
+    return scanned
+      .map(x => ({ nome: String(x.nome).replace(/^\d+\s*[x×]\s*/i,"").trim(), qtd: Number(x.qtd)||0 }))
+      .filter(x => x.nome && x.qtd > 0);
+  }
   return [];
 }
+
 function saboresDoItem(it, p) {
   const cand = [
     it?.sabores, it?.flavors, it?.alimentadoSabores, it?.saboresAlimentados,
     it?.saboresSelecionados, it?.saboresLista, it?.saboresTxt, it?.saboresStrs,
+    it?.observacao, it?.observacoes, it?.descricao, it?.description, it?.notes,
   ];
   for (const v of cand) {
     const arr = saboresFromAny(v);
     if (arr.length) return arr;
   }
-  const scanned = deepFindSabores(it);
-  if (scanned.length) return scanned;
+  // scanner por item
+  const scanned = scanAllForSabores(it, []);
+  if (scanned.length) {
+    return scanned
+      .map(x => ({ nome: String(x.nome).replace(/^\d+\s*[x×]\s*/i,"").trim(), qtd: Number(x.qtd)||0 }))
+      .filter(x => x.nome && x.qtd > 0);
+  }
 
+  // fallback: se só tem 1 produto no pedido, usa sabores no nível do pedido
   if (countProdutosNoPedido(p) === 1) {
     const arr = saboresNivelPedido(p);
     if (arr.length) return arr;
@@ -163,16 +237,26 @@ function saboresDoItem(it, p) {
 
 // ===== Sabor → cor =====
 const TOKENS_PRETO = [
-  "brigadeiro preto", "palha italiana",
-  "preto com confete", "brigadeiro preto com confete",
-];
+  "brigadeiro preto",
+  "palha italiana",
+  "preto com confete",
+  "brigadeiro preto com confete",
+].map(deaccent);
+
 const TOKENS_BRANCO = [
-  "ninho", "oreo", "ovomaltine", "beijinho",
-  "brigadeiro branco", "branco com confete",
-  "kitkat", "ninho com nutella", "paçoca"
-];
+  "ninho",
+  "oreo",
+  "ovomaltine",
+  "beijinho",
+  "brigadeiro branco",
+  "branco com confete",
+  "kitkat",
+  "ninho com nutella",
+  "paçoca",
+].map(deaccent);
+
 function classificaSaborCor(nome) {
-  const s = String(nome || "").toLowerCase();
+  const s = deaccent(nome);
   if (s.includes("bem casado")) return { branco: 0.5, preto: 0.5 };
   if (TOKENS_PRETO.some(t => s.includes(t)))  return { branco: 0,   preto: 1 };
   if (TOKENS_BRANCO.some(t => s.includes(t))) return { branco: 1,   preto: 0 };
@@ -206,7 +290,7 @@ function filtraPedidos(pedidos, modo) {
 
 // ===== Tabuleiros (com fallback p/ TEMPO_REAL) =====
 function tabuleirosPorProduto(pedidos, modo) {
-  const units = new Map(); // unidades por produto
+  const units = new Map();
 
   for (const p of pedidos) {
     for (const it of itensDoPedido(p)) {
@@ -218,8 +302,7 @@ function tabuleirosPorProduto(pedidos, modo) {
       if (modo === "TEMPO_REAL") {
         const sab = saboresDoItem(it, p);
         unid = sab.reduce((a, s) => a + s.qtd, 0);
-        // FALLBACK: se não há sabores, usa a quantidade do item (não zera)
-        if (!unid) unid = qtdDoItem(it);
+        if (!unid) unid = qtdDoItem(it); // FALLBACK: não zera
       } else {
         unid = qtdDoItem(it);
       }
@@ -268,7 +351,6 @@ function baciasPorCorTempoReal(pedidos, unitsByProductFallback) {
   }
 
   if (!usouSabores) {
-    // Não há sabores — calcula bacias totais por produto e mantém cores 0
     const total = baciasNeutrasFromUnits(unitsByProductFallback || {});
     return { branco: 0, preto: 0, total };
   }
@@ -322,7 +404,7 @@ function comprasRecheiosGeral(baciasTotal) {
 function comprasRecheiosTempoReal(baciasPorCor) {
   const bBranco = Math.max(0, baciasPorCor?.branco || 0);
   const bPreto  = Math.max(0, baciasPorCor?.preto  || 0);
-  const bTotal  = bBranco + bPreto;
+  const bTotal  = Math.max(0, baciasPorCor?.total  || (bBranco + bPreto));
 
   const branco = {
     leite_cond_395g_un: bBranco * LATA_LEITE_POR_BACIA,
@@ -334,17 +416,23 @@ function comprasRecheiosTempoReal(baciasPorCor) {
     achocolatado_g:     bPreto * ACHOCOLATADO_G_PRETO,
   };
 
-  const flat = flatRecheios(
-    branco.leite_cond_395g_un + preto.leite_cond_395g_un,
-    branco.creme_de_leite_g   + preto.creme_de_leite_g,
-    preto.achocolatado_g,
-    bTotal
-  );
+  // >>> IMPORTANTE: se não achamos sabores (bBranco=bPreto=0) mas há bTotal>0,
+  // calcula os TOTAIS pelos neutros para não zerar a lista de compras.
+  let totLeite = branco.leite_cond_395g_un + preto.leite_cond_395g_un;
+  let totCreme = branco.creme_de_leite_g   + preto.creme_de_leite_g;
+  let totAchoc = preto.achocolatado_g;
 
+  if (bTotal > 0 && (bBranco + bPreto === 0)) {
+    totLeite = bTotal * LATA_LEITE_POR_BACIA;
+    totCreme = bTotal * CREME_LEITE_G_POR_BACIA;
+    totAchoc = 0; // achocolatado só existe para bacias pretas
+  }
+
+  const flat = flatRecheios(totLeite, totCreme, totAchoc, bTotal);
   return { porCor: { branco, preto }, flat };
 }
 
-// ===== util p/ linhas prontas (para a UI listar direto) =====
+// ===== util p/ linhas prontas (UI) =====
 function montarComprasFlat({ modo, massa_untar, recheiosFlat, porCor }) {
   const lines = [];
 
@@ -414,18 +502,18 @@ export function calculaPlanejamento(pedidos, opts = {}) {
       out.compras = {
         massa_untar,
         recheios: { ...flat },        // FLAT p/ UI atual
-        recheiosPorCor: porCor,       // detalhamento (se quiser exibir por cor)
+        recheiosPorCor: porCor,       // detalhamento (opcional)
         comprasFlat: montarComprasFlat({ modo, massa_untar, recheiosFlat: flat, porCor }),
       };
     } else {
       const { flat } = comprasRecheiosGeral(plan.totalBacias || 0);
       out.compras = {
         massa_untar,
-        recheios: { ...flat },        // FLAT p/ UI atual
+        recheios: { ...flat },
         comprasFlat: montarComprasFlat({ modo, massa_untar, recheiosFlat: flat }),
       };
     }
   }
 
   return out;
-    }
+}
