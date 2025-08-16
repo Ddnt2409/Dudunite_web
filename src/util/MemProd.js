@@ -36,23 +36,28 @@ const GLUCOSE_G_CADA_6_BACIAS = 500;  // g a cada 6 bacias
 const GLUCOSE_FRASCO_G        = 500;  // 1 frasco = 500 g (mínimo 1 se houver bacia)
 const ACHOCOLATADO_G_PRETO    = 360;  // g/bacia preta
 
-// ===== normalização de produto =====
-const PROD_ALIASES = [
-  [/^brownie\s*7x7$/i, "BRW 7x7"],
-  [/^brw\s*7x7$/i,     "BRW 7x7"],
-  [/^brownie\s*6x6$/i, "BRW 6x6"],
-  [/^brw\s*6x6$/i,     "BRW 6x6"],
-  [/^pkt\s*5x5$/i,     "PKT 5x5"],
-  [/^pocket\s*5x5$/i,  "PKT 5x5"],
-  [/^pkt\s*6x6$/i,     "PKT 6x6"],
-  [/^pocket\s*6x6$/i,  "PKT 6x6"],
-  [/^esc/i,            "ESC"],
-  [/^escondid/i,       "ESC"],
-];
+// ===== normalização de produto (robusta) =====
 function normProduto(s) {
-  const t = String(s || "").trim();
-  for (const [re, key] of PROD_ALIASES) if (re.test(t)) return key;
-  return t.toUpperCase();
+  // uniformiza: troca underscores/hífens por espaço, comprime espaços, uppercase
+  const t = String(s || "")
+    .trim()
+    .replace(/[_\-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .toUpperCase();
+
+  // BRW / BROWNIE
+  if (/^(BROWNIE|BRW)\s*7X7$/.test(t)) return "BRW 7x7";
+  if (/^(BROWNIE|BRW)\s*6X6$/.test(t)) return "BRW 6x6";
+
+  // PKT / POCKET
+  if (/^(PKT|POCKET)\s*5X5$/.test(t)) return "PKT 5x5";
+  if (/^(PKT|POCKET)\s*6X6$/.test(t)) return "PKT 6x6";
+
+  // ESC / ESCONDIDINHO
+  if (/^ESC(ONDIDINHO)?$/.test(t)) return "ESC";
+
+  // fallback: já vem padronizado
+  return t;
 }
 
 // ===== util =====
@@ -97,7 +102,6 @@ function saboresFromAny(v) {
     return parseListaStrings(v.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean));
   }
   if (typeof v === "object") {
-    // objeto-mapa: { "Brigadeiro preto": 15, "Ninho": 40, ... }
     const out = [];
     for (const [k, val] of Object.entries(v)) {
       const qtd = Number(val?.qtd ?? val?.qtde ?? val ?? 0);
@@ -340,7 +344,7 @@ function comprasRecheiosTempoReal(baciasPorCor) {
   return { porCor: { branco, preto }, flat };
 }
 
-// ===== util p/ linhas prontas =====
+// ===== util p/ linhas prontas (para a UI listar direto) =====
 function montarComprasFlat({ modo, massa_untar, recheiosFlat, porCor }) {
   const lines = [];
 
@@ -410,7 +414,7 @@ export function calculaPlanejamento(pedidos, opts = {}) {
       out.compras = {
         massa_untar,
         recheios: { ...flat },        // FLAT p/ UI atual
-        recheiosPorCor: porCor,       // detalhamento (opcional render)
+        recheiosPorCor: porCor,       // detalhamento (se quiser exibir por cor)
         comprasFlat: montarComprasFlat({ modo, massa_untar, recheiosFlat: flat, porCor }),
       };
     } else {
@@ -424,4 +428,4 @@ export function calculaPlanejamento(pedidos, opts = {}) {
   }
 
   return out;
-}
+    }
