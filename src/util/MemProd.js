@@ -78,7 +78,7 @@ function produtoUnicoDoPedido(p) {
   return set.length === 1 ? set[0] : null;
 }
 
-// ===== sabores — APENAS CAMPOS CONHECIDOS (sem varrer tudo) =====
+// ===== sabores =====
 const TOKENS_PRETO = [
   "brigadeiro preto",
   "palha italiana",
@@ -156,7 +156,43 @@ function saboresFromAny(v) {
   return [];
 }
 
-// Somente campos conhecidos do PEDIDO
+// Varredura RESTRITA (fallback): procura arrays/strings que pareçam lista de sabores
+function deepFindSaboresRestr(obj, depth = 0) {
+  if (!obj || typeof obj !== "object" || depth > 5) return [];
+  // 1) se for array
+  if (Array.isArray(obj)) {
+    if (!obj.length) return [];
+    if (typeof obj[0] === "string") {
+      const arr = parseListaStrings(obj);
+      if (arr.length) return arr;
+    } else if (typeof obj[0] === "object") {
+      // array de objetos com {nome/sabor, qtd}
+      const mapped = obj.map(o => ({
+        nome: (o?.nome ?? o?.sabor ?? o?.label ?? o?.title ?? "").toString(),
+        qtd: Number(o?.quantidade ?? o?.qtd ?? o?.qtde ?? o?.qty ?? o?.q ?? o?.value ?? 0) || 0,
+      })).filter(x => isFlavorNome(x.nome) && x.qtd > 0);
+      if (mapped.length) return mapped;
+      for (const el of obj) {
+        const got = deepFindSaboresRestr(el, depth + 1);
+        if (got.length) return got;
+      }
+    }
+    return [];
+  }
+  // 2) objeto: tenta campos textuais e coleções
+  for (const [k, v] of Object.entries(obj)) {
+    if (typeof v === "string") {
+      const arr = saboresFromAny(v);
+      if (arr.length) return arr;
+    } else if (Array.isArray(v) || (v && typeof v === "object")) {
+      const got = deepFindSaboresRestr(v, depth + 1);
+      if (got.length) return got;
+    }
+  }
+  return [];
+}
+
+// Somente campos conhecidos do PEDIDO; se não achar, usa fallback restrito
 function saboresNivelPedido(p) {
   const cand = [
     p?.alimentadoSabores, p?.alimentado_sabores,
@@ -168,10 +204,12 @@ function saboresNivelPedido(p) {
     const arr = saboresFromAny(v);
     if (arr.length) return arr;
   }
+  const scanned = deepFindSaboresRestr(p);
+  if (scanned.length) return scanned;
   return [];
 }
 
-// Somente campos conhecidos do ITEM
+// Somente campos conhecidos do ITEM; se não achar, fallback restrito
 function saboresDoItem(it) {
   const cand = [
     it?.sabores, it?.flavors, it?.alimentadoSabores, it?.saboresAlimentados,
@@ -182,6 +220,8 @@ function saboresDoItem(it) {
     const arr = saboresFromAny(v);
     if (arr.length) return arr;
   }
+  const scanned = deepFindSaboresRestr(it);
+  if (scanned.length) return scanned;
   return [];
 }
 
@@ -219,7 +259,6 @@ function tabuleirosPorProduto(pedidos, modo) {
     const sabNivelPedidoValidos = sabNivelPedido.filter(x => isFlavorNome(x.nome));
     const sumSabPedido = sabNivelPedidoValidos.reduce((a,s)=>a+s.qtd,0);
 
-    // TEMPO_REAL: se há 1 produto e sabores válidos no nível do pedido, usa-os
     let handledByPedido = false;
     if (modo === "TEMPO_REAL" && prodUnico && sumSabPedido > 0) {
       units.set(prodUnico, (units.get(prodUnico) || 0) + sumSabPedido);
@@ -231,11 +270,10 @@ function tabuleirosPorProduto(pedidos, modo) {
       const rend = REND_TAB[produto];
       if (!rend) continue;
 
-      if (handledByPedido && produto === prodUnico) continue; // evita duplicar
+      if (handledByPedido && produto === prodUnico) continue;
 
       let unid;
       if (modo === "TEMPO_REAL") {
-        // usa sabores do item; se não houver, tenta sabores do pedido (apenas se 1 produto)
         let sab = saboresDoItem(it).filter(x => isFlavorNome(x.nome));
         if ((!sab || sab.length === 0) && prodUnico && produto === prodUnico && sumSabPedido > 0) {
           sab = sabNivelPedidoValidos;
@@ -277,7 +315,7 @@ function baciasPorCorTempoReal(pedidos, unitsByProductFallback) {
     const prodUnico = produtoUnicoDoPedido(p);
     const rendUnico = prodUnico ? UNID_POR_BACIA[prodUnico] : null;
 
-    // 1) por item (somente sabores válidos)
+    // 1) por item
     for (const it of itensDoPedido(p)) {
       const prod  = normProduto(it?.produto ?? it?.item ?? it?.nome ?? "");
       const rendB = UNID_POR_BACIA[prod];
@@ -294,7 +332,7 @@ function baciasPorCorTempoReal(pedidos, unitsByProductFallback) {
       }
     }
 
-    // 2) se nada somado por item: tenta sabores do nível do pedido (produto único)
+    // 2) se ainda nada somado: tenta nível do pedido (produto único)
     if (!somouAlgo && rendUnico) {
       const sabP = saboresNivelPedido(p).filter(x => isFlavorNome(x.nome));
       for (const s of sabP) {
@@ -471,4 +509,4 @@ export function calculaPlanejamento(pedidos, opts = {}) {
   }
 
   return out;
-                       }
+                                   }
