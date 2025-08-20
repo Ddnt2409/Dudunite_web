@@ -14,11 +14,20 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
     const pdvsSet = new Set();
     const pedidosList = [];
     const porProduto = new Map();
+    const porSabor = new Map(); // << NOVO: totais por sabor
+
+    const addSabor = (nome, qtd) => {
+      const s = String(nome ?? "").trim();
+      const q = Number(qtd ?? 0);
+      if (!s || q <= 0) return;
+      porSabor.set(s, (porSabor.get(s) || 0) + q);
+    };
 
     peds.forEach((p) => {
       const pdv = p?.escola ?? p?.pdv ?? p?.pontoDeVenda ?? p?.ponto ?? "—";
       if (pdv) pdvsSet.add(pdv);
 
+      // ---- itens e totais por produto
       const itens = Array.isArray(p?.items) ? p.items : Array.isArray(p?.itens) ? p.itens : [];
       let total = 0;
       itens.forEach((it) => {
@@ -26,7 +35,35 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
         const q = Number(it?.quantidade ?? it?.qtd ?? it?.qtde ?? 0);
         if (prod) porProduto.set(prod, (porProduto.get(prod) || 0) + q);
         total += q;
+
+        // ---- sabores no NÍVEL DO ITEM (formatos comuns)
+        // Ex1: it.sabores = [{sabor, qtd}, ...]
+        // Ex2: it.sabores = { "BRW 7x7": [{sabor,qtd}], ... }
+        const si = it?.sabores;
+        if (Array.isArray(si)) {
+          si.forEach((s) => addSabor(s?.sabor ?? s?.nome ?? s?.label, s?.qtd ?? s?.quantidade));
+        } else if (si && typeof si === "object") {
+          Object.values(si).forEach((arr) => {
+            if (Array.isArray(arr)) {
+              arr.forEach((s) =>
+                addSabor(s?.sabor ?? s?.nome ?? s?.label, s?.qtd ?? s?.quantidade)
+              );
+            }
+          });
+        }
       });
+
+      // ---- sabores no NÍVEL DO PEDIDO (formato salvo pelo AliSab):
+      // p.sabores = { "BRW 7x7": [{sabor,qtd}, ...], "ESC": [...] }
+      if (p?.sabores && typeof p.sabores === "object") {
+        Object.values(p.sabores).forEach((linhas) => {
+          if (Array.isArray(linhas)) {
+            linhas.forEach((s) =>
+              addSabor(s?.sabor ?? s?.nome ?? s?.label, s?.qtd ?? s?.quantidade)
+            );
+          }
+        });
+      }
 
       const status = p?.dataAlimentado || p?.alimentadoEm ? "ALIMENTADO" : itens.length > 0 ? "LANÇADO" : "PENDENTE";
       pedidosList.push({ pdv, total, status });
@@ -37,7 +74,11 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
       .map(([produto, qtd]) => ({ produto, qtd }))
       .sort((a, b) => a.produto.localeCompare(b.produto));
 
-    return { pedidosList, pdvs, totaisProdutos };
+    const totaisSabores = Array.from(porSabor.entries())
+      .map(([sabor, qtd]) => ({ sabor, qtd }))
+      .sort((a, b) => b.qtd - a.qtd || a.sabor.localeCompare(b.sabor)); // mais relevantes primeiro
+
+    return { pedidosList, pdvs, totaisProdutos, totaisSabores };
   }
 
   // ---------------- Helpers gerais ----------------
@@ -65,10 +106,6 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
 
   // ---------------- Construção do HTML do relatório ----------------
   function blocoResumo({ modo, totalTabs, b }) {
-    const extra =
-      modo === "TEMPO_REAL"
-        ? ` Branco: ${n(b.branco || 0)}  Preto: ${n(b.preto || 0)}`
-        : "";
     return `
       <div class="staped-block">
         <div class="staped-block-title">Resumo</div>
@@ -127,7 +164,6 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
   }
 
   function labelInsumo(k) {
-    // rótulos simples a partir da chave
     if (k.endsWith("_g")) return k.replace(/_/g, " ").replace(/ g$/, " (g)");
     if (k.endsWith("_kg")) return k.replace(/_/g, " ").replace(/ kg$/, " (kg)");
     if (k.endsWith("_un")) return k.replace(/_/g, " ").replace(/ un$/, " (un)");
@@ -328,9 +364,22 @@ export default function StaPedActions({ pedidos, semanaVazia }) {
                 ))}
               </ul>
             </div>
+
+            {/* NOVO BLOCO: Totais por Sabor */}
+            <div className="staped-side__block">
+              <div className="staped-side__subtitle">Totais por Sabor</div>
+              <ul className="staped-side__list">
+                {contexto.totaisSabores.map((ts, i) => (
+                  <li key={i} className="staped-side__row">
+                    <span className="staped-side__row-name">{ts.sabor}</span>
+                    <span className="staped-side__row-qty">{ts.qtd}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </aside>
         </section>
       )}
     </>
   );
-                    }
+                                      }
