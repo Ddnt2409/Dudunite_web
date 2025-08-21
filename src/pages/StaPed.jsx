@@ -58,32 +58,41 @@ export default function StaPed({ setTela }) {
 
   useEffect(() => {
     const { ini, fim } = intervaloSemanaBase(new Date());
-    const weeklyRef = collection(db, caminhoCicloFromDate(new Date()));
+    const cicloPath = caminhoCicloFromDate(new Date());
+    const isRootWeekly = cicloPath === "PEDIDOS";
 
-    // 1) Tenta primeiro o CICLO semanal
-    const unsubWeekly = onSnapshot(
-      weeklyRef,
-      (snap) => {
-        if (!snap.empty) {
-          cleanupRoot();
-          processaSnapshot(snap, { ini, fim, from: "weekly" });
-          setSemanaVazia(false);
-        } else {
-          // 2) Fallback: raiz com filtros (createdEm/criadoEm)
+    let unsubWeekly = () => {};
+    if (isRootWeekly) {
+      // Se ainda apontamos para a raiz, não usamos o "weekly" sem filtro.
+      setSemanaVazia(true);
+      assinarRootFiltrado(ini, fim);
+    } else {
+      // 1) Tenta primeiro o CICLO semanal real (ex.: CICLOS/2025W34/PEDIDOS)
+      const weeklyRef = collection(db, cicloPath);
+      unsubWeekly = onSnapshot(
+        weeklyRef,
+        (snap) => {
+          if (!snap.empty) {
+            cleanupRoot();
+            processaSnapshot(snap, { ini, fim, from: "weekly" });
+            setSemanaVazia(false);
+          } else {
+            // 2) Fallback: raiz com filtros (createdEm/criadoEm)
+            setSemanaVazia(true);
+            assinarRootFiltrado(ini, fim);
+          }
+        },
+        (e) => {
+          console.error("StaPed semanal:", e);
+          // 3) Se der erro (ex.: índice), assina raiz com filtro
           setSemanaVazia(true);
           assinarRootFiltrado(ini, fim);
         }
-      },
-      (e) => {
-        console.error("StaPed semanal:", e);
-        // 3) Se der erro (ex.: índice), assina raiz com filtro
-        setSemanaVazia(true);
-        assinarRootFiltrado(ini, fim);
-      }
-    );
+      );
+    }
 
     return () => {
-      unsubWeekly();
+      try { unsubWeekly(); } catch {}
       cleanupRoot();
     };
   }, []);
@@ -135,6 +144,8 @@ export default function StaPed({ setTela }) {
     snap.forEach((docu) => {
       if (vistos.has(docu.id)) return;
       const d = docu.data() || {};
+
+      // Se veio da raiz (com ou sem where), filtramos pela janela da semana
       if (from?.startsWith("root") && !dentroDaSemana(d, ini, fim)) return;
 
       vistos.add(docu.id);
