@@ -58,41 +58,36 @@ export default function StaPed({ setTela }) {
 
   useEffect(() => {
     const { ini, fim } = intervaloSemanaBase(new Date());
-    const cicloPath = caminhoCicloFromDate(new Date());
-    const isRootWeekly = cicloPath === "PEDIDOS";
 
-    let unsubWeekly = () => {};
-    if (isRootWeekly) {
-      // Se ainda apontamos para a raiz, não usamos o "weekly" sem filtro.
-      setSemanaVazia(true);
-      assinarRootFiltrado(ini, fim);
-    } else {
-      // 1) Tenta primeiro o CICLO semanal real (ex.: CICLOS/2025W34/PEDIDOS)
-      const weeklyRef = collection(db, cicloPath);
-      unsubWeekly = onSnapshot(
-        weeklyRef,
-        (snap) => {
-          if (!snap.empty) {
-            cleanupRoot();
-            processaSnapshot(snap, { ini, fim, from: "weekly" });
-            setSemanaVazia(false);
-          } else {
-            // 2) Fallback: raiz com filtros (createdEm/criadoEm)
-            setSemanaVazia(true);
-            assinarRootFiltrado(ini, fim);
-          }
-        },
-        (e) => {
-          console.error("StaPed semanal:", e);
-          // 3) Se der erro (ex.: índice), assina raiz com filtro
+    const weeklyPath = caminhoCicloFromDate(new Date());
+    const weeklyRef  = collection(db, weeklyPath);
+    const weeklyIsRoot = weeklyPath === "PEDIDOS";
+
+    // 1) Tenta primeiro o CICLO semanal (ou raiz se ciclo aponta p/ raiz)
+    const unsubWeekly = onSnapshot(
+      weeklyRef,
+      (snap) => {
+        if (!snap.empty) {
+          cleanupRoot();
+          // se weekly == raiz, ainda assim precisamos filtrar por janela
+          processaSnapshot(snap, { ini, fim, from: weeklyIsRoot ? "weekly-root" : "weekly" });
+          setSemanaVazia(false);
+        } else {
+          // 2) Fallback: raiz com filtros (createdEm/criadoEm)
           setSemanaVazia(true);
           assinarRootFiltrado(ini, fim);
         }
-      );
-    }
+      },
+      (e) => {
+        console.error("StaPed semanal:", e);
+        // 3) Se der erro (ex.: índice), assina raiz com filtro
+        setSemanaVazia(true);
+        assinarRootFiltrado(ini, fim);
+      }
+    );
 
     return () => {
-      try { unsubWeekly(); } catch {}
+      unsubWeekly();
       cleanupRoot();
     };
   }, []);
@@ -145,8 +140,8 @@ export default function StaPed({ setTela }) {
       if (vistos.has(docu.id)) return;
       const d = docu.data() || {};
 
-      // Se veio da raiz (com ou sem where), filtramos pela janela da semana
-      if (from?.startsWith("root") && !dentroDaSemana(d, ini, fim)) return;
+      // APLICA janela se veio da raiz (root-*) OU se o "weekly" está apontando para a raiz
+      if ((from?.startsWith("root") || from === "weekly-root") && !dentroDaSemana(d, ini, fim)) return;
 
       vistos.add(docu.id);
 
