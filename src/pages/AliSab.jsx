@@ -1,3 +1,4 @@
+// src/pages/AliSab.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import {
   collection, query, where, getDocs,
@@ -194,7 +195,6 @@ export default function AliSab({ setTela }) {
 
     // espelha na coleção semanal (sem timestamps de server para manter simples)
     await upsertPedidoInCiclo(
-      db,
       pedido.id,
       {
         ...pedido,
@@ -230,7 +230,6 @@ export default function AliSab({ setTela }) {
     });
 
     await upsertPedidoInCiclo(
-      db,
       pedido.id,
       { ...pedido, statusEtapa: "Lançado" },
       pedido.criadoEm || new Date()
@@ -246,7 +245,7 @@ export default function AliSab({ setTela }) {
     // apaga da raiz
     await deleteDoc(doc(db, "PEDIDOS", pedido.id));
     // apaga do ciclo semanal
-    await deletePedidoInCiclo(db, pedido.id, pedido.criadoEm || new Date());
+    await deletePedidoInCiclo(pedido.id, pedido.criadoEm || new Date());
 
     setPedidos((prev) => prev.filter((p) => p.id !== pedido.id));
     setExpandedId(null);
@@ -368,4 +367,4 @@ export default function AliSab({ setTela }) {
       <ERPFooter onBack={() => setTela("HomePCP")} />
     </>
   );
-                     }
+      }
