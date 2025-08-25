@@ -52,7 +52,13 @@ export default function StaPed({ setTela }) {
   const [counts, setCounts] = useState({ Pendente: 0, Lançado: 0, Alimentado: 0, Produzido: 0 });
   const [pedidos, setPedidos] = useState([]);
   const [semanaVazia, setSemanaVazia] = useState(false);
+
+  // listas por quadrante
   const [listaPendentes, setListaPendentes] = useState([]);
+  const [listaLancados, setListaLancados] = useState([]);
+  const [listaAlimentados, setListaAlimentados] = useState([]);
+  const [listaProduzidos, setListaProduzidos] = useState([]);
+
   const unsubRootRef = useRef(null);
   const unsubRootAllRef = useRef(null);
 
@@ -136,6 +142,14 @@ export default function StaPed({ setTela }) {
     const lista = [];
     const vistos = new Set();
 
+    // coletores por status (deduplicados por cidade+pdv)
+    const lancados = [];
+    const alimentados = [];
+    const produzidos = [];
+    const seenLanc = new Set();
+    const seenAli  = new Set();
+    const seenProd = new Set();
+
     snap.forEach((docu) => {
       if (vistos.has(docu.id)) return;
       const d = docu.data() || {};
@@ -151,10 +165,25 @@ export default function StaPed({ setTela }) {
 
       const cidade = d.cidade || d.city || "";
       const pdv = d.pdv || d.escola || "";
-      if (cidade && pdv) pdvsComPedido.add(chavePDV(cidade, pdv));
+      const key = (cidade && pdv) ? chavePDV(cidade, pdv) : null;
+      if (key) pdvsComPedido.add(key);
 
       const itens = Array.isArray(d.itens) ? d.itens : Array.isArray(d.items) ? d.items : [];
       lista.push({ cidade, pdv, itens, sabores: d.sabores || null, statusEtapa: core });
+
+      // preencher listas por status
+      if (key) {
+        if (core === "Lançado" && !seenLanc.has(key)) {
+          seenLanc.add(key);
+          lancados.push({ cidade, pdv });
+        } else if (core === "Alimentado" && !seenAli.has(key)) {
+          seenAli.add(key);
+          alimentados.push({ cidade, pdv });
+        } else if (core === "Produzido" && !seenProd.has(key)) {
+          seenProd.add(key);
+          produzidos.push({ cidade, pdv });
+        }
+      }
     });
 
     // pendentes vs. mestre
@@ -166,6 +195,12 @@ export default function StaPed({ setTela }) {
       });
     });
     setListaPendentes(todos);
+
+    // ordena listas por cidade, depois PDV (opcional)
+    const ord = (a, b) => (a.cidade === b.cidade ? a.pdv.localeCompare(b.pdv) : a.cidade.localeCompare(b.cidade));
+    setListaLancados(lancados.sort(ord));
+    setListaAlimentados(alimentados.sort(ord));
+    setListaProduzidos(produzidos.sort(ord));
 
     const pendentesCount = todos.length || Math.max(totalPDVsValidos() - pdvsComPedido.size, 0);
     setCounts({ Pendente: pendentesCount, Lançado: acc.Lançado, Alimentado: acc.Alimentado, Produzido: acc.Produzido });
@@ -189,6 +224,7 @@ export default function StaPed({ setTela }) {
           )}
 
           <section className="staped-grid">
+            {/* PENDENTE */}
             <article className="staped-card card--pendente">
               <div className="staped-card__content">
                 <h3>Pendente</h3>
@@ -207,27 +243,60 @@ export default function StaPed({ setTela }) {
               </div>
             </article>
 
+            {/* LANÇADO */}
             <article className="staped-card card--lancado">
               <div className="staped-card__content">
                 <h3>Lançado</h3>
                 <p className="staped-count">{counts.Lançado}</p>
                 <small>Aguardando sabores.</small>
+                {listaLancados.length > 0 && (
+                  <div className="staped-pendentes-list">
+                    {listaLancados.map((it, idx) => (
+                      <div className="staped-pendentes-item" key={`l-${it.cidade}-${it.pdv}-${idx}`}>
+                        <span className="badge-cidade"><b>{it.cidade}</b></span>
+                        <span className="pdv-nome">{it.pdv}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </article>
 
+            {/* ALIMENTADO */}
             <article className="staped-card card--alimentado">
               <div className="staped-card__content">
                 <h3>Alimentado</h3>
                 <p className="staped-count">{counts.Alimentado}</p>
                 <small>Prontos para produção.</small>
+                {listaAlimentados.length > 0 && (
+                  <div className="staped-pendentes-list">
+                    {listaAlimentados.map((it, idx) => (
+                      <div className="staped-pendentes-item" key={`a-${it.cidade}-${it.pdv}-${idx}`}>
+                        <span className="badge-cidade"><b>{it.cidade}</b></span>
+                        <span className="pdv-nome">{it.pdv}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </article>
 
+            {/* PRODUZIDO */}
             <article className="staped-card card--produzido">
               <div className="staped-card__content">
                 <h3>Produzido</h3>
                 <p className="staped-count">{counts.Produzido}</p>
                 <small>Concluídos em cozinha.</small>
+                {listaProduzidos.length > 0 && (
+                  <div className="staped-pendentes-list">
+                    {listaProduzidos.map((it, idx) => (
+                      <div className="staped-pendentes-item" key={`p-${it.cidade}-${it.pdv}-${idx}`}>
+                        <span className="badge-cidade"><b>{it.cidade}</b></span>
+                        <span className="pdv-nome">{it.pdv}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </article>
           </section>
@@ -238,4 +307,4 @@ export default function StaPed({ setTela }) {
       <ERPFooter onBack={() => setTela("HomePCP")} />
     </>
   );
-}
+                    }
