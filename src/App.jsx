@@ -7,21 +7,20 @@ import HomePCP from "./pages/HomePCP";
 import LanPed from "./pages/LanPed";
 import AliSab from "./pages/AliSab";
 import StaPed from "./pages/StaPed";
-import Suprimentos from "./pages/Suprimentos"; // <-- NOVA
+import Suprimentos from "./pages/Suprimentos"; // <-- já existia
 
-// import "./pages/fade.css"; // (opcional) estilos globais
+// ===== NOVO: páginas do Financeiro =====
+import CtsReceber from "./pages/CtsReceber";
+import CtsPagar   from "./pages/CtsPagar";
 
 export default function App() {
-  // Tela inicial — ajuste se quiser abrir direto no PCP:
+  // Tela inicial
   const [tela, setTela] = useState("HomeERP");
 
-  // Volta pro topo quando troca de tela (melhora UX no mobile)
+  // Volta pro topo quando troca de tela (UX mobile)
   useEffect(() => {
-    try {
-      window.scrollTo({ top: 0, behavior: "instant" });
-    } catch {
-      window.scrollTo(0, 0);
-    }
+    try { window.scrollTo({ top: 0, behavior: "instant" }); }
+    catch { window.scrollTo(0, 0); }
   }, [tela]);
 
   // Render simples por estado (sem react-router)
@@ -41,8 +40,15 @@ export default function App() {
     case "StaPed":
       return <StaPed setTela={setTela} />;
 
-    case "Suprimentos": // <-- NOVA ROTA
+    case "Suprimentos":
       return <Suprimentos setTela={setTela} />;
+
+    // ===== NOVO: rotas Financeiro =====
+    case "CtsReceber":
+      return <CtsReceber setTela={setTela} />;
+
+    case "CtsPagar":
+      return <CtsPagar setTela={setTela} />;
 
     default:
       return (
