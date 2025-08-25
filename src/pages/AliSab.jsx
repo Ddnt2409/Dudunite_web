@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   collection, query, where, getDocs,
   updateDoc, doc, serverTimestamp,
-  getDoc, deleteDoc
+  deleteDoc
 } from "firebase/firestore";
 import db from "../firebase";
 
@@ -40,7 +40,31 @@ const SABORES_POR_PRODUTO = {
   "DUDU": ["Dd Oreo","Dd Ovomaltine","Dd Ninho com Nutella","Dd Creme de Maracujá","Dd KitKat"]
 };
 
-/* ================ */
+/* =====================
+ * CICLO (segunda 11h → próxima segunda 11h)
+ * ===================== */
+function intervaloSemanaBase(ref = new Date()) {
+  const d = new Date(ref);
+  const dow = (d.getDay() + 6) % 7; // seg=0
+  d.setHours(11, 0, 0, 0);
+  d.setDate(d.getDate() - dow);
+  const ini = new Date(d);
+  const fim = new Date(d);
+  fim.setDate(fim.getDate() + 7);
+  return { ini, fim };
+}
+function dentroDaSemanaDoc(d, ini, fim) {
+  const cand =
+    d?.createdEm?.toDate?.() ||
+    d?.criadoEm?.toDate?.() ||
+    d?.atualizadoEm?.toDate?.() ||
+    d?.dataAlimentado?.toDate?.();
+  // Para o AliSab queremos *apenas* a semana atual; sem carimbo, fica fora
+  if (!cand) return false;
+  return cand >= ini && cand < fim;
+}
+
+/* ===================== */
 function normalizaProduto(p) {
   if (!p) return p;
   return PRODUTO_NOMES[p] || PRODUTO_NOMES[p.toUpperCase()] || p;
@@ -62,15 +86,18 @@ export default function AliSab({ setTela }) {
   const [formState, setFormState] = useState({});
 
   /* =====================
-   * CARREGAR PEDIDOS
+   * CARREGAR PEDIDOS (filtrando pela janela semanal)
    * ===================== */
   useEffect(() => {
     (async () => {
+      const { ini, fim } = intervaloSemanaBase(new Date());
+
       const col = collection(db, "PEDIDOS");
+      // Buscamos Lançado e Alimentado, mas filtramos por semana no cliente
       const qA = query(col, where("statusEtapa", "==", "Lançado"));
-      const snapA = await getDocs(qA);
       const qB = query(col, where("statusEtapa", "==", "Alimentado"));
-      const snapB = await getDocs(qB);
+
+      const [snapA, snapB] = await Promise.all([getDocs(qA), getDocs(qB)]);
 
       const parse = (docSnap) => {
         const data = docSnap.data();
@@ -84,7 +111,8 @@ export default function AliSab({ setTela }) {
           id: docSnap.id,
           escola: data.escola || "—",
           cidade: data.cidade || "",
-          criadoEm: data.criadoEm?.toDate?.() || data.createdEm?.toDate?.() || new Date(),
+          // mantemos os carimbos originais se existirem; sem default para "agora"
+          criadoEm: data.criadoEm?.toDate?.() || data.createdEm?.toDate?.() || null,
           statusEtapa: data.statusEtapa || "Lançado",
           dataAlimentado: data.dataAlimentado?.toDate?.() || null,
           sabores: data.sabores || null,
@@ -92,11 +120,15 @@ export default function AliSab({ setTela }) {
         };
       };
 
-      const lista = [...snapA.docs.map(parse), ...snapB.docs.map(parse)]
-        .sort((a, b) => a.escola.localeCompare(b.escola));
+      // aplica janela da semana ANTES de mapear
+      const docsSemana = [...snapA.docs, ...snapB.docs]
+        .filter((docu) => dentroDaSemanaDoc(docu.data(), ini, fim));
+
+      const lista = docsSemana.map(parse).sort((a, b) => a.escola.localeCompare(b.escola));
 
       setPedidos(lista);
 
+      // monta estado inicial dos blocos
       const initial = {};
       lista.forEach((p) => {
         const st = {};
@@ -126,7 +158,7 @@ export default function AliSab({ setTela }) {
   const agora = useMemo(() => new Date(), []);
   function mostrarCarimbo(p) {
     if (p.statusEtapa !== "Alimentado") return false;
-    const base = p.dataAlimentado || p.criadoEm;
+    const base = p.dataAlimentado || p.criadoEm || new Date();
     const limite = proximaSegunda(base);
     return agora < limite;
   }
@@ -190,10 +222,12 @@ export default function AliSab({ setTela }) {
       statusEtapa: "Alimentado",
       dataAlimentado: serverTimestamp(),
       atualizadoEm: serverTimestamp(),
+      // OBS: se preferir string, salve .path em vez do obj de coleção:
+      // semanaPath: semanaRefFromDate(pedido.criadoEm || new Date()).path,
       semanaRef: semanaRefFromDate(pedido.criadoEm || new Date()),
     });
 
-    // espelha na coleção semanal (sem timestamps de server para manter simples)
+    // espelha na coleção semanal
     await upsertPedidoInCiclo(
       pedido.id,
       {
@@ -220,11 +254,10 @@ export default function AliSab({ setTela }) {
     if (!confirm("Reabrir este pedido? Ele voltará para 'Lançado'.")) return;
 
     const ref = doc(db, "PEDIDOS", pedido.id);
-    // mantém sabores (ou zera: comente/descomente abaixo)
     await updateDoc(ref, {
       statusEtapa: "Lançado",
       atualizadoEm: serverTimestamp(),
-      // Para zerar sabores, descomente:
+      // Se quiser zerar:
       // sabores: {},
       // dataAlimentado: null,
     });
@@ -367,4 +400,4 @@ export default function AliSab({ setTela }) {
       <ERPFooter onBack={() => setTela("HomePCP")} />
     </>
   );
-      }
+                          }
