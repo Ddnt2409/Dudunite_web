@@ -1,7 +1,6 @@
-// src/pages/CtsReceberPedidos.jsx
 import React, { useEffect, useState } from "react";
 import { corFundo, corTerracota } from "../util/cr_helpers";
-import { carregarPedidosAcumulados } from "../util/cr_datastub";
+import { carregarPedidosAcumulados } from "../util/cr_dataStub"; // <-- aqui!
 
 export default function CtsReceberPedidos({ onVoltar, planoContas }) {
   const [carregando, setCarregando] = useState(true);
@@ -11,7 +10,7 @@ export default function CtsReceberPedidos({ onVoltar, planoContas }) {
     (async () => {
       setCarregando(true);
       try {
-        const dados = await carregarPedidosAcumulados(); // do STUB por enquanto
+        const dados = await carregarPedidosAcumulados(); // STUB
         setLista(dados);
       } finally {
         setCarregando(false);
