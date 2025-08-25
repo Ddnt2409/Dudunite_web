@@ -1,43 +1,56 @@
-import React from "react";
+// src/pages/CtsReceber.jsx
+import React, { useEffect, useState } from "react";
+import { corFundo, corTerracota } from "../util/cr_helpers";
+import { carregarPlanoDeContas } from "../util/cr_datastub";
+import CtsReceberAvulso from "./CtsReceberAvulso.jsx";
+import CtsReceberPedidos from "./CtsReceberPedidos.jsx";
 
-export default function CtsReceber({ setTela }) {
+export default function CtsReceber() {
+  const [aba, setAba] = useState("pedidos"); // "pedidos" | "avulso"
+  const [planoContas, setPlanoContas] = useState([]);
+  const [loadingPC, setLoadingPC] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      setLoadingPC(true);
+      try {
+        const pcs = await carregarPlanoDeContas(); // vem do STUB por enquanto
+        setPlanoContas(pcs);
+      } finally {
+        setLoadingPC(false);
+      }
+    })();
+  }, []);
+
+  if (loadingPC) return <div style={{ padding: 16 }}>Carregando Plano de Contas...</div>;
+
   return (
-    <div style={{ minHeight: "100vh", background: "#FFF3E9", padding: 16, color: "#0f3a65" }}>
-      <button
-        onClick={() => setTela("HomeERP")}
-        style={{
-          marginBottom: 12,
-          background: "#e5e7eb",
-          border: "1px solid #d1d5db",
-          borderRadius: 8,
-          padding: "8px 12px",
-          cursor: "pointer",
-        }}
-      >
-        ← Voltar
-      </button>
-
-      <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Contas a Receber</h1>
-      <p style={{ marginBottom: 16 }}>
-        Em breve… fila de pedidos do Módulo 1, aprovação e lançamento no fluxo.
-      </p>
-
-      <div
-        style={{
-          background: "#fff",
-          border: "1px solid #cfe2ff",
-          borderRadius: 12,
-          padding: 14,
-        }}
-      >
-        Esqueleto pronto. Próximo passo: formulário e Firestore.
+    <div style={{ minHeight: "100vh", background: corFundo }}>
+      <div style={{ padding: 16 }}>
+        <h1 style={{ color: corTerracota, fontWeight: 900, fontSize: 22, marginBottom: 10 }}>
+          Contas a Receber – FinFlux
+        </h1>
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          <button
+            onClick={() => setAba("pedidos")}
+            style={{ padding: 10, borderRadius: 10, border: 0, background: aba === "pedidos" ? corTerracota : "#c46a42", color: "#fff", fontWeight: 700 }}
+          >
+            Pedidos Acumulados
+          </button>
+          <button
+            onClick={() => setAba("avulso")}
+            style={{ padding: 10, borderRadius: 10, border: 0, background: aba === "avulso" ? corTerracota : "#c46a42", color: "#fff", fontWeight: 700 }}
+          >
+            Lançamento Avulso
+          </button>
+        </div>
       </div>
 
-      <div style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button onClick={() => setTela("TabPrec")}>← Tabela de Preços</button>
-        <button onClick={() => setTela("CtsPagar")}>→ Contas a Pagar</button>
-        <button onClick={() => setTela("FluxCx")}>→ Fluxo de Caixa</button>
-      </div>
+      {aba === "pedidos" ? (
+        <CtsReceberPedidos onVoltar={() => setAba("pedidos")} planoContas={planoContas} />
+      ) : (
+        <CtsReceberAvulso onVoltar={() => setAba("pedidos")} planoContas={planoContas} />
+      )}
     </div>
   );
 }
