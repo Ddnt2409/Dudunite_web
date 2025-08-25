@@ -209,45 +209,49 @@ export default function AliSab({ setTela }) {
    * SALVAR / REABRIR / EXCLUIR
    * ===================== */
   async function salvarSabores(pedido) {
-    const st = formState[pedido.id] || {};
-    const payload = {};
-    Object.entries(st).forEach(([prod, dados]) => {
-      if (dados.linhas.length) payload[prod] = dados.linhas;
-    });
+    try {
+      const st = formState[pedido.id] || {};
+      const payload = {};
+      Object.entries(st).forEach(([prod, dados]) => {
+        if (dados.linhas.length) payload[prod] = dados.linhas;
+      });
 
-    // atualiza raiz
-    const ref = doc(db, "PEDIDOS", pedido.id);
-    await updateDoc(ref, {
-      sabores: payload,
-      statusEtapa: "Alimentado",
-      dataAlimentado: serverTimestamp(),
-      atualizadoEm: serverTimestamp(),
-      // OBS: se preferir string, salve .path em vez do obj de coleção:
-      // semanaPath: semanaRefFromDate(pedido.criadoEm || new Date()).path,
-      semanaRef: semanaRefFromDate(pedido.criadoEm || new Date()),
-    });
-
-    // espelha na coleção semanal
-    await upsertPedidoInCiclo(
-      pedido.id,
-      {
-        ...pedido,
+      // atualiza raiz
+      const ref = doc(db, "PEDIDOS", pedido.id);
+      await updateDoc(ref, {
         sabores: payload,
         statusEtapa: "Alimentado",
-        dataAlimentado: new Date(),
-      },
-      pedido.criadoEm || new Date()
-    );
+        dataAlimentado: serverTimestamp(),
+        atualizadoEm: serverTimestamp(),
+        // salvar apenas o path (string) da “semana”
+        semanaPath: semanaRefFromDate(pedido.criadoEm || new Date()).path,
+      });
 
-    // estado local
-    setPedidos((prev) =>
-      prev.map((p) =>
-        p.id === pedido.id
-          ? { ...p, statusEtapa: "Alimentado", sabores: payload, dataAlimentado: new Date() }
-          : p
-      )
-    );
-    setExpandedId(null);
+      // espelha na coleção semanal
+      await upsertPedidoInCiclo(
+        pedido.id,
+        {
+          ...pedido,
+          sabores: payload,
+          statusEtapa: "Alimentado",
+          dataAlimentado: new Date(),
+        },
+        pedido.criadoEm || new Date()
+      );
+
+      // estado local
+      setPedidos((prev) =>
+        prev.map((p) =>
+          p.id === pedido.id
+            ? { ...p, statusEtapa: "Alimentado", sabores: payload, dataAlimentado: new Date() }
+            : p
+        )
+      );
+      setExpandedId(null);
+    } catch (err) {
+      console.error("Erro ao salvar sabores:", err);
+      alert("Erro ao salvar sabores: " + (err?.message || err));
+    }
   }
 
   async function reabrirPedido(pedido) {
@@ -400,4 +404,4 @@ export default function AliSab({ setTela }) {
       <ERPFooter onBack={() => setTela("HomePCP")} />
     </>
   );
-                          }
+                 }
