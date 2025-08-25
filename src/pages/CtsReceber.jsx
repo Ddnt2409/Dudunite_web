@@ -1,7 +1,6 @@
-// src/pages/CtsReceber.jsx
 import React, { useEffect, useState } from "react";
 import { corFundo, corTerracota } from "../util/cr_helpers";
-import { carregarPlanoDeContas } from "../util/cr_datastub";
+import { carregarPlanoDeContas } from "../util/cr_dataStub"; // <-- aqui!
 import CtsReceberAvulso from "./CtsReceberAvulso.jsx";
 import CtsReceberPedidos from "./CtsReceberPedidos.jsx";
 
@@ -14,7 +13,7 @@ export default function CtsReceber() {
     (async () => {
       setLoadingPC(true);
       try {
-        const pcs = await carregarPlanoDeContas(); // vem do STUB por enquanto
+        const pcs = await carregarPlanoDeContas(); // STUB por enquanto
         setPlanoContas(pcs);
       } finally {
         setLoadingPC(false);
