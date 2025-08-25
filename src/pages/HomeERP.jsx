@@ -1,3 +1,4 @@
+// src/pages/HomeERP.jsx
 import React, { useState, useRef } from 'react';
 import './HomeERP.css';
 
@@ -15,22 +16,18 @@ export default function HomeERP({ setTela }) {
       zoomAction: () => setZoomIndex(0),
       navAction: () => setTela('HomePCP'),
       dropdown: [
-        {
-          nome: 'Lançar Pedido',
-          acao: () => setTela('LanPed')
-        },
-        {
-          nome: 'Alimentar Sabores',
-          acao: () => alert('Em construção')
-        },
+        { nome: 'Lançar Pedido',     acao: () => setTela('LanPed') },
+        { nome: 'Alimentar Sabores', acao: () => alert('Em construção') },
       ],
     },
     {
       label: '💰\nFinanceiro',
       zoomAction: () => setZoomIndex(1),
+      // segundo segundo-clique no cartão navega para Contas a Receber
+      navAction: () => setTela('CtsReceber'),
       dropdown: [
-        { nome: 'Contas a Receber', acao: () => alert('Em construção') },
-        { nome: 'Contas a Pagar',    acao: () => alert('Em construção') },
+        { nome: 'Contas a Receber', acao: () => setTela('CtsReceber') },
+        { nome: 'Contas a Pagar',   acao: () => setTela('CtsPagar') },
       ],
     },
     {
@@ -96,7 +93,7 @@ export default function HomeERP({ setTela }) {
       {/* === BOTÕES PRINCIPAIS === */}
       <div
         className="botoes-pcp"
-        onTouchStart={e => touchStartX.current = e.changedTouches[0].clientX}
+        onTouchStart={e => (touchStartX.current = e.changedTouches[0].clientX)}
         onTouchEnd={e => {
           const diff = e.changedTouches[0].clientX - touchStartX.current;
           if (diff > 50) deslizar('esquerda');
