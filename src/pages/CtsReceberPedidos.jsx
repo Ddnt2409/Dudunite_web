@@ -1,8 +1,8 @@
+// Pedidos do LanPed (ACUMULADOS) => Previsto em CAIXA FLUTUANTE
 import React, { useEffect, useState } from "react";
-import { corFundo, corTerracota } from "../util/cr_helpers";
-import { carregarPedidosAcumulados } from "../util/cr_dataStub"; // <-- aqui!
+import { carregarPedidosAcumulados } from "../util/cr_dataStub";
 
-export default function CtsReceberPedidos({ onVoltar, planoContas }) {
+export default function CtsReceberPedidos() {
   const [carregando, setCarregando] = useState(true);
   const [lista, setLista] = useState([]);
 
@@ -10,24 +10,64 @@ export default function CtsReceberPedidos({ onVoltar, planoContas }) {
     (async () => {
       setCarregando(true);
       try {
-        const dados = await carregarPedidosAcumulados(); // STUB
-        setLista(dados);
+        const dados = await carregarPedidosAcumulados(); // LanPed via stub
+        // Excluir APENAS status "pendente" (case-insensitive)
+        const filtrados = (dados || []).filter(p => {
+          const s = String(p.statusEtapa || p.status || "").toLowerCase();
+          return s !== "pendente";
+        });
+        setLista(filtrados);
       } finally {
         setCarregando(false);
       }
     })();
   }, []);
 
-  return (
-    <div style={{ minHeight: "100vh", background: corFundo, padding: 16 }}>
-      <h2 style={{ color: corTerracota, fontWeight: 800, marginBottom: 8 }}>Pedidos Acumulados</h2>
-      <button onClick={onVoltar} style={{ marginBottom: 8 }}>Voltar</button>
+  if (carregando) return <div>Carregando pedidos…</div>;
 
-      {carregando ? <div>Carregando...</div> : (
-        <div style={{ display: "grid", gap: 8 }}>
-          {lista.length === 0 && <div>Nenhum pedido encontrado (stub).</div>}
+  return (
+    <div style={{ display: "grid", gap: 10 }}>
+      {lista.length === 0 && (
+        <div style={{ background:"#fff", border:"1px solid #e6d2c2", borderRadius:12, padding:12 }}>
+          Nenhum pedido acumulado (todos pendentes).
         </div>
       )}
+
+      {lista.map(p => (
+        <div key={p.id} style={{
+          background:"#fff",
+          border:"1px solid #e6d2c2",
+          borderRadius:12,
+          padding:12
+        }}>
+          <div style={{ display:"flex", justifyContent:"space-between", gap:8, flexWrap:"wrap" }}>
+            <div><b>{p.pdv}</b> • {p.cidade || "-"}</div>
+            <div style={{ fontWeight:800, color:"#5C1D0E" }}>CAIXA FLUTUANTE • PREVISTO</div>
+          </div>
+          <div style={{ marginTop:6, display:"grid", gap:4 }}>
+            <div>Forma PG: <b>{p.forma || p.formaPagamento || "-"}</b></div>
+            <div>Produto: {p.produto || "-"} • Qtd: {p.quantidade ?? "-"}</div>
+            <div>Valor: <b>{p.valor != null ? Number(p.valor).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}) : "-"}</b></div>
+            <div>Vencimento: <b>{p.vencimento || p.dataPrevista || "-"}</b></div>
+            <div style={{ color:"#8b6a4a" }}>Status LanPed: {p.statusEtapa || p.status || "-"}</div>
+          </div>
+
+          <div style={{ display:"flex", gap:8, marginTop:10 }}>
+            <button
+              onClick={() => alert("Stub: marcar como Realizado (transferência p/ EXTRATO BANCARIO será definida no fluxo correto)")}
+              style={{ background:"#8c3b1b", color:"#fff", border:0, borderRadius:10, padding:"10px 12px", fontWeight:800 }}
+            >
+              Marcar como Realizado
+            </button>
+            <button
+              onClick={() => alert("Stub: ver detalhes do pedido")}
+              style={{ background:"#eee", color:"#333", border:0, borderRadius:10, padding:"10px 12px", fontWeight:800 }}
+            >
+              Detalhes
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
