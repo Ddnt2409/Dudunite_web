@@ -1,45 +1,57 @@
-// src/pages/CtsReceberAvulso.jsx
+// Lançamento AVULSO => nasce REALIZADO em CAIXA DIARIO
 import React, { useState } from "react";
-import { corFundo, corTerracota, CANAIS, SITUACAO, RECUR, toNumber } from "../util/cr_helpers";
+import { lancamentoAvulso } from "../util/cr_dataStub";
 
-export default function CtsReceberAvulso({ onVoltar, planoContas }) {
+export default function CtsReceberAvulso({ planoContas }) {
   const [cidade, setCidade] = useState("");
-  const [pdv, setPdv] = useState("Varejo");
+  const [pdv, setPdv] = useState("");
   const [produto, setProduto] = useState("");
   const [quantidade, setQuantidade] = useState(1);
-  const [canal, setCanal] = useState(CANAIS.VAREJO);
   const [plano, setPlano] = useState("");
   const [forma, setForma] = useState("PIX");
-  const [situacao, setSituacao] = useState(SITUACAO.REALIZADO);
-  const [recorrencia, setRecorrencia] = useState(RECUR.ISOLADO);
-  const [repeticoes, setRepeticoes] = useState(1);
-  const [dataLanc, setDataLanc] = useState(() => new Date().toISOString().slice(0, 10));
-  const [dataPrev, setDataPrev] = useState(() => new Date().toISOString().slice(0, 10));
-  const [valorUnit, setValorUnit] = useState(0);
+  const [data, setData] = useState(() => new Date().toISOString().slice(0,10));
+  const [valor, setValor] = useState("");
+  const [okMsg, setOkMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSalvar() {
-    alert("Stub: salvar será habilitado na etapa Firestore.");
+  async function salvar() {
+    if (!valor || !plano || !forma) {
+      alert("Informe Valor, Plano de Contas e Forma de Pagamento.");
+      return;
+    }
+    setLoading(true);
+    setOkMsg("");
+    try {
+      await lancamentoAvulso({
+        cidade, pdv, produto, quantidade,
+        canal: "varejo",
+        planoContas: plano,
+        formaPagamento: forma,
+        situacao: "Realizado",               // AVULSO nasce REALIZADO
+        dataLancamento: new Date(data),
+        dataPrevista: new Date(data),        // aparece no extrato geral
+        valorUnit: Number(valor || 0)
+      });
+      setOkMsg("Avulso lançado (stub) como Realizado em CAIXA DIARIO.");
+      setCidade(""); setPdv(""); setProduto(""); setQuantidade(1);
+      setPlano(""); setForma("PIX"); setValor("");
+    } catch (e) {
+      alert("Erro ao salvar: " + (e?.message || e));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: corFundo, padding: 16 }}>
-      <h2 style={{ color: corTerracota, fontWeight: 800, marginBottom: 8 }}>Lançamento Avulso</h2>
-
-      <div style={{ display: "grid", gap: 8 }}>
-        <input placeholder="Cidade" value={cidade} onChange={e => setCidade(e.target.value)} />
-        <input placeholder="PDV (nome)" value={pdv} onChange={e => setPdv(e.target.value)} />
-        <input placeholder="Produto" value={produto} onChange={e => setProduto(e.target.value)} />
-        <input type="number" placeholder="Quantidade" value={quantidade} onChange={e => setQuantidade(e.target.value)} />
-
-        <label>Canal:&nbsp;
-          <select value={canal} onChange={e => setCanal(e.target.value)}>
-            <option value={CANAIS.REVENDA}>Revenda</option>
-            <option value={CANAIS.VAREJO}>Varejo</option>
-          </select>
-        </label>
+    <div style={{ display:"grid", gap:8 }}>
+      <div style={{ display:"grid", gap:8 }}>
+        <input placeholder="Cidade" value={cidade} onChange={e=>setCidade(e.target.value)} />
+        <input placeholder="PDV (nome)" value={pdv} onChange={e=>setPdv(e.target.value)} />
+        <input placeholder="Produto/Descrição" value={produto} onChange={e=>setProduto(e.target.value)} />
+        <input type="number" min={1} placeholder="Quantidade" value={quantidade} onChange={e=>setQuantidade(e.target.value)} />
 
         <label>Plano de Contas:&nbsp;
-          <select value={plano} onChange={e => setPlano(e.target.value)}>
+          <select value={plano} onChange={e=>setPlano(e.target.value)}>
             <option value="">-- selecione --</option>
             {planoContas.map(pc => (
               <option key={pc.id} value={pc.codigo || pc.id}>
@@ -50,48 +62,39 @@ export default function CtsReceberAvulso({ onVoltar, planoContas }) {
         </label>
 
         <label>Forma de pagamento:&nbsp;
-          <select value={forma} onChange={e => setForma(e.target.value)}>
+          <select value={forma} onChange={e=>setForma(e.target.value)}>
             <option>PIX</option><option>Especie</option>
             <option>Cartao</option><option>Link</option>
             <option>PDVDireto</option>
           </select>
         </label>
 
-        <label>Situação:&nbsp;
-          <select value={situacao} onChange={e => setSituacao(e.target.value)}>
-            <option>{SITUACAO.REALIZADO}</option>
-            <option>{SITUACAO.PREVISTO}</option>
-          </select>
+        <label>Data:&nbsp;
+          <input type="date" value={data} onChange={e=>setData(e.target.value)} />
         </label>
 
-        <label>Recorrência:&nbsp;
-          <select value={recorrencia} onChange={e => setRecorrencia(e.target.value)}>
-            <option>{RECUR.ISOLADO}</option>
-            <option>{RECUR.SEMANAL}</option>
-            <option>{RECUR.QUINZENAL}</option>
-            <option>{RECUR.MENSAL}</option>
-          </select>
+        <label>Valor:&nbsp;
+          <input type="number" step="0.01" value={valor} onChange={e=>setValor(e.target.value)} />
         </label>
+      </div>
 
-        <input type="number" min={1} value={repeticoes} onChange={e => setRepeticoes(e.target.value)} placeholder="Repetições (>=1)" />
+      <div style={{ display:"flex", gap:8 }}>
+        <button onClick={salvar} disabled={loading} className="btn-salvar">
+          {loading ? "Salvando..." : "Salvar Avulso (Realizado)"}
+        </button>
+        <button className="btn-cancelar" onClick={()=>{
+          setCidade(""); setPdv(""); setProduto(""); setQuantidade(1);
+          setPlano(""); setForma("PIX"); setValor("");
+        }}>
+          Limpar
+        </button>
+      </div>
 
-        <label>Data de Lançamento:&nbsp;
-          <input type="date" value={dataLanc} onChange={e => setDataLanc(e.target.value)} />
-        </label>
+      {okMsg && <div style={{ color:"green", fontWeight:800 }}>{okMsg}</div>}
 
-        <label>Data Prevista:&nbsp;
-          <input type="date" value={dataPrev} onChange={e => setDataPrev(e.target.value)} />
-        </label>
-
-        <label>Valor Unitário:&nbsp;
-          <input type="number" value={valorUnit} onChange={e => setValorUnit(e.target.value)} />
-        </label>
-
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={onVoltar}>Voltar</button>
-          <button onClick={handleSalvar}>Salvar (stub)</button>
-        </div>
+      <div style={{ marginTop:8, color:"#7b3c21", fontWeight:700 }}>
+        Conta: CAIXA DIARIO • Status: REALIZADO
       </div>
     </div>
   );
-}
+            }
