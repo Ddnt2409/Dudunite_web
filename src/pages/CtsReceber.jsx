@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
-import "./AliSab.css"; // usa BG, header e footer APROVADOS
+import "./AliSab.css";
 
 import { carregarPlanoDeContas } from "../util/cr_dataStub";
 import CtsReceberPedidos from "./CtsReceberPedidos.jsx";
 import CtsReceberAvulso from "./CtsReceberAvulso.jsx";
 
-export default function CtsReceber() {
-  // abas: "acumulados" (LanPed → Previsto / CAIXA FLUTUANTE) | "avulsos" (Realizado / CAIXA DIARIO)
-  const [aba, setAba] = useState("acumulados");
+export default function CtsReceber({ setTela }) {
+  const [aba, setAba] = useState("acumulados"); // "acumulados" | "avulsos"
   const [planoContas, setPlanoContas] = useState([]);
   const [loadingPC, setLoadingPC] = useState(true);
 
@@ -21,12 +20,22 @@ export default function CtsReceber() {
 
   return (
     <div className="alisab-main">
-      {/* Cabeçalho local (não altera o ERPHeader global) */}
+      {/* ===== Cabeçalho local (usa suas classes aprovadas) ===== */}
+      <header className="erp-header">
+        <div className="erp-header__inner">
+          <div className="erp-header__logo">
+            <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
+          </div>
+          <div className="erp-header__title">ERP DUDUNITÊ<br/>Contas a Receber</div>
+        </div>
+      </header>
+
+      {/* Título local + abas */}
       <div className="alisab-header">
         <h2 className="alisab-title">
           {aba === "acumulados"
-            ? "Contas a Receber • Pedidos Acumulados"
-            : "Contas a Receber • Pedidos Avulsos"}
+            ? "Pedidos Acumulados (LanPed • Previsto • CAIXA FLUTUANTE)"
+            : "Pedidos Avulsos (Realizado • CAIXA DIARIO)"}
         </h2>
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
           <button
@@ -51,6 +60,14 @@ export default function CtsReceber() {
       ) : (
         <CtsReceberAvulso planoContas={planoContas} />
       )}
+
+      {/* ===== Rodapé + botão Voltar (classes aprovadas) ===== */}
+      <button className="btn-voltar-foot" onClick={() => setTela?.("HomeERP")}>🔙 Voltar</button>
+      <footer className="erp-footer">
+        <div className="erp-footer-track">
+          • Previstos (LanPed) + Realizados Avulsos (Varejo) • Extrato Geral no FinFlux •
+        </div>
+      </footer>
     </div>
   );
 }
