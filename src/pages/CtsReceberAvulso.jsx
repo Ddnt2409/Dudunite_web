@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { lancamentoAvulso } from "../util/cr_dataStub";
 
 export default function CtsReceberAvulso({ planoContas }) {
-  const [cidade, setCidade] = useState("");
+  const [cidade, setCidade] = useState("Gravatá");   // <- padrão
   const [pdv, setPdv] = useState("");
   const [produto, setProduto] = useState("");
   const [quantidade, setQuantidade] = useState(1);
@@ -33,8 +33,9 @@ export default function CtsReceberAvulso({ planoContas }) {
         valorUnit: Number(valor || 0)
       });
       setOkMsg("Avulso lançado (stub) como Realizado em CAIXA DIARIO.");
-      setCidade(""); setPdv(""); setProduto(""); setQuantidade(1);
+      setPdv(""); setProduto(""); setQuantidade(1);
       setPlano(""); setForma("PIX"); setValor("");
+      // cidade mantém "Gravatá"
     } catch (e) {
       alert("Erro ao salvar: " + (e?.message || e));
     } finally {
@@ -43,47 +44,48 @@ export default function CtsReceberAvulso({ planoContas }) {
   }
 
   return (
-    <div style={{ display:"grid", gap:8 }}>
-      <div style={{ display:"grid", gap:8 }}>
+    <div style={{ display:"grid", gap:12 }}>
+      {/* Linha 1 */}
+      <div className="linha-add">
         <input placeholder="Cidade" value={cidade} onChange={e=>setCidade(e.target.value)} />
-        <input placeholder="PDV (nome)" value={pdv} onChange={e=>setPdv(e.target.value)} />
-        <input placeholder="Produto/Descrição" value={produto} onChange={e=>setProduto(e.target.value)} />
-        <input type="number" min={1} placeholder="Quantidade" value={quantidade} onChange={e=>setQuantidade(e.target.value)} />
-
-        <label>Plano de Contas:&nbsp;
-          <select value={plano} onChange={e=>setPlano(e.target.value)}>
-            <option value="">-- selecione --</option>
-            {planoContas.map(pc => (
-              <option key={pc.id} value={pc.codigo || pc.id}>
-                {(pc.codigo || pc.id) + " – " + (pc.descricao || "")}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>Forma de pagamento:&nbsp;
-          <select value={forma} onChange={e=>setForma(e.target.value)}>
-            <option>PIX</option><option>Especie</option>
-            <option>Cartao</option><option>Link</option>
-            <option>PDVDireto</option>
-          </select>
-        </label>
-
-        <label>Data:&nbsp;
-          <input type="date" value={data} onChange={e=>setData(e.target.value)} />
-        </label>
-
-        <label>Valor:&nbsp;
-          <input type="number" step="0.01" value={valor} onChange={e=>setValor(e.target.value)} />
-        </label>
+        <input className="qtd" placeholder="PDV (nome)" value={pdv} onChange={e=>setPdv(e.target.value)} />
+        <input className="qtd" placeholder="Produto/Descrição" value={produto} onChange={e=>setProduto(e.target.value)} />
       </div>
 
-      <div style={{ display:"flex", gap:8 }}>
+      {/* Linha 2 */}
+      <div className="linha-add">
+        <select value={plano} onChange={e=>setPlano(e.target.value)}>
+          <option value="">-- selecione plano de contas --</option>
+          {planoContas.map(pc => (
+            <option key={pc.id} value={pc.codigo || pc.id}>
+              {(pc.codigo || pc.id) + " – " + (pc.descricao || "")}
+            </option>
+          ))}
+        </select>
+
+        <select className="qtd" value={forma} onChange={e=>setForma(e.target.value)}>
+          <option>PIX</option><option>Especie</option>
+          <option>Cartao</option><option>Link</option>
+          <option>PDVDireto</option>
+        </select>
+
+        <input className="qtd" type="date" value={data} onChange={e=>setData(e.target.value)} />
+      </div>
+
+      {/* Linha 3 */}
+      <div className="linha-add">
+        <input className="qtd" type="number" min={1} placeholder="Quantidade" value={quantidade} onChange={e=>setQuantidade(e.target.value)} />
+        <input className="qtd" type="number" step="0.01" placeholder="Valor" value={valor} onChange={e=>setValor(e.target.value)} />
+        <div></div>
+      </div>
+
+      {/* Ações */}
+      <div className="acoes">
         <button onClick={salvar} disabled={loading} className="btn-salvar">
           {loading ? "Salvando..." : "Salvar Avulso (Realizado)"}
         </button>
         <button className="btn-cancelar" onClick={()=>{
-          setCidade(""); setPdv(""); setProduto(""); setQuantidade(1);
+          setPdv(""); setProduto(""); setQuantidade(1);
           setPlano(""); setForma("PIX"); setValor("");
         }}>
           Limpar
@@ -97,4 +99,4 @@ export default function CtsReceberAvulso({ planoContas }) {
       </div>
     </div>
   );
-            }
+}
