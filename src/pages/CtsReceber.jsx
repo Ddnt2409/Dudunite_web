@@ -1,54 +1,55 @@
 import React, { useEffect, useState } from "react";
-import { corFundo, corTerracota } from "../util/cr_helpers";
-import { carregarPlanoDeContas } from "../util/cr_dataStub"; // <-- aqui!
-import CtsReceberAvulso from "./CtsReceberAvulso.jsx";
+import "./AliSab.css"; // usa BG, header e footer APROVADOS
+
+import { carregarPlanoDeContas } from "../util/cr_dataStub";
 import CtsReceberPedidos from "./CtsReceberPedidos.jsx";
+import CtsReceberAvulso from "./CtsReceberAvulso.jsx";
 
 export default function CtsReceber() {
-  const [aba, setAba] = useState("pedidos"); // "pedidos" | "avulso"
+  // abas: "acumulados" (LanPed → Previsto / CAIXA FLUTUANTE) | "avulsos" (Realizado / CAIXA DIARIO)
+  const [aba, setAba] = useState("acumulados");
   const [planoContas, setPlanoContas] = useState([]);
   const [loadingPC, setLoadingPC] = useState(true);
 
   useEffect(() => {
     (async () => {
       setLoadingPC(true);
-      try {
-        const pcs = await carregarPlanoDeContas(); // STUB por enquanto
-        setPlanoContas(pcs);
-      } finally {
-        setLoadingPC(false);
-      }
+      try { setPlanoContas(await carregarPlanoDeContas()); }
+      finally { setLoadingPC(false); }
     })();
   }, []);
 
-  if (loadingPC) return <div style={{ padding: 16 }}>Carregando Plano de Contas...</div>;
-
   return (
-    <div style={{ minHeight: "100vh", background: corFundo }}>
-      <div style={{ padding: 16 }}>
-        <h1 style={{ color: corTerracota, fontWeight: 900, fontSize: 22, marginBottom: 10 }}>
-          Contas a Receber – FinFlux
-        </h1>
-        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+    <div className="alisab-main">
+      {/* Cabeçalho local (não altera o ERPHeader global) */}
+      <div className="alisab-header">
+        <h2 className="alisab-title">
+          {aba === "acumulados"
+            ? "Contas a Receber • Pedidos Acumulados"
+            : "Contas a Receber • Pedidos Avulsos"}
+        </h2>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
           <button
-            onClick={() => setAba("pedidos")}
-            style={{ padding: 10, borderRadius: 10, border: 0, background: aba === "pedidos" ? corTerracota : "#c46a42", color: "#fff", fontWeight: 700 }}
-          >
-            Pedidos Acumulados
+            onClick={() => setAba("acumulados")}
+            style={{ padding: "10px 12px", borderRadius: 10, border: 0, fontWeight: 800, color: "#fff",
+                     background: aba==="acumulados" ? "#8c3b1b" : "#c46a42" }}>
+            Acumulados
           </button>
           <button
-            onClick={() => setAba("avulso")}
-            style={{ padding: 10, borderRadius: 10, border: 0, background: aba === "avulso" ? corTerracota : "#c46a42", color: "#fff", fontWeight: 700 }}
-          >
-            Lançamento Avulso
+            onClick={() => setAba("avulsos")}
+            style={{ padding: "10px 12px", borderRadius: 10, border: 0, fontWeight: 800, color: "#fff",
+                     background: aba==="avulsos" ? "#8c3b1b" : "#c46a42" }}>
+            Avulsos
           </button>
         </div>
       </div>
 
-      {aba === "pedidos" ? (
-        <CtsReceberPedidos onVoltar={() => setAba("pedidos")} planoContas={planoContas} />
+      {loadingPC ? (
+        <div style={{ padding: 10 }}>Carregando Plano de Contas…</div>
+      ) : aba === "acumulados" ? (
+        <CtsReceberPedidos />
       ) : (
-        <CtsReceberAvulso onVoltar={() => setAba("pedidos")} planoContas={planoContas} />
+        <CtsReceberAvulso planoContas={planoContas} />
       )}
     </div>
   );
