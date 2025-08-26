@@ -11,7 +11,7 @@ export default function CtsReceberPedidos() {
       setCarregando(true);
       try {
         const dados = await carregarPedidosAcumulados(); // LanPed via stub
-        // Excluir APENAS status "pendente" (case-insensitive)
+        // EXCLUIR apenas status "pendente" (case-insensitive)
         const filtrados = (dados || []).filter(p => {
           const s = String(p.statusEtapa || p.status || "").toLowerCase();
           return s !== "pendente";
@@ -54,7 +54,7 @@ export default function CtsReceberPedidos() {
 
           <div style={{ display:"flex", gap:8, marginTop:10 }}>
             <button
-              onClick={() => alert("Stub: marcar como Realizado (transferência p/ EXTRATO BANCARIO será definida no fluxo correto)")}
+              onClick={() => alert("Stub: marcar como Realizado (transferência p/ EXTRATO BANCARIO é feita no fluxo definido)")}
               style={{ background:"#8c3b1b", color:"#fff", border:0, borderRadius:10, padding:"10px 12px", fontWeight:800 }}
             >
               Marcar como Realizado
