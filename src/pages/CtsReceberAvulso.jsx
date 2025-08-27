@@ -1,18 +1,15 @@
-// Lançamento AVULSO => nasce REALIZADO em CAIXA DIARIO
 import React, { useEffect, useMemo, useState } from "react";
-import "../util/CtsReceber.css"; // garante o CSS desta tela
+import "../util/CtsReceber.css";
 import { lancamentoAvulso } from "../util/cr_dataStub";
 
 const fmtBRL = (v) =>
   (Number(v || 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function CtsReceberAvulso({ planoContas = [] }) {
-  // Defaults
   const [cidade, setCidade] = useState("Gravatá");
   const [pdv, setPdv] = useState("VAREJO");
   const [data, setData] = useState(() => new Date().toISOString().slice(0, 10));
 
-  // Plano de contas já selecionado com o 1º item
   const firstPlano = useMemo(
     () => (planoContas?.[0] ? (planoContas[0].codigo || planoContas[0].id) : ""),
     [planoContas]
@@ -20,12 +17,10 @@ export default function CtsReceberAvulso({ planoContas = [] }) {
   const [plano, setPlano] = useState(firstPlano);
   useEffect(() => { if (!plano && firstPlano) setPlano(firstPlano); }, [firstPlano]);
 
-  // Linha de edição
   const [produto, setProduto] = useState("");
   const [quantidade, setQuantidade] = useState(1);
   const [valorUnit, setValorUnit] = useState("");
 
-  // Linhas acumuladas
   const [linhas, setLinhas] = useState([]);
   const totalQtd = linhas.reduce((s, l) => s + l.qtd, 0);
   const totalVlr = linhas.reduce((s, l) => s + l.total, 0);
@@ -42,9 +37,7 @@ export default function CtsReceberAvulso({ planoContas = [] }) {
       return;
     }
     setLinhas((prev) => [...prev, { produto, qtd, vlu, total: qtd * vlu }]);
-    setProduto("");
-    setQuantidade(1);
-    setValorUnit("");
+    setProduto(""); setQuantidade(1); setValorUnit("");
   }
   function removerLinha(idx) { setLinhas(prev => prev.filter((_, i) => i !== idx)); }
 
@@ -52,13 +45,11 @@ export default function CtsReceberAvulso({ planoContas = [] }) {
     setOkMsg("");
     if (!plano) { alert("Selecione o Plano de Contas."); return; }
     if (!linhas.length) { alert("Adicione pelo menos 1 item."); return; }
-
     setSalvando(true);
     try {
       for (const l of linhas) {
         await lancamentoAvulso({
-          cidade,
-          pdv,                    // "VAREJO"
+          cidade, pdv,
           produto: l.produto,
           quantidade: l.qtd,
           canal: "varejo",
@@ -74,23 +65,21 @@ export default function CtsReceberAvulso({ planoContas = [] }) {
       setLinhas([]);
     } catch (e) {
       alert("Erro ao salvar: " + (e?.message || e));
-    } finally {
-      setSalvando(false);
-    }
+    } finally { setSalvando(false); }
   }
 
   return (
     <div className="ctsreceber-card">
       <h2>Pedidos Avulsos (Realizado • CAIXA DIARIO)</h2>
 
-      {/* Linha meta (cidade/pdv/data) */}
+      {/* Cidade / Cliente / Data */}
       <div className="linha-add" style={{ marginBottom: 10 }}>
         <input placeholder="Cidade" value={cidade} onChange={e=>setCidade(e.target.value)} />
         <input className="qtd" placeholder="Cliente/PDV" value={pdv} onChange={e=>setPdv(e.target.value)} />
         <input className="qtd" type="date" value={data} onChange={e=>setData(e.target.value)} />
       </div>
 
-      {/* Plano de contas */}
+      {/* Plano de Contas */}
       <div className="linha-add" style={{ marginBottom: 10 }}>
         <select value={plano} onChange={e=>setPlano(e.target.value)}>
           {planoContas.length === 0 && <option value="">-- selecione plano de contas --</option>}
@@ -104,52 +93,27 @@ export default function CtsReceberAvulso({ planoContas = [] }) {
         <div />
       </div>
 
-      {/* Linha para adicionar itens */}
+      {/* Itens do dia */}
       <div className="linha-add">
-        <input
-          placeholder="Produto"
-          value={produto}
-          onChange={e=>setProduto(e.target.value)}
-        />
-        <input
-          className="qtd"
-          type="number"
-          min={1}
-          placeholder="Qtd"
-          value={quantidade}
-          onChange={e=>setQuantidade(e.target.value)}
-        />
+        <input placeholder="Produto" value={produto} onChange={e=>setProduto(e.target.value)} />
+        <input className="qtd" type="number" min={1} placeholder="Qtd" value={quantidade} onChange={e=>setQuantidade(e.target.value)} />
         <div style={{ display: "flex", gap: 8 }}>
-          <input
-            className="qtd"
-            type="number"
-            step="0.01"
-            placeholder="Vlr unitário"
-            value={valorUnit}
-            onChange={e=>setValorUnit(e.target.value)}
-            style={{ marginRight: 8 }}
-          />
+          <input className="qtd" type="number" step="0.01" placeholder="Vlr unitário" value={valorUnit} onChange={e=>setValorUnit(e.target.value)} style={{ marginRight: 8 }} />
           <button className="btn-add" onClick={addLinha}>Adicionar</button>
         </div>
       </div>
 
-      {/* Lista e totais */}
       <ul className="linhas-list">
         {linhas.map((l, i) => (
           <li key={i}>
-            <div>
-              <b>{l.produto}</b> — {l.qtd} × {fmtBRL(l.vlu)} = <b>{fmtBRL(l.total)}</b>
-            </div>
+            <div><b>{l.produto}</b> — {l.qtd} × {fmtBRL(l.vlu)} = <b>{fmtBRL(l.total)}</b></div>
             <button className="btn-x" onClick={()=>removerLinha(i)}>✕</button>
           </li>
         ))}
       </ul>
 
-      <div style={{ fontWeight: 800, marginBottom: 8 }}>
-        Total do dia: {fmtBRL(totalVlr)} • Qtd: {totalQtd}
-      </div>
+      <div className="cts-totais">Total do dia: {fmtBRL(totalVlr)} • Qtd: {totalQtd}</div>
 
-      {/* Ações */}
       <div className="acoes">
         <button className="btn-salvar" onClick={salvarTudo} disabled={salvando}>
           {salvando ? "Salvando..." : "Salvar"}
