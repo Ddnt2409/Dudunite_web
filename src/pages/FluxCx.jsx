@@ -5,10 +5,12 @@ import { carregarAvulsos, carregarPedidosAcumulados } from "../util/cr_dataStub"
 const fmtBRL = (v) =>
   (Number(v || 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-// Usa a string ISO quando possível (evita problemas de fuso)
 const ymd = (d) => {
   if (!d) return "-";
-  if (typeof d === "string") return d.slice(0, 10);
+  if (typeof d === "string") {
+    // aceita "YYYY-MM-DD" ou ISO
+    return d.length >= 10 ? d.slice(0, 10) : new Date(d).toISOString().slice(0, 10);
+  }
   try { return new Date(d).toISOString().slice(0, 10); } catch { return "-"; }
 };
 const ym = (d) => {
@@ -20,11 +22,9 @@ const ym = (d) => {
 export default function FluxCx({ setTela }) {
   const [linhas, setLinhas] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [mostrarTodos, setMostrarTodos] = useState(false);
 
-  const [mesRef, setMesRef] = useState(() => {
-    const now = new Date().toISOString().slice(0, 7); // YYYY-MM estável
-    return now;
-  });
+  const [mesRef, setMesRef] = useState(() => new Date().toISOString().slice(0, 7)); // YYYY-MM
 
   const carregarTudo = useCallback(async () => {
     setCarregando(true);
@@ -75,9 +75,10 @@ export default function FluxCx({ setTela }) {
   useEffect(() => { carregarTudo(); }, [carregarTudo]);
 
   const linhasFiltradas = useMemo(() => {
+    if (mostrarTodos) return linhas;
     if (!mesRef) return linhas;
     return linhas.filter((l) => l.ym === mesRef);
-  }, [linhas, mesRef]);
+  }, [linhas, mesRef, mostrarTodos]);
 
   const totalPrev = linhasFiltradas.filter(l => l.tipo === "Previsto").reduce((s,l)=>s+l.valor,0);
   const totalReal = linhasFiltradas.filter(l => l.tipo === "Realizado").reduce((s,l)=>s+l.valor,0);
@@ -119,6 +120,17 @@ export default function FluxCx({ setTela }) {
           >
             Atualizar
           </button>
+          <label style={{ marginLeft: 8, display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="checkbox"
+              checked={mostrarTodos}
+              onChange={(e)=>setMostrarTodos(e.target.checked)}
+            />
+            Mostrar todos
+          </label>
+          <div style={{ marginLeft: "auto", fontWeight: 800 }}>
+            {linhasFiltradas.length} de {linhas.length} lanç.
+          </div>
         </div>
 
         {carregando ? (
@@ -151,7 +163,7 @@ export default function FluxCx({ setTela }) {
                 ))}
                 {linhasFiltradas.length === 0 && (
                   <tr><td colSpan={6} style={{ padding: 12, color: "#7b3c21" }}>
-                    Nenhum lançamento para {mesRef}.
+                    Nenhum lançamento para {mostrarTodos ? "todas as datas" : mesRef}.
                   </td></tr>
                 )}
               </tbody>
