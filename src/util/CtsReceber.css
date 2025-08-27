@@ -7,6 +7,26 @@
     #fcf4e9;
 }
 
+/* ====== HEADER / FOOTER (padrão aprovado) ====== */
+.erp-header{ position: sticky; top: 0; z-index: 50; min-height: 64px;
+  background: rgba(255,241,228,.92); backdrop-filter: blur(6px); border-bottom: 1px solid #e6d2c2; }
+.erp-header__inner{ position: relative; max-width: 1100px; margin: 0 auto; height: 64px; }
+.erp-header__logo{ position: absolute; left: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.erp-header__logo img{ height: 180px; width: auto; display: block; }
+.erp-header__title{ position: absolute; right: 2ch; bottom: 12px; font-size: 24px; font-weight: 800; color: #7b3c21; text-align: right; }
+.erp-header__spacer{ width: 42px; height: 42px; }
+
+.erp-footer{ position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: #7b3c21; color: #fbeee1;
+  font-size: 12px; line-height: 36px; height: 36px; box-shadow: 0 -4px 10px rgba(0,0,0,.15); text-align: center; }
+.erp-footer-track{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 12px; }
+.btn-voltar-foot{ position: fixed; left: 10px; bottom: 48px; z-index: 45; background:#8c3b1b; color:#fff; border:none;
+  border-radius: 12px; padding: 10px 14px; font-weight: 800; box-shadow: 0 6px 16px rgba(0,0,0,.25); }
+
+/* ====== TÍTULO LOCAL ====== */
+.alisab-header{ display:flex; align-items:center; gap:8px; margin: 10px 0 14px; }
+.alisab-title{ font-weight:800; color:#5C1D0E; }
+.alisab-title .versao{ color:#8b6a4a; font-weight:600; }
+
 /* ====== QUADRO FLUTUANTE CENTRAL ====== */
 .ctsreceber-card{
   position: relative;
@@ -35,7 +55,6 @@
   align-items: center;
   margin-bottom: 10px;
 }
-
 .linha-add input,
 .linha-add select{
   height: 46px;
@@ -46,10 +65,9 @@
   background: #fff;
   outline: none;
 }
-
 .linha-add .qtd{ width: 100%; }
 
-/* Botão ADICIONAR (na última coluna da linha de itens) */
+/* Botão ADICIONAR */
 .linha-add .btn-add{
   white-space: nowrap;
   height: 46px;
@@ -64,7 +82,7 @@
   cursor: pointer;
 }
 
-/* ====== LISTA DE ITENS ADICIONADOS ====== */
+/* ====== LISTA DE ITENS ====== */
 .linhas-list{
   list-style: none;
   margin: 12px 0 10px;
@@ -89,14 +107,13 @@
   cursor: pointer;
 }
 
-/* ====== AÇÕES (SALVAR / LIMPAR) ====== */
+/* ====== AÇÕES ====== */
 .acoes{
   display: flex;
   gap: 10px;
   margin-top: 12px;
 }
-.btn-salvar,
-.btn-cancelar{
+.btn-salvar, .btn-cancelar{
   flex: 1;
   height: 50px;
   border: none;
@@ -104,33 +121,18 @@
   font-weight: 800;
   font-size: 15px;
 }
-.btn-salvar{
-  background:#8c3b1b;
-  color:#fff;
-  box-shadow: 0 6px 16px rgba(0,0,0,.22);
-}
+.btn-salvar{ background:#8c3b1b; color:#fff; box-shadow: 0 6px 16px rgba(0,0,0,.22); }
 .btn-cancelar{ background:#eee; color:#333; }
 
 /* ====== INFOS/TOTAIS ====== */
-.cts-totais{
-  font-weight: 800;
-  margin: 6px 0 4px;
-  color: #5C1D0E;
-}
+.cts-totais{ font-weight: 800; margin: 6px 0 4px; color: #5C1D0E; }
 
 /* ====== RESPONSIVIDADE ====== */
 @media (max-width: 900px){
-  .linha-add{
-    grid-template-columns: 1fr 110px 140px auto;
-  }
+  .linha-add{ grid-template-columns: 1fr 110px 140px auto; }
 }
 @media (max-width: 560px){
   .ctsreceber-card{ padding: 14px 12px 16px; }
-  .linha-add{
-    grid-template-columns: 1fr;
-  }
-  .linha-add .btn-add{
-    width: 100%;
-    margin-top: 6px;
-  }
+  .linha-add{ grid-template-columns: 1fr; }
+  .linha-add .btn-add{ width: 100%; margin-top: 6px; }
 }
