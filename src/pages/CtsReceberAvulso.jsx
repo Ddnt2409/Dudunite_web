@@ -1,29 +1,56 @@
-import React, { useEffect, useMemo, useState } from "react";
+// AVULSOS => nascem REALIZADOS em CAIXA DIARIO
+import React, { useMemo, useState } from "react";
 import "../util/CtsReceber.css";
 import { lancamentoAvulso } from "../util/cr_dataStub";
 
 const fmtBRL = (v) =>
   (Number(v || 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export default function CtsReceberAvulso({ planoContas = [] }) {
-  const [cidade, setCidade] = useState("Gravatá");
+// Cidade fixa e Plano de Contas fixo (sem select)
+const CIDADE_FIXA = "Gravatá";
+const PLANO_FIXO  = "0202001 – Receita de Varejo – Venda Direta";
+
+// Formas de pagamento (igual LanPed)
+const FORMAS = ["PIX", "Especie", "Cartao", "Link", "PDVDireto"];
+
+// Produtos de varejo (lista fornecida)
+const PRODUTOS_VAREJO = [
+  "Brw 7x7",
+  "Brw 6x6",
+  "Escondidinho",
+  "Pizza brownie",
+  "Kit especialidades",
+  "Kit romance",
+  "Copo gourmet tradicional",
+  "Copo gourmet premium",
+  "Bombom de morangos",
+  "Bombrownie",
+  "Naked",
+  "Mini naked",
+  "Mega naked",
+  "Café especial",
+  "Festa na bandeja",
+  "Café kids especial",
+  "Café linha especial adulto",
+  "Café linha especial kids",
+  "Brw pocket 5x5",
+  "Brw pocket 6x6",
+];
+
+export default function CtsReceberAvulso() {
+  // Meta do lançamento
   const [pdv, setPdv] = useState("VAREJO");
+  const [forma, setForma] = useState("PIX");
   const [data, setData] = useState(() => new Date().toISOString().slice(0, 10));
 
-  const firstPlano = useMemo(
-    () => (planoContas?.[0] ? (planoContas[0].codigo || planoContas[0].id) : ""),
-    [planoContas]
-  );
-  const [plano, setPlano] = useState(firstPlano);
-  useEffect(() => { if (!plano && firstPlano) setPlano(firstPlano); }, [firstPlano]);
-
+  // Linha de itens
   const [produto, setProduto] = useState("");
   const [quantidade, setQuantidade] = useState(1);
   const [valorUnit, setValorUnit] = useState("");
 
   const [linhas, setLinhas] = useState([]);
-  const totalQtd = linhas.reduce((s, l) => s + l.qtd, 0);
-  const totalVlr = linhas.reduce((s, l) => s + l.total, 0);
+  const totalQtd = useMemo(() => linhas.reduce((s, l) => s + l.qtd, 0), [linhas]);
+  const totalVlr = useMemo(() => linhas.reduce((s, l) => s + l.total, 0), [linhas]);
 
   const [salvando, setSalvando] = useState(false);
   const [okMsg, setOkMsg] = useState("");
@@ -33,28 +60,29 @@ export default function CtsReceberAvulso({ planoContas = [] }) {
     const qtd = Number(quantidade || 0);
     const vlu = Number(valorUnit || 0);
     if (!produto || qtd <= 0 || vlu <= 0) {
-      alert("Preencha Produto, Quantidade (>0) e Valor unitário (>0).");
+      alert("Selecione Produto e informe Quantidade (>0) e Valor unitário (>0).");
       return;
     }
-    setLinhas((prev) => [...prev, { produto, qtd, vlu, total: qtd * vlu }]);
+    setLinhas(prev => [...prev, { produto, qtd, vlu, total: qtd * vlu }]);
     setProduto(""); setQuantidade(1); setValorUnit("");
   }
   function removerLinha(idx) { setLinhas(prev => prev.filter((_, i) => i !== idx)); }
 
   async function salvarTudo() {
     setOkMsg("");
-    if (!plano) { alert("Selecione o Plano de Contas."); return; }
     if (!linhas.length) { alert("Adicione pelo menos 1 item."); return; }
+
     setSalvando(true);
     try {
       for (const l of linhas) {
         await lancamentoAvulso({
-          cidade, pdv,
+          cidade: CIDADE_FIXA,
+          pdv,                              // "VAREJO"
           produto: l.produto,
           quantidade: l.qtd,
           canal: "varejo",
-          planoContas: plano,
-          formaPagamento: "PIX",
+          planoContas: PLANO_FIXO,          // fixo (sem select)
+          formaPagamento: forma,            // igual LanPed
           situacao: "Realizado",
           dataLancamento: new Date(data),
           dataPrevista: new Date(data),
@@ -65,44 +93,47 @@ export default function CtsReceberAvulso({ planoContas = [] }) {
       setLinhas([]);
     } catch (e) {
       alert("Erro ao salvar: " + (e?.message || e));
-    } finally { setSalvando(false); }
+    } finally {
+      setSalvando(false);
+    }
   }
 
   return (
     <div className="ctsreceber-card">
       <h2>Pedidos Avulsos (Realizado • CAIXA DIARIO)</h2>
 
-      {/* Cidade / Cliente / Data */}
-      <div className="linha-add" style={{ marginBottom: 10 }}>
-        <input placeholder="Cidade" value={cidade} onChange={e=>setCidade(e.target.value)} />
-        <input className="qtd" placeholder="Cliente/PDV" value={pdv} onChange={e=>setPdv(e.target.value)} />
-        <input className="qtd" type="date" value={data} onChange={e=>setData(e.target.value)} />
-      </div>
-
-      {/* Plano de Contas */}
-      <div className="linha-add" style={{ marginBottom: 10 }}>
-        <select value={plano} onChange={e=>setPlano(e.target.value)}>
-          {planoContas.length === 0 && <option value="">-- selecione plano de contas --</option>}
-          {planoContas.map(pc => (
-            <option key={pc.id} value={pc.codigo || pc.id}>
-              {(pc.codigo || pc.id) + " – " + (pc.descricao || "")}
-            </option>
-          ))}
+      {/* Meta do dia: PDV, Forma e Data (cidade é fixa) */}
+      <div className="linha-meta">
+        <input
+          className="input-ro"
+          readOnly
+          value={`${pdv} — ${CIDADE_FIXA}`}
+          onChange={()=>{}}
+        />
+        <select value={forma} onChange={e=>setForma(e.target.value)}>
+          {FORMAS.map(f => <option key={f} value={f}>{f}</option>)}
         </select>
-        <div className="qtd" />
-        <div />
+        <input type="date" value={data} onChange={e=>setData(e.target.value)} />
       </div>
 
-      {/* Itens do dia */}
-      <div className="linha-add">
-        <input placeholder="Produto" value={produto} onChange={e=>setProduto(e.target.value)} />
-        <input className="qtd" type="number" min={1} placeholder="Qtd" value={quantidade} onChange={e=>setQuantidade(e.target.value)} />
-        <div style={{ display: "flex", gap: 8 }}>
-          <input className="qtd" type="number" step="0.01" placeholder="Vlr unitário" value={valorUnit} onChange={e=>setValorUnit(e.target.value)} style={{ marginRight: 8 }} />
-          <button className="btn-add" onClick={addLinha}>Adicionar</button>
-        </div>
+      {/* Itens do dia: Produto, Qtd, Valor Unit, Adicionar */}
+      <div className="linha-itens">
+        <select value={produto} onChange={e=>setProduto(e.target.value)}>
+          <option value="">Produto</option>
+          {PRODUTOS_VAREJO.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+        <input
+          type="number" min={1} placeholder="Qtd"
+          value={quantidade} onChange={e=>setQuantidade(e.target.value)}
+        />
+        <input
+          type="number" step="0.01" placeholder="Vlr unitário"
+          value={valorUnit} onChange={e=>setValorUnit(e.target.value)}
+        />
+        <button className="btn-add" onClick={addLinha}>Adicionar</button>
       </div>
 
+      {/* Lista + totais */}
       <ul className="linhas-list">
         {linhas.map((l, i) => (
           <li key={i}>
@@ -114,6 +145,7 @@ export default function CtsReceberAvulso({ planoContas = [] }) {
 
       <div className="cts-totais">Total do dia: {fmtBRL(totalVlr)} • Qtd: {totalQtd}</div>
 
+      {/* Ações */}
       <div className="acoes">
         <button className="btn-salvar" onClick={salvarTudo} disabled={salvando}>
           {salvando ? "Salvando..." : "Salvar"}
