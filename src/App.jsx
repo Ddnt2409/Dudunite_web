@@ -7,48 +7,27 @@ import HomePCP from "./pages/HomePCP";
 import LanPed from "./pages/LanPed";
 import AliSab from "./pages/AliSab";
 import StaPed from "./pages/StaPed";
-import Suprimentos from "./pages/Suprimentos"; // <-- já existia
-
-// ===== NOVO: páginas do Financeiro =====
-import CtsReceber from "./pages/CtsReceber";
-import CtsPagar   from "./pages/CtsPagar";
+import Suprimentos from "./pages/Suprimentos";
+import CtsReceber from "./pages/CtsReceber";   // <-- novo import
+import FluxCx from "./pages/FluxCx";           // <-- novo import
 
 export default function App() {
-  // Tela inicial
   const [tela, setTela] = useState("HomeERP");
 
-  // Volta pro topo quando troca de tela (UX mobile)
   useEffect(() => {
     try { window.scrollTo({ top: 0, behavior: "instant" }); }
     catch { window.scrollTo(0, 0); }
   }, [tela]);
 
-  // Render simples por estado (sem react-router)
   switch (tela) {
-    case "HomeERP":
-      return <HomeERP setTela={setTela} />;
-
-    case "HomePCP":
-      return <HomePCP setTela={setTela} />;
-
-    case "LanPed":
-      return <LanPed setTela={setTela} />;
-
-    case "AliSab":
-      return <AliSab setTela={setTela} />;
-
-    case "StaPed":
-      return <StaPed setTela={setTela} />;
-
-    case "Suprimentos":
-      return <Suprimentos setTela={setTela} />;
-
-    // ===== NOVO: rotas Financeiro =====
-    case "CtsReceber":
-      return <CtsReceber setTela={setTela} />;
-
-    case "CtsPagar":
-      return <CtsPagar setTela={setTela} />;
+    case "HomeERP":     return <HomeERP setTela={setTela} />;
+    case "HomePCP":     return <HomePCP setTela={setTela} />;
+    case "LanPed":      return <LanPed setTela={setTela} />;
+    case "AliSab":      return <AliSab setTela={setTela} />;
+    case "StaPed":      return <StaPed setTela={setTela} />;
+    case "Suprimentos": return <Suprimentos setTela={setTela} />;
+    case "CtsReceber":  return <CtsReceber setTela={setTela} />;  // <-- nova rota
+    case "FluxCx":      return <FluxCx setTela={setTela} />;      // <-- nova rota
 
     default:
       return (
