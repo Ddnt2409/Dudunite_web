@@ -26,8 +26,9 @@ export default function HomeERP({ setTela }) {
       // segundo segundo-clique no cartão navega para Contas a Receber
       navAction: () => setTela('CtsReceber'),
       dropdown: [
-        { nome: 'Contas a Receber', acao: () => setTela('CtsReceber') },
-        { nome: 'Contas a Pagar',   acao: () => setTela('CtsPagar') },
+        { nome: 'Contas a Receber',        acao: () => setTela('CtsReceber') },
+        { nome: 'Contas a Pagar',          acao: () => setTela('CtsPagar') },
+        { nome: 'Fluxo de Caixa (FinFlux)', acao: () => setTela('FluxCx') }, // <-- ADICIONADO
       ],
     },
     {
@@ -49,17 +50,13 @@ export default function HomeERP({ setTela }) {
   // --- handler de clique no botão principal ---
   function handleClick(idx, btn) {
     if (zoomIndex === idx) {
-      // já estava ativo
       if (!mostrarDropdown) {
-        // primeiro segundo-clique: abre dropdown
         setMostrarDropdown(true);
       } else {
-        // segundo segundo-clique: fecha dropdown e navega (se houver)
         setMostrarDropdown(false);
         btn.navAction?.();
       }
     } else {
-      // primeiro clique: só muda o zoom, fecha dropdown
       setZoomIndex(idx);
       setMostrarDropdown(false);
       btn.zoomAction();
