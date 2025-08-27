@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./AliSab.css";
+import "../util/CtsReceber.css"; // <- usa o CSS dedicado
 
 import { carregarPlanoDeContas } from "../util/cr_dataStub";
 import CtsReceberPedidos from "./CtsReceberPedidos.jsx";
@@ -19,8 +19,8 @@ export default function CtsReceber({ setTela }) {
   }, []);
 
   return (
-    <div className="alisab-main">
-      {/* ===== Cabeçalho local (usa suas classes aprovadas) ===== */}
+    <div className="ctsreceber-main">
+      {/* Cabeçalho (usa suas classes globais) */}
       <header className="erp-header">
         <div className="erp-header__inner">
           <div className="erp-header__logo">
@@ -30,7 +30,7 @@ export default function CtsReceber({ setTela }) {
         </div>
       </header>
 
-      {/* Título local + abas */}
+      {/* Título + abas */}
       <div className="alisab-header">
         <h2 className="alisab-title">
           {aba === "acumulados"
@@ -61,7 +61,7 @@ export default function CtsReceber({ setTela }) {
         <CtsReceberAvulso planoContas={planoContas} />
       )}
 
-      {/* ===== Rodapé + botão Voltar (classes aprovadas) ===== */}
+      {/* Rodapé + voltar */}
       <button className="btn-voltar-foot" onClick={() => setTela?.("HomeERP")}>🔙 Voltar</button>
       <footer className="erp-footer">
         <div className="erp-footer-track">
