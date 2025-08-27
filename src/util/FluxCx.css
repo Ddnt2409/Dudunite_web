@@ -1,0 +1,57 @@
+/* ====== FLUXO DE CAIXA (FinFlux) ====== */
+.fluxcx-main{
+  min-height: calc(100vh - 36px);
+  padding: 10px 10px 92px;
+  background:
+    url("/bg001.png") center 140px / cover no-repeat,
+    #fcf4e9;
+}
+
+/* Header / Footer (padrão) */
+.erp-header{ position: sticky; top: 0; z-index: 50; min-height: 64px;
+  background: rgba(255,241,228,.92); backdrop-filter: blur(6px); border-bottom: 1px solid #e6d2c2; }
+.erp-header__inner{ position: relative; max-width: 1100px; margin: 0 auto; height: 64px; }
+.erp-header__logo{ position: absolute; left: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.erp-header__logo img{ height: 180px; width: auto; display: block; }
+.erp-header__title{ position: absolute; right: 2ch; bottom: 12px; font-size: 24px; font-weight: 800; color: #7b3c21; text-align: right; }
+
+.erp-footer{ position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: #7b3c21; color: #fbeee1;
+  font-size: 12px; line-height: 36px; height: 36px; box-shadow: 0 -4px 10px rgba(0,0,0,.15); text-align: center; }
+.erp-footer-track{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 12px; }
+.btn-voltar-foot{ position: fixed; left: 10px; bottom: 48px; z-index: 45; background:#8c3b1b; color:#fff; border:none;
+  border-radius: 12px; padding: 10px 14px; font-weight: 800; box-shadow: 0 6px 16px rgba(0,0,0,.25); }
+
+/* Título local */
+.fluxcx-header{ display:flex; align-items:center; gap:8px; margin: 10px 0 14px; }
+.fluxcx-title{ font-weight:800; color:#5C1D0E; }
+
+/* Card / tabela */
+.extrato-card{
+  position: relative;
+  max-width: 1100px;
+  margin: 12px auto;
+  background: linear-gradient(180deg, #fffdfa 0%, #fef3d6 100%);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 14px 28px rgba(0,0,0,.18), inset 0 -6px 10px rgba(0,0,0,.06);
+  border: 1px solid #e6d2c2;
+}
+
+.extrato-actions{ display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+.extrato-actions input, .extrato-actions select{
+  height: 44px; font-size: 16px; padding: 8px 10px; border-radius: 10px; border: 1px solid #d2b44b; background:#fff;
+}
+
+.extrato{ width:100%; border-collapse: separate; border-spacing: 0; font-size: 15px; }
+.extrato th, .extrato td{ padding: 10px 10px; border-bottom: 1px solid #ead9c8; }
+.extrato th{ position: sticky; top: 0; background: #fff4e4; text-align: left; z-index: 1; }
+.extrato tr:hover td{ background: #fff9ec; }
+
+.chip{ display:inline-block; padding: 2px 8px; border-radius: 999px; font-weight:800; font-size:12px; }
+.chip-prev{ background:#fff0c2; color:#6a4a20; border:1px solid #e7c76a; }
+.chip-real{ background:#dff6d9; color:#1f6b2a; border:1px solid #7ad38e; }
+
+.saldos{ display:flex; gap:12px; flex-wrap:wrap; margin-top: 10px; }
+.saldos .box{
+  background:#fff; border:1px solid #e6d2c2; border-radius:12px; padding:10px 12px; font-weight:800;
+}
