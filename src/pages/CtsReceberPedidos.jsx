@@ -1,5 +1,6 @@
 // Pedidos do LanPed (ACUMULADOS) => Previsto em CAIXA FLUTUANTE
 import React, { useEffect, useState } from "react";
+import "../util/CtsReceber.css";
 import { carregarPedidosAcumulados } from "../util/cr_dataStub";
 
 export default function CtsReceberPedidos() {
@@ -10,16 +11,13 @@ export default function CtsReceberPedidos() {
     (async () => {
       setCarregando(true);
       try {
-        const dados = await carregarPedidosAcumulados(); // LanPed via stub
-        // EXCLUIR apenas status "pendente" (case-insensitive)
+        const dados = await carregarPedidosAcumulados();
         const filtrados = (dados || []).filter(p => {
           const s = String(p.statusEtapa || p.status || "").toLowerCase();
-          return s !== "pendente";
+          return s !== "pendente"; // excluir só pendente
         });
         setLista(filtrados);
-      } finally {
-        setCarregando(false);
-      }
+      } finally { setCarregando(false); }
     })();
   }, []);
 
@@ -28,18 +26,13 @@ export default function CtsReceberPedidos() {
   return (
     <div style={{ display: "grid", gap: 10 }}>
       {lista.length === 0 && (
-        <div style={{ background:"#fff", border:"1px solid #e6d2c2", borderRadius:12, padding:12 }}>
+        <div className="ctsreceber-card">
           Nenhum pedido acumulado (todos pendentes).
         </div>
       )}
 
       {lista.map(p => (
-        <div key={p.id} style={{
-          background:"#fff",
-          border:"1px solid #e6d2c2",
-          borderRadius:12,
-          padding:12
-        }}>
+        <div key={p.id} className="ctsreceber-card">
           <div style={{ display:"flex", justifyContent:"space-between", gap:8, flexWrap:"wrap" }}>
             <div><b>{p.pdv}</b> • {p.cidade || "-"}</div>
             <div style={{ fontWeight:800, color:"#5C1D0E" }}>CAIXA FLUTUANTE • PREVISTO</div>
@@ -54,7 +47,7 @@ export default function CtsReceberPedidos() {
 
           <div style={{ display:"flex", gap:8, marginTop:10 }}>
             <button
-              onClick={() => alert("Stub: marcar como Realizado (transferência p/ EXTRATO BANCARIO é feita no fluxo definido)")}
+              onClick={() => alert("Stub: marcar como Realizado (transferência p/ EXTRATO BANCARIO no fluxo do FinFlux)")}
               style={{ background:"#8c3b1b", color:"#fff", border:0, borderRadius:10, padding:"10px 12px", fontWeight:800 }}
             >
               Marcar como Realizado
