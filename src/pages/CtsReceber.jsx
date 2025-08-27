@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import "../util/CtsReceber.css"; // <- usa o CSS dedicado
+import "../util/CtsReceber.css"; // <-- agora usa o CSS novo
 
 import { carregarPlanoDeContas } from "../util/cr_dataStub";
 import CtsReceberPedidos from "./CtsReceberPedidos.jsx";
 import CtsReceberAvulso from "./CtsReceberAvulso.jsx";
 
 export default function CtsReceber({ setTela }) {
-  const [aba, setAba] = useState("acumulados"); // "acumulados" | "avulsos"
+  const [aba, setAba] = useState("acumulados");
   const [planoContas, setPlanoContas] = useState([]);
   const [loadingPC, setLoadingPC] = useState(true);
 
@@ -19,8 +19,7 @@ export default function CtsReceber({ setTela }) {
   }, []);
 
   return (
-    <div className="ctsreceber-main">
-      {/* Cabeçalho (usa suas classes globais) */}
+    <div className="ctsreceber-main">{/* <-- era alisab-main */}
       <header className="erp-header">
         <div className="erp-header__inner">
           <div className="erp-header__logo">
@@ -30,7 +29,6 @@ export default function CtsReceber({ setTela }) {
         </div>
       </header>
 
-      {/* Título + abas */}
       <div className="alisab-header">
         <h2 className="alisab-title">
           {aba === "acumulados"
@@ -61,7 +59,6 @@ export default function CtsReceber({ setTela }) {
         <CtsReceberAvulso planoContas={planoContas} />
       )}
 
-      {/* Rodapé + voltar */}
       <button className="btn-voltar-foot" onClick={() => setTela?.("HomeERP")}>🔙 Voltar</button>
       <footer className="erp-footer">
         <div className="erp-footer-track">
