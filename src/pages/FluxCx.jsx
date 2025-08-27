@@ -13,61 +13,78 @@ export default function FluxCx({ setTela }) {
   const [linhas, setLinhas] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
-  // filtros simples (opcional)
   const [mesRef, setMesRef] = useState(() => {
     const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2,"0")}`;
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
 
   useEffect(() => {
     (async () => {
       setCarregando(true);
       try {
-        const avulsos = carregarAvulsos();                // Realizados (CAIXA DIARIO)
-        const acumulados = await carregarPedidosAcumulados(); // Previstos (CAIXA FLUTUANTE)
+        const avulsos = carregarAvulsos();                     // Realizados (CAIXA DIARIO)
+        const acumulados = await carregarPedidosAcumulados();  // Previstos (CAIXA FLUTUANTE)
 
-        const A = avulsos.map(a => ({
-          id: a.id,
-          data: a.dataLancamento || a.dataPrevista,
-          conta: "CAIXA DIARIO",
-          tipo: "Realizado",
-          forma: a.formaPagamento,
-          desc: `${a.pdv || "VAREJO"} • ${a.produto} x${a.quantidade}`,
-          valor: Number(a.valor ?? a.valorUnit * a.quantidade || 0),
-        }));
+        const A = avulsos.map((a) => {
+          const vCalc =
+            a.valor != null
+              ? a.valor
+              : Number(a.valorUnit || 0) * Number(a.quantidade || 0);
+
+          return {
+            id: a.id,
+            data: a.dataLancamento || a.dataPrevista,
+            conta: "CAIXA DIARIO",
+            tipo: "Realizado",
+            forma: a.formaPagamento,
+            desc: `${a.pdv || "VAREJO"} • ${a.produto} x${a.quantidade}`,
+            valor: Number(vCalc || 0),
+          };
+        });
 
         const B = (acumulados || [])
-          .filter(p => String(p.statusEtapa || p.status || "").toLowerCase() !== "pendente")
-          .map(p => ({
+          .filter(
+            (p) =>
+              String(p.statusEtapa || p.status || "").toLowerCase() !== "pendente"
+          )
+          .map((p) => ({
             id: "prev_" + (p.id || Math.random()),
             data: p.vencimento || p.dataPrevista,
             conta: "CAIXA FLUTUANTE",
             tipo: "Previsto",
             forma: p.forma || p.formaPagamento,
-            desc: `${p.pdv || "-"} • ${p.produto || "-"} x${p.quantidade ?? "-"}`,
-            valor: Number(p.valor || 0),
+            desc: `${p.pdv || "-"} • ${p.produto || "-"} x${
+              p.quantidade ?? "-"
+            }`,
+            valor: Number(p.valor != null ? p.valor : 0),
           }));
 
-        const merged = [...A, ...B]
-          .sort((x,y) => new Date(x.data) - new Date(y.data));
+        const merged = [...A, ...B].sort(
+          (x, y) => new Date(x.data) - new Date(y.data)
+        );
 
         setLinhas(merged);
-      } finally { setCarregando(false); }
+      } finally {
+        setCarregando(false);
+      }
     })();
   }, []);
 
-  // aplica filtro por mês
   const linhasFiltradas = useMemo(() => {
     if (!mesRef) return linhas;
-    const [y,m] = mesRef.split("-").map(Number);
-    return linhas.filter(l => {
+    const [y, m] = mesRef.split("-").map(Number);
+    return linhas.filter((l) => {
       const d = new Date(l.data);
-      return d.getFullYear() === y && (d.getMonth()+1) === m;
+      return d.getFullYear() === y && d.getMonth() + 1 === m;
     });
   }, [linhas, mesRef]);
 
-  const totalPrev = linhasFiltradas.filter(l => l.tipo === "Previsto").reduce((s,l)=>s+l.valor,0);
-  const totalReal = linhasFiltradas.filter(l => l.tipo === "Realizado").reduce((s,l)=>s+l.valor,0);
+  const totalPrev = linhasFiltradas
+    .filter((l) => l.tipo === "Previsto")
+    .reduce((s, l) => s + l.valor, 0);
+  const totalReal = linhasFiltradas
+    .filter((l) => l.tipo === "Realizado")
+    .reduce((s, l) => s + l.valor, 0);
   const saldo = totalReal - totalPrev;
 
   return (
@@ -78,7 +95,11 @@ export default function FluxCx({ setTela }) {
           <div className="erp-header__logo">
             <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
           </div>
-          <div className="erp-header__title">ERP DUDUNITÊ<br/>Fluxo de Caixa</div>
+          <div className="erp-header__title">
+            ERP DUDUNITÊ
+            <br />
+            Fluxo de Caixa
+          </div>
         </div>
       </header>
 
@@ -94,7 +115,7 @@ export default function FluxCx({ setTela }) {
             <input
               type="month"
               value={mesRef}
-              onChange={(e)=>setMesRef(e.target.value)}
+              onChange={(e) => setMesRef(e.target.value)}
               style={{ marginLeft: 6 }}
             />
           </label>
@@ -107,27 +128,33 @@ export default function FluxCx({ setTela }) {
             <table className="extrato">
               <thead>
                 <tr>
-                  <th style={{minWidth:100}}>Data</th>
-                  <th style={{minWidth:140}}>Conta</th>
-                  <th style={{minWidth:110}}>Tipo</th>
+                  <th style={{ minWidth: 100 }}>Data</th>
+                  <th style={{ minWidth: 140 }}>Conta</th>
+                  <th style={{ minWidth: 110 }}>Tipo</th>
                   <th>Descrição</th>
-                  <th style={{minWidth:120}}>Forma</th>
-                  <th style={{minWidth:130, textAlign:"right"}}>Valor</th>
+                  <th style={{ minWidth: 120 }}>Forma</th>
+                  <th style={{ minWidth: 130, textAlign: "right" }}>Valor</th>
                 </tr>
               </thead>
               <tbody>
-                {linhasFiltradas.map(l => (
+                {linhasFiltradas.map((l) => (
                   <tr key={l.id}>
                     <td>{fmtData(l.data)}</td>
                     <td>{l.conta}</td>
                     <td>
-                      <span className={`chip ${l.tipo === "Realizado" ? "chip-real" : "chip-prev"}`}>
+                      <span
+                        className={`chip ${
+                          l.tipo === "Realizado" ? "chip-real" : "chip-prev"
+                        }`}
+                      >
                         {l.tipo}
                       </span>
                     </td>
                     <td>{l.desc}</td>
                     <td>{l.forma || "-"}</td>
-                    <td style={{ textAlign:"right", fontWeight:800 }}>{fmtBRL(l.valor)}</td>
+                    <td style={{ textAlign: "right", fontWeight: 800 }}>
+                      {fmtBRL(l.valor)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -142,10 +169,13 @@ export default function FluxCx({ setTela }) {
         </div>
       </div>
 
-      <button className="btn-voltar-foot" onClick={() => setTela?.("HomeERP")}>🔙 Voltar</button>
+      <button className="btn-voltar-foot" onClick={() => setTela?.("HomeERP")}>
+        🔙 Voltar
+      </button>
       <footer className="erp-footer">
         <div className="erp-footer-track">
-          • Previstos (LanPed) + Realizados Avulsos (Varejo) • Extrato Geral (FinFlux) •
+          • Previstos (LanPed) + Realizados Avulsos (Varejo) • Extrato Geral
+          (FinFlux) •
         </div>
       </footer>
     </div>
