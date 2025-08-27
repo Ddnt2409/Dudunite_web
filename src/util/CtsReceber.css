@@ -14,7 +14,6 @@
 .erp-header__logo{ position: absolute; left: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; }
 .erp-header__logo img{ height: 180px; width: auto; display: block; }
 .erp-header__title{ position: absolute; right: 2ch; bottom: 12px; font-size: 24px; font-weight: 800; color: #7b3c21; text-align: right; }
-.erp-header__spacer{ width: 42px; height: 42px; }
 
 .erp-footer{ position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: #7b3c21; color: #fbeee1;
   font-size: 12px; line-height: 36px; height: 36px; box-shadow: 0 -4px 10px rgba(0,0,0,.15); text-align: center; }
@@ -25,7 +24,6 @@
 /* ====== TÍTULO LOCAL ====== */
 .alisab-header{ display:flex; align-items:center; gap:8px; margin: 10px 0 14px; }
 .alisab-title{ font-weight:800; color:#5C1D0E; }
-.alisab-title .versao{ color:#8b6a4a; font-weight:600; }
 
 /* ====== QUADRO FLUTUANTE CENTRAL ====== */
 .ctsreceber-card{
@@ -34,12 +32,10 @@
   margin: 12px auto;
   background: linear-gradient(180deg, #fffdfa 0%, #fef3d6 100%);
   border-radius: 14px;
-  padding: 18px 16px 20px;
+  padding: 22px 18px 22px; /* +50% sensão vertical com mais respiro */
   box-shadow: 0 14px 28px rgba(0,0,0,.18), inset 0 -6px 10px rgba(0,0,0,.06);
   border: 1px solid #e6d2c2;
 }
-
-/* Título do card */
 .ctsreceber-card h2{
   font-size: 20px;
   font-weight: 800;
@@ -47,92 +43,81 @@
   margin: 0 0 10px;
 }
 
-/* ====== GRID DE CAMPOS ====== */
-.linha-add{
+/* ====== CAMPOS/GRIDS – alturas 50% maiores ====== */
+input, select, button{ font-family: inherit; }
+
+.linha-meta,
+.linha-itens{
   display: grid;
-  grid-template-columns: 1fr 120px 150px auto;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
-.linha-add input,
-.linha-add select{
-  height: 46px;
-  font-size: 16px;
-  padding: 6px 10px;
-  border-radius: 10px;
+
+/* Meta: [PDV] [Forma] [Data] */
+.linha-meta{
+  grid-template-columns: 1fr 180px 180px;
+}
+
+/* Itens: [Produto] [Qtd] [Valor] [Adicionar]  */
+.linha-itens{
+  grid-template-columns: 1fr 120px 170px auto;
+}
+
+.linha-meta input,
+.linha-meta select,
+.linha-itens input,
+.linha-itens select{
+  height: 68px;                 /* ~50% maior (antes ~46px) */
+  font-size: 18px;
+  padding: 10px 12px;
+  border-radius: 12px;
   border: 1px solid #d2b44b;
   background: #fff;
   outline: none;
 }
-.linha-add .qtd{ width: 100%; }
+
+.input-ro{ background:#faf6e7; color:#6b4b2a; }
 
 /* Botão ADICIONAR */
-.linha-add .btn-add{
-  white-space: nowrap;
-  height: 46px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 10px;
-  background: #8c3b1b;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 800;
+.btn-add{
+  height: 68px;
+  padding: 0 16px;
+  border: none; border-radius: 12px;
+  background: #8c3b1b; color:#fff;
+  font-size: 16px; font-weight: 800;
   box-shadow: 0 6px 14px rgba(0,0,0,.18);
-  cursor: pointer;
+  white-space: nowrap;
 }
 
-/* ====== LISTA DE ITENS ====== */
+/* ====== LISTA ====== */
 .linhas-list{
   list-style: none;
-  margin: 12px 0 10px;
+  margin: 14px 0 10px;
   padding: 0;
 }
 .linhas-list li{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fffde9;
-  border: 1px dashed #e0c86d;
-  border-radius: 10px;
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  font-size: 15px;
-  color: #4b2a10;
+  display:flex; justify-content:space-between; align-items:center;
+  background:#fffde9; border:1px dashed #e0c86d;
+  border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
+  font-size: 16px; color:#4b2a10;
 }
-.btn-x{
-  border: none;
-  background: transparent;
-  font-size: 18px;
-  cursor: pointer;
-}
+.btn-x{ border:none; background:transparent; font-size:20px; cursor:pointer; }
 
 /* ====== AÇÕES ====== */
 .acoes{
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
+  display:flex; gap:12px; margin-top:12px;
 }
 .btn-salvar, .btn-cancelar{
-  flex: 1;
-  height: 50px;
-  border: none;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 15px;
+  flex:1; height:68px; border:none; border-radius:14px; font-weight:800; font-size:16px;
 }
-.btn-salvar{ background:#8c3b1b; color:#fff; box-shadow: 0 6px 16px rgba(0,0,0,.22); }
+.btn-salvar{ background:#8c3b1b; color:#fff; box-shadow:0 6px 16px rgba(0,0,0,.22); }
 .btn-cancelar{ background:#eee; color:#333; }
 
-/* ====== INFOS/TOTAIS ====== */
-.cts-totais{ font-weight: 800; margin: 6px 0 4px; color: #5C1D0E; }
+.cts-totais{ font-weight:800; margin: 8px 0 6px; color:#5C1D0E; }
 
-/* ====== RESPONSIVIDADE ====== */
-@media (max-width: 900px){
-  .linha-add{ grid-template-columns: 1fr 110px 140px auto; }
-}
+/* ====== RESPONSIVO ====== */
 @media (max-width: 560px){
-  .ctsreceber-card{ padding: 14px 12px 16px; }
-  .linha-add{ grid-template-columns: 1fr; }
-  .linha-add .btn-add{ width: 100%; margin-top: 6px; }
+  .linha-meta, .linha-itens{ grid-template-columns: 1fr; }
+  .btn-add{ width: 100%; }
 }
