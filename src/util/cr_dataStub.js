@@ -1,21 +1,39 @@
-// src/util/cr_datastub.js
-// === STUB (sem Firestore) — só para a página compilar e navegar ===
+// src/util/cr_dataStub.js  (trecho novo ou para substituir)
 
-export async function carregarPlanoDeContas() {
-  // item fake para preencher o select; trocaremos por Firestore depois
-  return [{ id: "PC-STUB", codigo: "0202001", descricao: "Receita de Varejo – Venda Direta" }];
+const AVULSOS_KEY = "cr_avulsos";
+
+export function carregarAvulsos() {
+  try { return JSON.parse(localStorage.getItem(AVULSOS_KEY) || "[]"); }
+  catch { return []; }
 }
 
-export async function carregarPedidosAcumulados() {
-  // vazio por enquanto
-  return [];
-}
+export async function lancamentoAvulso(payload) {
+  const arr = carregarAvulsos();
 
-export async function getUltimoPreco() {
-  // sem preço no stub
-  return null;
-}
+  const id = "avl_" + Date.now() + "_" + Math.floor(Math.random() * 1e6);
+  const valorUnit = Number(payload.valorUnit || 0);
+  const quantidade = Number(payload.quantidade || 1);
 
-// ações reais virão na etapa Firestore (aqui só garantimos que a UI não quebre)
-export async function aprovarPedidoParaCR() { return; }
-export async function lancamentoAvulso() { return; }
+  const registro = {
+    id,
+    cidade: payload.cidade,
+    pdv: payload.pdv,                 // ex.: "VAREJO"
+    produto: payload.produto,
+    quantidade,
+    planoContas: payload.planoContas, // fixo
+    formaPagamento: payload.formaPagamento,
+    situacao: payload.situacao || "Realizado",
+    conta: "CAIXA DIARIO",
+    canal: payload.canal || "varejo",
+    dataLancamento:
+      payload.dataLancamento?.toISOString?.() || payload.dataLancamento,
+    dataPrevista:
+      payload.dataPrevista?.toISOString?.() || payload.dataPrevista,
+    valorUnit,
+    valor: valorUnit * quantidade,
+  };
+
+  arr.push(registro);
+  localStorage.setItem(AVULSOS_KEY, JSON.stringify(arr));
+  return registro;
+}
