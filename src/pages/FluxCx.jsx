@@ -1,43 +1,153 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import "../util/FluxCx.css";
+import { carregarAvulsos, carregarPedidosAcumulados } from "../util/cr_dataStub";
+
+const fmtBRL = (v) =>
+  (Number(v || 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const fmtData = (d) => {
+  const dt = d ? new Date(d) : null;
+  return dt ? dt.toLocaleDateString("pt-BR") : "-";
+};
 
 export default function FluxCx({ setTela }) {
+  const [linhas, setLinhas] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+
+  // filtros simples (opcional)
+  const [mesRef, setMesRef] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2,"0")}`;
+  });
+
+  useEffect(() => {
+    (async () => {
+      setCarregando(true);
+      try {
+        const avulsos = carregarAvulsos();                // Realizados (CAIXA DIARIO)
+        const acumulados = await carregarPedidosAcumulados(); // Previstos (CAIXA FLUTUANTE)
+
+        const A = avulsos.map(a => ({
+          id: a.id,
+          data: a.dataLancamento || a.dataPrevista,
+          conta: "CAIXA DIARIO",
+          tipo: "Realizado",
+          forma: a.formaPagamento,
+          desc: `${a.pdv || "VAREJO"} • ${a.produto} x${a.quantidade}`,
+          valor: Number(a.valor ?? a.valorUnit * a.quantidade || 0),
+        }));
+
+        const B = (acumulados || [])
+          .filter(p => String(p.statusEtapa || p.status || "").toLowerCase() !== "pendente")
+          .map(p => ({
+            id: "prev_" + (p.id || Math.random()),
+            data: p.vencimento || p.dataPrevista,
+            conta: "CAIXA FLUTUANTE",
+            tipo: "Previsto",
+            forma: p.forma || p.formaPagamento,
+            desc: `${p.pdv || "-"} • ${p.produto || "-"} x${p.quantidade ?? "-"}`,
+            valor: Number(p.valor || 0),
+          }));
+
+        const merged = [...A, ...B]
+          .sort((x,y) => new Date(x.data) - new Date(y.data));
+
+        setLinhas(merged);
+      } finally { setCarregando(false); }
+    })();
+  }, []);
+
+  // aplica filtro por mês
+  const linhasFiltradas = useMemo(() => {
+    if (!mesRef) return linhas;
+    const [y,m] = mesRef.split("-").map(Number);
+    return linhas.filter(l => {
+      const d = new Date(l.data);
+      return d.getFullYear() === y && (d.getMonth()+1) === m;
+    });
+  }, [linhas, mesRef]);
+
+  const totalPrev = linhasFiltradas.filter(l => l.tipo === "Previsto").reduce((s,l)=>s+l.valor,0);
+  const totalReal = linhasFiltradas.filter(l => l.tipo === "Realizado").reduce((s,l)=>s+l.valor,0);
+  const saldo = totalReal - totalPrev;
+
   return (
-    <div style={{ minHeight: "100vh", background: "#FFF3E9", padding: 16, color: "#1f2937" }}>
-      <button
-        onClick={() => setTela("HomeERP")}
-        style={{
-          marginBottom: 12,
-          background: "#e5e7eb",
-          border: "1px solid #d1d5db",
-          borderRadius: 8,
-          padding: "8px 12px",
-          cursor: "pointer",
-        }}
-      >
-        ← Voltar
-      </button>
+    <div className="fluxcx-main">
+      {/* Header */}
+      <header className="erp-header">
+        <div className="erp-header__inner">
+          <div className="erp-header__logo">
+            <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
+          </div>
+          <div className="erp-header__title">ERP DUDUNITÊ<br/>Fluxo de Caixa</div>
+        </div>
+      </header>
 
-      <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Fluxo de Caixa</h1>
-      <p style={{ marginBottom: 16 }}>
-        Em breve… colunas Previsto/Realizado, cores por tipo (azul CR, vermelho CP) e conciliação.
-      </p>
-
-      <div
-        style={{
-          background: "#fff",
-          border: "1px solid #eadfce",
-          borderRadius: 12,
-          padding: 14,
-        }}
-      >
-        Esqueleto pronto. Próximo passo: leitura dos lançamentos e filtros por período.
+      <div className="fluxcx-header">
+        <h2 className="fluxcx-title">Extrato Geral (Previstos + Realizados)</h2>
+        <div style={{ marginLeft: "auto" }} />
       </div>
 
-      <div style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button onClick={() => setTela("TabPrec")}>← Tabela de Preços</button>
-        <button onClick={() => setTela("CtsReceber")}>← Contas a Receber</button>
-        <button onClick={() => setTela("CtsPagar")}>← Contas a Pagar</button>
+      <div className="extrato-card">
+        <div className="extrato-actions">
+          <label>
+            Mês:
+            <input
+              type="month"
+              value={mesRef}
+              onChange={(e)=>setMesRef(e.target.value)}
+              style={{ marginLeft: 6 }}
+            />
+          </label>
+        </div>
+
+        {carregando ? (
+          <div>Carregando lançamentos…</div>
+        ) : (
+          <div style={{ overflow: "auto", maxHeight: "60vh" }}>
+            <table className="extrato">
+              <thead>
+                <tr>
+                  <th style={{minWidth:100}}>Data</th>
+                  <th style={{minWidth:140}}>Conta</th>
+                  <th style={{minWidth:110}}>Tipo</th>
+                  <th>Descrição</th>
+                  <th style={{minWidth:120}}>Forma</th>
+                  <th style={{minWidth:130, textAlign:"right"}}>Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {linhasFiltradas.map(l => (
+                  <tr key={l.id}>
+                    <td>{fmtData(l.data)}</td>
+                    <td>{l.conta}</td>
+                    <td>
+                      <span className={`chip ${l.tipo === "Realizado" ? "chip-real" : "chip-prev"}`}>
+                        {l.tipo}
+                      </span>
+                    </td>
+                    <td>{l.desc}</td>
+                    <td>{l.forma || "-"}</td>
+                    <td style={{ textAlign:"right", fontWeight:800 }}>{fmtBRL(l.valor)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="saldos">
+          <div className="box">Previstos: {fmtBRL(totalPrev)}</div>
+          <div className="box">Realizados: {fmtBRL(totalReal)}</div>
+          <div className="box">Saldo (Real - Prev): {fmtBRL(saldo)}</div>
+        </div>
       </div>
+
+      <button className="btn-voltar-foot" onClick={() => setTela?.("HomeERP")}>🔙 Voltar</button>
+      <footer className="erp-footer">
+        <div className="erp-footer-track">
+          • Previstos (LanPed) + Realizados Avulsos (Varejo) • Extrato Geral (FinFlux) •
+        </div>
+      </footer>
     </div>
   );
 }
