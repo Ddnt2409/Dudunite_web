@@ -1,4 +1,3 @@
-// Pedidos do LanPed (ACUMULADOS) => Previsto em CAIXA FLUTUANTE
 import React, { useEffect, useState } from "react";
 import "../util/CtsReceber.css";
 import { carregarPedidosAcumulados } from "../util/cr_dataStub";
@@ -14,7 +13,7 @@ export default function CtsReceberPedidos() {
         const dados = await carregarPedidosAcumulados();
         const filtrados = (dados || []).filter(p => {
           const s = String(p.statusEtapa || p.status || "").toLowerCase();
-          return s !== "pendente"; // excluir só pendente
+          return s !== "pendente";
         });
         setLista(filtrados);
       } finally { setCarregando(false); }
