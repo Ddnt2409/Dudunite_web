@@ -1,7 +1,5 @@
-// src/pages/cozinha.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import "../util/cozinha.css";
-
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
 
@@ -12,20 +10,20 @@ import {
   marcarProduzido,
 } from "../util/cozinha_store";
 
-/* ---------- helpers de normalização ---------- */
+/* ---------- helpers ---------- */
 const norm = (s) => String(s || "").trim().toUpperCase();
 const aliasTipo = (s) => {
   const x = norm(s);
   if (x === "BROWNIE 7X7" || x === "BRW 7X7") return "BRW 7X7";
   if (x === "BROWNIE 6X6" || x === "BRW 6X6") return "BRW 6X6";
-  if (x === "POCKET 5X5" || x === "PKT 5X5") return "POCKET 5X5";
-  if (x === "POCKET 6X6" || x === "PKT 6X6") return "POCKET 6X6";
+  if (x === "POCKET 5X5"  || x === "PKT 5X5") return "POCKET 5X5";
+  if (x === "POCKET 6X6"  || x === "PKT 6X6") return "POCKET 6X6";
   if (x.includes("ESC")) return "ESCONDIDINHO";
   if (x.includes("DUDU")) return "DUDU";
   return x;
 };
 
-/** Calcula quais linhas (sabores) estariam “checadas” com base no total produzido por produto. */
+/** Marca como checada cada linha (sabor) de acordo com `parciais` por produto. */
 function computeChecks(pedido) {
   const checks = {};
   const sab = pedido?.sabores || {};
@@ -34,10 +32,7 @@ function computeChecks(pedido) {
     let restante = Number(par[prod] || 0);
     checks[prod] = (sab[prod] || []).map((ln) => {
       const q = Number(ln.qtd || ln.quantidade || 0);
-      if (restante >= q) {
-        restante -= q;
-        return true;
-      }
+      if (restante >= q) { restante -= q; return true; }
       return false;
     });
   });
@@ -47,24 +42,30 @@ function computeChecks(pedido) {
 export default function Cozinha({ setTela }) {
   // filtros
   const [cidade, setCidade] = useState("Todos");
-  const [pdv, setPdv] = useState("Todos");
-  const [tipo, setTipo] = useState("Todos");
+  const [pdv, setPdv]       = useState("Todos");
+  const [tipo, setTipo]     = useState("Todos");
 
-  // dados / erro
+  // dados/erro
   const [pedidos, setPedidos] = useState([]);
-  const [erro, setErro] = useState("");
+  const [erro, setErro]       = useState("");
 
-  // assinatura em tempo real (sem filtros no servidor)
+  // assina em tempo real (sem orderBy no servidor)
   useEffect(() => {
     setErro("");
     const unsub = subscribePedidosAlimentados(
       (docs) => setPedidos(docs),
-      (err) => setErro(err?.message || String(err))
+      (err) => {
+        // Mostra mensagem curta; evita colar o link de "create index" na tela.
+        const msg = err?.code === "failed-precondition"
+          ? "Para estes filtros é necessário criar um índice no Firestore. Por ora, remova filtros ou recarregue."
+          : (err?.message || String(err));
+        setErro(msg);
+      }
     );
     return () => unsub && unsub();
   }, []);
 
-  // opções dos selects (derivadas do dataset)
+  // opções para selects
   const { cidadesOpt, pdvsOpt, tiposOpt } = useMemo(() => {
     const cs = new Set(["Todos"]);
     const ps = new Set(["Todos"]);
@@ -72,24 +73,17 @@ export default function Cozinha({ setTela }) {
     (pedidos || []).forEach((p) => {
       if (p.cidade) cs.add(p.cidade);
       if (p.pdv || p.escola) ps.add(p.pdv || p.escola);
-      if (Array.isArray(p.itens)) {
-        p.itens.forEach((it) => ts.add(aliasTipo(it.produto)));
-      }
+      (p.itens || []).forEach((it) => ts.add(aliasTipo(it.produto)));
     });
-    return {
-      cidadesOpt: Array.from(cs),
-      pdvsOpt: Array.from(ps),
-      tiposOpt: Array.from(ts),
-    };
+    return { cidadesOpt: [...cs], pdvsOpt: [...ps], tiposOpt: [...ts] };
   }, [pedidos]);
 
-  // filtro no cliente
+  // filtro + ordenação no cliente
   const pedidosFiltrados = useMemo(() => {
-    return (pedidos || []).filter((p) => {
+    const lista = (pedidos || []).filter((p) => {
       const okCidade = cidade === "Todos" || norm(p.cidade) === norm(cidade);
-      const pPdv = p.pdv || p.escola;
-      const okPdv = pdv === "Todos" || norm(pPdv) === norm(pdv);
-
+      const pPdv     = p.pdv || p.escola;
+      const okPdv    = pdv === "Todos" || norm(pPdv) === norm(pdv);
       let okTipo = true;
       if (tipo !== "Todos") {
         const alvo = aliasTipo(tipo);
@@ -97,24 +91,30 @@ export default function Cozinha({ setTela }) {
       }
       return okCidade && okPdv && okTipo;
     });
+
+    // ordena por cidade, pdv e tipo do primeiro item
+    return lista.sort((a, b) => {
+      const ac = norm(a.cidade), bc = norm(b.cidade);
+      if (ac !== bc) return ac.localeCompare(bc);
+      const ap = norm(a.pdv || a.escola), bp = norm(b.pdv || b.escola);
+      if (ap !== bp) return ap.localeCompare(bp);
+      const at = aliasTipo(a.itens?.[0]?.produto || "");
+      const bt = aliasTipo(b.itens?.[0]?.produto || "");
+      return at.localeCompare(bt);
+    });
   }, [pedidos, cidade, pdv, tipo]);
 
-  // handler do checkbox (ajusta parcial para a linha)
+  // checkbox -> atualiza produção parcial
   const toggleLinha = useCallback(async (pedido, prod, linhaQtd, checked) => {
     try {
       const delta = checked ? +linhaQtd : -linhaQtd;
       await atualizarParcial(pedido.id, prod, delta);
-    } catch (e) {
-      alert("Erro ao atualizar produção: " + (e?.message || e));
-    }
+    } catch (e) { alert("Erro ao atualizar produção: " + (e?.message || e)); }
   }, []);
 
   const confirmaProduzido = useCallback(async (pedido) => {
-    try {
-      await marcarProduzido(pedido.id);
-    } catch (e) {
-      alert("Erro ao marcar como produzido: " + (e?.message || e));
-    }
+    try { await marcarProduzido(pedido.id); }
+    catch (e) { alert("Erro ao marcar como produzido: " + (e?.message || e)); }
   }, []);
 
   return (
@@ -128,124 +128,71 @@ export default function Cozinha({ setTela }) {
         </div>
         <div className="cozinha-filtros">
           <label>
-            <div style={{ fontSize: 12, color: "#7a5a2a", marginBottom: 4 }}>
-              Cidade
-            </div>
+            <div style={{ fontSize: 12, color: "#7a5a2a", marginBottom: 4 }}>Cidade</div>
             <select value={cidade} onChange={(e) => setCidade(e.target.value)}>
-              {cidadesOpt.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
+              {cidadesOpt.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </label>
-
           <label>
-            <div style={{ fontSize: 12, color: "#7a5a2a", marginBottom: 4 }}>
-              PDV
-            </div>
+            <div style={{ fontSize: 12, color: "#7a5a2a", marginBottom: 4 }}>PDV</div>
             <select value={pdv} onChange={(e) => setPdv(e.target.value)}>
-              {pdvsOpt.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
+              {pdvsOpt.map((p) => <option key={p} value={p}>{p}</option>)}
             </select>
           </label>
-
           <label>
-            <div style={{ fontSize: 12, color: "#7a5a2a", marginBottom: 4 }}>
-              Tipo de produto
-            </div>
+            <div style={{ fontSize: 12, color: "#7a5a2a", marginBottom: 4 }}>Tipo de produto</div>
             <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
-              {tiposOpt.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
+              {tiposOpt.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
           </label>
-
-          <button
-            className="btn-filtrar"
-            onClick={() => {
-              // filtros aplicados automaticamente; botão é só estético
-            }}
-          >
-            Filtrar
-          </button>
+          <button className="btn-filtrar" onClick={() => { /* só estético */ }}>Filtrar</button>
         </div>
 
         {erro && (
-          <div
-            style={{
-              background: "#fff",
-              border: "1px solid #e6d2c2",
-              borderRadius: 10,
-              padding: 10,
-              color: "#8c3b1b",
-              marginBottom: 8,
-            }}
-          >
+          <div style={{
+            background: "#fff", border: "1px solid #e6d2c2", borderRadius: 10,
+            padding: 10, color: "#8c3b1b", marginBottom: 8, wordBreak: "break-word"
+          }}>
             {erro}
           </div>
         )}
 
-        {/* quando não há pedidos */}
-        {pedidosFiltrados.length === 0 && (
+        {/* vazio */}
+        {pedidosFiltrados.length === 0 && !erro && (
           <div className="postit tilt-l" style={{ maxWidth: 360 }}>
             <i className="pin" />
             <div className="postit-header">
               <div className="pdv">Sem pedidos</div>
-              <div className="resumo">
-                Somente pedidos com status <b>ALIMENTADO</b> aparecem aqui.
-              </div>
+              <div className="resumo">Somente pedidos com status <b>ALIMENTADO</b> aparecem aqui.</div>
             </div>
           </div>
         )}
 
-        {/* lista de post-its */}
+        {/* lista */}
         <section className="postits-list">
           {pedidosFiltrados.map((p, idx) => {
             const tilt = idx % 2 ? "tilt-r" : "tilt-l";
             const resumo = resumoPedido(p);
             const checks = computeChecks(p);
             const isProduzido = p.statusEtapa === "Produzido" || resumo.completo;
-
-            // agrupar sabores por produto (ordem estável)
-            const prods = Object.keys(p?.sabores || {});
-            prods.sort((a, b) => aliasTipo(a).localeCompare(aliasTipo(b)));
+            const prods = Object.keys(p?.sabores || {}).sort((a, b) => aliasTipo(a).localeCompare(aliasTipo(b)));
 
             return (
               <article key={p.id} className={`postit ${tilt}`}>
                 <i className="pin" aria-hidden />
                 <div className="postit-header">
-                  <div className="pdv">
-                    {(p.pdv || p.escola) ?? "—"} — {p.cidade ?? "—"}
-                  </div>
+                  <div className="pdv">{(p.pdv || p.escola) ?? "—"} — {p.cidade ?? "—"}</div>
                   <div className="resumo">
-                    {prods.length ? (
-                      <span>
-                        {prods.map((nm, i) => (
-                          <span key={nm}>
-                            {aliasTipo(nm)}
-                            {i < prods.length - 1 ? ", " : ""}
-                          </span>
-                        ))}
-                      </span>
-                    ) : (
-                      <span>Sem sabores definidos</span>
-                    )}
+                    {prods.length ? prods.map((nm, i) =>
+                      <span key={nm}>{aliasTipo(nm)}{i < prods.length - 1 ? ", " : ""}</span>
+                    ) : <span>Sem sabores definidos</span>}
                   </div>
                 </div>
 
-                {isProduzido ? (
-                  <div className="carimbo">PRODUZIDO</div>
-                ) : (
-                  <div className="carimbo" style={{ borderColor: "#8c3b1b", color: "#8c3b1b" }}>
-                    ALIMENTADO
-                  </div>
-                )}
+                {isProduzido
+                  ? <div className="carimbo">PRODUZIDO</div>
+                  : <div className="carimbo" style={{ borderColor:"#8c3b1b", color:"#8c3b1b" }}>ALIMENTADO</div>
+                }
 
                 <div className="postit-body">
                   {prods.map((prod) => {
@@ -253,12 +200,7 @@ export default function Cozinha({ setTela }) {
                     const chk = checks[prod] || [];
                     return (
                       <div className="produto-bloco" key={prod}>
-                        <div className="produto-titulo">
-                          <div style={{ fontWeight: 800 }}>
-                            {aliasTipo(prod)}
-                          </div>
-                        </div>
-
+                        <div className="produto-titulo"><div style={{ fontWeight: 800 }}>{aliasTipo(prod)}</div></div>
                         {linhas.map((ln, i) => {
                           const qtd = Number(ln.qtd || ln.quantidade || 0);
                           const marcado = !!chk[i];
@@ -269,9 +211,7 @@ export default function Cozinha({ setTela }) {
                               <input
                                 type="checkbox"
                                 checked={marcado}
-                                onChange={(e) =>
-                                  toggleLinha(p, prod, qtd, e.target.checked)
-                                }
+                                onChange={(e) => toggleLinha(p, prod, qtd, e.target.checked)}
                               />
                             </div>
                           );
@@ -282,16 +222,12 @@ export default function Cozinha({ setTela }) {
 
                   <div className="actions">
                     {!isProduzido && (
-                      <button
-                        className="btn-finalizar"
-                        onClick={() => confirmaProduzido(p)}
-                      >
+                      <button className="btn-finalizar" onClick={() => confirmaProduzido(p)}>
                         Produzido
                       </button>
                     )}
                     <div style={{ marginLeft: "auto", fontWeight: 800, color: "#7a5a2a" }}>
-                      Solicitado: {resumo.total} • Produzido: {resumo.produzido} • Restam:{" "}
-                      {resumo.restam}
+                      Solicitado: {resumo.total} • Produzido: {resumo.produzido} • Restam: {resumo.restam}
                     </div>
                   </div>
                 </div>
@@ -304,4 +240,4 @@ export default function Cozinha({ setTela }) {
       <ERPFooter onBack={() => setTela?.("HomePCP")} />
     </>
   );
-                           }
+            }
