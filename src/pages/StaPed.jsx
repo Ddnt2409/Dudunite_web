@@ -8,10 +8,17 @@ import ERPFooter from "./ERPFooter";
 import "./StaPed.css";
 
 import StaPedActions from "./StaPedActions";
-import { PDVs_VALIDOS, chavePDV, totalPDVsValidos } from "../util/PDVsValidos";
+import { PDVs_VALIDOS, totalPDVsValidos } from "../util/PDVsValidos";
 import { caminhoCicloFromDate } from "../util/Ciclo";
 
 /* ===== Helpers ===== */
+const rmAcc = (s) => String(s || "")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .trim()
+  .toUpperCase();
+const keyPDV = (cidade, pdv) => `${rmAcc(cidade)}::${rmAcc(pdv)}`;
+
 function normStatus(raw) {
   const s = String(raw || "").toLowerCase();
   if (s.includes("produz")) return "Produzido";
@@ -51,77 +58,89 @@ export default function StaPed({ setTela }) {
   const [listaAlimentados, setListaAlimentados] = useState([]);
   const [listaProduzidos, setListaProduzidos]   = useState([]);
 
-  // 🔸 Status vindos da COZINHA: set de chaves PDV (cidade+pdv) marcadas como PRODUZIDO
-  const cozinhaProduzidosRef = useRef(new Set());
+  // set de PDVs produzidos vindos da coleção da Cozinha
+  const cozinhaProdSetRef = useRef(new Set());
 
-  // Último dataset semanal/raiz para reprocessar quando Cozinha mudar
-  const lastDocsRef = useRef([]);   // [{ id, data }]
+  // snapshot e metadados mais recentes da semana/raiz
+  const lastDocsRef = useRef([]);   // [{ data }]
   const lastMetaRef = useRef(null); // { ini, fim, from }
 
   const unsubRootRef    = useRef(null);
   const unsubRootAllRef = useRef(null);
 
+  /* ---------- Reprocessa tudo quando muda Cozinha ou Semana/Raiz ---------- */
   const recompute = () => {
     const meta = lastMetaRef.current;
     const docs = lastDocsRef.current;
     if (!meta || !Array.isArray(docs)) return;
 
     const { ini, fim, from } = meta;
-    const prodSet = cozinhaProduzidosRef.current || new Set();
+    const cozinhaSet = cozinhaProdSetRef.current || new Set();
 
-    const acc = { Lançado: 0, Alimentado: 0, Produzido: 0 };
-    const pdvsComPedido = new Set();
-    const lista = [];
-
-    const lancados = [], alimentados = [], produzidos = [];
-    const seenLanc = new Set(), seenAli = new Set(), seenProd = new Set();
+    // Mapa por PDV com prioridade de status
+    const pri = { "Lançado": 1, "Alimentado": 2, "Produzido": 3 };
+    const byKey = new Map();
 
     docs.forEach(({ data: d }) => {
       if ((from?.startsWith("root") || from === "weekly-root") && !dentroDaSemana(d, ini, fim)) return;
 
       const cidade = d.cidade || d.city || "";
       const pdv    = d.pdv || d.escola || "";
-      const key    = (cidade && pdv) ? chavePDV(cidade, pdv) : null;
+      if (!cidade || !pdv) return;
 
-      let core = normStatus(d.statusEtapa);
-      // 🔸 se a Cozinha marcou PRODUZIDO para este PDV, sobrepõe
-      if (key && prodSet.has(key)) core = "Produzido";
+      const k   = keyPDV(cidade, pdv);
+      let stat  = normStatus(d.statusEtapa);
 
-      if (acc[core] !== undefined) acc[core] += 1;
-      if (key) pdvsComPedido.add(key);
+      // sobreposição da Cozinha
+      if (cozinhaSet.has(k)) stat = "Produzido";
 
-      const itens = Array.isArray(d.itens) ? d.itens : Array.isArray(d.items) ? d.items : [];
-      lista.push({ cidade, pdv, itens, sabores: d.sabores || null, statusEtapa: core });
-
-      if (key) {
-        if (core === "Lançado"    && !seenLanc.has(key)) { seenLanc.add(key);  lancados.push({ cidade, pdv }); }
-        if (core === "Alimentado" && !seenAli.has(key))  { seenAli.add(key);   alimentados.push({ cidade, pdv }); }
-        if (core === "Produzido"  && !seenProd.has(key)) { seenProd.add(key);  produzidos.push({ cidade, pdv }); }
+      const cur = byKey.get(k);
+      if (!cur || pri[stat] > pri[cur.status]) {
+        byKey.set(k, { cidade, pdv, status: stat, itens: Array.isArray(d.itens) ? d.itens : (Array.isArray(d.items) ? d.items : []), sabores: d.sabores || null });
       }
     });
 
+    // Listas finais
+    const lancados    = [];
+    const alimentados = [];
+    const produzidos  = [];
+    byKey.forEach((v) => {
+      if (v.status === "Lançado")    lancados.push({ cidade: v.cidade, pdv: v.pdv });
+      if (v.status === "Alimentado") alimentados.push({ cidade: v.cidade, pdv: v.pdv });
+      if (v.status === "Produzido")  produzidos.push({ cidade: v.cidade, pdv: v.pdv });
+    });
+
     // Pendentes com base no mestre
-    const todos = [];
+    const presentes = new Set([...byKey.keys()]);
+    const pend = [];
     PDVs_VALIDOS.forEach(({ cidade, pdvs }) => {
       pdvs.forEach((p) => {
-        const key = chavePDV(cidade, p);
-        if (!pdvsComPedido.has(key)) todos.push({ cidade, pdv: p });
+        const k = keyPDV(cidade, p);
+        if (!presentes.has(k)) pend.push({ cidade, pdv: p });
       });
     });
 
     const ord = (a, b) => (a.cidade === b.cidade ? a.pdv.localeCompare(b.pdv) : a.cidade.localeCompare(b.cidade));
-    setListaPendentes(todos);
+    setListaPendentes(pend);
     setListaLancados(lancados.sort(ord));
     setListaAlimentados(alimentados.sort(ord));
     setListaProduzidos(produzidos.sort(ord));
 
-    const pendentesCount = todos.length || Math.max(totalPDVsValidos() - pdvsComPedido.size, 0);
-    setCounts({ Pendente: pendentesCount, Lançado: acc.Lançado, Alimentado: acc.Alimentado, Produzido: acc.Produzido });
-    setPedidos(lista);
-    setSemanaVazia(lista.length === 0);
+    setCounts({
+      Pendente: pend.length || Math.max(totalPDVsValidos() - presentes.size, 0),
+      Lançado: lancados.length,
+      Alimentado: alimentados.length,
+      Produzido: produzidos.length,
+    });
+
+    // para exportações/ações
+    setPedidos(
+      Array.from(byKey.values()).map(({ cidade, pdv, itens, sabores, status }) => ({ cidade, pdv, itens, sabores, statusEtapa: status }))
+    );
+    setSemanaVazia(byKey.size === 0);
   };
 
-  // 1) Assina COZINHA (pcp_pedidos) e guarda PDVs marcados PRODUZIDO
+  /* ---------- 1) Assina COZINHA (pcp_pedidos) ---------- */
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "pcp_pedidos"), (snap) => {
       const set = new Set();
@@ -131,17 +150,17 @@ export default function StaPed({ setTela }) {
         if (status === "Produzido") {
           const cidade = d.cidade || d.city || "";
           const pdv    = d.pdv || d.escola || "";
-          if (cidade && pdv) set.add(chavePDV(cidade, pdv));
+          if (cidade && pdv) set.add(keyPDV(cidade, pdv));
         }
       });
-      cozinhaProduzidosRef.current = set;
+      cozinhaProdSetRef.current = set;
       recompute();
     });
     return () => unsub();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2) Assinatura principal: semanal → fallback raiz
+  /* ---------- 2) Assina SEMANA (fallback raiz) ---------- */
   useEffect(() => {
     const { ini, fim } = intervaloSemanaBase(new Date());
     const weeklyPath = caminhoCicloFromDate(new Date());
@@ -153,7 +172,7 @@ export default function StaPed({ setTela }) {
       (snap) => {
         if (!snap.empty) {
           cleanupRoot();
-          lastDocsRef.current = snap.docs.map((d) => ({ id: d.id, data: d.data() || {} }));
+          lastDocsRef.current = snap.docs.map((d) => ({ data: d.data() || {} }));
           lastMetaRef.current = { ini, fim, from: weeklyIsRoot ? "weekly-root" : "weekly" };
           recompute();
         } else {
@@ -185,12 +204,12 @@ export default function StaPed({ setTela }) {
         where("criadoEm",  "<",   Timestamp.fromDate(fim))
       );
       const unsubA = onSnapshot(qA, (sA) => {
-        lastDocsRef.current = sA.docs.map((d) => ({ id: d.id, data: d.data() || {} }));
+        lastDocsRef.current = sA.docs.map((d) => ({ data: d.data() || {} }));
         lastMetaRef.current = { ini, fim, from: "root-created" };
         recompute();
       });
       const unsubB = onSnapshot(qB, (sB) => {
-        lastDocsRef.current = sB.docs.map((d) => ({ id: d.id, data: d.data() || {} }));
+        lastDocsRef.current = sB.docs.map((d) => ({ data: d.data() || {} }));
         lastMetaRef.current = { ini, fim, from: "root-criado" };
         recompute();
       });
@@ -206,7 +225,7 @@ export default function StaPed({ setTela }) {
     unsubRootAllRef.current = onSnapshot(
       rootRef,
       (sAll) => {
-        lastDocsRef.current = sAll.docs.map((d) => ({ id: d.id, data: d.data() || {} }));
+        lastDocsRef.current = sAll.docs.map((d) => ({ data: d.data() || {} }));
         lastMetaRef.current = { ini, fim, from: "root-all" };
         recompute();
       },
@@ -318,4 +337,4 @@ export default function StaPed({ setTela }) {
       <ERPFooter onBack={() => setTela("HomePCP")} />
     </>
   );
-              }
+}
