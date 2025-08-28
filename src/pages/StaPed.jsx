@@ -11,22 +11,15 @@ import StaPedActions from "./StaPedActions";
 import { PDVs_VALIDOS, chavePDV, totalPDVsValidos } from "../util/PDVsValidos";
 import { caminhoCicloFromDate } from "../util/Ciclo";
 
-// --- helpers -------------------------------------------------
-function normalizaStatusVisual(raw) {
-  const s = (raw || "").toLowerCase();
+/* =================== helpers =================== */
+function normalizaStatus(raw) {
+  const s = String(raw || "").toLowerCase();
   if (s.includes("produz")) return "Produzido";
   if (s.includes("aliment")) return "Alimentado";
   if (s.includes("lanç") || s.includes("lanc") || s === "pendente") return "Lançado";
   return "Lançado";
 }
-function normalizaStatusCore(raw) {
-  const s = (raw || "").toLowerCase();
-  if (s.includes("produz")) return "Produzido";
-  if (s.includes("aliment")) return "Alimentado";
-  if (s.includes("lanç") || s.includes("lanc") || s === "pendente") return "Lançado";
-  return "Lançado";
-}
-// janela da semana (segunda 11:00 → próxima segunda 11:00, horário local)
+// janela da semana (seg 11:00 → próxima seg 11:00)
 function intervaloSemanaBase(ref = new Date()) {
   const d = new Date(ref);
   const dow = (d.getDay() + 6) % 7; // seg=0
@@ -42,51 +35,59 @@ function dentroDaSemana(docData, ini, fim) {
     docData?.createdEm?.toDate?.() ||
     docData?.criadoEm?.toDate?.() ||
     docData?.atualizadoEm?.toDate?.() ||
-    docData?.dataAlimentado?.toDate?.();
-  if (!cand) return true; // se não houver carimbo, não exclui
+    docData?.dataAlimentado?.toDate?.() ||
+    null;
+  if (!cand) return true;
   return cand >= ini && cand < fim;
 }
-// -------------------------------------------------------------
+/* ================================================ */
 
 export default function StaPed({ setTela }) {
-  const [counts, setCounts] = useState({ Pendente: 0, Lançado: 0, Alimentado: 0, Produzido: 0 });
+  const [counts, setCounts]   = useState({ Pendente: 0, Lançado: 0, Alimentado: 0, Produzido: 0 });
   const [pedidos, setPedidos] = useState([]);
   const [semanaVazia, setSemanaVazia] = useState(false);
 
-  // listas por quadrante
-  const [listaPendentes, setListaPendentes] = useState([]);
-  const [listaLancados, setListaLancados] = useState([]);
-  const [listaAlimentados, setListaAlimentados] = useState([]);
+  const [listaPendentes,  setListaPendentes]  = useState([]);
+  const [listaLancados,   setListaLancados]   = useState([]);
+  const [listaAlimentados,setListaAlimentados]= useState([]);
   const [listaProduzidos, setListaProduzidos] = useState([]);
 
-  const unsubRootRef = useRef(null);
+  // status vindos da COZINHA (pcp_pedidos) — usado para sobrepor
+  const cozinhaStatusRef = useRef(new Map());
+
+  const unsubRootRef    = useRef(null);
   const unsubRootAllRef = useRef(null);
 
+  // Assina pcp_pedidos (Cozinha) e guarda o status por ID
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, "pcp_pedidos"), (snap) => {
+      const map = new Map();
+      snap.forEach((d) => map.set(d.id, normalizaStatus(d.data()?.statusEtapa)));
+      cozinhaStatusRef.current = map; // usado durante o processamento do snapshot semanal/raiz
+    });
+    return () => unsub();
+  }, []);
+
+  // Assinatura principal: semanal → fallback raiz
   useEffect(() => {
     const { ini, fim } = intervaloSemanaBase(new Date());
-
     const weeklyPath = caminhoCicloFromDate(new Date());
     const weeklyRef  = collection(db, weeklyPath);
     const weeklyIsRoot = weeklyPath === "PEDIDOS";
 
-    // 1) Tenta primeiro o CICLO semanal (ou raiz se ciclo aponta p/ raiz)
     const unsubWeekly = onSnapshot(
       weeklyRef,
       (snap) => {
         if (!snap.empty) {
           cleanupRoot();
-          // se weekly == raiz, ainda assim precisamos filtrar por janela
           processaSnapshot(snap, { ini, fim, from: weeklyIsRoot ? "weekly-root" : "weekly" });
           setSemanaVazia(false);
         } else {
-          // 2) Fallback: raiz com filtros (createdEm/criadoEm)
           setSemanaVazia(true);
           assinarRootFiltrado(ini, fim);
         }
       },
-      (e) => {
-        console.error("StaPed semanal:", e);
-        // 3) Se der erro (ex.: índice), assina raiz com filtro
+      (_) => {
         setSemanaVazia(true);
         assinarRootFiltrado(ini, fim);
       }
@@ -105,18 +106,17 @@ export default function StaPed({ setTela }) {
       const qA = query(
         rootRef,
         where("createdEm", ">=", Timestamp.fromDate(ini)),
-        where("createdEm", "<", Timestamp.fromDate(fim))
+        where("createdEm", "<",   Timestamp.fromDate(fim))
       );
       const qB = query(
         rootRef,
-        where("criadoEm", ">=", Timestamp.fromDate(ini)),
-        where("criadoEm", "<", Timestamp.fromDate(fim))
+        where("criadoEm",  ">=", Timestamp.fromDate(ini)),
+        where("criadoEm",  "<",   Timestamp.fromDate(fim))
       );
       const unsubA = onSnapshot(qA, (sA) => processaSnapshot(sA, { ini, fim, from: "root-created" }));
-      const unsubB = onSnapshot(qB, (sB) => processaSnapshot(sB, { ini, fim, from: "root-criado" }));
+      const unsubB = onSnapshot(qB, (sB) => processaSnapshot(sB, { ini, fim, from: "root-criado"  }));
       unsubRootRef.current = () => { unsubA(); unsubB(); };
-    } catch (err) {
-      console.warn("Queries com where falharam (índice). Indo de raiz inteira + filtro no cliente.", err);
+    } catch {
       assinarRootSemFiltro(ini, fim);
     }
   }
@@ -132,7 +132,7 @@ export default function StaPed({ setTela }) {
   }
 
   function cleanupRoot() {
-    if (unsubRootRef.current) { unsubRootRef.current(); unsubRootRef.current = null; }
+    if (unsubRootRef.current)    { unsubRootRef.current();    unsubRootRef.current = null; }
     if (unsubRootAllRef.current) { unsubRootAllRef.current(); unsubRootAllRef.current = null; }
   }
 
@@ -142,47 +142,45 @@ export default function StaPed({ setTela }) {
     const lista = [];
     const vistos = new Set();
 
-    // coletores por status (deduplicados por cidade+pdv)
-    const lancados = [];
-    const alimentados = [];
+    const lancados   = [];
+    const alimentados= [];
     const produzidos = [];
     const seenLanc = new Set();
     const seenAli  = new Set();
     const seenProd = new Set();
 
+    const cozinhaMap = cozinhaStatusRef.current || new Map();
+
     snap.forEach((docu) => {
       if (vistos.has(docu.id)) return;
       const d = docu.data() || {};
 
-      // APLICA janela se veio da raiz (root-*) OU se o "weekly" está apontando para a raiz
       if ((from?.startsWith("root") || from === "weekly-root") && !dentroDaSemana(d, ini, fim)) return;
 
       vistos.add(docu.id);
 
-      const vis = normalizaStatusVisual(d.statusEtapa);
-      const core = normalizaStatusCore(d.statusEtapa);
+      // status original do documento
+      let core = normalizaStatus(d.statusEtapa);
+      // sobreposição pelo que a COZINHA já marcou (se "Produzido", sobrepõe)
+      const coz = cozinhaMap.get(docu.id);
+      if (coz === "Produzido") core = "Produzido";
+
+      // para o contador visual usamos o mesmo "core"
+      const vis = core;
       if (acc[vis] !== undefined) acc[vis] += 1;
 
       const cidade = d.cidade || d.city || "";
-      const pdv = d.pdv || d.escola || "";
-      const key = (cidade && pdv) ? chavePDV(cidade, pdv) : null;
+      const pdv    = d.pdv || d.escola || "";
+      const key    = (cidade && pdv) ? chavePDV(cidade, pdv) : null;
       if (key) pdvsComPedido.add(key);
 
       const itens = Array.isArray(d.itens) ? d.itens : Array.isArray(d.items) ? d.items : [];
       lista.push({ cidade, pdv, itens, sabores: d.sabores || null, statusEtapa: core });
 
-      // preencher listas por status
       if (key) {
-        if (core === "Lançado" && !seenLanc.has(key)) {
-          seenLanc.add(key);
-          lancados.push({ cidade, pdv });
-        } else if (core === "Alimentado" && !seenAli.has(key)) {
-          seenAli.add(key);
-          alimentados.push({ cidade, pdv });
-        } else if (core === "Produzido" && !seenProd.has(key)) {
-          seenProd.add(key);
-          produzidos.push({ cidade, pdv });
-        }
+        if (core === "Lançado"   && !seenLanc.has(key)) { seenLanc.add(key);   lancados.push({ cidade, pdv }); }
+        if (core === "Alimentado"&& !seenAli.has(key))  { seenAli.add(key);    alimentados.push({ cidade, pdv }); }
+        if (core === "Produzido" && !seenProd.has(key)) { seenProd.add(key);   produzidos.push({ cidade, pdv }); }
       }
     });
 
@@ -196,7 +194,6 @@ export default function StaPed({ setTela }) {
     });
     setListaPendentes(todos);
 
-    // ordena listas por cidade, depois PDV (opcional)
     const ord = (a, b) => (a.cidade === b.cidade ? a.pdv.localeCompare(b.pdv) : a.cidade.localeCompare(b.cidade));
     setListaLancados(lancados.sort(ord));
     setListaAlimentados(alimentados.sort(ord));
@@ -307,4 +304,4 @@ export default function StaPed({ setTela }) {
       <ERPFooter onBack={() => setTela("HomePCP")} />
     </>
   );
-                    }
+            }
