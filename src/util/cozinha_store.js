@@ -8,6 +8,7 @@ import {
   doc,
   setDoc,
   getDoc,
+  getDocs,
   runTransaction,
   serverTimestamp,
 } from "firebase/firestore";
@@ -17,15 +18,28 @@ import { upsertPedidoInCiclo, semanaRefFromDate } from "./Ciclo";
 // coleção usada pela Cozinha
 const COL = "pcp_pedidos";
 
+/* ----------------- helpers ----------------- */
+function intervaloSemanaBase(ref = new Date()) {
+  const d = new Date(ref);
+  const dow = (d.getDay() + 6) % 7; // seg=0
+  d.setHours(11, 0, 0, 0);
+  d.setDate(d.getDate() - dow);
+  const ini = new Date(d);
+  const fim = new Date(d);
+  fim.setDate(fim.getDate() + 7);
+  return { ini, fim };
+}
+function toYMD(d) {
+  const x = new Date(d);
+  const m = String(x.getMonth() + 1).padStart(2, "0");
+  const day = String(x.getDate()).padStart(2, "0");
+  return `${x.getFullYear()}-${m}-${day}`;
+}
+/* ------------------------------------------- */
+
 /**
  * Assinatura em tempo real dos pedidos da Cozinha.
  * Retorna ALIMENTADO e PRODUZIDO (ordenamos no cliente p/ evitar índice).
- *
- * Uso:
- *   const unsub = subscribePedidosAlimentados(
- *     (docs) => setPedidos(docs),
- *     (err) => setErro(err?.message || String(err))
- *   );
  */
 export function subscribePedidosAlimentados(onChange, onError) {
   try {
@@ -39,7 +53,6 @@ export function subscribePedidosAlimentados(onChange, onError) {
         const pedidos = snap.docs
           .map((d) => ({ id: d.id, ...d.data() }))
           .sort((a, b) => {
-            // dataPrevista no formato YYYY-MM-DD; ordena string com fallback
             const da = String(a.dataPrevista || "");
             const dbb = String(b.dataPrevista || "");
             if (da < dbb) return -1;
@@ -72,11 +85,7 @@ export async function atualizarParcial(pedidoId, produto, delta) {
     const novo = Math.max(0, atual + Number(delta || 0));
     parciais[produto] = novo;
 
-    tx.set(
-      ref,
-      { parciais, atualizadoEm: serverTimestamp() },
-      { merge: true }
-    );
+    tx.set(ref, { parciais, atualizadoEm: serverTimestamp() }, { merge: true });
   });
 }
 
@@ -110,9 +119,7 @@ export async function marcarProduzido(pedidoId) {
     if (rootSnap.exists()) {
       const d = rootSnap.data() || {};
       const criado =
-        d?.criadoEm?.toDate?.() ||
-        d?.createdEm?.toDate?.() ||
-        new Date();
+        d?.criadoEm?.toDate?.() || d?.createdEm?.toDate?.() || new Date();
 
       const weeklyPath = semanaRefFromDate(criado).path;
 
@@ -129,7 +136,7 @@ export async function marcarProduzido(pedidoId) {
         criado
       );
     }
-  } catch (_) {
+  } catch {
     // se falhar aqui, ao menos Cozinha e PEDIDOS ficaram corretos
   }
 }
@@ -142,15 +149,12 @@ export async function upsertAlimentadoCozinha(pedidoId, data) {
   await setDoc(
     doc(db, COL, pedidoId),
     {
-      // campos mínimos p/ Cozinha
       statusEtapa: "Alimentado",
       cidade: data.cidade || "",
       pdv: data.pdv || data.escola || "",
       itens: Array.isArray(data.itens) ? data.itens : [],
       sabores: data.sabores || {},
       parciais: data.parciais || {},
-
-      // datas/auxiliares
       dataPrevista: data.dataPrevista || "",
       atualizadoEm: serverTimestamp(),
     },
@@ -160,9 +164,6 @@ export async function upsertAlimentadoCozinha(pedidoId, data) {
 
 /**
  * Resumo para exibição na UI.
- * total   → somatório das quantidades pedidas
- * produzido → soma dos parciais limitados ao pedido
- * parcial/completo/restam → flags e saldo
  */
 export function resumoPedido(p) {
   const itens = Array.isArray(p.itens) ? p.itens : [];
@@ -183,3 +184,53 @@ export function resumoPedido(p) {
   const restam = Math.max(0, total - produzido);
   return { total, produzido, parcial, completo, restam };
 }
+
+/**
+ * ⬇️ BACKFILL (opcional): popula/atualiza `pcp_pedidos` com os documentos
+ * de ALIMENTADO / PRODUZIDO da semana corrente que estão em `PEDIDOS`.
+ * Evita índices compostos: uma única cláusula `where(statusEtapa in [...])`
+ * e filtragem da janela semanal no cliente.
+ */
+export async function backfillCozinhaSemana() {
+  try {
+    const { ini, fim } = intervaloSemanaBase(new Date());
+    const colRoot = collection(db, "PEDIDOS");
+    const q = query(colRoot, where("statusEtapa", "in", ["Alimentado", "Produzido"]));
+    const snap = await getDocs(q);
+
+    const ops = [];
+    snap.forEach((docSnap) => {
+      const d = docSnap.data() || {};
+
+      // carimbo para filtrar a janela semanal
+      const stamp =
+        d?.criadoEm?.toDate?.() ||
+        d?.createdEm?.toDate?.() ||
+        d?.dataAlimentado?.toDate?.() ||
+        null;
+      if (!stamp || stamp < ini || stamp >= fim) return;
+
+      const payload = {
+        statusEtapa: d.statusEtapa || "Alimentado",
+        cidade: d.cidade || "",
+        pdv: d.pdv || d.escola || "",
+        itens: Array.isArray(d.itens)
+          ? d.itens.map((it) => ({
+              produto: it.produto,
+              qtd: Number(it.qtd || it.quantidade || 0),
+            }))
+          : [],
+        sabores: d.sabores || {},
+        parciais: d.parciais || {},
+        dataPrevista: toYMD(stamp),
+        atualizadoEm: serverTimestamp(),
+      };
+
+      ops.push(setDoc(doc(db, COL, docSnap.id), payload, { merge: true }));
+    });
+
+    await Promise.all(ops);
+  } catch (e) {
+    console.error("backfillCozinhaSemana:", e);
+  }
+          }
