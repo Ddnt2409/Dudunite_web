@@ -20,6 +20,24 @@ export function subscribePedidosAlimentados(onChange, onError) {
   );
 }
 
+/** Upsert usado pelo AliSab: grava/atualiza o pedido ALIMENTADO na coleção da Cozinha. */
+export async function upsertAlimentadoCozinha(pedidoId, payload) {
+  const ref = doc(db, COL, pedidoId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const prev = snap.exists() ? snap.data() : {};
+    const parciais = prev.parciais || {}; // preserva produção parcial
+    // Mescla dados vindos do AliSab com os existentes
+    tx.set(ref, {
+      ...prev,
+      ...payload,
+      parciais,
+      statusEtapa: 'Alimentado',
+      atualizadoEm: serverTimestamp(),
+    }, { merge: true });
+  });
+}
+
 /** Atualiza produção parcial de um produto e espelha em PEDIDOS. */
 export async function atualizarParcial(pedidoId, produto, deltaQtd) {
   const delta = Number(deltaQtd || 0);
@@ -38,7 +56,7 @@ export async function atualizarParcial(pedidoId, produto, deltaQtd) {
     tx.update(refCoz, { parciais: par, atualizadoEm: serverTimestamp() });
   });
 
-  // — raiz (PEDIDOS) — espelho opcional, mas recomendado
+  // — raiz (PEDIDOS) — espelho
   const refRoot = doc(db, 'PEDIDOS', pedidoId);
   try {
     await runTransaction(db, async (tx) => {
@@ -52,7 +70,7 @@ export async function atualizarParcial(pedidoId, produto, deltaQtd) {
       par[produto] = novo;
       tx.update(refRoot, { parciais: par, atualizadoEm: serverTimestamp() });
     });
-  } catch (_) { /* mantém silencioso */ }
+  } catch (_) { /* silencioso */ }
 }
 
 /** Marca o pedido como PRODUZIDO nos 3 lugares (cozinha, PEDIDOS e ciclo). */
@@ -67,7 +85,7 @@ export async function marcarProduzido(pedidoId) {
     tx.update(refCoz, { statusEtapa: 'Produzido', produzidoEm: agora, atualizadoEm: agora });
   });
 
-  // 2) Raiz PEDIDOS (é o que o StaPed escuta)
+  // 2) Raiz PEDIDOS (StaPed escuta aqui)
   const refRoot = doc(db, 'PEDIDOS', pedidoId);
   await runTransaction(db, async (tx) => {
     const s = await tx.get(refRoot);
@@ -90,10 +108,10 @@ export async function marcarProduzido(pedidoId) {
         created
       );
     }
-  } catch (_) { /* se falhar, não impede o fluxo */ }
+  } catch (_) { /* ignora falha do espelho */ }
 }
 
-/** Backfill: copia PEDIDOS (Alimentado/Produzido) para pcp_pedidos na primeira carga. */
+/** Backfill: copia PEDIDOS (Alimentado/Produzido) para pcp_pedidos. */
 export async function backfillCozinhaSemana() {
   const q = query(collection(db, 'PEDIDOS'), where('statusEtapa', 'in', ['Alimentado', 'Produzido']));
   const snap = await getDocs(q);
