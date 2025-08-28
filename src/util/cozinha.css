@@ -68,3 +68,27 @@
   display:inline-block; padding:2px 8px; border-radius:8px; font-weight:800; font-size:12px;
   background:#ffe3cc; color:#8c3b1b; border:1px solid #e6d2c2;
 }
+
+/* ===== Checklist (Qtd | Sabor | checkbox) ===== */
+.checklist { margin-top: 6px; display: grid; gap: 6px; }
+.check-row{
+  display: grid;
+  grid-template-columns: 70px 1fr 26px;
+  align-items: center;
+  gap: 8px;
+  background:#fffde3;
+  border:1px dashed #e0c86d;
+  border-radius:8px;
+  padding:6px 8px;
+}
+.qtd-box{
+  font-weight: 900;
+  color:#4b2a10;
+  background:#fff;
+  border:1px solid #e0c86d;
+  border-radius:8px;
+  text-align:center;
+  padding:6px 0;
+}
+.sabor-box{ color:#6a4a20; font-weight:700; }
+.check-row input[type="checkbox"]{ width:20px; height:20px; }
