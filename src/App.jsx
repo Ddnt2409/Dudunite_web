@@ -1,33 +1,57 @@
 // src/App.jsx
 import React, { useEffect, useState } from "react";
 
-// Páginas
-import HomeERP from "./pages/HomeERP";
-import HomePCP from "./pages/HomePCP";
-import LanPed from "./pages/LanPed";
-import AliSab from "./pages/AliSab";
-import StaPed from "./pages/StaPed";
-import Suprimentos from "./pages/Suprimentos";
-import CtsReceber from "./pages/CtsReceber";   // <-- novo import
-import FluxCx from "./pages/FluxCx";           // <-- novo import
+// ==== Páginas ====
+import HomeERP     from "./pages/HomeERP";
+import HomePCP     from "./pages/HomePCP";
+import LanPed      from "./pages/LanPed";
+import AliSab      from "./pages/AliSab";
+import StaPed      from "./pages/StaPed";
+import CtsReceber  from "./pages/CtsReceber";
+import CtsPagar    from "./pages/CtsPagar";   // existe no repo
+import FluxCx      from "./pages/FluxCx";     // extrato geral (FinFlux)
+import Cozinha     from "./pages/cozinha";    // << arquivo criado em pages/cozinha.jsx (minúsculo)
+
+// import "./pages/fade.css"; // opcional
 
 export default function App() {
+  // Tela inicial
   const [tela, setTela] = useState("HomeERP");
 
+  // Volta pro topo ao trocar de tela (melhora UX no mobile)
   useEffect(() => {
     try { window.scrollTo({ top: 0, behavior: "instant" }); }
     catch { window.scrollTo(0, 0); }
   }, [tela]);
 
+  // Router simples por estado
   switch (tela) {
-    case "HomeERP":     return <HomeERP setTela={setTela} />;
-    case "HomePCP":     return <HomePCP setTela={setTela} />;
-    case "LanPed":      return <LanPed setTela={setTela} />;
-    case "AliSab":      return <AliSab setTela={setTela} />;
-    case "StaPed":      return <StaPed setTela={setTela} />;
-    case "Suprimentos": return <Suprimentos setTela={setTela} />;
-    case "CtsReceber":  return <CtsReceber setTela={setTela} />;  // <-- nova rota
-    case "FluxCx":      return <FluxCx setTela={setTela} />;      // <-- nova rota
+    case "HomeERP":
+      return <HomeERP setTela={setTela} />;
+
+    case "HomePCP":
+      return <HomePCP setTela={setTela} />;
+
+    case "LanPed":
+      return <LanPed setTela={setTela} />;
+
+    case "AliSab":
+      return <AliSab setTela={setTela} />;
+
+    case "StaPed":
+      return <StaPed setTela={setTela} />;
+
+    case "CtsReceber":
+      return <CtsReceber setTela={setTela} />;
+
+    case "CtsPagar":
+      return <CtsPagar setTela={setTela} />;
+
+    case "FluxCx":
+      return <FluxCx setTela={setTela} />;
+
+    case "Cozinha":
+      return <Cozinha setTela={setTela} />;
 
     default:
       return (
