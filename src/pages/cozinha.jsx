@@ -1,6 +1,6 @@
 // src/pages/Cozinha.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import "./util/cozinha.css";
+import "../util/cozinha.css";
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
 import {
