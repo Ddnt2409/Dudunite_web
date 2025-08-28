@@ -1,120 +1,135 @@
-import { db } from "../firebase";
+// src/util/cozinha_store.js
+import db from '../firebase';
 import {
   collection, query, where, onSnapshot,
-  doc, runTransaction, serverTimestamp, getDocs
-} from "firebase/firestore";
+  doc, runTransaction, serverTimestamp,
+  getDocs, getDoc, setDoc
+} from 'firebase/firestore';
+import { upsertPedidoInCiclo } from './Ciclo';
 
-const COL = "pcp_pedidos";
+const COL = 'pcp_pedidos';
 
-/** Assina pedidos com statusEtapa = 'Alimentado'.
- *  Pode ser chamado de 2 jeitos:
- *   - subscribePedidosAlimentados(onChange, onError)
- *   - subscribePedidosAlimentados({cidade, pdv}, onChange, onError)
- */
-export function subscribePedidosAlimentados(a, b, c) {
-  let filters = {}, onChange, onError;
-  if (typeof a === "function") {
-    onChange = a; onError = b;
-  } else {
-    filters = a || {}; onChange = b; onError = c;
-  }
-
-  const clauses = [ where("statusEtapa", "==", "Alimentado") ];
-  if (filters.cidade && filters.cidade !== "Todos") clauses.push(where("cidade", "==", filters.cidade));
-  if (filters.pdv    && filters.pdv    !== "Todos") clauses.push(where("pdv",    "==", filters.pdv));
-
-  // Sem orderBy -> evita exigir índice composto. Ordenamos no cliente.
-  const q = query(collection(db, COL), ...clauses);
-
-  return onSnapshot(q,
-    (snap) => {
-      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      onChange && onChange(docs);
-    },
-    (err) => onError && onError(err)
+/** Assina pedidos da cozinha (Alimentado e Produzido). */
+export function subscribePedidosAlimentados(onChange, onError) {
+  const col = collection(db, COL);
+  const q = query(col, where('statusEtapa', 'in', ['Alimentado', 'Produzido']));
+  return onSnapshot(
+    q,
+    (snap) => onChange(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+    onError
   );
 }
 
-/** Upsert no espelho que a Cozinha lê. Mantém `parciais` por produto. */
-export async function upsertAlimentadoCozinha(id, payload) {
-  const ref = doc(db, COL, id);
-  await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    const prev = snap.exists() ? snap.data() : {};
-    tx.set(ref, {
-      cidade:       payload.cidade       ?? prev.cidade ?? "Gravatá",
-      pdv:          payload.pdv          ?? prev.pdv    ?? "",
-      itens:        payload.itens        ?? prev.itens  ?? [],
-      sabores:      payload.sabores      ?? prev.sabores ?? {},
-      dataPrevista: payload.dataPrevista ?? prev.dataPrevista ?? null,
-      parciais:     prev.parciais || {},
-      statusEtapa:  "Alimentado",
-      produzidoEm:  prev.produzidoEm ?? null,
-      atualizadoEm: serverTimestamp(),
-    }, { merge: true });
-  });
-}
+/** Atualiza produção parcial de um produto e espelha em PEDIDOS. */
+export async function atualizarParcial(pedidoId, produto, deltaQtd) {
+  const delta = Number(deltaQtd || 0);
 
-/** Soma/abate produção parcial de um produto. */
-export async function atualizarParcial(pedidoId, produto, delta) {
-  const ref = doc(db, COL, pedidoId);
+  // — cozinha (pcp_pedidos)
+  const refCoz = doc(db, COL, pedidoId);
   await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    if (!snap.exists()) throw new Error("Pedido não existe.");
+    const snap = await tx.get(refCoz);
+    if (!snap.exists()) throw new Error('Pedido não existe na Cozinha.');
     const data = snap.data();
     const par = { ...(data.parciais || {}) };
-    par[produto] = Math.max(0, Number(par[produto] || 0) + Number(delta || 0));
-    tx.update(ref, { parciais: par, atualizadoEm: serverTimestamp() });
+    const atual = Number(par[produto] || 0);
+    let novo = atual + delta;
+    if (novo < 0) novo = 0;
+    par[produto] = novo;
+    tx.update(refCoz, { parciais: par, atualizadoEm: serverTimestamp() });
   });
+
+  // — raiz (PEDIDOS) — espelho opcional, mas recomendado
+  const refRoot = doc(db, 'PEDIDOS', pedidoId);
+  try {
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(refRoot);
+      if (!snap.exists()) return;
+      const data = snap.data() || {};
+      const par = { ...(data.parciais || {}) };
+      const atual = Number(par[produto] || 0);
+      let novo = atual + delta;
+      if (novo < 0) novo = 0;
+      par[produto] = novo;
+      tx.update(refRoot, { parciais: par, atualizadoEm: serverTimestamp() });
+    });
+  } catch (_) { /* mantém silencioso */ }
 }
 
-/** Finaliza o pedido. */
+/** Marca o pedido como PRODUZIDO nos 3 lugares (cozinha, PEDIDOS e ciclo). */
 export async function marcarProduzido(pedidoId) {
-  const ref = doc(db, COL, pedidoId);
+  const agora = serverTimestamp();
+
+  // 1) Cozinha
+  const refCoz = doc(db, COL, pedidoId);
   await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    if (!snap.exists()) throw new Error("Pedido não existe.");
-    tx.update(ref, {
-      statusEtapa: "Produzido",
-      produzidoEm: serverTimestamp(),
-      atualizadoEm: serverTimestamp(),
-    });
+    const s = await tx.get(refCoz);
+    if (!s.exists()) throw new Error('Pedido não existe na Cozinha.');
+    tx.update(refCoz, { statusEtapa: 'Produzido', produzidoEm: agora, atualizadoEm: agora });
   });
+
+  // 2) Raiz PEDIDOS (é o que o StaPed escuta)
+  const refRoot = doc(db, 'PEDIDOS', pedidoId);
+  await runTransaction(db, async (tx) => {
+    const s = await tx.get(refRoot);
+    if (!s.exists()) return;
+    tx.update(refRoot, { statusEtapa: 'Produzido', produzidoEm: agora, atualizadoEm: agora });
+  });
+
+  // 3) Ciclo semanal (espelho)
+  try {
+    const s = await getDoc(refRoot);
+    if (s.exists()) {
+      const d = s.data() || {};
+      const created =
+        d?.criadoEm?.toDate?.() ||
+        d?.createdEm?.toDate?.() ||
+        new Date();
+      await upsertPedidoInCiclo(
+        pedidoId,
+        { ...d, statusEtapa: 'Produzido', produzidoEm: new Date() },
+        created
+      );
+    }
+  } catch (_) { /* se falhar, não impede o fluxo */ }
+}
+
+/** Backfill: copia PEDIDOS (Alimentado/Produzido) para pcp_pedidos na primeira carga. */
+export async function backfillCozinhaSemana() {
+  const q = query(collection(db, 'PEDIDOS'), where('statusEtapa', 'in', ['Alimentado', 'Produzido']));
+  const snap = await getDocs(q);
+  const ops = snap.docs.map(async (d) => {
+    const data = d.data() || {};
+    const itensSrc = Array.isArray(data.itens) ? data.itens : [];
+    const itens = itensSrc.map(it => ({
+      produto: it.produto,
+      qtd: Number(it.quantidade || it.qtd || 0),
+    }));
+    const payload = {
+      cidade: data.cidade || '',
+      pdv: data.pdv || data.escola || '',
+      itens,
+      sabores: data.sabores || {},
+      parciais: data.parciais || {},
+      statusEtapa: data.statusEtapa || 'Alimentado',
+      atualizadoEm: serverTimestamp(),
+    };
+    await setDoc(doc(db, COL, d.id), payload, { merge: true });
+  });
+  await Promise.all(ops);
 }
 
 /** Resumo para UI. */
 export function resumoPedido(p) {
-  const sabores = p?.sabores || {};
-  const par     = p?.parciais || {};
+  const itens = Array.isArray(p.itens) ? p.itens : [];
+  const par   = p.parciais || {};
   let total = 0, produzido = 0;
-
-  Object.entries(sabores).forEach(([prod, linhas]) => {
-    const totalProd = (linhas || []).reduce((s, ln) => s + Number(ln.qtd || ln.quantidade || 0), 0);
-    total += totalProd;
-    produzido += Math.min(Number(par[prod] || 0), totalProd);
+  itens.forEach((it) => {
+    const ped = Number(it.qtd || it.quantidade || 0);
+    const fez = Number(par[it.produto] || 0);
+    total += ped;
+    produzido += Math.min(fez, ped);
   });
-
-  const restam   = Math.max(0, total - produzido);
+  const restam = Math.max(total - produzido, 0);
   const completo = total > 0 && restam === 0;
   return { total, produzido, restam, completo };
-}
-
-/** (Opcional) Backfill para copiar pedidos 'Alimentado' já existentes. */
-export async function backfillCozinhaSemana() {
-  const q = query(collection(db, "PEDIDOS"), where("statusEtapa", "==", "Alimentado"));
-  const snap = await getDocs(q);
-  for (const d of snap.docs) {
-    const data = d.data();
-    const itens = (data.itens || []).map(it => ({
-      produto: it.produto || it.nome || "",
-      quantidade: Number(it.quantidade || it.qtd || 0),
-    }));
-    await upsertAlimentadoCozinha(d.id, {
-      cidade: data.cidade || "Gravatá",
-      pdv: data.escola || data.pdv || "",
-      itens,
-      sabores: data.sabores || {},
-      dataPrevista: data.dataPrevista || null,
-    });
-  }
 }
