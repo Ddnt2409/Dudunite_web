@@ -26,9 +26,9 @@ export default function HomeERP({ setTela }) {
       // segundo segundo-clique no cartão navega para Contas a Receber
       navAction: () => setTela('CtsReceber'),
       dropdown: [
-        { nome: 'Contas a Receber',        acao: () => setTela('CtsReceber') },
-        { nome: 'Contas a Pagar',          acao: () => setTela('CtsPagar') },
-        { nome: 'Fluxo de Caixa (FinFlux)', acao: () => setTela('FluxCx') }, // <-- ADICIONADO
+        { nome: 'Contas a Receber',         acao: () => setTela('CtsReceber') },
+        { nome: 'Contas a Pagar',           acao: () => setTela('CtsPagar') },
+        { nome: 'Fluxo de Caixa (FinFlux)', acao: () => setTela('FluxCx') },
       ],
     },
     {
@@ -43,7 +43,9 @@ export default function HomeERP({ setTela }) {
     {
       label: '👨‍🍳\nCozinha',
       zoomAction: () => setZoomIndex(3),
-      dropdown: [],
+      // >>> ATIVAÇÃO DO BOTÃO COZINHA <<<
+      navAction: () => setTela('Cozinha'),
+      dropdown: [], // sem opções; 2º clique navega
     },
   ];
 
@@ -141,4 +143,4 @@ export default function HomeERP({ setTela }) {
       </div>
     </div>
   );
-}
+      }
