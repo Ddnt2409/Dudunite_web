@@ -1,98 +1,90 @@
 // src/util/cozinha_store.js
 import { db } from '../firebase';
 import {
-  collection, query, where, orderBy, onSnapshot,
-  doc, runTransaction, serverTimestamp, setDoc, getDoc, updateDoc
+  collection, query, where, onSnapshot,
+  doc, runTransaction, serverTimestamp, getDoc, updateDoc
 } from 'firebase/firestore';
 
-// 👉 Se o nome da coleção for outro, só troque aqui:
-const COL = 'pcp_pedidos';
+// 🔴 Agora a fonte é a coleção principal:
+const COL = 'PEDIDOS';
 
 /**
- * Assina, em tempo real, os pedidos com statusEtapa = "Alimentado".
- * Filtros por cidade e pdv são opcionais (aplicados no servidor).
- * O filtro por "tipo" (quando precisar) fazemos no cliente.
+ * Assina, em tempo real, pedidos com statusEtapa = "Alimentado".
+ * - cidade: filtramos no servidor (se vier diferente de "Todos")
+ * - pdv: em PEDIDOS o nome do ponto vem como "escola" → filtramos no CLIENTE
  */
 export function subscribePedidosAlimentados({ cidade = null, pdv = null }, onChange) {
   const col = collection(db, COL);
-  const clauses = [where('statusEtapa', '==', 'Alimentado')];
+  const clauses = [ where('statusEtapa', '==', 'Alimentado') ];
   if (cidade && cidade !== 'Todos') clauses.push(where('cidade', '==', cidade));
-  if (pdv && pdv !== 'Todos')       clauses.push(where('pdv',    '==', pdv));
 
-  // Obs.: se aparecer erro pedindo índice composto, crie-o no console do Firestore.
-  const q = query(col, ...clauses, orderBy('dataPrevista', 'asc'));
+  // Sem orderBy para evitar índice composto obrigatório; ordene no cliente se quiser
+  const q = query(col, ...clauses);
+
   return onSnapshot(q, (snap) => {
-    const pedidos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    let pedidos = snap.docs.map(d => {
+      const data = d.data() || {};
+      const itensSrc = Array.isArray(data.itens) ? data.itens : [];
+
+      // Normaliza shape para a Cozinha:
+      const itens = itensSrc.map(it => ({
+        produto: it.produto,
+        qtd: Number(it.qtd ?? it.quantidade ?? 0),
+        tipo: it.tipo || null,
+      }));
+
+      return {
+        id: d.id,
+        // Em PEDIDOS o PDV vem como "escola":
+        pdv: data.escola || '—',
+        cidade: data.cidade || '',
+        statusEtapa: data.statusEtapa || 'Lançado',
+        itens,
+        // Cozinha pode usar 'parciais' livremente; se não existir, começará vazio
+        parciais: data.parciais || {},
+        dataPrevista: data.dataPrevista || null,
+        dataAlimentado: data.dataAlimentado || null,
+      };
+    });
+
+    // Filtro de PDV no cliente (pois o campo no servidor chama 'escola')
+    if (pdv && pdv !== 'Todos') {
+      pedidos = pedidos.filter(p => (p.pdv || '').toLowerCase() === String(pdv).toLowerCase());
+    }
+
     onChange(pedidos);
   });
 }
 
-/** Acumula produção parcial de um item. */
+/** Acumula produção parcial de um item (atualiza PEDIDOS.parciais.{produto}). */
 export async function salvarParcial(pedidoId, produto, qtd) {
-  const ref = doc(db, COL, pedidoId);
+  const ref = doc(db, COL, String(pedidoId));
   await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) throw new Error('Pedido não existe.');
-    const data = snap.data();
+    const data = snap.data() || {};
     const parciais = { ...(data.parciais || {}) };
     parciais[produto] = Number(parciais[produto] || 0) + Number(qtd || 0);
     tx.update(ref, { parciais, atualizadoEm: serverTimestamp() });
   });
 }
 
-/** Conclui o pedido na Cozinha. */
+/** Conclui o pedido na Cozinha (muda para Produzido em PEDIDOS). */
 export async function marcarProduzido(pedidoId) {
-  const ref = doc(db, COL, pedidoId);
-  await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    if (!snap.exists()) throw new Error('Pedido não existe.');
-    tx.update(ref, { statusEtapa: 'Produzido', produzidoEm: serverTimestamp() });
-  });
-}
-
-/**
- * 👇 NOVO: Upsert para a coleção da Cozinha.
- * Chame isso ao ALIMENTAR no AliSab para o pedido passar a aparecer na tela Cozinha.
- * - pedidoId: mesmo ID do doc em "PEDIDOS"
- * - dados: { cidade, pdv, itens:[{produto, qtd}], sabores?, dataPrevista? (YYYY-MM-DD) }
- */
-export async function upsertAlimentadoCozinha(pedidoId, dados = {}) {
-  if (!pedidoId) throw new Error('pedidoId ausente em upsertAlimentadoCozinha()');
   const ref = doc(db, COL, String(pedidoId));
-
-  // Garante shape que a Cozinha espera:
-  const itens = Array.isArray(dados.itens)
-    ? dados.itens.map(it => ({ produto: it.produto, qtd: Number(it.qtd ?? it.quantidade ?? 0) }))
-    : [];
-
-  const base = {
-    id: String(pedidoId),
-    statusEtapa: 'Alimentado',
-    cidade: dados.cidade || 'Gravatá',
-    pdv: dados.pdv || dados.escola || '—',
-    itens,
-    sabores: dados.sabores || {},                // opcional
-    dataPrevista: dados.dataPrevista || yyyymmdd(new Date()), // string "YYYY-MM-DD" (ordena e exibe bem)
-    atualizadoEm: serverTimestamp(),
-    dataAlimentado: serverTimestamp(),
-  };
-
   const snap = await getDoc(ref);
-  if (snap.exists()) {
-    await updateDoc(ref, base);
-  } else {
-    await setDoc(ref, { criadoEm: serverTimestamp(), ...base });
-  }
+  if (!snap.exists()) throw new Error('Pedido não existe.');
+  await updateDoc(ref, { statusEtapa: 'Produzido', produzidoEm: serverTimestamp() });
 }
 
-/** Resumo para UI (total, produzido, se está parcial/completo). */
+/** Resumo para UI. Aceita itens com {qtd} ou {quantidade}. */
 export function resumoPedido(p) {
   const itens = Array.isArray(p.itens) ? p.itens : [];
   const parciais = p.parciais || {};
   let total = 0, produzido = 0, parcial = false;
 
   itens.forEach(it => {
-    const pedida = Number(it.qtd || 0);
+    const pedida = Number(it.qtd ?? it.quantidade ?? 0);
     const prod   = Number(parciais[it.produto] || 0);
     total     += pedida;
     produzido += Math.min(prod, pedida);
@@ -101,12 +93,4 @@ export function resumoPedido(p) {
 
   const completo = total > 0 && produzido >= total;
   return { total, produzido, parcial, completo };
-}
-
-/* util local */
-function yyyymmdd(d) {
-  const x = new Date(d);
-  const m = String(x.getMonth()+1).padStart(2,'0');
-  const day = String(x.getDate()).padStart(2,'0');
-  return `${x.getFullYear()}-${m}-${day}`;
 }
