@@ -2,30 +2,46 @@
 import { db } from '../firebase';
 import {
   collection, query, where, orderBy, onSnapshot,
-  doc, runTransaction, serverTimestamp
+  doc, runTransaction, serverTimestamp, setDoc, getDoc
 } from 'firebase/firestore';
 
-// Coleção lida pela Cozinha (recebe espelho do AliSab)
+// Coleção que a Cozinha lê (espelho criado pelo AliSab)
 const COL = 'pcp_pedidos';
 
-/** Assinatura em tempo real dos pedidos ALIMENTADOS (filtros opcionais no servidor). */
+/** Cria/atualiza o espelho que a Cozinha consome. */
+export async function upsertAlimentadoCozinha(id, payload) {
+  // shape mínimo que a Cozinha usa:
+  // { cidade, pdv, itens:[{produto,qtd}], sabores:{[produto]:[{sabor,qtd}]}, dataPrevista: 'YYYY-MM-DD', statusEtapa }
+  const ref = doc(db, COL, id);
+  const snap = await getDoc(ref);
+  const base = snap.exists() ? snap.data() : {};
+  await setDoc(
+    ref,
+    {
+      ...base,
+      ...payload,
+      statusEtapa: 'Alimentado',
+      atualizadoEm: serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
+/** Assina os pedidos ALIMENTADOS (filtros server-side por cidade/pdv). */
 export function subscribePedidosAlimentados({ cidade = null, pdv = null }, onChange) {
   const col = collection(db, COL);
   const clauses = [ where('statusEtapa', '==', 'Alimentado') ];
   if (cidade && cidade !== 'Todos') clauses.push(where('cidade', '==', cidade));
   if (pdv && pdv !== 'Todos')       clauses.push(where('pdv', '==', pdv));
-
   const q = query(col, ...clauses, orderBy('dataPrevista', 'asc'));
+
   return onSnapshot(q, (snap) => {
     const pedidos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     onChange(pedidos);
   });
 }
 
-/**
- * Marca/Desmarca uma linha da checklist (flavor) como produzida.
- * Se todas as linhas de TODOS os produtos estiverem marcadas, vira "Produzido".
- */
+/** Marca/Desmarca uma linha da checklist (Qtd|Sabor). Carimba PRODUZIDO quando tudo marcado. */
 export async function toggleChecklistLine({ pedidoId, produto, index, checked }) {
   const ref = doc(db, COL, pedidoId);
   await runTransaction(db, async (tx) => {
@@ -33,7 +49,7 @@ export async function toggleChecklistLine({ pedidoId, produto, index, checked })
     if (!snap.exists()) throw new Error('Pedido não existe.');
     const data = snap.data();
 
-    const sabores = data.sabores || {};              // { [produto]: [{sabor,qtd}, ...] }
+    const sabores = data.sabores || {};                    // { [produto]: [{sabor,qtd}] }
     const ticks   = { ...(data.producedChecklist || {}) }; // { [produto]: { [index]: true } }
 
     const prodMap = { ...(ticks[produto] || {}) };
@@ -41,7 +57,7 @@ export async function toggleChecklistLine({ pedidoId, produto, index, checked })
     else         delete prodMap[index];
     ticks[produto] = prodMap;
 
-    // Verifica se TUDO está marcado
+    // Verifica se todas as linhas de todos os produtos estão marcadas
     let allProduced = true;
     for (const [prod, linhas] of Object.entries(sabores)) {
       const mp = ticks[prod] || {};
@@ -51,21 +67,18 @@ export async function toggleChecklistLine({ pedidoId, produto, index, checked })
       if (!allProduced) break;
     }
 
-    const payload = {
+    tx.update(ref, {
       producedChecklist: ticks,
       atualizadoEm: serverTimestamp(),
       ...(allProduced
         ? { statusEtapa: 'Produzido', produzidoEm: serverTimestamp() }
         : { statusEtapa: 'Alimentado', produzidoEm: null })
-    };
-
-    tx.update(ref, payload);
+    });
   });
 }
 
-/** Resumo total do pedido (somando todos os produtos/sabores). */
+/** Resumo para o rodapé do post-it. */
 export function resumoDoPedido(p) {
-  // total pedido = soma das quantidades das linhas de sabores
   const sabores = p.sabores || {};
   const ticks   = p.producedChecklist || {};
   let pedida = 0, produzida = 0;
