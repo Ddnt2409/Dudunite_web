@@ -2,7 +2,7 @@
 import { db } from '../firebase';
 import {
   collection, query, where, orderBy, onSnapshot,
-  doc, runTransaction, serverTimestamp
+  doc, runTransaction, serverTimestamp, setDoc, getDoc, updateDoc
 } from 'firebase/firestore';
 
 // 👉 Se o nome da coleção for outro, só troque aqui:
@@ -19,7 +19,7 @@ export function subscribePedidosAlimentados({ cidade = null, pdv = null }, onCha
   if (cidade && cidade !== 'Todos') clauses.push(where('cidade', '==', cidade));
   if (pdv && pdv !== 'Todos')       clauses.push(where('pdv',    '==', pdv));
 
-  // Obs.: se aparecer erro pedindo índice composto, crie-o (ver nota ao final).
+  // Obs.: se aparecer erro pedindo índice composto, crie-o no console do Firestore.
   const q = query(col, ...clauses, orderBy('dataPrevista', 'asc'));
   return onSnapshot(q, (snap) => {
     const pedidos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -50,6 +50,41 @@ export async function marcarProduzido(pedidoId) {
   });
 }
 
+/**
+ * 👇 NOVO: Upsert para a coleção da Cozinha.
+ * Chame isso ao ALIMENTAR no AliSab para o pedido passar a aparecer na tela Cozinha.
+ * - pedidoId: mesmo ID do doc em "PEDIDOS"
+ * - dados: { cidade, pdv, itens:[{produto, qtd}], sabores?, dataPrevista? (YYYY-MM-DD) }
+ */
+export async function upsertAlimentadoCozinha(pedidoId, dados = {}) {
+  if (!pedidoId) throw new Error('pedidoId ausente em upsertAlimentadoCozinha()');
+  const ref = doc(db, COL, String(pedidoId));
+
+  // Garante shape que a Cozinha espera:
+  const itens = Array.isArray(dados.itens)
+    ? dados.itens.map(it => ({ produto: it.produto, qtd: Number(it.qtd ?? it.quantidade ?? 0) }))
+    : [];
+
+  const base = {
+    id: String(pedidoId),
+    statusEtapa: 'Alimentado',
+    cidade: dados.cidade || 'Gravatá',
+    pdv: dados.pdv || dados.escola || '—',
+    itens,
+    sabores: dados.sabores || {},                // opcional
+    dataPrevista: dados.dataPrevista || yyyymmdd(new Date()), // string "YYYY-MM-DD" (ordena e exibe bem)
+    atualizadoEm: serverTimestamp(),
+    dataAlimentado: serverTimestamp(),
+  };
+
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    await updateDoc(ref, base);
+  } else {
+    await setDoc(ref, { criadoEm: serverTimestamp(), ...base });
+  }
+}
+
 /** Resumo para UI (total, produzido, se está parcial/completo). */
 export function resumoPedido(p) {
   const itens = Array.isArray(p.itens) ? p.itens : [];
@@ -66,4 +101,12 @@ export function resumoPedido(p) {
 
   const completo = total > 0 && produzido >= total;
   return { total, produzido, parcial, completo };
+}
+
+/* util local */
+function yyyymmdd(d) {
+  const x = new Date(d);
+  const m = String(x.getMonth()+1).padStart(2,'0');
+  const day = String(x.getDate()).padStart(2,'0');
+  return `${x.getFullYear()}-${m}-${day}`;
 }
