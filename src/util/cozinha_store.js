@@ -2,8 +2,6 @@
 import { db } from "../firebase";
 import {
   collection,
-  query,
-  where,
   onSnapshot,
   doc,
   runTransaction,
@@ -11,10 +9,9 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
-// Coleção usada pela Cozinha
 const COL = "pcp_pedidos";
 
-/** Cria/atualiza (merge) um pedido Alimentado para a coleção da Cozinha. */
+/** Upsert para a coleção lida pela Cozinha. */
 export async function upsertAlimentadoCozinha(id, payload) {
   const ref = doc(db, COL, id);
   await setDoc(
@@ -22,21 +19,29 @@ export async function upsertAlimentadoCozinha(id, payload) {
     {
       statusEtapa: "Alimentado",
       atualizadoEm: serverTimestamp(),
-      ...payload, // {cidade, pdv, itens:[{produto,qtd}], sabores:{produto:[{sabor,qtd}...]}, dataPrevista: 'YYYY-MM-DD'}
+      ...payload, // {cidade, pdv, itens:[{produto,qtd}], sabores:{...}, dataPrevista:'YYYY-MM-DD'}
     },
     { merge: true }
   );
 }
 
-/** Assina em tempo real TODOS os pedidos Alimentados (filtro será no cliente). */
+/**
+ * Assina a coleção inteira e filtra no cliente por “Alimentado”
+ * (case-insensitive e com fallback para campo `status`).
+ * Isso evita sumir tudo quando o valor/field diverge.
+ */
 export function subscribePedidosAlimentados(onChange, onError) {
   const col = collection(db, COL);
-  const q = query(col, where("statusEtapa", "==", "Alimentado"));
   return onSnapshot(
-    q,
+    col,
     (snap) => {
-      const pedidos = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      // ordenação estável no cliente
+      const arr = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const pedidos = arr.filter((p) => {
+        const st = String(p.statusEtapa ?? p.status ?? "").toLowerCase();
+        return st.includes("aliment"); // pega "Alimentado", "ALIMENTADO", etc.
+      });
+
+      // ordenação simples: dataPrevista e PDV
       pedidos.sort((a, b) => {
         const da = String(a.dataPrevista || "");
         const dbb = String(b.dataPrevista || "");
@@ -45,13 +50,14 @@ export function subscribePedidosAlimentados(onChange, onError) {
           String(b.pdv || b.escola || "")
         );
       });
+
       onChange(pedidos);
     },
     (err) => onError && onError(err)
   );
 }
 
-/** Ajusta (±delta) a produção parcial de um produto, com clamp ao limite. */
+/** Ajusta produção parcial de um produto (delta pode ser +/-). */
 export async function atualizarParcial(pedidoId, produto, delta) {
   const ref = doc(db, COL, pedidoId);
   await runTransaction(db, async (tx) => {
@@ -59,7 +65,7 @@ export async function atualizarParcial(pedidoId, produto, delta) {
     if (!snap.exists()) throw new Error("Pedido não existe.");
     const data = snap.data();
 
-    // limite = soma das linhas do produto (sabores) ou qtd do item no array itens
+    // limite: soma das linhas de sabores (se houver) ou qtd do item em `itens`
     let limite = 0;
     if (data?.sabores && data.sabores[produto]) {
       limite = data.sabores[produto].reduce(
@@ -77,23 +83,18 @@ export async function atualizarParcial(pedidoId, produto, delta) {
     const atual = Number(parciais[produto] || 0);
     let novo = atual + Number(delta || 0);
     if (!Number.isFinite(novo)) novo = atual;
-    if (limite > 0) {
-      novo = Math.max(0, Math.min(limite, novo));
-    } else {
-      novo = Math.max(0, novo);
-    }
-    parciais[produto] = novo;
+    if (limite > 0) novo = Math.max(0, Math.min(limite, novo));
+    else novo = Math.max(0, novo);
 
+    parciais[produto] = novo;
     tx.update(ref, { parciais, atualizadoEm: serverTimestamp() });
   });
 }
 
-/** Atalho para somar (incremento positivo). */
 export async function salvarParcial(pedidoId, produto, qtd) {
   return atualizarParcial(pedidoId, produto, +Number(qtd || 0));
 }
 
-/** Marca o pedido como Produzido. */
 export async function marcarProduzido(pedidoId) {
   const ref = doc(db, COL, pedidoId);
   await runTransaction(db, async (tx) => {
@@ -107,20 +108,17 @@ export async function marcarProduzido(pedidoId) {
   });
 }
 
-/** Resumo para a UI (total solicitado, produzido e se está completo). */
 export function resumoPedido(p) {
   const itens = Array.isArray(p?.itens) ? p.itens : [];
   const parciais = p?.parciais || {};
-  let total = 0;
-  let produzido = 0;
-
+  let total = 0,
+    produzido = 0;
   itens.forEach((it) => {
     const pedida = Number(it.qtd ?? it.quantidade ?? 0);
     const prod = Number(parciais[it.produto] || 0);
     total += pedida;
     produzido += Math.min(pedida, prod);
   });
-
   const completo = total > 0 && produzido >= total;
   const restam = Math.max(0, total - produzido);
   return { total, produzido, restam, completo };
