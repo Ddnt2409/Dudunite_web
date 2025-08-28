@@ -1,94 +1,84 @@
 // src/util/cozinha_store.js
 import { db } from '../firebase';
 import {
-  collection, query, where, onSnapshot,
-  doc, runTransaction, serverTimestamp, getDoc, updateDoc
+  collection, query, where, orderBy, onSnapshot,
+  doc, runTransaction, serverTimestamp
 } from 'firebase/firestore';
 
-// 🔴 Fonte única de verdade agora:
-const COL = 'PEDIDOS';
+// Coleção lida pela Cozinha (recebe espelho do AliSab)
+const COL = 'pcp_pedidos';
 
-/**
- * Assina, em tempo real, pedidos com statusEtapa = "Alimentado".
- * - cidade: filtramos no servidor (se ≠ "Todos")
- * - pdv: em PEDIDOS o campo é "escola" → filtramos no CLIENTE
- */
+/** Assinatura em tempo real dos pedidos ALIMENTADOS (filtros opcionais no servidor). */
 export function subscribePedidosAlimentados({ cidade = null, pdv = null }, onChange) {
   const col = collection(db, COL);
   const clauses = [ where('statusEtapa', '==', 'Alimentado') ];
   if (cidade && cidade !== 'Todos') clauses.push(where('cidade', '==', cidade));
+  if (pdv && pdv !== 'Todos')       clauses.push(where('pdv', '==', pdv));
 
-  // sem orderBy para não exigir índice composto; pode ordenar no cliente
-  const q = query(col, ...clauses);
-
+  const q = query(col, ...clauses, orderBy('dataPrevista', 'asc'));
   return onSnapshot(q, (snap) => {
-    let pedidos = snap.docs.map(d => {
-      const data = d.data() || {};
-      const itensSrc = Array.isArray(data.itens) ? data.itens : [];
-
-      // normaliza para a UI da Cozinha
-      const itens = itensSrc.map(it => ({
-        produto: it.produto,
-        qtd: Number(it.qtd ?? it.quantidade ?? 0),
-        tipo: it.tipo || null,
-      }));
-
-      return {
-        id: d.id,
-        pdv: data.escola || '—',            // PDV vem como "escola" em PEDIDOS
-        cidade: data.cidade || '',
-        statusEtapa: data.statusEtapa || 'Lançado',
-        itens,
-        parciais: data.parciais || {},
-        dataPrevista: data.dataPrevista || null,
-        dataAlimentado: data.dataAlimentado || null,
-      };
-    });
-
-    // filtro de PDV no cliente (campo real = "escola")
-    if (pdv && pdv !== 'Todos') {
-      pedidos = pedidos.filter(p => (p.pdv || '').toLowerCase() === String(pdv).toLowerCase());
-    }
-
+    const pedidos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     onChange(pedidos);
   });
 }
 
-/** Acumula produção parcial de um item (atualiza PEDIDOS.parciais.{produto}). */
-export async function salvarParcial(pedidoId, produto, qtd) {
-  const ref = doc(db, COL, String(pedidoId));
+/**
+ * Marca/Desmarca uma linha da checklist (flavor) como produzida.
+ * Se todas as linhas de TODOS os produtos estiverem marcadas, vira "Produzido".
+ */
+export async function toggleChecklistLine({ pedidoId, produto, index, checked }) {
+  const ref = doc(db, COL, pedidoId);
   await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) throw new Error('Pedido não existe.');
-    const data = snap.data() || {};
-    const parciais = { ...(data.parciais || {}) };
-    parciais[produto] = Number(parciais[produto] || 0) + Number(qtd || 0);
-    tx.update(ref, { parciais, atualizadoEm: serverTimestamp() });
+    const data = snap.data();
+
+    const sabores = data.sabores || {};              // { [produto]: [{sabor,qtd}, ...] }
+    const ticks   = { ...(data.producedChecklist || {}) }; // { [produto]: { [index]: true } }
+
+    const prodMap = { ...(ticks[produto] || {}) };
+    if (checked) prodMap[index] = true;
+    else         delete prodMap[index];
+    ticks[produto] = prodMap;
+
+    // Verifica se TUDO está marcado
+    let allProduced = true;
+    for (const [prod, linhas] of Object.entries(sabores)) {
+      const mp = ticks[prod] || {};
+      for (let i = 0; i < linhas.length; i++) {
+        if (!mp[i]) { allProduced = false; break; }
+      }
+      if (!allProduced) break;
+    }
+
+    const payload = {
+      producedChecklist: ticks,
+      atualizadoEm: serverTimestamp(),
+      ...(allProduced
+        ? { statusEtapa: 'Produzido', produzidoEm: serverTimestamp() }
+        : { statusEtapa: 'Alimentado', produzidoEm: null })
+    };
+
+    tx.update(ref, payload);
   });
 }
 
-/** Conclui o pedido na Cozinha (muda para Produzido em PEDIDOS). */
-export async function marcarProduzido(pedidoId) {
-  const ref = doc(db, COL, String(pedidoId));
-  const snap = await getDoc(ref);
-  if (!snap.exists()) throw new Error('Pedido não existe.');
-  await updateDoc(ref, { statusEtapa: 'Produzido', produzidoEm: serverTimestamp() });
-}
+/** Resumo total do pedido (somando todos os produtos/sabores). */
+export function resumoDoPedido(p) {
+  // total pedido = soma das quantidades das linhas de sabores
+  const sabores = p.sabores || {};
+  const ticks   = p.producedChecklist || {};
+  let pedida = 0, produzida = 0;
 
-/** Resumo para UI. Aceita itens com {qtd} ou {quantidade}. */
-export function resumoPedido(p) {
-  const itens = Array.isArray(p.itens) ? p.itens : [];
-  const parciais = p.parciais || {};
-  let total = 0, produzido = 0, parcial = false;
-
-  itens.forEach(it => {
-    const pedida = Number(it.qtd ?? it.quantidade ?? 0);
-    const prod   = Number(parciais[it.produto] || 0);
-    total     += pedida;
-    produzido += Math.min(prod, pedida);
-    if (prod > 0 && prod < pedida) parcial = true;
-  });
-
-  const completo = total > 0 && produzido >= total;
-  return { total, produzido, parcial, completo };
+  for (const [prod, linhas] of Object.entries(sabores)) {
+    const mp = ticks[prod] || {};
+    linhas.forEach((ln, i) => {
+      const q = Number(ln.qtd || 0);
+      pedida += q;
+      if (mp[i]) produzida += q;
+    });
+  }
+  const restam = Math.max(0, pedida - produzida);
+  const completo = pedida > 0 && restam === 0;
+  return { pedida, produzida, restam, completo };
 }
