@@ -1,178 +1,185 @@
 // src/util/cozinha_store.js
-import { db } from '../firebase';
+import { db } from "../firebase";
 import {
-  collection, query, where, onSnapshot,
-  doc, runTransaction, serverTimestamp,
-  getDocs, getDoc, setDoc
-} from 'firebase/firestore';
-import { upsertPedidoInCiclo } from './Ciclo';
+  collection,
+  query,
+  where,
+  onSnapshot,
+  doc,
+  setDoc,
+  getDoc,
+  runTransaction,
+  serverTimestamp,
+} from "firebase/firestore";
 
-const COL = 'pcp_pedidos';
+import { upsertPedidoInCiclo, semanaRefFromDate } from "./Ciclo";
+
+// coleção usada pela Cozinha
+const COL = "pcp_pedidos";
 
 /**
- * Assina, em tempo real, pedidos da cozinha (Alimentado + Produzido)
- * sem exigir índice composto. Faz duas assinaturas (==) e une no cliente.
+ * Assinatura em tempo real dos pedidos da Cozinha.
+ * Retorna ALIMENTADO e PRODUZIDO (ordenamos no cliente p/ evitar índice).
+ *
+ * Uso:
+ *   const unsub = subscribePedidosAlimentados(
+ *     (docs) => setPedidos(docs),
+ *     (err) => setErro(err?.message || String(err))
+ *   );
  */
 export function subscribePedidosAlimentados(onChange, onError) {
-  const col = collection(db, COL);
-  const qAli  = query(col, where('statusEtapa', '==', 'Alimentado'));
-  const qProd = query(col, where('statusEtapa', '==', 'Produzido'));
+  try {
+    const col = collection(db, COL);
+    // sem orderBy p/ não exigir índice
+    const q = query(col, where("statusEtapa", "in", ["Alimentado", "Produzido"]));
 
-  let lastAli = [], lastProd = [];
-
-  const mergeAndEmit = () => {
-    const map = new Map();
-    [...lastAli, ...lastProd].forEach(d => map.set(d.id, { id: d.id, ...d.data() }));
-    const arr = Array.from(map.values());
-    // ordenação simples no cliente
-    arr.sort((a,b) => (a.cidade||'').localeCompare(b.cidade||'') || (a.pdv||'').localeCompare(b.pdv||''));
-    onChange(arr);
-  };
-
-  const unsubA = onSnapshot(
-    qAli,
-    snap => { lastAli = snap.docs; mergeAndEmit(); },
-    e => onError?.(e)
-  );
-  const unsubB = onSnapshot(
-    qProd,
-    snap => { lastProd = snap.docs; mergeAndEmit(); },
-    e => onError?.(e)
-  );
-
-  return () => { unsubA(); unsubB(); };
+    return onSnapshot(
+      q,
+      (snap) => {
+        const pedidos = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => {
+            // dataPrevista no formato YYYY-MM-DD; ordena string com fallback
+            const da = String(a.dataPrevista || "");
+            const dbb = String(b.dataPrevista || "");
+            if (da < dbb) return -1;
+            if (da > dbb) return 1;
+            return (a.pdv || a.escola || "").localeCompare(b.pdv || b.escola || "");
+          });
+        onChange && onChange(pedidos);
+      },
+      (err) => onError && onError(err)
+    );
+  } catch (e) {
+    onError && onError(e);
+    return () => {};
+  }
 }
 
-/** Usado pelo AliSab: garante o doc na coleção da Cozinha preservando parciais. */
-export async function upsertAlimentadoCozinha(pedidoId, payload) {
+/**
+ * Incrementa/decrementa a produção parcial de um produto.
+ * `delta` pode ser positivo (marcar) ou negativo (desmarcar).
+ */
+export async function atualizarParcial(pedidoId, produto, delta) {
   const ref = doc(db, COL, pedidoId);
   await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
-    const prev = snap.exists() ? snap.data() : {};
-    const parciais = prev.parciais || {};
+    if (!snap.exists()) throw new Error("Pedido não existe.");
+    const data = snap.data() || {};
+    const parciais = { ...(data.parciais || {}) };
+
+    const atual = Number(parciais[produto] || 0);
+    const novo = Math.max(0, atual + Number(delta || 0));
+    parciais[produto] = novo;
+
     tx.set(
       ref,
-      {
-        ...prev,
-        ...payload,
-        parciais,
-        statusEtapa: 'Alimentado',
-        atualizadoEm: serverTimestamp(),
-      },
+      { parciais, atualizadoEm: serverTimestamp() },
       { merge: true }
     );
   });
 }
 
-/** Atualiza produção parcial de um produto (checkbox de uma linha). */
-export async function atualizarParcial(pedidoId, produto, deltaQtd) {
-  const delta = Number(deltaQtd || 0);
-
-  // Cozinha
-  const refC = doc(db, COL, pedidoId);
-  await runTransaction(db, async (tx) => {
-    const s = await tx.get(refC);
-    if (!s.exists()) throw new Error('Pedido não existe na Cozinha.');
-    const data = s.data() || {};
-    const par = { ...(data.parciais || {}) };
-    const cur = Number(par[produto] || 0);
-    par[produto] = Math.max(0, cur + delta);
-    tx.update(refC, { parciais: par, atualizadoEm: serverTimestamp() });
-  });
-
-  // Raiz PEDIDOS (best-effort)
-  const refR = doc(db, 'PEDIDOS', pedidoId);
-  try {
-    await runTransaction(db, async (tx) => {
-      const s = await tx.get(refR);
-      if (!s.exists()) return;
-      const d = s.data() || {};
-      const par = { ...(d.parciais || {}) };
-      const cur = Number(par[produto] || 0);
-      par[produto] = Math.max(0, cur + delta);
-      tx.update(refR, { parciais: par, atualizadoEm: serverTimestamp() });
-    });
-  } catch {}
-}
-
-/** Marca PRODUZIDO em Cozinha + PEDIDOS + ciclo (StaPed passa a contar). */
+/**
+ * Marca o pedido como PRODUZIDO em:
+ *  - coleção da Cozinha (pcp_pedidos)
+ *  - raiz PEDIDOS
+ *  - coleção do CICLO semanal (usada pelo StaPed)
+ */
 export async function marcarProduzido(pedidoId) {
   const ts = serverTimestamp();
 
-  // Cozinha
+  // 1) Cozinha
   await setDoc(
     doc(db, COL, pedidoId),
-    { statusEtapa: 'Produzido', produzidoEm: ts, atualizadoEm: ts },
+    { statusEtapa: "Produzido", produzidoEm: ts, atualizadoEm: ts },
     { merge: true }
   );
 
-  // Raiz PEDIDOS
-  const refR = doc(db, 'PEDIDOS', pedidoId);
+  // 2) Raiz PEDIDOS
+  const refRoot = doc(db, "PEDIDOS", pedidoId);
   await setDoc(
-    refR,
-    { statusEtapa: 'Produzido', produzidoEm: ts, atualizadoEm: ts },
+    refRoot,
+    { statusEtapa: "Produzido", produzidoEm: ts, atualizadoEm: ts },
     { merge: true }
   );
 
-  // Ciclo (espelho do StaPed)
+  // 3) CICLO semanal (StaPed lê daqui)
   try {
-    const rootSnap = await getDoc(refR);
+    const rootSnap = await getDoc(refRoot);
     if (rootSnap.exists()) {
       const d = rootSnap.data() || {};
-      const created =
+      const criado =
         d?.criadoEm?.toDate?.() ||
         d?.createdEm?.toDate?.() ||
         new Date();
-      await upsertPedidoInCiclo(
-        pedidoId,
-        { ...d, statusEtapa: 'Produzido', produzidoEm: new Date() },
-        created
-      );
-    }
-  } catch {}
-}
 
-/** (Opcional) Backfill de PEDIDOS → Cozinha para a semana. */
-export async function backfillCozinhaSemana() {
-  const q = query(collection(db, 'PEDIDOS'), where('statusEtapa', 'in', ['Alimentado', 'Produzido']));
-  const snap = await getDocs(q);
-  await Promise.all(
-    snap.docs.map(async (d) => {
-      const data = d.data() || {};
-      const itensSrc = Array.isArray(data.itens) ? data.itens : [];
-      const itens = itensSrc.map((it) => ({
-        produto: it.produto,
-        qtd: Number(it.quantidade || it.qtd || 0),
-      }));
+      const weeklyPath = semanaRefFromDate(criado).path;
+
       await setDoc(
-        doc(db, COL, d.id),
-        {
-          cidade: data.cidade || '',
-          pdv: data.pdv || data.escola || '',
-          itens,
-          sabores: data.sabores || {},
-          parciais: data.parciais || {},
-          statusEtapa: data.statusEtapa || 'Alimentado',
-          atualizadoEm: serverTimestamp(),
-        },
+        doc(db, weeklyPath, pedidoId),
+        { statusEtapa: "Produzido", produzidoEm: ts, atualizadoEm: ts },
         { merge: true }
       );
-    })
+
+      // reforça consistência também via helper
+      await upsertPedidoInCiclo(
+        pedidoId,
+        { ...d, statusEtapa: "Produzido", produzidoEm: new Date() },
+        criado
+      );
+    }
+  } catch (_) {
+    // se falhar aqui, ao menos Cozinha e PEDIDOS ficaram corretos
+  }
+}
+
+/**
+ * Usado pelo AliSab ao salvar sabores para espelhar o pedido na coleção da Cozinha.
+ * Cria/atualiza o doc em `pcp_pedidos`.
+ */
+export async function upsertAlimentadoCozinha(pedidoId, data) {
+  await setDoc(
+    doc(db, COL, pedidoId),
+    {
+      // campos mínimos p/ Cozinha
+      statusEtapa: "Alimentado",
+      cidade: data.cidade || "",
+      pdv: data.pdv || data.escola || "",
+      itens: Array.isArray(data.itens) ? data.itens : [],
+      sabores: data.sabores || {},
+      parciais: data.parciais || {},
+
+      // datas/auxiliares
+      dataPrevista: data.dataPrevista || "",
+      atualizadoEm: serverTimestamp(),
+    },
+    { merge: true }
   );
 }
 
-/** Resumo para UI. */
+/**
+ * Resumo para exibição na UI.
+ * total   → somatório das quantidades pedidas
+ * produzido → soma dos parciais limitados ao pedido
+ * parcial/completo/restam → flags e saldo
+ */
 export function resumoPedido(p) {
   const itens = Array.isArray(p.itens) ? p.itens : [];
-  const par = p.parciais || {};
-  let total = 0, produzido = 0;
+  const parciais = p.parciais || {};
+  let total = 0,
+    produzido = 0,
+    parcial = false;
+
   itens.forEach((it) => {
-    const ped = Number(it.qtd || it.quantidade || 0);
-    const fez = Number(par[it.produto] || 0);
-    total += ped;
-    produzido += Math.min(fez, ped);
+    const pedida = Number(it.qtd || it.quantidade || 0);
+    const prod = Number(parciais[it.produto] || 0);
+    total += pedida;
+    produzido += Math.min(prod, pedida);
+    if (prod > 0 && prod < pedida) parcial = true;
   });
-  const restam = Math.max(total - produzido, 0);
-  const completo = total > 0 && restam === 0;
-  return { total, produzido, restam, completo };
+
+  const completo = total > 0 && produzido >= total;
+  const restam = Math.max(0, total - produzido);
+  return { total, produzido, parcial, completo, restam };
 }
