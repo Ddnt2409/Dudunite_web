@@ -1,97 +1,127 @@
 // src/util/cozinha_store.js
-import { db } from '../firebase';
+import { db } from "../firebase";
 import {
-  collection, query, where, orderBy, onSnapshot,
-  doc, runTransaction, serverTimestamp, setDoc, getDoc
-} from 'firebase/firestore';
+  collection,
+  query,
+  where,
+  onSnapshot,
+  doc,
+  runTransaction,
+  setDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 
-// Coleção que a Cozinha lê (espelho criado pelo AliSab)
-const COL = 'pcp_pedidos';
+// Coleção usada pela Cozinha
+const COL = "pcp_pedidos";
 
-/** Cria/atualiza o espelho que a Cozinha consome. */
+/** Cria/atualiza (merge) um pedido Alimentado para a coleção da Cozinha. */
 export async function upsertAlimentadoCozinha(id, payload) {
-  // shape mínimo que a Cozinha usa:
-  // { cidade, pdv, itens:[{produto,qtd}], sabores:{[produto]:[{sabor,qtd}]}, dataPrevista: 'YYYY-MM-DD', statusEtapa }
   const ref = doc(db, COL, id);
-  const snap = await getDoc(ref);
-  const base = snap.exists() ? snap.data() : {};
   await setDoc(
     ref,
     {
-      ...base,
-      ...payload,
-      statusEtapa: 'Alimentado',
+      statusEtapa: "Alimentado",
       atualizadoEm: serverTimestamp(),
+      ...payload, // {cidade, pdv, itens:[{produto,qtd}], sabores:{produto:[{sabor,qtd}...]}, dataPrevista: 'YYYY-MM-DD'}
     },
     { merge: true }
   );
 }
 
-/** Assina os pedidos ALIMENTADOS (filtros server-side por cidade/pdv). */
-export function subscribePedidosAlimentados({ cidade = null, pdv = null }, onChange) {
+/** Assina em tempo real TODOS os pedidos Alimentados (filtro será no cliente). */
+export function subscribePedidosAlimentados(onChange, onError) {
   const col = collection(db, COL);
-  const clauses = [ where('statusEtapa', '==', 'Alimentado') ];
-  if (cidade && cidade !== 'Todos') clauses.push(where('cidade', '==', cidade));
-  if (pdv && pdv !== 'Todos')       clauses.push(where('pdv', '==', pdv));
-  const q = query(col, ...clauses, orderBy('dataPrevista', 'asc'));
-
-  return onSnapshot(q, (snap) => {
-    const pedidos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    onChange(pedidos);
-  });
+  const q = query(col, where("statusEtapa", "==", "Alimentado"));
+  return onSnapshot(
+    q,
+    (snap) => {
+      const pedidos = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      // ordenação estável no cliente
+      pedidos.sort((a, b) => {
+        const da = String(a.dataPrevista || "");
+        const dbb = String(b.dataPrevista || "");
+        if (da !== dbb) return da.localeCompare(dbb);
+        return String(a.pdv || a.escola || "").localeCompare(
+          String(b.pdv || b.escola || "")
+        );
+      });
+      onChange(pedidos);
+    },
+    (err) => onError && onError(err)
+  );
 }
 
-/** Marca/Desmarca uma linha da checklist (Qtd|Sabor). Carimba PRODUZIDO quando tudo marcado. */
-export async function toggleChecklistLine({ pedidoId, produto, index, checked }) {
+/** Ajusta (±delta) a produção parcial de um produto, com clamp ao limite. */
+export async function atualizarParcial(pedidoId, produto, delta) {
   const ref = doc(db, COL, pedidoId);
   await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
-    if (!snap.exists()) throw new Error('Pedido não existe.');
+    if (!snap.exists()) throw new Error("Pedido não existe.");
     const data = snap.data();
 
-    const sabores = data.sabores || {};                    // { [produto]: [{sabor,qtd}] }
-    const ticks   = { ...(data.producedChecklist || {}) }; // { [produto]: { [index]: true } }
-
-    const prodMap = { ...(ticks[produto] || {}) };
-    if (checked) prodMap[index] = true;
-    else         delete prodMap[index];
-    ticks[produto] = prodMap;
-
-    // Verifica se todas as linhas de todos os produtos estão marcadas
-    let allProduced = true;
-    for (const [prod, linhas] of Object.entries(sabores)) {
-      const mp = ticks[prod] || {};
-      for (let i = 0; i < linhas.length; i++) {
-        if (!mp[i]) { allProduced = false; break; }
-      }
-      if (!allProduced) break;
+    // limite = soma das linhas do produto (sabores) ou qtd do item no array itens
+    let limite = 0;
+    if (data?.sabores && data.sabores[produto]) {
+      limite = data.sabores[produto].reduce(
+        (s, ln) => s + Number(ln.qtd || ln.quantidade || 0),
+        0
+      );
+    } else if (Array.isArray(data?.itens)) {
+      const it = data.itens.find(
+        (i) => String(i.produto).toUpperCase() === String(produto).toUpperCase()
+      );
+      limite = Number(it?.qtd ?? it?.quantidade ?? 0);
     }
 
+    const parciais = { ...(data.parciais || {}) };
+    const atual = Number(parciais[produto] || 0);
+    let novo = atual + Number(delta || 0);
+    if (!Number.isFinite(novo)) novo = atual;
+    if (limite > 0) {
+      novo = Math.max(0, Math.min(limite, novo));
+    } else {
+      novo = Math.max(0, novo);
+    }
+    parciais[produto] = novo;
+
+    tx.update(ref, { parciais, atualizadoEm: serverTimestamp() });
+  });
+}
+
+/** Atalho para somar (incremento positivo). */
+export async function salvarParcial(pedidoId, produto, qtd) {
+  return atualizarParcial(pedidoId, produto, +Number(qtd || 0));
+}
+
+/** Marca o pedido como Produzido. */
+export async function marcarProduzido(pedidoId) {
+  const ref = doc(db, COL, pedidoId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists()) throw new Error("Pedido não existe.");
     tx.update(ref, {
-      producedChecklist: ticks,
+      statusEtapa: "Produzido",
+      produzidoEm: serverTimestamp(),
       atualizadoEm: serverTimestamp(),
-      ...(allProduced
-        ? { statusEtapa: 'Produzido', produzidoEm: serverTimestamp() }
-        : { statusEtapa: 'Alimentado', produzidoEm: null })
     });
   });
 }
 
-/** Resumo para o rodapé do post-it. */
-export function resumoDoPedido(p) {
-  const sabores = p.sabores || {};
-  const ticks   = p.producedChecklist || {};
-  let pedida = 0, produzida = 0;
+/** Resumo para a UI (total solicitado, produzido e se está completo). */
+export function resumoPedido(p) {
+  const itens = Array.isArray(p?.itens) ? p.itens : [];
+  const parciais = p?.parciais || {};
+  let total = 0;
+  let produzido = 0;
 
-  for (const [prod, linhas] of Object.entries(sabores)) {
-    const mp = ticks[prod] || {};
-    linhas.forEach((ln, i) => {
-      const q = Number(ln.qtd || 0);
-      pedida += q;
-      if (mp[i]) produzida += q;
-    });
-  }
-  const restam = Math.max(0, pedida - produzida);
-  const completo = pedida > 0 && restam === 0;
-  return { pedida, produzida, restam, completo };
+  itens.forEach((it) => {
+    const pedida = Number(it.qtd ?? it.quantidade ?? 0);
+    const prod = Number(parciais[it.produto] || 0);
+    total += pedida;
+    produzido += Math.min(pedida, prod);
+  });
+
+  const completo = total > 0 && produzido >= total;
+  const restam = Math.max(0, total - produzido);
+  return { total, produzido, restam, completo };
 }
