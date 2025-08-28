@@ -17,9 +17,6 @@ import {
   semanaRefFromDate
 } from "../util/Ciclo";
 
-// 👇 NOVO: para espelhar na coleção que a Cozinha lê
-import { upsertAlimentadoCozinha } from "../util/cozinha_store";
-
 /* =====================
  * MAPEAMENTOS / DADOS
  * ===================== */
@@ -84,6 +81,7 @@ function proximaSegunda(d) {
 export default function AliSab({ setTela }) {
   const [pedidos, setPedidos] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
+  // formState[pedidoId] = { [produtoDisplay]: { linhas:[{sabor,qtd}], restante:number } }
   const [formState, setFormState] = useState({});
 
   /* =====================
@@ -94,8 +92,10 @@ export default function AliSab({ setTela }) {
       const { ini, fim } = intervaloSemanaBase(new Date());
 
       const col = collection(db, "PEDIDOS");
+      // Buscamos Lançado e Alimentado, mas filtramos por semana no cliente
       const qA = query(col, where("statusEtapa", "==", "Lançado"));
       const qB = query(col, where("statusEtapa", "==", "Alimentado"));
+
       const [snapA, snapB] = await Promise.all([getDocs(qA), getDocs(qB)]);
 
       const parse = (docSnap) => {
@@ -110,6 +110,7 @@ export default function AliSab({ setTela }) {
           id: docSnap.id,
           escola: data.escola || "—",
           cidade: data.cidade || "",
+          // mantemos os carimbos originais se existirem; sem default para "agora"
           criadoEm: data.criadoEm?.toDate?.() || data.createdEm?.toDate?.() || null,
           statusEtapa: data.statusEtapa || "Lançado",
           dataAlimentado: data.dataAlimentado?.toDate?.() || null,
@@ -118,12 +119,15 @@ export default function AliSab({ setTela }) {
         };
       };
 
+      // aplica janela da semana ANTES de mapear
       const docsSemana = [...snapA.docs, ...snapB.docs]
         .filter((docu) => dentroDaSemanaDoc(docu.data(), ini, fim));
 
       const lista = docsSemana.map(parse).sort((a, b) => a.escola.localeCompare(b.escola));
+
       setPedidos(lista);
 
+      // monta estado inicial dos blocos
       const initial = {};
       lista.forEach((p) => {
         const st = {};
@@ -211,17 +215,18 @@ export default function AliSab({ setTela }) {
         if (dados.linhas.length) payload[prod] = dados.linhas;
       });
 
-      // 1) Atualiza raiz
+      // 1) Atualiza raiz PEDIDOS
       const ref = doc(db, "PEDIDOS", pedido.id);
       await updateDoc(ref, {
         sabores: payload,
         statusEtapa: "Alimentado",
         dataAlimentado: serverTimestamp(),
         atualizadoEm: serverTimestamp(),
+        // salva apenas o path (string) da “semana”
         semanaPath: semanaRefFromDate(pedido.criadoEm || new Date()).path,
       });
 
-      // 2) Espelha na coleção semanal
+      // 2) Espelha na coleção semanal (já existia)
       await upsertPedidoInCiclo(
         pedido.id,
         {
@@ -233,23 +238,7 @@ export default function AliSab({ setTela }) {
         pedido.criadoEm || new Date()
       );
 
-      // 3) 👇 NOVO: espelha na coleção da COZINHA (pcp_pedidos)
-      const dataPrev = (pedido.criadoEm instanceof Date)
-        ? toYMD(pedido.criadoEm)
-        : toYMD(new Date());
-
-      await upsertAlimentadoCozinha(pedido.id, {
-        cidade: pedido.cidade || "Gravatá",
-        pdv: pedido.escola,
-        itens: (pedido.itens || []).map(it => ({
-          produto: it.produto,
-          qtd: Number(it.quantidade || 0),
-        })),
-        sabores: payload,
-        dataPrevista: dataPrev, // string YYYY-MM-DD (bate com orderBy e exibição)
-      });
-
-      // estado local
+      // 3) Estado local
       setPedidos((prev) =>
         prev.map((p) =>
           p.id === pedido.id
@@ -271,6 +260,7 @@ export default function AliSab({ setTela }) {
     await updateDoc(ref, {
       statusEtapa: "Lançado",
       atualizadoEm: serverTimestamp(),
+      // opcional: sabores: {}, dataAlimentado: null,
     });
 
     await upsertPedidoInCiclo(
@@ -286,7 +276,9 @@ export default function AliSab({ setTela }) {
   async function excluirPedido(pedido) {
     if (!confirm("Excluir este pedido? Esta ação não pode ser desfeita.")) return;
 
+    // apaga da raiz
     await deleteDoc(doc(db, "PEDIDOS", pedido.id));
+    // apaga do ciclo semanal
     await deletePedidoInCiclo(pedido.id, pedido.criadoEm || new Date());
 
     setPedidos((prev) => prev.filter((p) => p.id !== pedido.id));
@@ -409,11 +401,4 @@ export default function AliSab({ setTela }) {
       <ERPFooter onBack={() => setTela("HomePCP")} />
     </>
   );
-}
-
-function toYMD(d) {
-  const x = new Date(d);
-  const m = String(x.getMonth()+1).padStart(2,'0');
-  const day = String(x.getDate()).padStart(2,'0');
-  return `${x.getFullYear()}-${m}-${day}`;
-        }
+                                       }
