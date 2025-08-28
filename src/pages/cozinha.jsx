@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import "../util/cozinha.css";
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
@@ -8,6 +8,7 @@ import {
   resumoPedido,
   atualizarParcial,
   marcarProduzido,
+  backfillCozinhaSemana,            // ⬅ importa o backfill
 } from "../util/cozinha_store";
 
 /* ---------- helpers ---------- */
@@ -45,19 +46,36 @@ export default function Cozinha({ setTela }) {
   const [pdv, setPdv]       = useState("Todos");
   const [tipo, setTipo]     = useState("Todos");
 
-  // dados/erro
+  // dados/erro/estado
   const [pedidos, setPedidos] = useState([]);
   const [erro, setErro]       = useState("");
+  const [sincronizando, setSincronizando] = useState(false);
+  const backfillFeitoRef = useRef(false);
 
   // assina em tempo real (sem orderBy no servidor)
   useEffect(() => {
     setErro("");
     const unsub = subscribePedidosAlimentados(
-      (docs) => setPedidos(docs),
+      async (docs) => {
+        // se não há espelho ainda, popula uma única vez
+        if (!backfillFeitoRef.current && docs.length === 0) {
+          backfillFeitoRef.current = true;
+          try {
+            setSincronizando(true);
+            await backfillCozinhaSemana(); // copia PEDIDOS->pcp_pedidos
+          } catch (e) {
+            // mostra erro curto
+            const msg = e?.message || String(e);
+            setErro("Falha ao sincronizar pedidos para a cozinha: " + msg);
+          } finally {
+            setSincronizando(false);
+          }
+        }
+        setPedidos(docs);
+      },
       (err) => {
-        // Mostra mensagem curta; evita colar o link de "create index" na tela.
         const msg = err?.code === "failed-precondition"
-          ? "Para estes filtros é necessário criar um índice no Firestore. Por ora, remova filtros ou recarregue."
+          ? "Para estes filtros é necessário criar um índice no Firestore. Remova filtros ou recarregue."
           : (err?.message || String(err));
         setErro(msg);
       }
@@ -92,7 +110,6 @@ export default function Cozinha({ setTela }) {
       return okCidade && okPdv && okTipo;
     });
 
-    // ordena por cidade, pdv e tipo do primeiro item
     return lista.sort((a, b) => {
       const ac = norm(a.cidade), bc = norm(b.cidade);
       if (ac !== bc) return ac.localeCompare(bc);
@@ -148,6 +165,15 @@ export default function Cozinha({ setTela }) {
           <button className="btn-filtrar" onClick={() => { /* só estético */ }}>Filtrar</button>
         </div>
 
+        {sincronizando && (
+          <div style={{
+            background: "#fff", border: "1px solid #e6d2c2", borderRadius: 10,
+            padding: 10, color: "#8c3b1b", marginBottom: 8
+          }}>
+            Sincronizando pedidos alimentados…
+          </div>
+        )}
+
         {erro && (
           <div style={{
             background: "#fff", border: "1px solid #e6d2c2", borderRadius: 10,
@@ -158,7 +184,7 @@ export default function Cozinha({ setTela }) {
         )}
 
         {/* vazio */}
-        {pedidosFiltrados.length === 0 && !erro && (
+        {pedidosFiltrados.length === 0 && !erro && !sincronizando && (
           <div className="postit tilt-l" style={{ maxWidth: 360 }}>
             <i className="pin" />
             <div className="postit-header">
@@ -240,4 +266,4 @@ export default function Cozinha({ setTela }) {
       <ERPFooter onBack={() => setTela?.("HomePCP")} />
     </>
   );
-            }
+}
