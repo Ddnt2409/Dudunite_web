@@ -1,185 +1,153 @@
+// src/pages/Cozinha.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import "../util/cozinha.css";
-
+import "./cozinha.css";
+import ERPHeader from "./ERPHeader";
+import ERPFooter from "./ERPFooter";
 import {
   subscribePedidosAlimentados,
-  salvarParcial,
-  marcarProduzido,
-  resumoPedido,
+  toggleChecklistLine,
+  resumoDoPedido,
 } from "../util/cozinha_store";
+
+// opções simples para os filtros (ajuste se quiser carregar de fonte externa)
+const CIDADES = ["Todos", "Gravatá"];
+const TIPOS   = ["Todos", "BROWNIE 7X7", "BROWNIE 6X6", "POCKET 5X5", "POCKET 6X6", "ESCONDIDINHO", "DUDU"];
 
 export default function Cozinha({ setTela }) {
   const [cidade, setCidade] = useState("Todos");
-  const [pdv, setPdv] = useState("Todos");
-  const [tipo, setTipo] = useState("Todos");
+  const [pdv,    setPdv]    = useState("Todos");
+  const [tipo,   setTipo]   = useState("Todos");
+  const [lista,  setLista]  = useState([]);
+  const [unsub,  setUnsub]  = useState(null);
 
-  const [todos, setTodos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState("");
+  // (re)assina no Firestore quando clicar em "Filtrar"
+  function assinar() {
+    if (unsub) unsub();
+    const un = subscribePedidosAlimentados({ cidade, pdv }, setLista);
+    setUnsub(() => un);
+  }
+  useEffect(() => { assinar(); return () => unsub?.(); /* 1ª carga */ }, []);
 
-  // Assina Firestore (apenas ALIMENTADO). Reassina ao trocar cidade/PDV.
-  useEffect(() => {
-    setLoading(true);
-    setErro("");
-    const off = subscribePedidosAlimentados({ cidade, pdv }, (arr, err) => {
-      if (err) setErro(err.message || String(err));
-      setTodos(arr || []);
-      setLoading(false);
+  // filtro por tipo de produto aplicado no cliente
+  const exibidos = useMemo(() => {
+    if (tipo === "Todos") return lista;
+    return lista.filter(p => {
+      const sabores = p.sabores || {};
+      return Object.keys(sabores).some(prod => prod === tipo);
     });
-    return off;
-  }, [cidade, pdv]);
-
-  // Opções dos selects
-  const cidades = useMemo(
-    () => ["Todos", ...uniq(todos.map(p => p.cidade).filter(Boolean))],
-    [todos]
-  );
-  const pdvs = useMemo(
-    () => ["Todos", ...uniq(todos.map(p => p.pdv).filter(Boolean))],
-    [todos]
-  );
-  const tipos = useMemo(() => {
-    const s = new Set();
-    todos.forEach(p => (p.itens || []).forEach(it => it.tipo && s.add(it.tipo)));
-    return ["Todos", ...Array.from(s)];
-  }, [todos]);
-
-  // Filtro por tipo (opcional)
-  const pedidosFiltrados = useMemo(() => {
-    if (tipo === "Todos") return todos;
-    return todos.filter(p => (p.itens || []).some(it => it.tipo === tipo));
-  }, [todos, tipo]);
-
-  async function onSalvarParcial(p, produto, qtd) {
-    const n = Number(qtd || 0);
-    if (n <= 0) return alert("Informe uma quantidade válida.");
-    try {
-      await salvarParcial(p.id, produto, n);
-    } catch (e) {
-      alert("Erro ao salvar parcial: " + (e.message || e));
-    }
-  }
-
-  async function onProduzido(p) {
-    const r = resumoPedido(p);
-    if (!r.completo) {
-      const ok = confirm("Ainda há itens pendentes. Marcar como PRODUZIDO assim mesmo?");
-      if (!ok) return;
-    }
-    try {
-      await marcarProduzido(p.id);
-    } catch (e) {
-      alert("Erro ao marcar produzido: " + (e.message || e));
-    }
-  }
+  }, [lista, tipo]);
 
   return (
-    <div className="alisab-main">
-      {/* HEADER padrão (classes já vêm do CtsReceber.css importado por cozinha.css) */}
-      <header className="erp-header">
-        <div className="erp-header__inner">
-          <div className="erp-header__logo">
-            <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
+    <>
+      <ERPHeader title="PCP — Cozinha" />
+      <main className="alisab-main">
+        {/* Filtros */}
+        <div className="cozinha-filtros">
+          <div>
+            <div style={{ fontSize:12, color:"#8b6a4a", marginBottom:4 }}>Cidade</div>
+            <select value={cidade} onChange={e=>setCidade(e.target.value)}>
+              {CIDADES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
-          <div className="erp-header__title">PCP — Cozinha</div>
-        </div>
-      </header>
-
-      {/* FILTROS */}
-      <div className="cozinha-filtros">
-        <div>
-          <div style={{fontSize:12,fontWeight:800,color:"#5C1D0E"}}>Cidade</div>
-          <select value={cidade} onChange={e=>setCidade(e.target.value)}>
-            {cidades.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <div>
-          <div style={{fontSize:12,fontWeight:800,color:"#5C1D0E"}}>PDV</div>
-          <select value={pdv} onChange={e=>setPdv(e.target.value)}>
-            {pdvs.map(v => <option key={v} value={v}>{v}</option>)}
-          </select>
-        </div>
-        <div>
-          <div style={{fontSize:12,fontWeight:800,color:"#5C1D0E"}}>Tipo de produto</div>
-          <select value={tipo} onChange={e=>setTipo(e.target.value)}>
-            {tipos.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-        <button className="btn-filtrar" onClick={()=>setTipo(t => t)}>Filtrar</button>
-      </div>
-
-      {/* ESTADOS */}
-      {loading && <div style={{padding:10}}>Carregando pedidos…</div>}
-      {erro && <div style={{padding:10,color:"#b71c1c",fontWeight:800}}>Erro: {erro}</div>}
-      {!loading && !erro && pedidosFiltrados.length === 0 && (
-        <div className="postit" style={{maxWidth:360}}>
-          <div className="pin" />
-          <div className="postit-header">
-            <div className="pdv">Sem pedidos</div>
-            <div className="resumo">
-              <span>Somente pedidos com status <b>ALIMENTADO</b> aparecem aqui.</span>
-            </div>
+          <div>
+            <div style={{ fontSize:12, color:"#8b6a4a", marginBottom:4 }}>PDV</div>
+            <select value={pdv} onChange={e=>setPdv(e.target.value)}>
+              {/* Dinamiza com os PDVs que vierem da assinatura */}
+              <option>Todos</option>
+              {[...new Set(lista.map(p=>p.pdv))].filter(Boolean).map(n =>
+                <option key={n} value={n}>{n}</option>
+              )}
+            </select>
           </div>
+          <div>
+            <div style={{ fontSize:12, color:"#8b6a4a", marginBottom:4 }}>Tipo de produto</div>
+            <select value={tipo} onChange={e=>setTipo(e.target.value)}>
+              {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <button className="btn-filtrar" onClick={assinar}>Filtrar</button>
         </div>
-      )}
 
-      {/* LISTA DE POST-ITS */}
-      <div className="postits-list" style={{marginTop:8}}>
-        {pedidosFiltrados.map(p => {
-          const r = resumoPedido(p);
-          return (
-            <div key={p.id} className="postit tilt-l">
-              <div className="pin" />
-              <span className="badge-status">ALIMENTADO</span>
-
+        {/* Lista de post-its */}
+        <section className="postits-list">
+          {exibidos.length === 0 && (
+            <article className="postit tilt-l" style={{ cursor:"default" }}>
+              <i className="pin" aria-hidden />
               <div className="postit-header">
-                <div className="pdv">{p.pdv} — {p.cidade}</div>
-                <div className="resumo">
-                  <span>Previsto: <b>{p.dataPrevista || "-"}</b></span>
-                  <span>Progresso: <b>{r.produzido}</b> / <b>{r.total}</b></span>
-                </div>
+                <div className="pdv">Sem pedidos</div>
+                <div className="resumo">Somente pedidos com status <b>ALIMENTADO</b> aparecem aqui.</div>
               </div>
+            </article>
+          )}
 
-              <div className="postit-body">
-                {(p.itens || []).map((it, i) => {
-                  const feito = Number((p.parciais || {})[it.produto] || 0);
-                  return (
-                    <div key={i} className="prod-item">
-                      <div><b>{it.produto}</b> — Solicitado: {it.qtd}</div>
-                      <input type="number" min="1" id={`q_${p.id}_${i}`} placeholder="Qtd" />
-                      <div className="restantes">{feito}/{it.qtd}</div>
-                      <button
-                        className="btn-parcial"
-                        onClick={()=>{
-                          const el = document.getElementById(`q_${p.id}_${i}`);
-                          const val = el?.value || "0";
-                          onSalvarParcial(p, it.produto, val);
-                          if (el) el.value = "";
-                        }}
-                      >
-                        Parcial
-                      </button>
-                    </div>
-                  );
-                })}
+          {exibidos.map((p, idx) => {
+            const tilt = idx % 2 ? "tilt-r" : "tilt-l";
+            const sabores = p.sabores || {};                 // { [produto]: [{sabor,qtd}] }
+            const ticks   = p.producedChecklist || {};       // { [produto]: { [idx]: true } }
+            const resumo  = resumoDoPedido(p);
 
-                <div className="actions">
-                  <button className="btn-finalizar" onClick={()=>onProduzido(p)}>Produzido</button>
-                  <button className="btn-parcial" onClick={()=>setTela?.("HomeERP")}>Voltar</button>
+            return (
+              <article key={p.id} className={`postit ${tilt}`}>
+                <i className="pin" aria-hidden />
+                <div className="postit-header">
+                  <div className="pdv">{p.pdv} — {p.cidade}</div>
+                  <div className="resumo">
+                    {Object.keys(sabores).length ? "Itens:" : "Sem itens"}
+                  </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
 
-      {/* RODAPÉ */}
-      <button className="btn-voltar-foot" onClick={() => setTela?.("HomeERP")}>🔙 Voltar</button>
-      <footer className="erp-footer">
-        <div className="erp-footer-track">• Cozinha exibe apenas pedidos ALIMENTADO •</div>
-      </footer>
-    </div>
+                {resumo.completo && <div className="carimbo">PRODUZIDO</div>}
+
+                <div className="postit-body">
+                  {Object.entries(sabores).map(([produto, linhas]) => {
+                    const marcados = ticks[produto] || {};
+                    return (
+                      <div key={produto} className="produto-bloco">
+                        <div className="produto-titulo">
+                          <div style={{ fontWeight:800 }}>{produto}</div>
+                        </div>
+
+                        {/* Checklist: Qtd | Sabor | checkbox */}
+                        <div className="checklist">
+                          {linhas.map((ln, i) => (
+                            <div key={i} className="check-row">
+                              <div className="qtd-box">{Number(ln.qtd || 0)}</div>
+                              <div className="sabor-box">{ln.sabor}</div>
+                              <input
+                                type="checkbox"
+                                checked={!!marcados[i]}
+                                onChange={e =>
+                                  toggleChecklistLine({
+                                    pedidoId: p.id,
+                                    produto,
+                                    index: i,
+                                    checked: e.target.checked
+                                  })
+                                }
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Resumo no rodapé do post-it */}
+                  <div style={{ marginTop:8, fontWeight:800, color:"#5C1D0E" }}>
+                    Pedida: {resumo.pedida} • Produzida: {resumo.produzida} • Restam: {resumo.restam}
+                  </div>
+
+                  <div className="actions">
+                    <button className="btn-parcial" onClick={() => setTela?.("HomePCP")}>Voltar</button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      </main>
+
+      <ERPFooter onBack={() => setTela("HomePCP")} />
+    </>
   );
 }
-
-function uniq(a){ return Array.from(new Set(a)); }
