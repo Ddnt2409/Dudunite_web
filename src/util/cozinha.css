@@ -1,1 +1,70 @@
+/* Reaproveita todo o visual (BG, header, footer, post-its) já usado em CtsReceber */
+@import "./CtsReceber.css";
 
+/* ----------- Filtros da Cozinha ----------- */
+.cozinha-filtros{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 10px;
+  align-items: center;
+  margin: 8px 0 16px;
+}
+@media (max-width: 900px){ .cozinha-filtros{ grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px){ .cozinha-filtros{ grid-template-columns: 1fr; } }
+
+.cozinha-filtros select{
+  height: 46px;
+  font-size: 16px;
+  border: 1px solid #e6d2c2;
+  border-radius: 10px;
+  padding: 0 10px;
+  background: #fff;
+}
+
+.btn-filtrar{
+  height: 46px;
+  border: none;
+  border-radius: 10px;
+  background: #8c3b1b;
+  color: #fff;
+  font-weight: 800;
+  padding: 0 14px;
+}
+
+/* ----------- Blocos do pedido dentro do post-it ----------- */
+.prod-item{
+  display: grid;
+  grid-template-columns: 1fr 80px 90px auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.prod-item input[type="number"]{
+  height: 40px;
+  border: 1px solid #d2b44b;
+  border-radius: 10px;
+  padding: 0 8px;
+  background: #fff;
+  font-size: 16px;
+}
+.prod-item .restantes{
+  font-weight: 800;
+  color: #7a5a2a;
+}
+
+/* ----------- Ações do post-it ----------- */
+.actions{
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.btn-parcial, .btn-finalizar{
+  border: none; border-radius: 10px; height: 44px; padding: 0 12px; font-weight: 800;
+}
+.btn-parcial{ background:#eee; color:#333; }
+.btn-finalizar{ background:#8c3b1b; color:#fff; }
+
+.badge-status{
+  display:inline-block; padding:2px 8px; border-radius:8px; font-weight:800; font-size:12px;
+  background:#ffe3cc; color:#8c3b1b; border:1px solid #e6d2c2;
+}
