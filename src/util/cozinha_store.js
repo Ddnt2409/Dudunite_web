@@ -5,20 +5,20 @@ import {
   doc, runTransaction, serverTimestamp, getDoc, updateDoc
 } from 'firebase/firestore';
 
-// 🔴 Agora a fonte é a coleção principal:
+// 🔴 Fonte única de verdade agora:
 const COL = 'PEDIDOS';
 
 /**
  * Assina, em tempo real, pedidos com statusEtapa = "Alimentado".
- * - cidade: filtramos no servidor (se vier diferente de "Todos")
- * - pdv: em PEDIDOS o nome do ponto vem como "escola" → filtramos no CLIENTE
+ * - cidade: filtramos no servidor (se ≠ "Todos")
+ * - pdv: em PEDIDOS o campo é "escola" → filtramos no CLIENTE
  */
 export function subscribePedidosAlimentados({ cidade = null, pdv = null }, onChange) {
   const col = collection(db, COL);
   const clauses = [ where('statusEtapa', '==', 'Alimentado') ];
   if (cidade && cidade !== 'Todos') clauses.push(where('cidade', '==', cidade));
 
-  // Sem orderBy para evitar índice composto obrigatório; ordene no cliente se quiser
+  // sem orderBy para não exigir índice composto; pode ordenar no cliente
   const q = query(col, ...clauses);
 
   return onSnapshot(q, (snap) => {
@@ -26,7 +26,7 @@ export function subscribePedidosAlimentados({ cidade = null, pdv = null }, onCha
       const data = d.data() || {};
       const itensSrc = Array.isArray(data.itens) ? data.itens : [];
 
-      // Normaliza shape para a Cozinha:
+      // normaliza para a UI da Cozinha
       const itens = itensSrc.map(it => ({
         produto: it.produto,
         qtd: Number(it.qtd ?? it.quantidade ?? 0),
@@ -35,19 +35,17 @@ export function subscribePedidosAlimentados({ cidade = null, pdv = null }, onCha
 
       return {
         id: d.id,
-        // Em PEDIDOS o PDV vem como "escola":
-        pdv: data.escola || '—',
+        pdv: data.escola || '—',            // PDV vem como "escola" em PEDIDOS
         cidade: data.cidade || '',
         statusEtapa: data.statusEtapa || 'Lançado',
         itens,
-        // Cozinha pode usar 'parciais' livremente; se não existir, começará vazio
         parciais: data.parciais || {},
         dataPrevista: data.dataPrevista || null,
         dataAlimentado: data.dataAlimentado || null,
       };
     });
 
-    // Filtro de PDV no cliente (pois o campo no servidor chama 'escola')
+    // filtro de PDV no cliente (campo real = "escola")
     if (pdv && pdv !== 'Todos') {
       pedidos = pedidos.filter(p => (p.pdv || '').toLowerCase() === String(pdv).toLowerCase());
     }
