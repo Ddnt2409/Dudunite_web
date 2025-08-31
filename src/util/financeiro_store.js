@@ -187,7 +187,6 @@ export async function gravarAvulsoCaixa({ data, descricao, forma, valor }) {
 }
 
 /* ----------------- LISTENERS PARA A TELA ----------------- */
-/* CAIXA DIÁRIO: **apenas** financeiro_caixa */
 export function listenCaixaDiario(ano, mes, onChange, onError) {
   const { iniStr, fimStr } = mesRange(ano, mes);
   const colCX = collection(db, COL_CAIXA);
@@ -248,7 +247,6 @@ export function listenExtratoBancario(ano, mes, onChange, onError) {
         const x = d.data() || {};
         const origem = String(x.origem || "").toUpperCase();
 
-        // avulsos não aparecem aqui; só o fechamento do dia
         if (x.conta === "CAIXA DIARIO") return;
         if (["VAREJO", "AVULSO", "CAIXA_DIARIO"].includes(origem)) return;
 
@@ -364,3 +362,36 @@ export async function fecharCaixaDiario({ diaOrigem, dataBanco }) {
 
   return { criado: true, itens: docsDia.length, total };
 }
+
+/* ----------------- MIGRAÇÃO (uma vez) ----------------- */
+export async function migrarAvulsosAntigos(ano, mes) {
+  const { iniStr, fimStr } = mesRange(ano, mes);
+  const s = await getDocs(collection(db, COL_FLUXO));
+  let moved = 0;
+  for (const d of (s.docs || [])) {
+    const x = d.data() || {};
+    const origem = String(x.origem || "").toUpperCase();
+    const conta = x.conta || "";
+
+    if (conta === "CAIXA DIARIO" || ["AVULSO", "VAREJO", "CAIXA_DIARIO"].includes(origem)) {
+      const data =
+        (typeof x.data === "string" && x.data) ||
+        (typeof x.dataRealizado === "string" && x.dataRealizado) ||
+        (typeof x.dataPrevista === "string" && x.dataPrevista) ||
+        null;
+      if (data && isBetweenYmd(data, iniStr, fimStr)) {
+        await setDoc(doc(collection(db, COL_CAIXA)), {
+          data,
+          descricao: x.descricao || "VAREJO",
+          forma: x.forma || x.formaPagamento || "",
+          valor: Number(x.valor ?? x.valorRealizado ?? 0),
+          fechado: Boolean(x.fechado),
+          criadoEm: serverTimestamp(),
+          atualizadoEm: serverTimestamp(),
+        });
+        moved++;
+      }
+    }
+  }
+  return { moved };
+      }
