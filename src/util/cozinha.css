@@ -92,3 +92,45 @@
 }
 .sabor-box{ color:#6a4a20; font-weight:700; }
 .check-row input[type="checkbox"]{ width:20px; height:20px; }
+
+/* ======= ENVELOPE (compactar quando PRODUZIDO) ======= */
+
+/* carimbos com classes, para poder usar :has e data-attrs */
+.carimbo.is-ali { border-color:#8c3b1b; color:#8c3b1b; }
+.carimbo.is-prod { border-color:#2e7d32; color:#2e7d32; }
+
+/* versão compacta: mostra só cabeçalho (PDV) + carimbo */
+.postit[data-status="Produzido"] .postit-body,
+.postit[data-status="Produzido"] .resumo {
+  display: none !important;
+}
+
+.postit[data-status="Produzido"]{
+  max-width: 280px;
+  min-height: 86px;
+  padding-top: 14px;
+  padding-bottom: 18px;
+  position: relative;
+}
+
+/* visual de “envelope” (aba) */
+.postit[data-status="Produzido"]::after{
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 0; height: 0;
+  border-left: 18px solid transparent;
+  border-right: 18px solid transparent;
+  border-top: 18px solid rgba(0,0,0,.08);
+  transform: rotate(6deg);
+  pointer-events: none;
+}
+
+/* garante que o carimbo continue visível no compacto */
+.postit[data-status="Produzido"] .carimbo{
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  transform: rotate(10deg);
+}
