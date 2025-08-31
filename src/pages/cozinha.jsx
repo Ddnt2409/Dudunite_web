@@ -1,5 +1,5 @@
 // src/pages/cozinha.jsx
-import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import "../util/cozinha.css";
 
 import ERPHeader from "./ERPHeader";
@@ -12,7 +12,7 @@ import {
   marcarProduzido,
 } from "../util/cozinha_store";
 
-/* ---------- helpers de normalização ---------- */
+/* ---------- helpers ---------- */
 const norm = (s) => String(s || "").trim().toUpperCase();
 const aliasTipo = (s) => {
   const x = norm(s);
@@ -25,7 +25,28 @@ const aliasTipo = (s) => {
   return x;
 };
 
-/** Calcula quais linhas (sabores) estariam “checadas” com base no total produzido por produto. */
+// janela da semana: segunda 11:00 → próxima segunda 11:00
+function intervaloSemanaBase(ref = new Date()) {
+  const d = new Date(ref);
+  const dow = (d.getDay() + 6) % 7; // seg=0
+  d.setHours(11, 0, 0, 0);
+  d.setDate(d.getDate() - dow);
+  const ini = new Date(d);
+  const fim = new Date(d);
+  fim.setDate(fim.getDate() + 7);
+  return { ini, fim };
+}
+function dentroDaSemana(p, ini, fim) {
+  const cand =
+    p?.produzidoEm?.toDate?.() ||
+    p?.atualizadoEm?.toDate?.() ||
+    p?.criadoEm?.toDate?.() ||
+    p?.createdEm?.toDate?.();
+  if (!cand) return true;
+  return cand >= ini && cand < fim;
+}
+
+/** Calcula quais linhas (sabores) ficam “checadas” pelo parcial total do produto. */
 function computeChecks(pedido) {
   const checks = {};
   const sab = pedido?.sabores || {};
@@ -54,10 +75,15 @@ export default function Cozinha({ setTela }) {
   const [pedidos, setPedidos] = useState([]);
   const [erro, setErro] = useState("");
 
-  // evita marcar repetidamente o mesmo pedido
-  const autoMarcadosRef = useRef(new Set());
+  // tick para recalcular a janela semanal automaticamente
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 60 * 1000);
+    return () => clearInterval(t);
+  }, []);
+  const { ini, fim } = useMemo(() => intervaloSemanaBase(new Date(now)), [now]);
 
-  // assinatura em tempo real (sem filtros no servidor)
+  // assinatura em tempo real (ALIMENTADO + PRODUZIDO)
   useEffect(() => {
     setErro("");
     const unsub = subscribePedidosAlimentados(
@@ -67,45 +93,32 @@ export default function Cozinha({ setTela }) {
     return () => unsub && unsub();
   }, []);
 
-  // ⬇️ AUTO-MARCA COMO PRODUZIDO QUANDO TODAS AS LINHAS FOREM CHECADAS
-  useEffect(() => {
-    (async () => {
-      for (const p of pedidos) {
-        const r = resumoPedido(p);
-        if (r.completo && p.statusEtapa !== "Produzido" && !autoMarcadosRef.current.has(p.id)) {
-          try {
-            await marcarProduzido(p.id);
-            autoMarcadosRef.current.add(p.id);
-          } catch (e) {
-            console.warn("Falha ao marcar produzido automaticamente:", e);
-          }
-        }
-      }
-    })();
-  }, [pedidos]);
+  // mantém só a semana corrente
+  const pedidosSemana = useMemo(
+    () => (pedidos || []).filter((p) => dentroDaSemana(p, ini, fim)),
+    [pedidos, ini.getTime(), fim.getTime()]
+  );
 
-  // opções dos selects (derivadas do dataset)
+  // opções dos selects
   const { cidadesOpt, pdvsOpt, tiposOpt } = useMemo(() => {
     const cs = new Set(["Todos"]);
     const ps = new Set(["Todos"]);
     const ts = new Set(["Todos"]);
-    (pedidos || []).forEach((p) => {
+    (pedidosSemana || []).forEach((p) => {
       if (p.cidade) cs.add(p.cidade);
       if (p.pdv || p.escola) ps.add(p.pdv || p.escola);
-      if (Array.isArray(p.itens)) {
-        p.itens.forEach((it) => ts.add(aliasTipo(it.produto)));
-      }
+      (p.itens || []).forEach((it) => ts.add(aliasTipo(it.produto)));
     });
     return {
       cidadesOpt: Array.from(cs),
       pdvsOpt: Array.from(ps),
       tiposOpt: Array.from(ts),
     };
-  }, [pedidos]);
+  }, [pedidosSemana]);
 
   // filtro no cliente
   const pedidosFiltrados = useMemo(() => {
-    return (pedidos || []).filter((p) => {
+    return (pedidosSemana || []).filter((p) => {
       const okCidade = cidade === "Todos" || norm(p.cidade) === norm(cidade);
       const pPdv = p.pdv || p.escola;
       const okPdv = pdv === "Todos" || norm(pPdv) === norm(pdv);
@@ -117,9 +130,9 @@ export default function Cozinha({ setTela }) {
       }
       return okCidade && okPdv && okTipo;
     });
-  }, [pedidos, cidade, pdv, tipo]);
+  }, [pedidosSemana, cidade, pdv, tipo]);
 
-  // handler do checkbox (ajusta parcial para a linha)
+  // handlers
   const toggleLinha = useCallback(async (pedido, prod, linhaQtd, checked) => {
     try {
       const delta = checked ? +linhaQtd : -linhaQtd;
@@ -132,7 +145,6 @@ export default function Cozinha({ setTela }) {
   const confirmaProduzido = useCallback(async (pedido) => {
     try {
       await marcarProduzido(pedido.id);
-      autoMarcadosRef.current.add(pedido.id);
     } catch (e) {
       alert("Erro ao marcar como produzido: " + (e?.message || e));
     }
@@ -187,12 +199,7 @@ export default function Cozinha({ setTela }) {
             </select>
           </label>
 
-          <button
-            className="btn-filtrar"
-            onClick={() => {
-              /* filtros já aplicam automaticamente */
-            }}
-          >
+          <button className="btn-filtrar" onClick={() => {}}>
             Filtrar
           </button>
         </div>
@@ -212,7 +219,7 @@ export default function Cozinha({ setTela }) {
           </div>
         )}
 
-        {/* quando não há pedidos */}
+        {/* vazio */}
         {pedidosFiltrados.length === 0 && (
           <div className="postit tilt-l" style={{ maxWidth: 360 }}>
             <i className="pin" />
@@ -225,7 +232,7 @@ export default function Cozinha({ setTela }) {
           </div>
         )}
 
-        {/* lista de post-its */}
+        {/* lista */}
         <section className="postits-list">
           {pedidosFiltrados.map((p, idx) => {
             const tilt = idx % 2 ? "tilt-r" : "tilt-l";
@@ -233,17 +240,18 @@ export default function Cozinha({ setTela }) {
             const checks = computeChecks(p);
             const isProduzido = p.statusEtapa === "Produzido" || resumo.completo;
 
-            // agrupar sabores por produto (ordem estável)
             const prods = Object.keys(p?.sabores || {});
             prods.sort((a, b) => aliasTipo(a).localeCompare(aliasTipo(b)));
 
             return (
-              <article key={p.id} className={`postit ${tilt}`}>
+              <article
+                key={p.id}
+                className={`postit ${tilt}`}
+                data-status={isProduzido ? "Produzido" : "Alimentado"}
+              >
                 <i className="pin" aria-hidden />
                 <div className="postit-header">
-                  <div className="pdv">
-                    {(p.pdv || p.escola) ?? "—"} — {p.cidade ?? "—"}
-                  </div>
+                  <div className="pdv">{(p.pdv || p.escola) ?? "—"} — {p.cidade ?? "—"}</div>
                   <div className="resumo">
                     {prods.length ? (
                       <span>
@@ -260,13 +268,9 @@ export default function Cozinha({ setTela }) {
                   </div>
                 </div>
 
-                {isProduzido ? (
-                  <div className="carimbo">PRODUZIDO</div>
-                ) : (
-                  <div className="carimbo" style={{ borderColor: "#8c3b1b", color: "#8c3b1b" }}>
-                    ALIMENTADO
-                  </div>
-                )}
+                <div className={`carimbo ${isProduzido ? "is-prod" : "is-ali"}`}>
+                  {isProduzido ? "PRODUZIDO" : "ALIMENTADO"}
+                </div>
 
                 <div className="postit-body">
                   {prods.map((prod) => {
@@ -275,9 +279,7 @@ export default function Cozinha({ setTela }) {
                     return (
                       <div className="produto-bloco" key={prod}>
                         <div className="produto-titulo">
-                          <div style={{ fontWeight: 800 }}>
-                            {aliasTipo(prod)}
-                          </div>
+                          <div style={{ fontWeight: 800 }}>{aliasTipo(prod)}</div>
                         </div>
 
                         {linhas.map((ln, i) => {
@@ -311,8 +313,7 @@ export default function Cozinha({ setTela }) {
                       </button>
                     )}
                     <div style={{ marginLeft: "auto", fontWeight: 800, color: "#7a5a2a" }}>
-                      Solicitado: {resumo.total} • Produzido: {resumo.produzido} • Restam:{" "}
-                      {resumo.restam}
+                      Solicitado: {resumo.total} • Produzido: {resumo.produzido} • Restam: {resumo.restam}
                     </div>
                   </div>
                 </div>
@@ -325,4 +326,4 @@ export default function Cozinha({ setTela }) {
       <ERPFooter onBack={() => setTela?.("HomePCP")} />
     </>
   );
-                                                 }
+                                        }
