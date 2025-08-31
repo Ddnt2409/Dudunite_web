@@ -10,8 +10,6 @@ import {
 } from "firebase/firestore";
 import db from "../firebase";
 import "./LanPed.css";
-
-// ✅ grava o PREVISTO no financeiro assim que salvar o pedido
 import { upsertPrevistoFromLanPed } from "../util/financeiro_store";
 
 export default function LanPed({ setTela }) {
@@ -49,7 +47,7 @@ export default function LanPed({ setTela }) {
       alert("Preencha todos os campos de item.");
       return;
     }
-    setItens((old) => [
+    setItens(old => [
       ...old,
       {
         produto,
@@ -80,18 +78,18 @@ export default function LanPed({ setTela }) {
       criadoEm: serverTimestamp(),
     };
     try {
-      // salva na raiz PEDIDOS
       const ref = await addDoc(collection(db, "PEDIDOS"), novo);
 
-      // ✅ espelha imediatamente no financeiro como "Previsto"
+      // → Envia imediatamente ao financeiro como PREVISTO
       await upsertPrevistoFromLanPed(ref.id, {
         cidade,
         pdv,
+        escola: pdv,
         itens,
         formaPagamento,
-        vencimento: dataVencimento || "",
-        valorTotal: parseFloat(totalPedido),
-        criadoEm: new Date(), // base da competência
+        dataVencimento,
+        valorTotal: Number(novo.total) || undefined,
+        criadoEm: new Date(),
       });
 
       alert("✅ Pedido salvo!");
@@ -101,8 +99,7 @@ export default function LanPed({ setTela }) {
       setFormaPagamento("");
       setDataVencimento("");
       setTotalPedido("0.00");
-    } catch (e) {
-      console.error(e);
+    } catch {
       alert("❌ Falha ao salvar.");
     }
   }
@@ -111,9 +108,9 @@ export default function LanPed({ setTela }) {
   useEffect(() => {
     const ref = collection(db, "PEDIDOS");
     const q = query(ref, orderBy("criadoEm", "asc"));
-    return onSnapshot(q, (snap) => {
+    return onSnapshot(q, snap => {
       const m = {};
-      snap.docs.forEach((doc) => {
+      snap.docs.forEach(doc => {
         const d = doc.data();
         if (d.escola) m[d.escola] = d.statusEtapa;
       });
@@ -123,110 +120,66 @@ export default function LanPed({ setTela }) {
 
   return (
     <div className="lanped-container">
-      {/* HEADER */}
       <div className="lanped-header">
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logo Dudunitê"
-          className="lanped-logo"
-        />
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo Dudunitê" className="lanped-logo" />
         <h1 className="lanped-titulo">Lançar Pedido</h1>
       </div>
 
-      {/* FORMULÁRIO */}
       <div className="lanped-formulario">
         <div className="lanped-field">
           <label>Cidade</label>
-          <select
-            value={cidade}
-            onChange={(e) => {
-              setCidade(e.target.value);
-              setPdv("");
-            }}
-          >
+          <select value={cidade} onChange={e => { setCidade(e.target.value); setPdv(""); }}>
             <option value="">Selecione</option>
-            {cidades.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
+            {cidades.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
 
         <div className="lanped-field">
           <label>Ponto de Venda</label>
-          <select value={pdv} onChange={(e) => setPdv(e.target.value)} disabled={!cidade}>
+          <select value={pdv} onChange={e => setPdv(e.target.value)} disabled={!cidade}>
             <option value="">Selecione</option>
-            {cidade &&
-              pdvsPorCidade[cidade].map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
+            {cidade && pdvsPorCidade[cidade].map(p => <option key={p} value={p}>{p}</option>)}
           </select>
         </div>
 
         <div className="lanped-field">
           <label>Produto</label>
-          <select value={produto} onChange={(e) => setProduto(e.target.value)}>
+          <select value={produto} onChange={e => setProduto(e.target.value)}>
             <option value="">Selecione</option>
-            {produtos.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
+            {produtos.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
         </div>
 
         <div className="lanped-field">
           <label>Quantidade</label>
-          <input
-            type="number"
-            value={quantidade}
-            onChange={(e) => setQuantidade(Number(e.target.value))}
-          />
+          <input type="number" value={quantidade} onChange={e => setQuantidade(Number(e.target.value))} />
         </div>
 
         <div className="lanped-field">
           <label>Valor Unitário</label>
-          <input
-            type="number"
-            step="0.01"
-            value={valorUnitario}
-            onChange={(e) => setValorUnitario(e.target.value)}
-          />
+          <input type="number" step="0.01" value={valorUnitario} onChange={e => setValorUnitario(e.target.value)} />
         </div>
 
-        <button className="botao-adicionar" onClick={adicionarItem}>
-          ➕ Adicionar Item
-        </button>
+        <button className="botao-adicionar" onClick={adicionarItem}>➕ Adicionar Item</button>
 
         {itens.length > 0 && (
           <ul className="lista-itens">
             {itens.map((it, i) => (
               <li key={i}>
                 {it.quantidade}× {it.produto} — R$ {it.valorUnitario} (Total: R$ {it.total})
-                <button className="botao-excluir" onClick={() => setItens(itens.filter((_, j) => j !== i))}>
-                  ✖
-                </button>
+                <button className="botao-excluir" onClick={() => setItens(itens.filter((_, j) => j !== i))}>✖</button>
               </li>
             ))}
           </ul>
         )}
 
-        <div className="total-pedido">
-          <strong>Total:</strong> R$ {totalPedido}
-        </div>
+        <div className="total-pedido"><strong>Total:</strong> R$ {totalPedido}</div>
 
         <div className="lanped-field">
           <label>Forma de Pagamento</label>
-          <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)}>
+          <select value={formaPagamento} onChange={e => setFormaPagamento(e.target.value)}>
             <option value="">Selecione</option>
-            {formasPagamento.map((f) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
+            {formasPagamento.map(f => <option key={f} value={f}>{f}</option>)}
           </select>
         </div>
 
@@ -245,24 +198,14 @@ export default function LanPed({ setTela }) {
 
         <div className="lanped-field">
           <label>Data de Vencimento</label>
-          <input
-            type="date"
-            value={dataVencimento}
-            onChange={(e) => setDataVencimento(e.target.value)}
-          />
+          <input type="date" value={dataVencimento} onChange={e => setDataVencimento(e.target.value)} />
         </div>
 
-        <button className="botao-salvar" onClick={handleSalvar}>
-          💾 Salvar Pedido
-        </button>
+        <button className="botao-salvar" onClick={handleSalvar}>💾 Salvar Pedido</button>
       </div>
 
-      {/* BOTÃO VOLTAR ABAIXO DO FORMULÁRIO */}
-      <button className="botao-voltar" onClick={() => setTela("HomePCP")}>
-        🔙 Voltar
-      </button>
+      <button className="botao-voltar" onClick={() => setTela("HomePCP")}>🔙 Voltar</button>
 
-      {/* RODAPÉ */}
       <footer className="lanped-footer">
         <div className="lista-escolas-marquee">
           <span className="marquee-content">
@@ -279,4 +222,4 @@ export default function LanPed({ setTela }) {
       </footer>
     </div>
   );
-          }
+}
