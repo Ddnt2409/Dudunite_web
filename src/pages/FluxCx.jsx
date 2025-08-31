@@ -6,23 +6,23 @@ import {
   listenCaixaDiario,
   listenExtratoBancario,
   fecharCaixaDiario,
+  backfillPrevistosSemanaAtual,
 } from "../util/financeiro_store";
 
 function money(n) {
   return `R$ ${Number(n || 0).toFixed(2).replace(".", ",")}`;
 }
-function dtBR(ts) {
-  return (ts?.toDate?.() || ts || new Date()).toLocaleDateString("pt-BR");
+function dtBR(d) {
+  const s = typeof d === "string" ? d : (d?.toDate?.() || d || new Date()).toISOString();
+  const [y, m, dd] = s.slice(0, 10).split("-");
+  return `${dd}/${m}`;
 }
 
 export default function FluxCx({ setTela }) {
   const hoje = new Date();
   const [ano, setAno] = useState(hoje.getFullYear());
   const [mes, setMes] = useState(hoje.getMonth() + 1);
-  const meses = [
-    "janeiro","fevereiro","março","abril","maio","junho",
-    "julho","agosto","setembro","outubro","novembro","dezembro"
-  ];
+  const meses = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 
   // CAIXA DIARIO (topo)
   const [cxLinhas, setCxLinhas] = useState([]);
@@ -34,14 +34,14 @@ export default function FluxCx({ setTela }) {
   const [totBan, setTotBan] = useState(0);
 
   // datas para o fechamento
-  const [diaFechamento, setDiaFechamento] = useState(
-    hoje.toISOString().slice(0, 10)
-  ); // dia de origem
-  const [dataBanco, setDataBanco] = useState(
-    hoje.toISOString().slice(0, 10)
-  ); // data do depósito
+  const [diaFechamento, setDiaFechamento] = useState(hoje.toISOString().slice(0, 10)); // dia de origem
+  const [dataBanco, setDataBanco] = useState(hoje.toISOString().slice(0, 10)); // data do depósito
 
+  // Assinaturas
   useEffect(() => {
+    // Backfill dos pedidos da semana corrente (traz o que já estava lançado)
+    backfillPrevistosSemanaAtual().catch(() => {});
+
     const u1 = listenCaixaDiario(
       ano,
       mes,
@@ -61,6 +61,7 @@ export default function FluxCx({ setTela }) {
       },
       (e) => console.error("Banco:", e)
     );
+
     return () => {
       u1 && u1();
       u2 && u2();
@@ -69,12 +70,12 @@ export default function FluxCx({ setTela }) {
 
   const saldoBanco = useMemo(() => totBan - totPrev, [totBan, totPrev]);
 
-  // ======== ação: fechar caixa diário ========
   async function onFecharCaixa() {
     try {
-      const dOrig = new Date(diaFechamento);
-      const dBank = new Date(dataBanco);
-      const res = await fecharCaixaDiario({ diaOrigem: dOrig, dataBanco: dBank });
+      const res = await fecharCaixaDiario({
+        diaOrigem: new Date(diaFechamento),
+        dataBanco: new Date(dataBanco),
+      });
       if (!res.criado) {
         alert("Não há itens do CAIXA DIÁRIO abertos nesse dia.");
         return;
@@ -114,22 +115,8 @@ export default function FluxCx({ setTela }) {
         </div>
 
         {/* ====== TOPO: CAIXA DIÁRIO ====== */}
-        <section
-          style={{
-            background: "#fff",
-            border: "1px solid #e6d2c2",
-            borderRadius: 10,
-            padding: 10,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 6,
-            }}
-          >
+        <section style={{ background: "#fff", border: "1px solid #e6d2c2", borderRadius: 10, padding: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
             <h2 style={{ margin: 0 }}>Caixa Diário (Avulsos)</h2>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <span>
@@ -139,30 +126,12 @@ export default function FluxCx({ setTela }) {
           </div>
 
           {/* Fechamento de caixa */}
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              flexWrap: "wrap",
-              alignItems: "center",
-              marginBottom: 8,
-            }}
-          >
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
             <label>
-              Dia a fechar:{" "}
-              <input
-                type="date"
-                value={diaFechamento}
-                onChange={(e) => setDiaFechamento(e.target.value)}
-              />
+              Dia a fechar: <input type="date" value={diaFechamento} onChange={(e) => setDiaFechamento(e.target.value)} />
             </label>
             <label>
-              Data no banco:{" "}
-              <input
-                type="date"
-                value={dataBanco}
-                onChange={(e) => setDataBanco(e.target.value)}
-              />
+              Data no banco: <input type="date" value={dataBanco} onChange={(e) => setDataBanco(e.target.value)} />
             </label>
             <button onClick={onFecharCaixa}>Fechar caixa do dia → Banco</button>
           </div>
@@ -193,32 +162,16 @@ export default function FluxCx({ setTela }) {
                     <td style={{ padding: 8 }}>{l.forma || ""}</td>
                     <td style={{ padding: 8 }}>
                       {l.fechado ? (
-                        <span
-                          style={{
-                            background: "#d1f7d6",
-                            border: "1px solid #9ed2a5",
-                            borderRadius: 8,
-                            padding: "2px 6px",
-                          }}
-                        >
+                        <span style={{ background: "#d1f7d6", border: "1px solid #9ed2a5", borderRadius: 8, padding: "2px 6px" }}>
                           Fechado
                         </span>
                       ) : (
-                        <span
-                          style={{
-                            background: "#fff3c4",
-                            border: "1px solid #d7c7a8",
-                            borderRadius: 8,
-                            padding: "2px 6px",
-                          }}
-                        >
+                        <span style={{ background: "#fff3c4", border: "1px solid #d7c7a8", borderRadius: 8, padding: "2px 6px" }}>
                           Aberto
                         </span>
                       )}
                     </td>
-                    <td style={{ padding: 8, textAlign: "right" }}>
-                      {money(l.valor)}
-                    </td>
+                    <td style={{ padding: 8, textAlign: "right" }}>{money(l.valor)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -227,22 +180,8 @@ export default function FluxCx({ setTela }) {
         </section>
 
         {/* ====== BAIXO: EXTRATO BANCÁRIO ====== */}
-        <section
-          style={{
-            background: "#fff",
-            border: "1px solid #e6d2c2",
-            borderRadius: 10,
-            padding: 10,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between",
-              marginBottom: 6,
-            }}
-          >
+        <section style={{ background: "#fff", border: "1px solid #e6d2c2", borderRadius: 10, padding: 10 }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
             <h2 style={{ margin: 0 }}>Extrato Bancário</h2>
             <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
               <span>
@@ -282,8 +221,7 @@ export default function FluxCx({ setTela }) {
                     <td style={{ padding: 8 }}>
                       <span
                         style={{
-                          background:
-                            l.origem === "Realizado" ? "#d1f7d6" : "#fff3c4",
+                          background: l.origem === "Realizado" ? "#d1f7d6" : "#fff3c4",
                           border: "1px solid #d7c7a8",
                           borderRadius: 8,
                           padding: "2px 6px",
@@ -294,9 +232,7 @@ export default function FluxCx({ setTela }) {
                     </td>
                     <td style={{ padding: 8 }}>{l.descricao || ""}</td>
                     <td style={{ padding: 8 }}>{l.forma || ""}</td>
-                    <td style={{ padding: 8, textAlign: "right" }}>
-                      {money(l.valor)}
-                    </td>
+                    <td style={{ padding: 8, textAlign: "right" }}>{money(l.valor)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -312,4 +248,4 @@ export default function FluxCx({ setTela }) {
       <ERPFooter onBack={() => setTela("HomeERP")} />
     </>
   );
-                }
+}
