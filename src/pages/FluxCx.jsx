@@ -1,189 +1,310 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+// src/pages/FluxCx.jsx
+import React, { useEffect, useMemo, useState } from "react";
+import ERPHeader from "./ERPHeader";
+import ERPFooter from "./ERPFooter";
 import "../util/FluxCx.css";
-import { carregarAvulsos, carregarPedidosAcumulados } from "../util/cr_dataStub";
 
-const fmtBRL = (v) =>
-  (Number(v || 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+import {
+  listenCaixaDiario,
+  listenExtratoBancario,
+  fecharCaixaDiario,
+} from "../util/financeiro_store";
 
-const ymd = (d) => {
-  if (!d) return "-";
-  if (typeof d === "string") {
-    // aceita "YYYY-MM-DD" ou ISO
-    return d.length >= 10 ? d.slice(0, 10) : new Date(d).toISOString().slice(0, 10);
-  }
-  try { return new Date(d).toISOString().slice(0, 10); } catch { return "-"; }
-};
-const ym = (d) => {
-  if (!d) return "";
-  if (typeof d === "string") return d.slice(0, 7);
-  try { return new Date(d).toISOString().slice(0, 7); } catch { return ""; }
-};
+// helpers de formato
+const money = (n) => `R$ ${Number(n || 0).toFixed(2).replace(".", ",")}`;
+const dtBR = (ts) => (ts?.toDate?.() || ts || new Date()).toLocaleDateString("pt-BR");
 
 export default function FluxCx({ setTela }) {
-  const [linhas, setLinhas] = useState([]);
-  const [carregando, setCarregando] = useState(true);
-  const [mostrarTodos, setMostrarTodos] = useState(false);
+  const hoje = new Date();
+  const [ano, setAno] = useState(hoje.getFullYear());
+  const [mes, setMes] = useState(hoje.getMonth() + 1);
+  const meses = [
+    "janeiro","fevereiro","março","abril","maio","junho",
+    "julho","agosto","setembro","outubro","novembro","dezembro"
+  ];
 
-  const [mesRef, setMesRef] = useState(() => new Date().toISOString().slice(0, 7)); // YYYY-MM
+  // TOPO — CAIXA DIÁRIO
+  const [cxLinhas, setCxLinhas] = useState([]);
+  const [cxTotal, setCxTotal] = useState(0);
 
-  const carregarTudo = useCallback(async () => {
-    setCarregando(true);
+  // BAIXO — EXTRATO BANCÁRIO
+  const [bkLinhas, setBkLinhas] = useState([]);
+  const [totPrev, setTotPrev] = useState(0);
+  const [totBan, setTotBan] = useState(0);
+
+  // Fechamento
+  const [diaFechamento, setDiaFechamento] = useState(hoje.toISOString().slice(0, 10));
+  const [dataBanco, setDataBanco] = useState(hoje.toISOString().slice(0, 10));
+
+  // Assinaturas
+  useEffect(() => {
+    const u1 = listenCaixaDiario(
+      ano,
+      mes,
+      ({ linhas, total }) => {
+        setCxLinhas(linhas);
+        setCxTotal(total);
+      },
+      (e) => console.error("Caixa:", e)
+    );
+    const u2 = listenExtratoBancario(
+      ano,
+      mes,
+      ({ linhas, totPrev, totBan }) => {
+        setBkLinhas(linhas);
+        setTotPrev(totPrev);
+        setTotBan(totBan);
+      },
+      (e) => console.error("Banco:", e)
+    );
+    return () => {
+      u1 && u1();
+      u2 && u2();
+    };
+  }, [ano, mes]);
+
+  const saldoBanco = useMemo(() => totBan - totPrev, [totBan, totPrev]);
+
+  async function onFecharCaixa() {
     try {
-      const avulsos = carregarAvulsos();                    // Realizados (CAIXA DIARIO)
-      const acumulados = await carregarPedidosAcumulados(); // Previstos (CAIXA FLUTUANTE)
-
-      const A = avulsos.map((a) => {
-        const vCalc = a.valor != null
-          ? Number(a.valor)
-          : Number(a.valorUnit || 0) * Number(a.quantidade || 0);
-        const dataBase = a.dataLancamento || a.dataPrevista;
-        return {
-          id: a.id,
-          data: ymd(dataBase),
-          ym: ym(dataBase),
-          conta: "CAIXA DIARIO",
-          tipo: "Realizado",
-          forma: a.formaPagamento,
-          desc: `${a.pdv || "VAREJO"} • ${a.produto} x${a.quantidade}`,
-          valor: Number(vCalc || 0),
-        };
+      const res = await fecharCaixaDiario({
+        diaOrigem: new Date(diaFechamento),
+        dataBanco: new Date(dataBanco),
       });
-
-      const B = (acumulados || [])
-        .filter((p) => String(p.statusEtapa || p.status || "").toLowerCase() !== "pendente")
-        .map((p) => {
-          const dataBase = p.vencimento || p.dataPrevista;
-          return {
-            id: "prev_" + (p.id || Math.random()),
-            data: ymd(dataBase),
-            ym: ym(dataBase),
-            conta: "CAIXA FLUTUANTE",
-            tipo: "Previsto",
-            forma: p.forma || p.formaPagamento,
-            desc: `${p.pdv || "-"} • ${p.produto || "-"} x${p.quantidade ?? "-"}`,
-            valor: Number(p.valor != null ? p.valor : 0),
-          };
-        });
-
-      const merged = [...A, ...B].sort((x, y) => x.data.localeCompare(y.data));
-      setLinhas(merged);
-    } finally {
-      setCarregando(false);
+      if (!res.criado) {
+        alert("Não há itens do CAIXA DIÁRIO abertos nesse dia.");
+        return;
+      }
+      alert(`Fechamento criado no BANCO: ${money(res.total)} (${res.itens} itens).`);
+    } catch (e) {
+      alert("Erro ao fechar caixa: " + (e?.message || e));
     }
-  }, []);
-
-  useEffect(() => { carregarTudo(); }, [carregarTudo]);
-
-  const linhasFiltradas = useMemo(() => {
-    if (mostrarTodos) return linhas;
-    if (!mesRef) return linhas;
-    return linhas.filter((l) => l.ym === mesRef);
-  }, [linhas, mesRef, mostrarTodos]);
-
-  const totalPrev = linhasFiltradas.filter(l => l.tipo === "Previsto").reduce((s,l)=>s+l.valor,0);
-  const totalReal = linhasFiltradas.filter(l => l.tipo === "Realizado").reduce((s,l)=>s+l.valor,0);
-  const saldo = totalReal - totalPrev;
+  }
 
   return (
-    <div className="fluxcx-main">
-      {/* Header */}
-      <header className="erp-header">
-        <div className="erp-header__inner">
-          <div className="erp-header__logo">
-            <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
-          </div>
-          <div className="erp-header__title">
-            ERP DUDUNITÊ<br />Fluxo de Caixa
-          </div>
-        </div>
-      </header>
+    <>
+      <ERPHeader title="ERP DUDUNITÊ — Fluxo de Caixa" />
 
-      <div className="fluxcx-header">
-        <h2 className="fluxcx-title">Extrato Geral (Previstos + Realizados)</h2>
-        <div style={{ marginLeft: "auto" }} />
-      </div>
-
-      <div className="extrato-card">
-        <div className="extrato-actions">
+      <main style={{ padding: 12, display: "grid", gap: 12 }}>
+        {/* Seletores período */}
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <label>
-            Mês:
+            Mês:&nbsp;
+            <select value={mes} onChange={(e) => setMes(Number(e.target.value))}>
+              {meses.map((m, i) => (
+                <option key={m} value={i + 1}>
+                  {m} de {ano}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Ano:&nbsp;
             <input
-              type="month"
-              value={mesRef}
-              onChange={(e)=>setMesRef(e.target.value)}
-              style={{ marginLeft: 6 }}
+              type="number"
+              value={ano}
+              onChange={(e) => setAno(Number(e.target.value))}
+              style={{ width: 100 }}
             />
           </label>
-          <button
-            onClick={carregarTudo}
-            style={{ marginLeft: 8, height: 44, borderRadius: 10, border: 0, background: "#8c3b1b", color:"#fff", fontWeight: 800, padding: "0 12px" }}
-          >
-            Atualizar
-          </button>
-          <label style={{ marginLeft: 8, display: "flex", alignItems: "center", gap: 6 }}>
-            <input
-              type="checkbox"
-              checked={mostrarTodos}
-              onChange={(e)=>setMostrarTodos(e.target.checked)}
-            />
-            Mostrar todos
-          </label>
-          <div style={{ marginLeft: "auto", fontWeight: 800 }}>
-            {linhasFiltradas.length} de {linhas.length} lanç.
-          </div>
         </div>
 
-        {carregando ? (
-          <div>Carregando lançamentos…</div>
-        ) : (
-          <div style={{ overflow: "auto", maxHeight: "60vh" }}>
-            <table className="extrato">
+        {/* ===== TOPO: CAIXA DIÁRIO (Avulsos) ===== */}
+        <section
+          style={{
+            background: "#fff",
+            border: "1px solid #e6d2c2",
+            borderRadius: 10,
+            padding: 10,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 6,
+            }}
+          >
+            <h2 style={{ margin: 0 }}>Caixa Diário (Avulsos)</h2>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <span>
+                <b>Total mês:</b> {money(cxTotal)}
+              </span>
+            </div>
+          </div>
+
+          {/* Fechamento */}
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+              alignItems: "center",
+              marginBottom: 8,
+            }}
+          >
+            <label>
+              Dia a fechar:{" "}
+              <input
+                type="date"
+                value={diaFechamento}
+                onChange={(e) => setDiaFechamento(e.target.value)}
+              />
+            </label>
+            <label>
+              Data no banco:{" "}
+              <input
+                type="date"
+                value={dataBanco}
+                onChange={(e) => setDataBanco(e.target.value)}
+              />
+            </label>
+            <button onClick={onFecharCaixa}>Fechar caixa do dia → Banco</button>
+          </div>
+
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr>
-                  <th style={{minWidth:100}}>Data</th>
-                  <th style={{minWidth:140}}>Conta</th>
-                  <th style={{minWidth:110}}>Tipo</th>
-                  <th>Descrição</th>
-                  <th style={{minWidth:120}}>Forma</th>
-                  <th style={{minWidth:130, textAlign:"right"}}>Valor</th>
+                <tr style={{ background: "#f7efe9" }}>
+                  <th style={{ textAlign: "left", padding: 8 }}>Data</th>
+                  <th style={{ textAlign: "left", padding: 8 }}>Descrição</th>
+                  <th style={{ textAlign: "left", padding: 8 }}>Forma</th>
+                  <th style={{ textAlign: "left", padding: 8 }}>Status</th>
+                  <th style={{ textAlign: "right", padding: 8 }}>Valor</th>
                 </tr>
               </thead>
               <tbody>
-                {linhasFiltradas.map(l => (
-                  <tr key={l.id}>
-                    <td>{l.data}</td>
-                    <td>{l.conta}</td>
-                    <td>
-                      <span className={`chip ${l.tipo === "Realizado" ? "chip-real" : "chip-prev"}`}>{l.tipo}</span>
+                {cxLinhas.length === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ padding: 10, color: "#7a5a2a" }}>
+                      Nenhum lançamento no período.
                     </td>
-                    <td>{l.desc}</td>
-                    <td>{l.forma || "-"}</td>
-                    <td style={{ textAlign:"right", fontWeight:800 }}>{fmtBRL(l.valor)}</td>
+                  </tr>
+                )}
+                {cxLinhas.map((l) => (
+                  <tr key={l.id}>
+                    <td style={{ padding: 8 }}>{dtBR(l.data)}</td>
+                    <td style={{ padding: 8 }}>{l.descricao || ""}</td>
+                    <td style={{ padding: 8 }}>{l.forma || ""}</td>
+                    <td style={{ padding: 8 }}>
+                      {l.fechado ? (
+                        <span
+                          style={{
+                            background: "#d1f7d6",
+                            border: "1px solid #9ed2a5",
+                            borderRadius: 8,
+                            padding: "2px 6px",
+                          }}
+                        >
+                          Fechado
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            background: "#fff3c4",
+                            border: "1px solid #d7c7a8",
+                            borderRadius: 8,
+                            padding: "2px 6px",
+                          }}
+                        >
+                          Aberto
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ padding: 8, textAlign: "right" }}>
+                      {money(l.valor)}
+                    </td>
                   </tr>
                 ))}
-                {linhasFiltradas.length === 0 && (
-                  <tr><td colSpan={6} style={{ padding: 12, color: "#7b3c21" }}>
-                    Nenhum lançamento para {mostrarTodos ? "todas as datas" : mesRef}.
-                  </td></tr>
-                )}
               </tbody>
             </table>
           </div>
-        )}
+        </section>
 
-        <div className="saldos">
-          <div className="box">Previstos: {fmtBRL(totalPrev)}</div>
-          <div className="box">Realizados: {fmtBRL(totalReal)}</div>
-          <div className="box">Saldo (Real - Prev): {fmtBRL(saldo)}</div>
-        </div>
-      </div>
+        {/* ===== BAIXO: EXTRATO BANCÁRIO ===== */}
+        <section
+          style={{
+            background: "#fff",
+            border: "1px solid #e6d2c2",
+            borderRadius: 10,
+            padding: 10,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              marginBottom: 6,
+            }}
+          >
+            <h2 style={{ margin: 0 }}>Extrato Bancário</h2>
+            <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+              <span>
+                Previstos: <b>{money(totPrev)}</b>
+              </span>
+              <span>
+                Realizados (Banco): <b>{money(totBan)}</b>
+              </span>
+              <span>
+                Saldo (Real − Prev): <b>{money(saldoBanco)}</b>
+              </span>
+            </div>
+          </div>
 
-      <button className="btn-voltar-foot" onClick={() => setTela?.("HomeERP")}>🔙 Voltar</button>
-      <footer className="erp-footer">
-        <div className="erp-footer-track">
-          • Previstos (LanPed) + Realizados Avulsos (Varejo) • Extrato Geral (FinFlux) •
-        </div>
-      </footer>
-    </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ background: "#f7efe9" }}>
+                  <th style={{ textAlign: "left", padding: 8 }}>Data</th>
+                  <th style={{ textAlign: "left", padding: 8 }}>Tipo</th>
+                  <th style={{ textAlign: "left", padding: 8 }}>Descrição</th>
+                  <th style={{ textAlign: "left", padding: 8 }}>Forma</th>
+                  <th style={{ textAlign: "right", padding: 8 }}>Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bkLinhas.length === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ padding: 10, color: "#7a5a2a" }}>
+                      Sem lançamentos para estas datas.
+                    </td>
+                  </tr>
+                )}
+                {bkLinhas.map((l) => (
+                  <tr key={`${l.origem}-${l.id}`}>
+                    <td style={{ padding: 8 }}>{dtBR(l.data)}</td>
+                    <td style={{ padding: 8 }}>
+                      <span
+                        style={{
+                          background: l.origem === "Realizado" ? "#d1f7d6" : "#fff3c4",
+                          border: "1px solid #d7c7a8",
+                          borderRadius: 8,
+                          padding: "2px 6px",
+                        }}
+                      >
+                        {l.origem}
+                      </span>
+                    </td>
+                    <td style={{ padding: 8 }}>{l.descricao || ""}</td>
+                    <td style={{ padding: 8 }}>{l.forma || ""}</td>
+                    <td style={{ padding: 8, textAlign: "right" }}>
+                      {money(l.valor)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <button className="btn-voltar" onClick={() => setTela?.("HomeERP")}>
+          Voltar
+        </button>
+      </main>
+
+      <ERPFooter onBack={() => setTela?.("HomeERP")} />
+    </>
   );
 }
