@@ -1,34 +1,28 @@
+// src/pages/CtsReceberAvulso.jsx
 // AVULSOS => nascem REALIZADOS em CAIXA DIARIO
 import React, { useMemo, useState } from "react";
 import "../util/CtsReceber.css";
-// ⬇️ troquei o import: sai cr_dataStub, entra financeiro_store
 import { gravarAvulsoCaixa } from "../util/financeiro_store";
 
 const fmtBRL = (v) =>
   (Number(v || 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-// Cidade fixa e Plano de Contas fixo (sem select)
 const CIDADE_FIXA = "Gravatá";
 const PLANO_FIXO  = "0202001 – Receita de Varejo – Venda Direta";
-
-// Formas de pagamento (igual LanPed)
 const FORMAS = ["PIX", "Especie", "Cartao", "Link", "PDVDireto"];
-
-// Produtos de varejo (lista fornecida)
 const PRODUTOS_VAREJO = [
   "Brw 7x7","Brw 6x6","Escondidinho","Pizza brownie","Kit especialidades","Kit romance",
   "Copo gourmet tradicional","Copo gourmet premium","Bombom de morangos","Bombrownie",
-  "Naked","Mini naked","Mega naked","Café especial","Festa na bandeja","Café kids especial",
-  "Café linha especial adulto","Café linha especial kids","Brw pocket 5x5","Brw pocket 6x6",
+  "Naked","Mini naked","Mega naked","Café especial","Festa na bandeja",
+  "Café kids especial","Café linha especial adulto","Café linha especial kids",
+  "Brw pocket 5x5","Brw pocket 6x6",
 ];
 
 export default function CtsReceberAvulso() {
-  // Meta do lançamento
   const [pdv, setPdv] = useState("VAREJO");
   const [forma, setForma] = useState("PIX");
   const [data, setData] = useState(() => new Date().toISOString().slice(0, 10));
 
-  // Linha de itens
   const [produto, setProduto] = useState("");
   const [quantidade, setQuantidade] = useState(1);
   const [valorUnit, setValorUnit] = useState("");
@@ -43,7 +37,7 @@ export default function CtsReceberAvulso() {
   function addLinha() {
     setOkMsg("");
     const qtd = Number(quantidade || 0);
-    const vlu = Number(String(valorUnit || 0).replace(",", "."));
+    const vlu = Number(valorUnit || 0);
     if (!produto || qtd <= 0 || vlu <= 0) {
       alert("Selecione Produto e informe Quantidade (>0) e Valor unitário (>0).");
       return;
@@ -59,16 +53,21 @@ export default function CtsReceberAvulso() {
 
     setSalvando(true);
     try {
-      // grava CADA ITEM como uma linha do CAIXA DIARIO
       for (const l of linhas) {
         await gravarAvulsoCaixa({
-          data,                                              // YYYY-MM-DD
-          descricao: `${pdv} • ${CIDADE_FIXA} • ${l.produto} x${l.qtd}`,
-          forma,                                             // PIX / Espécie / etc
-          valor: Number(l.total || l.qtd * l.vlu || 0),
+          cidade: CIDADE_FIXA,
+          pdv,
+          produto: l.produto,
+          quantidade: l.qtd,
+          canal: "varejo",
+          planoContas: PLANO_FIXO,
+          formaPagamento: forma,
+          situacao: "Realizado",
+          dataLancamento: new Date(data),
+          dataPrevista: new Date(data),
+          valorUnit: l.vlu,
         });
       }
-
       setOkMsg(`Salvo ${linhas.length} item(ns) • Qtd: ${totalQtd} • Total: ${fmtBRL(totalVlr)} (CAIXA DIARIO).`);
       setLinhas([]);
     } catch (e) {
@@ -82,7 +81,6 @@ export default function CtsReceberAvulso() {
     <div className="ctsreceber-card">
       <h2>Pedidos Avulsos (Realizado • CAIXA DIARIO)</h2>
 
-      {/* Meta do dia: PDV, Forma e Data (cidade é fixa) */}
       <div className="linha-meta">
         <input className="input-ro" readOnly value={`${pdv} — ${CIDADE_FIXA}`} onChange={()=>{}} />
         <select value={forma} onChange={e=>setForma(e.target.value)}>
@@ -91,7 +89,6 @@ export default function CtsReceberAvulso() {
         <input type="date" value={data} onChange={e=>setData(e.target.value)} />
       </div>
 
-      {/* Itens do dia: Produto, Qtd, Valor Unit, Adicionar */}
       <div className="linha-itens">
         <select value={produto} onChange={e=>setProduto(e.target.value)}>
           <option value="">Produto</option>
@@ -102,7 +99,6 @@ export default function CtsReceberAvulso() {
         <button className="btn-add" onClick={addLinha}>Adicionar</button>
       </div>
 
-      {/* Lista + totais */}
       <ul className="linhas-list">
         {linhas.map((l, i) => (
           <li key={i}>
@@ -114,7 +110,6 @@ export default function CtsReceberAvulso() {
 
       <div className="cts-totais">Total do dia: {fmtBRL(totalVlr)} • Qtd: {totalQtd}</div>
 
-      {/* Ações */}
       <div className="acoes">
         <button className="btn-salvar" onClick={salvarTudo} disabled={salvando}>
           {salvando ? "Salvando..." : "Salvar"}
