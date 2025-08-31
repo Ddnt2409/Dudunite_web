@@ -2,17 +2,18 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
-import "../util/FluxCx.css";
-
 import {
   listenCaixaDiario,
   listenExtratoBancario,
   fecharCaixaDiario,
 } from "../util/financeiro_store";
 
-// helpers de formato
-const money = (n) => `R$ ${Number(n || 0).toFixed(2).replace(".", ",")}`;
-const dtBR = (ts) => (ts?.toDate?.() || ts || new Date()).toLocaleDateString("pt-BR");
+function money(n) {
+  return `R$ ${Number(n || 0).toFixed(2).replace(".", ",")}`;
+}
+function dtBR(ts) {
+  return (ts?.toDate?.() || ts || new Date()).toLocaleDateString("pt-BR");
+}
 
 export default function FluxCx({ setTela }) {
   const hoje = new Date();
@@ -23,20 +24,23 @@ export default function FluxCx({ setTela }) {
     "julho","agosto","setembro","outubro","novembro","dezembro"
   ];
 
-  // TOPO — CAIXA DIÁRIO
+  // CAIXA DIARIO (topo)
   const [cxLinhas, setCxLinhas] = useState([]);
   const [cxTotal, setCxTotal] = useState(0);
 
-  // BAIXO — EXTRATO BANCÁRIO
+  // EXTRATO BANCÁRIO (baixo)
   const [bkLinhas, setBkLinhas] = useState([]);
   const [totPrev, setTotPrev] = useState(0);
   const [totBan, setTotBan] = useState(0);
 
-  // Fechamento
-  const [diaFechamento, setDiaFechamento] = useState(hoje.toISOString().slice(0, 10));
-  const [dataBanco, setDataBanco] = useState(hoje.toISOString().slice(0, 10));
+  // datas para o fechamento
+  const [diaFechamento, setDiaFechamento] = useState(
+    hoje.toISOString().slice(0, 10)
+  ); // dia de origem
+  const [dataBanco, setDataBanco] = useState(
+    hoje.toISOString().slice(0, 10)
+  ); // data do depósito
 
-  // Assinaturas
   useEffect(() => {
     const u1 = listenCaixaDiario(
       ano,
@@ -65,12 +69,12 @@ export default function FluxCx({ setTela }) {
 
   const saldoBanco = useMemo(() => totBan - totPrev, [totBan, totPrev]);
 
+  // ======== ação: fechar caixa diário ========
   async function onFecharCaixa() {
     try {
-      const res = await fecharCaixaDiario({
-        diaOrigem: new Date(diaFechamento),
-        dataBanco: new Date(dataBanco),
-      });
+      const dOrig = new Date(diaFechamento);
+      const dBank = new Date(dataBanco);
+      const res = await fecharCaixaDiario({ diaOrigem: dOrig, dataBanco: dBank });
       if (!res.criado) {
         alert("Não há itens do CAIXA DIÁRIO abertos nesse dia.");
         return;
@@ -86,7 +90,7 @@ export default function FluxCx({ setTela }) {
       <ERPHeader title="ERP DUDUNITÊ — Fluxo de Caixa" />
 
       <main style={{ padding: 12, display: "grid", gap: 12 }}>
-        {/* Seletores período */}
+        {/* Seletores de período */}
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <label>
             Mês:&nbsp;
@@ -109,7 +113,7 @@ export default function FluxCx({ setTela }) {
           </label>
         </div>
 
-        {/* ===== TOPO: CAIXA DIÁRIO (Avulsos) ===== */}
+        {/* ====== TOPO: CAIXA DIÁRIO ====== */}
         <section
           style={{
             background: "#fff",
@@ -134,7 +138,7 @@ export default function FluxCx({ setTela }) {
             </div>
           </div>
 
-          {/* Fechamento */}
+          {/* Fechamento de caixa */}
           <div
             style={{
               display: "flex",
@@ -222,7 +226,7 @@ export default function FluxCx({ setTela }) {
           </div>
         </section>
 
-        {/* ===== BAIXO: EXTRATO BANCÁRIO ===== */}
+        {/* ====== BAIXO: EXTRATO BANCÁRIO ====== */}
         <section
           style={{
             background: "#fff",
@@ -278,7 +282,8 @@ export default function FluxCx({ setTela }) {
                     <td style={{ padding: 8 }}>
                       <span
                         style={{
-                          background: l.origem === "Realizado" ? "#d1f7d6" : "#fff3c4",
+                          background:
+                            l.origem === "Realizado" ? "#d1f7d6" : "#fff3c4",
                           border: "1px solid #d7c7a8",
                           borderRadius: 8,
                           padding: "2px 6px",
@@ -299,12 +304,12 @@ export default function FluxCx({ setTela }) {
           </div>
         </section>
 
-        <button className="btn-voltar" onClick={() => setTela?.("HomeERP")}>
+        <button className="btn-voltar" onClick={() => setTela("HomeERP")}>
           Voltar
         </button>
       </main>
 
-      <ERPFooter onBack={() => setTela?.("HomeERP")} />
+      <ERPFooter onBack={() => setTela("HomeERP")} />
     </>
   );
-}
+                }
