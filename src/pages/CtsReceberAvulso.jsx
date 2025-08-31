@@ -1,7 +1,8 @@
 // AVULSOS => nascem REALIZADOS em CAIXA DIARIO
 import React, { useMemo, useState } from "react";
 import "../util/CtsReceber.css";
-import { lancamentoAvulso } from "../util/cr_dataStub";
+// ⬇️ troquei o import: sai cr_dataStub, entra financeiro_store
+import { gravarAvulsoCaixa } from "../util/financeiro_store";
 
 const fmtBRL = (v) =>
   (Number(v || 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -15,26 +16,10 @@ const FORMAS = ["PIX", "Especie", "Cartao", "Link", "PDVDireto"];
 
 // Produtos de varejo (lista fornecida)
 const PRODUTOS_VAREJO = [
-  "Brw 7x7",
-  "Brw 6x6",
-  "Escondidinho",
-  "Pizza brownie",
-  "Kit especialidades",
-  "Kit romance",
-  "Copo gourmet tradicional",
-  "Copo gourmet premium",
-  "Bombom de morangos",
-  "Bombrownie",
-  "Naked",
-  "Mini naked",
-  "Mega naked",
-  "Café especial",
-  "Festa na bandeja",
-  "Café kids especial",
-  "Café linha especial adulto",
-  "Café linha especial kids",
-  "Brw pocket 5x5",
-  "Brw pocket 6x6",
+  "Brw 7x7","Brw 6x6","Escondidinho","Pizza brownie","Kit especialidades","Kit romance",
+  "Copo gourmet tradicional","Copo gourmet premium","Bombom de morangos","Bombrownie",
+  "Naked","Mini naked","Mega naked","Café especial","Festa na bandeja","Café kids especial",
+  "Café linha especial adulto","Café linha especial kids","Brw pocket 5x5","Brw pocket 6x6",
 ];
 
 export default function CtsReceberAvulso() {
@@ -58,7 +43,7 @@ export default function CtsReceberAvulso() {
   function addLinha() {
     setOkMsg("");
     const qtd = Number(quantidade || 0);
-    const vlu = Number(valorUnit || 0);
+    const vlu = Number(String(valorUnit || 0).replace(",", "."));
     if (!produto || qtd <= 0 || vlu <= 0) {
       alert("Selecione Produto e informe Quantidade (>0) e Valor unitário (>0).");
       return;
@@ -74,21 +59,16 @@ export default function CtsReceberAvulso() {
 
     setSalvando(true);
     try {
+      // grava CADA ITEM como uma linha do CAIXA DIARIO
       for (const l of linhas) {
-        await lancamentoAvulso({
-          cidade: CIDADE_FIXA,
-          pdv,                              // "VAREJO"
-          produto: l.produto,
-          quantidade: l.qtd,
-          canal: "varejo",
-          planoContas: PLANO_FIXO,          // fixo (sem select)
-          formaPagamento: forma,            // igual LanPed
-          situacao: "Realizado",
-          dataLancamento: new Date(data),
-          dataPrevista: new Date(data),
-          valorUnit: l.vlu,
+        await gravarAvulsoCaixa({
+          data,                                              // YYYY-MM-DD
+          descricao: `${pdv} • ${CIDADE_FIXA} • ${l.produto} x${l.qtd}`,
+          forma,                                             // PIX / Espécie / etc
+          valor: Number(l.total || l.qtd * l.vlu || 0),
         });
       }
+
       setOkMsg(`Salvo ${linhas.length} item(ns) • Qtd: ${totalQtd} • Total: ${fmtBRL(totalVlr)} (CAIXA DIARIO).`);
       setLinhas([]);
     } catch (e) {
@@ -104,12 +84,7 @@ export default function CtsReceberAvulso() {
 
       {/* Meta do dia: PDV, Forma e Data (cidade é fixa) */}
       <div className="linha-meta">
-        <input
-          className="input-ro"
-          readOnly
-          value={`${pdv} — ${CIDADE_FIXA}`}
-          onChange={()=>{}}
-        />
+        <input className="input-ro" readOnly value={`${pdv} — ${CIDADE_FIXA}`} onChange={()=>{}} />
         <select value={forma} onChange={e=>setForma(e.target.value)}>
           {FORMAS.map(f => <option key={f} value={f}>{f}</option>)}
         </select>
@@ -122,14 +97,8 @@ export default function CtsReceberAvulso() {
           <option value="">Produto</option>
           {PRODUTOS_VAREJO.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
-        <input
-          type="number" min={1} placeholder="Qtd"
-          value={quantidade} onChange={e=>setQuantidade(e.target.value)}
-        />
-        <input
-          type="number" step="0.01" placeholder="Vlr unitário"
-          value={valorUnit} onChange={e=>setValorUnit(e.target.value)}
-        />
+        <input type="number" min={1} placeholder="Qtd" value={quantidade} onChange={e=>setQuantidade(e.target.value)} />
+        <input type="number" step="0.01" placeholder="Vlr unitário" value={valorUnit} onChange={e=>setValorUnit(e.target.value)} />
         <button className="btn-add" onClick={addLinha}>Adicionar</button>
       </div>
 
