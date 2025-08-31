@@ -273,7 +273,7 @@ export async function fecharCaixaDiario({ diaOrigem, dataBanco }) {
   // marca como fechado
   let total = 0;
   for (const it of doDia) {
-    const valor = Number(it.valor ?? it.valorRealizado ?? it.valorPrevisto || 0);
+    const valor = Number(it.valor ?? it.valorRealizado ?? it.valorPrevisto ?? 0);
     total += valor;
     await setDoc(
       doc(db, COL_FLUXO, it.id),
