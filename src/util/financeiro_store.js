@@ -2,8 +2,7 @@
 import db from "../firebase";
 import {
   collection, onSnapshot, getDocs, query, where,
-  doc, setDoc, updateDoc,
-  serverTimestamp, Timestamp,
+  doc, setDoc, serverTimestamp, Timestamp,
 } from "firebase/firestore";
 import { semanaRefFromDate } from "./Ciclo";
 
@@ -11,7 +10,6 @@ import { semanaRefFromDate } from "./Ciclo";
 
 const COL_FLUXO = "financeiro_fluxo";
 
-// soma itens (qtd × preço) quando não vier o total já calculado
 function somaValorPedido(pedido = {}) {
   const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
   return itens.reduce((acc, it) => {
@@ -33,7 +31,11 @@ function monthKey(d) {
   const mm = String(x.getMonth() + 1).padStart(2, "0");
   return `${x.getFullYear()}-${mm}`;
 }
-
+function intervaloMes(ano, mes) {
+  const ini = new Date(ano, mes - 1, 1, 0, 0, 0, 0);
+  const fim = new Date(ano, mes, 1, 0, 0, 0, 0); // exclusivo
+  return { ini, fim };
+}
 function intervaloSemanaBase(ref = new Date()) {
   const d = new Date(ref);
   const dow = (d.getDay() + 6) % 7; // seg=0
@@ -44,8 +46,12 @@ function intervaloSemanaBase(ref = new Date()) {
   fim.setDate(fim.getDate() + 7);
   return { ini, fim };
 }
+function asNumber(n, fallback = 0) {
+  const v = Number(n);
+  return Number.isFinite(v) ? v : fallback;
+}
 
-// pega a "data útil" do doc para filtros/ordenação
+// data “útil” guardada nos docs do fluxo
 function dataFromFluxDoc(d = {}) {
   return (
     d.dataLancamento ||
@@ -56,18 +62,9 @@ function dataFromFluxDoc(d = {}) {
     null
   );
 }
-function asNumber(n, fallback = 0) {
-  const v = Number(n);
-  return Number.isFinite(v) ? v : fallback;
-}
 
 /* ====================== Escritas (Pedidos → Fluxo) ====================== */
 
-/**
- * Chame no SALVAR do LanPed.
- * Grava/atualiza o PREVISTO numa conta "CAIXA FLUTUANTE".
- * Usa o mesmo id do PEDIDO como id do doc no fluxo (idempotente).
- */
 export async function upsertPrevistoFromLanPed(pedidoId, dados) {
   const agora = serverTimestamp();
 
@@ -79,7 +76,6 @@ export async function upsertPrevistoFromLanPed(pedidoId, dados) {
   const { path: competenciaPath } = semanaRefFromDate(criadoBase);
   const valor = asNumber(dados?.valorTotal, somaValorPedido(dados || {}));
 
-  // vencimento pode vir string ou Date
   let dataPrevista = "";
   if (typeof dados?.vencimento === "string") dataPrevista = dados.vencimento;
   else if (dados?.vencimento) dataPrevista = toYMD(dados.vencimento);
@@ -109,7 +105,6 @@ export async function upsertPrevistoFromLanPed(pedidoId, dados) {
   );
 }
 
-/** Quando o crédito realmente cair no banco (se quiser marcar individualmente). */
 export async function marcarRealizado(pedidoId, { dataRealizado = new Date(), valor = null } = {}) {
   await setDoc(
     doc(db, COL_FLUXO, pedidoId),
@@ -124,8 +119,9 @@ export async function marcarRealizado(pedidoId, { dataRealizado = new Date(), va
   );
 }
 
-/* ====================== Backfill (pedidos já existentes) ====================== */
+/* ====================== Backfill ====================== */
 
+// coleta de PEDIDOS por semana (mantido p/ compat.)
 async function coletarPedidosSemana(ini, fim) {
   const ref = collection(db, "PEDIDOS");
   const qA = query(
@@ -145,7 +141,6 @@ async function coletarPedidosSemana(ini, fim) {
     sA.docs?.forEach((d) => docs.set(d.id, d));
     sB.docs?.forEach((d) => docs.set(d.id, d));
   } catch {
-    // fallback: sem índices → lê tudo e filtra no cliente
     const sAll = await getDocs(ref);
     sAll.forEach((d) => {
       const data = d.data() || {};
@@ -159,6 +154,37 @@ async function coletarPedidosSemana(ini, fim) {
     });
   }
   return Array.from(docs.values());
+}
+
+// coleta de PEDIDOS por mês, aceitando created/criado/vencimento
+async function coletarPedidosDoMes(ano, mes) {
+  const { ini, fim } = intervaloMes(ano, mes);
+  const ref = collection(db, "PEDIDOS");
+
+  // sem exigir índices: lê tudo e filtra no cliente
+  const snap = await getDocs(ref);
+  const out = [];
+  snap.forEach((docu) => {
+    const d = docu.data() || {};
+    const criado =
+      d.createdEm?.toDate?.() ||
+      d.criadoEm?.toDate?.() ||
+      d.atualizadoEm?.toDate?.() ||
+      null;
+
+    let venc = null;
+    if (typeof d.dataVencimento === "string") {
+      venc = new Date(d.dataVencimento + "T00:00:00");
+    } else if (d.dataVencimento?.toDate) {
+      venc = d.dataVencimento.toDate();
+    }
+
+    const dentroPorCriacao = criado && criado >= ini && criado < fim;
+    const dentroPorVenc = venc && venc >= ini && venc < fim;
+
+    if (dentroPorCriacao || dentroPorVenc) out.push({ id: docu.id, data: d });
+  });
+  return out;
 }
 
 function pedidoToFluxoPayload(d) {
@@ -185,30 +211,35 @@ function pedidoToFluxoPayload(d) {
   };
 }
 
-/** Traz todos os pedidos da semana atual como PREVISTOS no fluxo. */
 export async function backfillPrevistosSemanaAtual() {
   const { ini, fim } = intervaloSemanaBase(new Date());
   const docs = await coletarPedidosSemana(ini, fim);
-
   let ok = 0;
   for (const ds of docs) {
     try {
-      const d = ds.data() || {};
-      await upsertPrevistoFromLanPed(ds.id, pedidoToFluxoPayload(d));
+      await upsertPrevistoFromLanPed(ds.id, pedidoToFluxoPayload(ds.data()));
       ok++;
-    } catch {
-      // segue — idempotente com merge
-    }
+    } catch {}
   }
   return { totalProcessados: docs.length, previstosGerados: ok };
 }
 
-/* ====================== Leitura em tempo real (tela Fluxo) ====================== */
+// ✅ novo: trás todos os pedidos do MÊS selecionado
+export async function backfillPrevistosDoMes(ano, mes) {
+  const docs = await coletarPedidosDoMes(ano, mes);
+  let ok = 0;
+  for (const { id, data } of docs) {
+    try {
+      await upsertPrevistoFromLanPed(id, pedidoToFluxoPayload(data));
+      ok++;
+    } catch {}
+  }
+  return { totalProcessados: docs.length, previstosGerados: ok };
+}
 
-/**
- * Topo da tela: CAIXA DIÁRIO (avulsos)
- * Mostra lançamentos com conta "CAIXA DIARIO"
- */
+/* ====================== Leitura em tempo real ====================== */
+
+// CAIXA DIÁRIO (avulsos)
 export function listenCaixaDiario(ano, mes, onChange, onError) {
   try {
     const col = collection(db, COL_FLUXO);
@@ -216,8 +247,12 @@ export function listenCaixaDiario(ano, mes, onChange, onError) {
       col,
       (snap) => {
         const alvoYM = `${ano}-${String(mes).padStart(2, "0")}`;
+        const { ini } = intervaloMes(ano, mes);
+        const ymInicio = toYMD(ini).slice(0, 7);
+
         const linhas = [];
-        let total = 0;
+        let totalMes = 0;
+        let saldoAnterior = 0;
 
         snap.docs.forEach((docu) => {
           const d = docu.data() || {};
@@ -225,24 +260,27 @@ export function listenCaixaDiario(ano, mes, onChange, onError) {
 
           const data = dataFromFluxDoc(d);
           if (!data) return;
-          if (data.slice(0, 7) !== alvoYM) return;
 
-          const valor = d.valor ?? d.valorRealizado ?? 0;
-          const v = asNumber(valor, 0);
-          total += v;
+          const valor = asNumber(d.valor ?? d.valorRealizado ?? d.valorPrevisto, 0);
 
-          linhas.push({
-            id: docu.id,
-            data,
-            descricao: d.descricao || d.obs || d.pdv || "",
-            forma: d.forma || d.formaPagamento || "",
-            valor: v,
-            fechado: Boolean(d.fechado),
-          });
+          if (data.slice(0, 7) === alvoYM) {
+            linhas.push({
+              id: docu.id,
+              data,
+              descricao: d.descricao || d.obs || d.pdv || "",
+              forma: d.forma || d.formaPagamento || "",
+              valor,
+              fechado: Boolean(d.fechado),
+            });
+            totalMes += valor;
+          } else if (data.slice(0, 7) < ymInicio) {
+            saldoAnterior += valor;
+          }
         });
 
         linhas.sort((a, b) => a.data.localeCompare(b.data));
-        onChange && onChange({ linhas, total });
+        const saldoFinal = saldoAnterior + totalMes;
+        onChange && onChange({ linhas, total: totalMes, saldoAnterior, saldoFinal });
       },
       (e) => onError && onError(e)
     );
@@ -252,11 +290,7 @@ export function listenCaixaDiario(ano, mes, onChange, onError) {
   }
 }
 
-/**
- * Parte de baixo: EXTRATO BANCÁRIO + PREVISTOS (pedidos)
- * - Previsto: conta "CAIXA FLUTUANTE"
- * - Realizado (Banco): conta "EXTRATO BANCARIO" (inclui fechamentos do caixa)
- */
+// EXTRATO BANCÁRIO (Previstos + Banco)
 export function listenExtratoBancario(ano, mes, onChange, onError) {
   try {
     const col = collection(db, COL_FLUXO);
@@ -264,51 +298,73 @@ export function listenExtratoBancario(ano, mes, onChange, onError) {
       col,
       (snap) => {
         const alvoYM = `${ano}-${String(mes).padStart(2, "0")}`;
+        const { ini } = intervaloMes(ano, mes);
+        const ymInicio = toYMD(ini).slice(0, 7);
+
         const linhas = [];
         let totPrev = 0;
         let totBan = 0;
+        let prevAntes = 0;
+        let banAntes = 0;
 
         snap.docs.forEach((docu) => {
           const d = docu.data() || {};
           const conta = String(d.conta || "").toUpperCase();
 
-          // data relevante para cada tipo
+          // data relevante
           const data =
             conta === "EXTRATO BANCARIO"
               ? d.dataRealizado || d.dataLancamento || d.dataPrevista || null
               : d.dataPrevista || d.vencimento || d.dataRealizado || null;
 
           if (!data) return;
-          if (String(data).slice(0, 7) !== alvoYM) return;
 
           if (conta === "CAIXA FLUTUANTE") {
             const v = asNumber(d.valorPrevisto, 0);
-            totPrev += v;
-            linhas.push({
-              origem: "Previsto",
-              id: docu.id,
-              data,
-              descricao: d.pdv ? `PEDIDO • ${d.pdv}` : "PEDIDO",
-              forma: d.formaPagamento || d.forma || "",
-              valor: v,
-            });
+            if (String(data).slice(0, 7) === alvoYM) {
+              totPrev += v;
+              linhas.push({
+                origem: "Previsto",
+                id: docu.id,
+                data,
+                descricao: d.pdv ? `PEDIDO • ${d.pdv}` : "PEDIDO",
+                forma: d.formaPagamento || d.forma || "",
+                valor: v,
+              });
+            } else if (String(data).slice(0, 7) < ymInicio) {
+              prevAntes += v;
+            }
           } else if (conta === "EXTRATO BANCARIO") {
             const v = asNumber(d.valorRealizado ?? d.valor, 0);
-            totBan += v;
-            linhas.push({
-              origem: "Realizado",
-              id: docu.id,
-              data,
-              descricao: d.descricao || d.obs || "Depósito / Fechamento",
-              forma: d.forma || d.formaPagamento || "",
-              valor: v,
-            });
+            if (String(data).slice(0, 7) === alvoYM) {
+              totBan += v;
+              linhas.push({
+                origem: "Realizado",
+                id: docu.id,
+                data,
+                descricao: d.descricao || d.obs || "Depósito / Fechamento",
+                forma: d.forma || d.formaPagamento || "",
+                valor: v,
+              });
+            } else if (String(data).slice(0, 7) < ymInicio) {
+              banAntes += v;
+            }
           }
         });
 
-        // ordena por data
         linhas.sort((a, b) => a.data.localeCompare(b.data));
-        onChange && onChange({ linhas, totPrev, totBan });
+        const saldoAnterior = banAntes - prevAntes;
+        const saldoMes = totBan - totPrev;
+        const saldoFinal = saldoAnterior + saldoMes;
+
+        onChange &&
+          onChange({
+            linhas,
+            totPrev,
+            totBan,
+            saldoAnterior,
+            saldoFinal,
+          });
       },
       (e) => onError && onError(e)
     );
@@ -319,16 +375,10 @@ export function listenExtratoBancario(ano, mes, onChange, onError) {
 }
 
 /* ====================== Fechamento do caixa diário ====================== */
-
-/**
- * Soma todos os docs do CAIXA DIARIO de um dia (abertos) e lança 1 crédito no EXTRATO BANCARIO.
- * Também marca os avulsos do dia como "fechado".
- */
 export async function fecharCaixaDiario({ diaOrigem, dataBanco }) {
   const dia = toYMD(diaOrigem || new Date());
   const dataDep = toYMD(dataBanco || new Date());
 
-  // carrega TODOS e filtra no cliente (evita índice composto)
   const snap = await getDocs(collection(db, COL_FLUXO));
   const doDia = [];
   snap.forEach((d) => {
@@ -345,11 +395,11 @@ export async function fecharCaixaDiario({ diaOrigem, dataBanco }) {
 
   let total = 0;
   for (const it of doDia) {
-    // importante: sem misturar ?? com || (build do Vite reclama)
-    const base1 = it.valor != null ? it.valor : undefined;
-    const base2 = base1 == null ? it.valorRealizado : base1;
-    const base3 = base2 == null ? it.valorPrevisto : base2;
-    const valor = asNumber(base3, 0);
+    // evita misturar ?? e || (problema do build)
+    const b1 = it.valor != null ? it.valor : undefined;
+    const b2 = b1 == null ? it.valorRealizado : b1;
+    const b3 = b2 == null ? it.valorPrevisto : b2;
+    const valor = asNumber(b3, 0);
 
     total += valor;
 
@@ -364,7 +414,6 @@ export async function fecharCaixaDiario({ diaOrigem, dataBanco }) {
     );
   }
 
-  // lança 1 crédito no banco
   const bankId = `bank_${dataDep}_${Date.now()}`;
   await setDoc(doc(db, COL_FLUXO, bankId), {
     origem: "Fechamento Caixa",
