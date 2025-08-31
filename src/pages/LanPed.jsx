@@ -11,7 +11,7 @@ import {
 import db from "../firebase";
 import "./LanPed.css";
 
-// ✅ novo: grava o Previsto no fluxo assim que salva o pedido
+// ✅ grava o PREVISTO no financeiro assim que salvar o pedido
 import { upsertPrevistoFromLanPed } from "../util/financeiro_store";
 
 export default function LanPed({ setTela }) {
@@ -49,7 +49,7 @@ export default function LanPed({ setTela }) {
       alert("Preencha todos os campos de item.");
       return;
     }
-    setItens(old => [
+    setItens((old) => [
       ...old,
       {
         produto,
@@ -79,30 +79,30 @@ export default function LanPed({ setTela }) {
       statusEtapa: "Lançado",
       criadoEm: serverTimestamp(),
     };
-
     try {
-      // 1) salva o pedido
+      // salva na raiz PEDIDOS
       const ref = await addDoc(collection(db, "PEDIDOS"), novo);
 
-      // 2) ✅ cria/atualiza o PREVISTO no financeiro_fluxo
+      // ✅ espelha imediatamente no financeiro como "Previsto"
       await upsertPrevistoFromLanPed(ref.id, {
         cidade,
         pdv,
         itens,
         formaPagamento,
-        vencimento: dataVencimento || null,
+        vencimento: dataVencimento || "",
         valorTotal: parseFloat(totalPedido),
-        criadoEm: new Date(), // só para compor a competência
+        criadoEm: new Date(), // base da competência
       });
 
-      alert("✅ Pedido salvo e previsto incluído no fluxo!");
+      alert("✅ Pedido salvo!");
       setCidade("");
       setPdv("");
       setItens([]);
       setFormaPagamento("");
       setDataVencimento("");
       setTotalPedido("0.00");
-    } catch {
+    } catch (e) {
+      console.error(e);
       alert("❌ Falha ao salvar.");
     }
   }
@@ -111,9 +111,9 @@ export default function LanPed({ setTela }) {
   useEffect(() => {
     const ref = collection(db, "PEDIDOS");
     const q = query(ref, orderBy("criadoEm", "asc"));
-    return onSnapshot(q, snap => {
+    return onSnapshot(q, (snap) => {
       const m = {};
-      snap.docs.forEach(doc => {
+      snap.docs.forEach((doc) => {
         const d = doc.data();
         if (d.escola) m[d.escola] = d.statusEtapa;
       });
@@ -139,38 +139,41 @@ export default function LanPed({ setTela }) {
           <label>Cidade</label>
           <select
             value={cidade}
-            onChange={e => { setCidade(e.target.value); setPdv(""); }}
+            onChange={(e) => {
+              setCidade(e.target.value);
+              setPdv("");
+            }}
           >
             <option value="">Selecione</option>
-            {cidades.map(c => (
-              <option key={c} value={c}>{c}</option>
+            {cidades.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
           </select>
         </div>
 
         <div className="lanped-field">
           <label>Ponto de Venda</label>
-          <select
-            value={pdv}
-            onChange={e => setPdv(e.target.value)}
-            disabled={!cidade}
-          >
+          <select value={pdv} onChange={(e) => setPdv(e.target.value)} disabled={!cidade}>
             <option value="">Selecione</option>
-            {cidade && pdvsPorCidade[cidade].map(p => (
-              <option key={p} value={p}>{p}</option>
-            ))}
+            {cidade &&
+              pdvsPorCidade[cidade].map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
           </select>
         </div>
 
         <div className="lanped-field">
           <label>Produto</label>
-          <select
-            value={produto}
-            onChange={e => setProduto(e.target.value)}
-          >
+          <select value={produto} onChange={(e) => setProduto(e.target.value)}>
             <option value="">Selecione</option>
-            {produtos.map(p => (
-              <option key={p} value={p}>{p}</option>
+            {produtos.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
             ))}
           </select>
         </div>
@@ -180,7 +183,7 @@ export default function LanPed({ setTela }) {
           <input
             type="number"
             value={quantidade}
-            onChange={e => setQuantidade(Number(e.target.value))}
+            onChange={(e) => setQuantidade(Number(e.target.value))}
           />
         </div>
 
@@ -190,7 +193,7 @@ export default function LanPed({ setTela }) {
             type="number"
             step="0.01"
             value={valorUnitario}
-            onChange={e => setValorUnitario(e.target.value)}
+            onChange={(e) => setValorUnitario(e.target.value)}
           />
         </div>
 
@@ -203,10 +206,7 @@ export default function LanPed({ setTela }) {
             {itens.map((it, i) => (
               <li key={i}>
                 {it.quantidade}× {it.produto} — R$ {it.valorUnitario} (Total: R$ {it.total})
-                <button
-                  className="botao-excluir"
-                  onClick={() => setItens(itens.filter((_, j) => j !== i))}
-                >
+                <button className="botao-excluir" onClick={() => setItens(itens.filter((_, j) => j !== i))}>
                   ✖
                 </button>
               </li>
@@ -220,13 +220,12 @@ export default function LanPed({ setTela }) {
 
         <div className="lanped-field">
           <label>Forma de Pagamento</label>
-          <select
-            value={formaPagamento}
-            onChange={e => setFormaPagamento(e.target.value)}
-          >
+          <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)}>
             <option value="">Selecione</option>
-            {formasPagamento.map(f => (
-              <option key={f} value={f}>{f}</option>
+            {formasPagamento.map((f) => (
+              <option key={f} value={f}>
+                {f}
+              </option>
             ))}
           </select>
         </div>
@@ -249,7 +248,7 @@ export default function LanPed({ setTela }) {
           <input
             type="date"
             value={dataVencimento}
-            onChange={e => setDataVencimento(e.target.value)}
+            onChange={(e) => setDataVencimento(e.target.value)}
           />
         </div>
 
@@ -259,10 +258,7 @@ export default function LanPed({ setTela }) {
       </div>
 
       {/* BOTÃO VOLTAR ABAIXO DO FORMULÁRIO */}
-      <button
-        className="botao-voltar"
-        onClick={() => setTela("HomePCP")}
-      >
+      <button className="botao-voltar" onClick={() => setTela("HomePCP")}>
         🔙 Voltar
       </button>
 
@@ -283,4 +279,4 @@ export default function LanPed({ setTela }) {
       </footer>
     </div>
   );
-}
+          }
