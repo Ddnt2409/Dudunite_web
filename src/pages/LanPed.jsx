@@ -1,5 +1,5 @@
 // src/pages/LanPed.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   collection,
   addDoc,
@@ -11,6 +11,9 @@ import {
 import db from "../firebase";
 import "./LanPed.css";
 
+// ⬇️ cria/atualiza PREVISTO (CAIXA FLUTUANTE) no fluxo
+import { upsertPrevistoFromLanPed } from "../util/financeiro_store";
+
 export default function LanPed({ setTela }) {
   // ─── STATES ───────────────────────
   const [cidade, setCidade] = useState("");
@@ -21,7 +24,6 @@ export default function LanPed({ setTela }) {
   const [formaPagamento, setFormaPagamento] = useState("");
   const [dataVencimento, setDataVencimento] = useState("");
   const [itens, setItens] = useState([]);
-  const [totalPedido, setTotalPedido] = useState("0.00");
   const [statusPorPdv, setStatusPorPdv] = useState({});
 
   // ─── DADOS FIXOS ───────────────────
@@ -34,15 +36,14 @@ export default function LanPed({ setTela }) {
   const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
   const formasPagamento = ["PIX", "Espécie", "Cartão", "Boleto"];
 
-  // ─── CALCULA TOTAL ───────────────────
-  useEffect(() => {
-    const t = parseFloat(quantidade) * parseFloat(valorUnitario || 0);
-    setTotalPedido(t.toFixed(2));
-  }, [quantidade, valorUnitario]);
+  // ─── TOTAL DOS ITENS (soma do carrinho) ───────────────────
+  const totalPedido = useMemo(() => {
+    return itens.reduce((acc, it) => acc + (Number(it.quantidade || 0) * Number(it.valorUnitario || 0)), 0);
+  }, [itens]);
 
   // ─── ADICIONA ITEM ──────────────────
   function adicionarItem() {
-    if (!produto || quantidade <= 0 || !valorUnitario) {
+    if (!produto || Number(quantidade) <= 0 || !valorUnitario) {
       alert("Preencha todos os campos de item.");
       return;
     }
@@ -50,9 +51,9 @@ export default function LanPed({ setTela }) {
       ...old,
       {
         produto,
-        quantidade,
-        valorUnitario,
-        total: (quantidade * parseFloat(valorUnitario)).toFixed(2),
+        quantidade: Number(quantidade),
+        valorUnitario: Number(valorUnitario),
+        total: (Number(quantidade) * Number(valorUnitario)),
       },
     ]);
     setProduto("");
@@ -62,30 +63,45 @@ export default function LanPed({ setTela }) {
 
   // ─── SALVA PEDIDO ───────────────────
   async function handleSalvar() {
-    if (!cidade || !pdv || itens.length === 0 || !formaPagamento) {
-      alert("Preencha todos os campos obrigatórios.");
+    if (!cidade || !pdv || itens.length === 0 || !formaPagamento || !dataVencimento) {
+      alert("Preencha cidade, PDV, pelo menos 1 item, forma de pagamento e vencimento.");
       return;
     }
+
     const novo = {
       cidade,
       escola: pdv,
       itens,
       formaPagamento,
-      dataVencimento: dataVencimento || null,
-      total: parseFloat(totalPedido),
+      dataVencimento,                // string YYYY-MM-DD
+      total: Number(totalPedido),    // soma de todos os itens
       statusEtapa: "Lançado",
       criadoEm: serverTimestamp(),
     };
+
     try {
-      await addDoc(collection(db, "PEDIDOS"), novo);
-      alert("✅ Pedido salvo!");
+      const ref = await addDoc(collection(db, "PEDIDOS"), novo);
+
+      // ⬇️ Já cria o PREVISTO (CAIXA FLUTUANTE) no fluxo
+      await upsertPrevistoFromLanPed(ref.id, {
+        cidade,
+        pdv,                   // ou escola
+        itens,
+        formaPagamento,
+        vencimento: dataVencimento,   // string YYYY-MM-DD
+        valorTotal: Number(totalPedido),
+        criadoEm: new Date(),         // base pra competência (segunda 11h) — usa agora
+      });
+
+      alert("✅ Pedido salvo e previsto no Fluxo!");
+      // limpa form
       setCidade("");
       setPdv("");
       setItens([]);
       setFormaPagamento("");
       setDataVencimento("");
-      setTotalPedido("0.00");
-    } catch {
+    } catch (e) {
+      console.error(e);
       alert("❌ Falha ao salvar.");
     }
   }
@@ -185,7 +201,7 @@ export default function LanPed({ setTela }) {
           <ul className="lista-itens">
             {itens.map((it, i) => (
               <li key={i}>
-                {it.quantidade}× {it.produto} — R$ {it.valorUnitario} (Total: R$ {it.total})
+                {it.quantidade}× {it.produto} — R$ {Number(it.valorUnitario).toFixed(2)} (Total: R$ {Number(it.total).toFixed(2)})
                 <button
                   className="botao-excluir"
                   onClick={() => setItens(itens.filter((_, j) => j !== i))}
@@ -198,7 +214,7 @@ export default function LanPed({ setTela }) {
         )}
 
         <div className="total-pedido">
-          <strong>Total:</strong> R$ {totalPedido}
+          <strong>Total:</strong> R$ {totalPedido.toFixed(2)}
         </div>
 
         <div className="lanped-field">
