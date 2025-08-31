@@ -1,200 +1,220 @@
+// src/pages/FluxCx.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import ERPHeader from "./ERPHeader";
-import ERPFooter from "./ERPFooter";
+import "../util/FluxCx.css";
 import {
-  listenCaixaDiario, listenExtratoBancario,
+  listenCaixaDiario, listenCaixaDiarioRange,
+  listenExtratoBancario, listenExtratoBancarioRange,
   listenSaldosIniciais, salvarSaldosIniciais,
-  backfillPrevistosDoMes, migrarAvulsosAntigos, fecharCaixaDiario
+  backfillPrevistosDoMes, fecharCaixaDiario
 } from "../util/financeiro_store";
 
-function money(n){ return `R$ ${Number(n||0).toFixed(2).replace(".", ",")}`; }
-function dtBR(d){ try{ return (typeof d==="string"? d : (d?.toDate?.()||d||new Date())).toLocaleDateString("pt-BR"); }catch{ return ""; } }
+const money = (n)=> (Number(n||0)).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const ymd = (d)=> {
+  if(!d) return "";
+  if (typeof d === "string") return d.slice(0,10);
+  try { return new Date(d).toISOString().slice(0,10); } catch { return ""; }
+};
+const br = (d)=> {
+  const dt = (d?.toDate?.() || d || new Date());
+  try { return new Date(dt).toLocaleDateString("pt-BR"); } catch { return ""; }
+};
 
 export default function FluxCx({ setTela }) {
   const hoje = new Date();
-  const [ano, setAno] = useState(hoje.getFullYear());
+  const [modo, setModo] = useState("mes"); // 'mes' | 'periodo'
   const [mes, setMes] = useState(hoje.getMonth()+1);
+  const [ano, setAno] = useState(hoje.getFullYear());
+  const [de, setDe]   = useState(ymd(new Date(hoje.getFullYear(),hoje.getMonth(),1)));
+  const [ate, setAte] = useState(ymd(new Date(hoje.getFullYear(),hoje.getMonth()+1,1)));
+
+  // saldos iniciais
+  const [siCx, setSiCx] = useState(0);
+  const [siBk, setSiBk] = useState(0);
+
+  // caixa diário
+  const [cx, setCx] = useState({ linhas: [], total: 0 });
+
+  // extrato banco
+  const [bk, setBk] = useState({ linhas: [], totPrev: 0, totBan: 0 });
+
   const meses = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 
-  // saldos iniciais (por mês)
-  const [saldoIniCx, setSaldoIniCx] = useState(0);
-  const [saldoIniBk, setSaldoIniBk] = useState(0);
-
-  // CAIXA DIARIO
-  const [cxLinhas, setCxLinhas] = useState([]);
-  const [cxTotal, setCxTotal] = useState(0);
-
-  // EXTRATO BANCARIO
-  const [bkLinhas, setBkLinhas] = useState([]);
-  const [totPrev, setTotPrev] = useState(0);
-  const [totBan, setTotBan] = useState(0);
-
-  // datas fechamento
-  const [diaFechamento, setDiaFechamento] = useState(hoje.toISOString().slice(0,10));
-  const [dataBanco, setDataBanco] = useState(hoje.toISOString().slice(0,10));
-
+  // saldos iniciais (mensal)
   useEffect(()=>{
-    const u0 = listenSaldosIniciais(ano, mes, ({caixaInicial,bancoInicial})=>{
-      setSaldoIniCx(caixaInicial||0); setSaldoIniBk(bancoInicial||0);
-    });
-    const u1 = listenCaixaDiario(ano, mes,
-      ({linhas, total})=>{ setCxLinhas(linhas); setCxTotal(total); },
-      (e)=>console.error("Caixa:", e)
+    if (modo !== "mes") return;
+    const u = listenSaldosIniciais(ano, mes,
+      ({caixa,banco}) => { setSiCx(caixa||0); setSiBk(banco||0); },
+      (e)=>console.error(e)
     );
-    const u2 = listenExtratoBancario(ano, mes,
-      ({linhas, totPrev, totBan})=>{ setBkLinhas(linhas); setTotPrev(totPrev); setTotBan(totBan); },
-      (e)=>console.error("Banco:", e)
-    );
-    return ()=>{ u0&&u0(); u1&&u1(); u2&&u2(); };
-  },[ano, mes]);
+    return ()=>u && u();
+  },[ano,mes,modo]);
 
-  const saldoFinalCx = useMemo(()=> saldoIniCx + cxTotal, [saldoIniCx, cxTotal]);
-  const saldoFinalBk = useMemo(()=> saldoIniBk + (totBan - totPrev), [saldoIniBk, totBan, totPrev]);
+  // listeners principais (caixa + banco)
+  useEffect(()=>{
+    let un1 = null, un2 = null;
+    if (modo === "mes") {
+      // roda o backfill sempre que muda o mês
+      backfillPrevistosDoMes(ano, mes).catch(()=>{});
+      un1 = listenCaixaDiario(ano, mes, setCx, (e)=>console.error(e));
+      un2 = listenExtratoBancario(ano, mes, setBk, (e)=>console.error(e));
+    } else {
+      un1 = listenCaixaDiarioRange(de, ate, setCx, (e)=>console.error(e));
+      un2 = listenExtratoBancarioRange(de, ate, setBk, (e)=>console.error(e));
+    }
+    return ()=>{ un1 && un1(); un2 && un2(); };
+  },[modo, ano, mes, de, ate]);
 
-  async function onAtualizarMes() {
-    await backfillPrevistosDoMes(ano, mes);
-    await migrarAvulsosAntigos(ano, mes);
-    alert("Atualizado: previstos por vencimento e avulsos antigos migrados.");
+  const saldoBanco = useMemo(()=> (siBk + bk.totBan - bk.totPrev), [siBk, bk]);
+
+  async function onSalvarSaldos(){
+    await salvarSaldosIniciais(ano, mes, { caixa: siCx, banco: siBk });
+    alert("Saldos iniciais salvos para o mês.");
   }
-  async function onSalvarSaldos() {
-    await salvarSaldosIniciais(ano, mes, { caixaInicial: Number(saldoIniCx||0), bancoInicial: Number(saldoIniBk||0) });
-    alert("Saldos iniciais salvos.");
-  }
-  async function onFecharCaixa() {
-    try{
-      const res = await fecharCaixaDiario({ diaOrigem: new Date(diaFechamento), dataBanco: new Date(dataBanco) });
-      if(!res.criado){ alert("Nenhum item aberto nesse dia."); return; }
-      alert(`Fechamento gerado no banco: ${money(res.total)} (${res.itens} itens).`);
-    }catch(e){ alert("Erro ao fechar caixa: " + (e?.message||e)); }
+
+  async function onFecharCaixaDia(){
+    const dia = prompt("Fechar qual dia? (AAAA-MM-DD)", ymd(new Date()));
+    if(!dia) return;
+    const dataBanco = prompt("Data no banco (AAAA-MM-DD)", ymd(new Date()));
+    const res = await fecharCaixaDiario({ diaOrigem: new Date(dia), dataBanco: new Date(dataBanco) });
+    if (res?.criado) alert(`Fechamento gerado: ${money(res.total)} (${res.itens} itens).`);
+    else alert("Não havia itens abertos nesse dia.");
   }
 
   return (
-    <>
-      <ERPHeader title="ERP DUDUNITÊ — Fluxo de Caixa" />
-      <main style={{ padding: 12, display:"grid", gap:12 }}>
-        {/* Seleção */}
-        <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
-          <label>Seleção&nbsp;
-            <select value={mes} onChange={e=>setMes(Number(e.target.value))}>
-              {meses.map((m,i)=><option key={m} value={i+1}>{m}</option>)}
-            </select>
-          </label>
-          <label>Ano&nbsp;
-            <input type="number" value={ano} onChange={e=>setAno(Number(e.target.value))} style={{ width:100 }} />
-          </label>
+    <div className="fluxcx-main">
+      <header className="erp-header">
+        <div className="erp-header__inner">
+          <div className="erp-header__logo">
+            <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
+          </div>
+          <div className="erp-header__title">
+            ERP DUDUNITÊ<br/>Fluxo de Caixa
+          </div>
+        </div>
+      </header>
 
-          <div style={{ marginLeft:"auto", display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
-            <label>Saldo inicial Caixa:&nbsp;
-              <input type="number" step="0.01" value={saldoIniCx} onChange={e=>setSaldoIniCx(e.target.value)} style={{ width:110 }} />
-            </label>
-            <label>Saldo inicial Banco:&nbsp;
-              <input type="number" step="0.01" value={saldoIniBk} onChange={e=>setSaldoIniBk(e.target.value)} style={{ width:110 }} />
-            </label>
+      {/* Seleção de período */}
+      <div className="extrato-card" style={{marginTop:8}}>
+        <div className="extrato-actions" style={{gap:12, flexWrap:"wrap"}}>
+          <label style={{display:"flex",alignItems:"center",gap:6}}>
+            <input type="radio" checked={modo==="mes"} onChange={()=>setModo("mes")} /> Mês inteiro
+          </label>
+          <select disabled={modo!=="mes"} value={mes} onChange={e=>setMes(Number(e.target.value))}>
+            {meses.map((m,i)=><option key={m} value={i+1}>{m}</option>)}
+          </select>
+          <input disabled={modo!=="mes"} type="number" value={ano} onChange={e=>setAno(Number(e.target.value))} style={{width:100}} />
+
+          <label style={{display:"flex",alignItems:"center",gap:6, marginLeft:16}}>
+            <input type="radio" checked={modo==="periodo"} onChange={()=>setModo("periodo")} /> Período (De/Até)
+          </label>
+          <input type="date" disabled={modo!=="periodo"} value={de} onChange={e=>setDe(e.target.value)} />
+          <input type="date" disabled={modo!=="periodo"} value={ate} onChange={e=>setAte(e.target.value)} />
+
+          <div style={{marginLeft:"auto", display:"flex", gap:8}}>
+            <label>Saldo inicial Caixa: <input type="number" step="0.01" value={siCx} onChange={e=>setSiCx(e.target.value)} style={{width:110}}/></label>
+            <label>Saldo inicial Banco: <input type="number" step="0.01" value={siBk} onChange={e=>setSiBk(e.target.value)} style={{width:110}}/></label>
             <button onClick={onSalvarSaldos}>Salvar</button>
-            <button onClick={onAtualizarMes}>Atualizar</button>
+            <button onClick={onFecharCaixaDia}>Fechar caixa do dia → Banco</button>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== CAIXA DIÁRIO ===== */}
+      <div className="extrato-card">
+        <div className="fluxcx-header">
+          <h2 className="fluxcx-title">Caixa Diário — {modo==="mes" ? `${meses[mes-1]} de ${ano}` : `${br(de)} → ${br(ate)}`}</h2>
+          <div style={{marginLeft:"auto", fontWeight:800}}>
+            Saldo inicial do período: {money(siCx)} • Total do período: {money(cx.total)} • Saldo final: {money(siCx + cx.total)}
           </div>
         </div>
 
-        {/* CAIXA DIÁRIO */}
-        <section style={{ background:"#fff7ee", border:"1px solid #e6d2c2", borderRadius:10, padding:10 }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
-            <h2 style={{ margin:0 }}>Caixa Diário — {meses[mes-1]} de {ano}</h2>
-            <div><b>Saldo inicial:</b> {money(saldoIniCx)} &nbsp; <b>Total do período:</b> {money(cxTotal)} &nbsp; <b>Saldo final:</b> {money(saldoFinalCx)}</div>
-          </div>
-
-          {/* fechamento */}
-          <div style={{ display:"flex", gap:8, flexWrap:"wrap", alignItems:"center", marginBottom:8 }}>
-            <label>Dia a fechar: <input type="date" value={diaFechamento} onChange={e=>setDiaFechamento(e.target.value)} /></label>
-            <label>Data no banco: <input type="date" value={dataBanco} onChange={e=>setDataBanco(e.target.value)} /></label>
-            <button onClick={onFecharCaixa}>Fechar caixa do dia → Banco</button>
-          </div>
-
-          <div style={{ overflowX:"auto" }}>
-            <table style={{ width:"100%", borderCollapse:"collapse" }}>
-              <thead>
-                <tr style={{ background:"#f7efe9" }}>
-                  <th style={{textAlign:"left", padding:8}}>Data</th>
-                  <th style={{textAlign:"left", padding:8}}>Descrição</th>
-                  <th style={{textAlign:"left", padding:8}}>Forma</th>
-                  <th style={{textAlign:"left", padding:8}}>Status</th>
-                  <th style={{textAlign:"right", padding:8}}>Valor</th>
+        <div style={{ overflow:"auto", maxHeight:"40vh" }}>
+          <table className="extrato">
+            <thead>
+              <tr>
+                <th style={{minWidth:100}}>Data</th>
+                <th>Descrição</th>
+                <th style={{minWidth:120}}>Forma</th>
+                <th style={{minWidth:110, textAlign:"center"}}>Status</th>
+                <th style={{minWidth:130, textAlign:"right"}}>Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cx.linhas.length === 0 && (
+                <tr><td colSpan={5} style={{ padding: 12, color: "#7b3c21" }}>
+                  Nenhum lançamento no período.
+                </td></tr>
+              )}
+              {cx.linhas.map(l => (
+                <tr key={l.id}>
+                  <td>{l.data}</td>
+                  <td>{l.descricao}</td>
+                  <td>{l.forma || "-"}</td>
+                  <td>
+                    <span className={`chip ${l.fechado ? "chip-real" : "chip-prev"}`}>
+                      {l.fechado ? "Fechado" : "Aberto"}
+                    </span>
+                  </td>
+                  <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {cxLinhas.length === 0 && (
-                  <tr><td colSpan={5} style={{ padding:10, color:"#7a5a2a" }}>
-                    Nenhum lançamento no período.
-                  </td></tr>
-                )}
-                {cxLinhas.map(l => (
-                  <tr key={l.id}>
-                    <td style={{ padding:8 }}>{dtBR(l.data)}</td>
-                    <td style={{ padding:8 }}>{l.descricao || ""}</td>
-                    <td style={{ padding:8 }}>{l.forma || ""}</td>
-                    <td style={{ padding:8 }}>
-                      {l.fechado
-                        ? <span style={{ background:"#d1f7d6", border:"1px solid #9ed2a5", borderRadius:8, padding:"2px 6px" }}>Fechado</span>
-                        : <span style={{ background:"#fff3c4", border:"1px solid #d7c7a8", borderRadius:8, padding:"2px 6px" }}>Aberto</span>}
-                    </td>
-                    <td style={{ padding:8, textAlign:"right" }}>{money(l.valor)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-        {/* EXTRATO BANCÁRIO */}
-        <section style={{ background:"#fff7ee", border:"1px solid #e6d2c2", borderRadius:10, padding:10 }}>
-          <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:6 }}>
-            <h2 style={{ margin:0 }}>Extrato Bancário — {meses[mes-1]} de {ano}</h2>
-            <div style={{ display:"flex", gap:14, alignItems:"center" }}>
-              <span>Previstos: <b>{money(totPrev)}</b></span>
-              <span>Realizados (Banco): <b>{money(totBan)}</b></span>
-              <span>Saldo (Real − Prev): <b>{money(totBan - totPrev)}</b></span>
-              <span>Saldo final: <b>{money(saldoFinalBk)}</b></span>
-            </div>
+      {/* ===== EXTRATO BANCÁRIO ===== */}
+      <div className="extrato-card">
+        <div className="fluxcx-header">
+          <h2 className="fluxcx-title">Extrato Bancário — {modo==="mes" ? `${meses[mes-1]} de ${ano}` : `${br(de)} → ${br(ate)}`}</h2>
+          <div style={{marginLeft:"auto", display:"flex", gap:14, fontWeight:800}}>
+            <span>Previstos: {money(bk.totPrev)}</span>
+            <span>Realizados (Banco): {money(bk.totBan)}</span>
+            <span>Saldo (Real − Prev): {money(saldoBanco - siBk)}</span>
           </div>
+        </div>
 
-          <div style={{ overflowX:"auto" }}>
-            <table style={{ width:"100%", borderCollapse:"collapse" }}>
-              <thead>
-                <tr style={{ background:"#f7efe9" }}>
-                  <th style={{textAlign:"left", padding:8}}>Data</th>
-                  <th style={{textAlign:"left", padding:8}}>Tipo</th>
-                  <th style={{textAlign:"left", padding:8}}>Descrição</th>
-                  <th style={{textAlign:"left", padding:8}}>Forma</th>
-                  <th style={{textAlign:"right", padding:8}}>Valor</th>
+        <div style={{ overflow:"auto", maxHeight:"50vh" }}>
+          <table className="extrato">
+            <thead>
+              <tr>
+                <th style={{minWidth:100}}>Data</th>
+                <th style={{minWidth:110}}>Tipo</th>
+                <th>Descrição</th>
+                <th style={{minWidth:120}}>Forma</th>
+                <th style={{minWidth:130, textAlign:"right"}}>Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bk.linhas.length === 0 && (
+                <tr><td colSpan={5} style={{ padding: 12, color: "#7b3c21" }}>
+                  Sem lançamentos para estas datas.
+                </td></tr>
+              )}
+              {bk.linhas.map(l => (
+                <tr key={`${l.origem}-${l.id}`}>
+                  <td>{l.data}</td>
+                  <td>
+                    <span className={`chip ${l.origem === "Realizado" ? "chip-real" : "chip-prev"}`}>
+                      {l.origem}
+                    </span>
+                  </td>
+                  <td>{l.descricao || ""}</td>
+                  <td>{l.forma || "-"}</td>
+                  <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {bkLinhas.length === 0 && (
-                  <tr><td colSpan={5} style={{ padding:10, color:"#7a5a2a" }}>
-                    Sem lançamentos para estas datas.
-                  </td></tr>
-                )}
-                {bkLinhas.map((l)=>(
-                  <tr key={`${l.origem}-${l.id}`}>
-                    <td style={{ padding:8 }}>{dtBR(l.data)}</td>
-                    <td style={{ padding:8 }}>
-                      <span style={{
-                        background: l.origem==="Realizado" ? "#d1f7d6" : "#fff3c4",
-                        border:"1px solid #d7c7a8", borderRadius:8, padding:"2px 6px"
-                      }}>{l.origem}</span>
-                    </td>
-                    <td style={{ padding:8 }}>{l.descricao || ""}</td>
-                    <td style={{ padding:8 }}>{l.forma || ""}</td>
-                    <td style={{ padding:8, textAlign:"right" }}>{money(l.valor)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-        <button className="btn-voltar" onClick={()=>setTela("HomePCP")}>Voltar</button>
-      </main>
-      <ERPFooter onBack={()=>setTela("HomePCP")} />
-    </>
+      <button className="btn-voltar-foot" onClick={() => setTela?.("HomeERP")}>🔙 Voltar</button>
+      <footer className="erp-footer">
+        <div className="erp-footer-track">
+          • Previstos (LanPed) + Realizados Avulsos (Varejo) • Extrato Geral •
+        </div>
+      </footer>
+    </div>
   );
-}
+            }
