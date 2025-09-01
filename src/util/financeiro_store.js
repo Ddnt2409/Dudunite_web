@@ -85,6 +85,21 @@ function safeNumber(n, fallback = 0) {
   return Number.isFinite(v) ? v : fallback;
 }
 
+/** Converte Timestamp | string (YYYY-MM-DD ou DD/MM/YYYY) | Date para Date. */
+function toDateLoose(v){
+  if (!v) return null;
+  if (typeof v?.toDate === "function") return v.toDate();
+  if (typeof v === "string") {
+    if (/^\d{4}-\d{2}-\d{2}/.test(v)) return new Date(v); // 2025-09-01
+    if (/^\d{2}\/\d{2}\/\d{4}/.test(v)) {                  // 01/09/2025
+      const [d,m,y] = v.split("/");
+      return new Date(`${y}-${m}-${d}`);
+    }
+  }
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 /* ===================== SALDOS INICIAIS ==================== */
 
 export function listenSaldosIniciais(ano, mes, onChange, onError) {
@@ -158,8 +173,9 @@ export async function gravarAvulsoCaixa({
     conta: "CAIXA DIARIO",
     valorUnit: safeNumber(valorUnit),
     valor: safeNumber(valorCalc),
-    dataLancamento: dataLancamento ? Timestamp.fromDate(new Date(dataLancamento)) : serverTimestamp(),
-    dataPrevista: dataPrevista ? Timestamp.fromDate(new Date(dataPrevista)) : null,
+    // ⇩⇩ datas robustas
+    dataLancamento: Timestamp.fromDate(toDateLoose(dataLancamento) || new Date()),
+    dataPrevista: dataPrevista ? Timestamp.fromDate(toDateLoose(dataPrevista)) : null,
     fechado: false,
     criadoEm: serverTimestamp(),
     atualizadoEm: serverTimestamp(),
@@ -174,28 +190,32 @@ export function listenCaixaDiario(ano, mes, onChange, onError) {
   return listenCaixaDiarioRange(ini, fim, onChange, onError);
 }
 
-/** Ouve os avulsos em um RANGE de datas (inclusive fim). */
+/** Ouve os avulsos em um RANGE de datas (inclusive fim) — robusto a datas em string. */
 export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
   const { ini, fim } = rangeFromInputs(inicio, fimInc);
   try {
     const col = collection(db, COL_AVULSOS);
-    const qy = query(
-      col,
-      where("dataLancamento", ">=", Timestamp.fromDate(ini)),
-      where("dataLancamento", "<", Timestamp.fromDate(fim))
-    );
 
+    // Não usamos where() por causa de docs salvos com datas em string.
     return onSnapshot(
-      qy,
+      col,
       (snap) => {
         const linhas = [];
         let total = 0;
 
         snap.docs.forEach((ds) => {
           const d = ds.data() || {};
-          const ymd = anyToYMD(d.dataLancamento || d.dataPrevista);
 
-          // valor pode ser negativo (fechamento parcial)
+          // aceita dataLancamento, dataPrevista, criadoEm/createdEm (Timestamp ou string)
+          const ymd =
+            anyToYMD(d.dataLancamento) ||
+            anyToYMD(d.dataPrevista)   ||
+            anyToYMD(d.criadoEm)       ||
+            anyToYMD(d.createdEm);
+
+          if (!inRangeYMD(ymd, ini, fim)) return;
+
+          // valor (pode ser negativo em fechamento parcial)
           let valorCalc = d.valor;
           if (valorCalc == null) {
             const vu = safeNumber(d.valorUnit || d.vlrUnit);
@@ -215,6 +235,7 @@ export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
             valor,
             fechado: !!d.fechado || !!d.fechamento,
           });
+
           total += valor;
         });
 
@@ -586,4 +607,4 @@ export async function migrarAvulsosAntigos(ano, mes) {
     }
   }
   return { migrados: criados };
-  }
+}
