@@ -57,6 +57,21 @@ function dayRange(d) {
   fim.setDate(fim.getDate() + 1);
   return { ini, fim };
 }
+function rangeFromInputs(inicio, fimInc) {
+  const ini = new Date(inicio instanceof Date ? inicio : new Date(inicio));
+  const fim = new Date(fimInc instanceof Date ? fimInc : new Date(fimInc));
+  ini.setHours(0, 0, 0, 0);
+  fim.setHours(0, 0, 0, 0);
+  // tornar exclusivo (+1 dia)
+  const fimExc = new Date(fim);
+  fimExc.setDate(fimExc.getDate() + 1);
+  return { ini, fim: fimExc };
+}
+function inRangeYMD(ymd, ini, fimExc) {
+  if (!ymd) return false;
+  const d = new Date(ymd + "T00:00:00");
+  return d >= ini && d < fimExc;
+}
 function safeNumber(n, fallback = 0) {
   const v = Number(n);
   return Number.isFinite(v) ? v : fallback;
@@ -101,7 +116,6 @@ export async function salvarSaldosIniciais(ano, mes, { caixa = 0, banco = 0 } = 
 
 /* ===================== CAIXA DIÁRIO (AVULSOS) ===================== */
 
-/** Grava um lançamento avulso (nascem REALIZADOS no CAIXA DIÁRIO). */
 export async function gravarAvulsoCaixa({
   cidade = "Gravatá",
   pdv = "VAREJO",
@@ -116,7 +130,6 @@ export async function gravarAvulsoCaixa({
   valorUnit = null,
   valor = null,
 } = {}) {
-  // calcula valor se não vier pronto
   let valorCalc = valor;
   if (valorCalc == null) {
     const vu = safeNumber(valorUnit);
@@ -148,16 +161,22 @@ export async function gravarAvulsoCaixa({
 /** Ouve os avulsos do mês (CAIXA DIÁRIO). */
 export function listenCaixaDiario(ano, mes, onChange, onError) {
   const { ini, fim } = monthRange(ano, mes);
+  return listenCaixaDiarioRange(ini, fim, onChange, onError);
+}
+
+/** Ouve os avulsos em um RANGE de datas (inclusive fim). */
+export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
+  const { ini, fim } = rangeFromInputs(inicio, fimInc);
   try {
     const col = collection(db, COL_AVULSOS);
-    const q = query(
+    const qy = query(
       col,
       where("dataLancamento", ">=", Timestamp.fromDate(ini)),
       where("dataLancamento", "<", Timestamp.fromDate(fim))
     );
 
     return onSnapshot(
-      q,
+      qy,
       (snap) => {
         const linhas = [];
         let total = 0;
@@ -299,9 +318,17 @@ function montarLinhaRealizado(id, d) {
   };
 }
 
+/** Ouve o extrato por mês (atalho). */
 export function listenExtratoBancario(ano, mes, onChange, onError) {
-  const { ini } = monthRange(ano, mes);
-  const ym = `${ini.getFullYear()}-${String(ini.getMonth() + 1).padStart(2, "0")}`;
+  const { ini, fim } = monthRange(ano, mes);
+  return listenExtratoBancarioRange(ini, fim, onChange, onError);
+}
+
+/** Ouve o extrato (Previstos + Realizados no Banco) por RANGE de datas. */
+export function listenExtratoBancarioRange(inicio, fimInc, onChange, onError) {
+  const { ini, fim } = rangeFromInputs(inicio, fimInc);
+  const iniY = toYMD(ini);
+  const fimY = toYMD(new Date(fim.getTime() - 86400000)); // último dia incluso (apenas para exibir cabeçalho, filtro usa Date)
 
   try {
     const col = collection(db, COL_FLUXO);
@@ -318,7 +345,7 @@ export function listenExtratoBancario(ano, mes, onChange, onError) {
           if (String(d.statusFinanceiro || "").toLowerCase() === "previsto") {
             const ymd = d.dataPrevista || anyToYMD(d.vencimento);
             if (!ymd) return;
-            if (ymd.slice(0, 7) === ym) prev.push(montarLinhaPrevisto(ds.id, d));
+            if (inRangeYMD(ymd, ini, fim)) prev.push(montarLinhaPrevisto(ds.id, d));
             return;
           }
 
@@ -326,7 +353,7 @@ export function listenExtratoBancario(ano, mes, onChange, onError) {
           if (String(d.conta || "").toUpperCase().includes("EXTRATO")) {
             const ymd = d.dataRealizado || anyToYMD(d.data);
             if (!ymd) return;
-            if (ymd.slice(0, 7) === ym) real.push(montarLinhaRealizado(ds.id, d));
+            if (inRangeYMD(ymd, ini, fim)) real.push(montarLinhaRealizado(ds.id, d));
           }
         });
 
@@ -334,7 +361,13 @@ export function listenExtratoBancario(ano, mes, onChange, onError) {
         const totPrev = prev.reduce((s, l) => s + safeNumber(l.valor), 0);
         const totBan  = real.reduce((s, l) => s + safeNumber(l.valor), 0);
 
-        onChange && onChange({ linhas, totPrev, totBan });
+        onChange && onChange({
+          linhas,
+          totPrev,
+          totBan,
+          // opcionalmente devolvemos eco do período normalizado
+          periodo: { de: iniY, ate: fimY }
+        });
       },
       (e) => onError && onError(e)
     );
@@ -434,7 +467,7 @@ export async function backfillPrevistosDoMes(ano, mes) {
     let valor = x.total != null ? Number(x.total) : somaValorPedido({ itens });
     valor = safeNumber(valor);
 
-    // vencimento (corrigido – sem optional call)
+    // vencimento
     let venc = "";
     if (typeof x.dataVencimento === "string" && x.dataVencimento) {
       venc = x.dataVencimento.slice(0, 10);
@@ -514,4 +547,4 @@ export async function migrarAvulsosAntigos(ano, mes) {
     }
   }
   return { migrados: criados };
-          }
+              }
