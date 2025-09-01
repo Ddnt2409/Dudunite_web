@@ -1,17 +1,19 @@
 // src/util/financeiro_store.js
 import db from "../firebase";
 import {
-  collection, doc, addDoc, setDoc, getDocs, onSnapshot, query, where,
-  serverTimestamp, Timestamp
+  collection, doc, addDoc, setDoc, updateDoc, getDoc, getDocs,
+  onSnapshot, query, where, serverTimestamp, Timestamp, writeBatch
 } from "firebase/firestore";
 
 /* ======================= CONSTANTES ======================= */
+
 const COL_FLUXO   = "financeiro_fluxo";   // extrato (Previstos + Realizados no Banco)
 const COL_SALDOS  = "financeiro_saldos";  // doc mensal com saldos iniciais
 const COL_PEDIDOS = "PEDIDOS";            // origem dos Previstos (LanPed)
 const COL_AVULSOS = "cts_avulsos";        // origem do Caixa Diário
 
 /* ========================= HELPERS ======================== */
+
 function toYMD(d) {
   const x = d instanceof Date ? d : new Date(d);
   if (Number.isNaN(x.getTime())) return "";
@@ -19,66 +21,94 @@ function toYMD(d) {
   const dd = String(x.getDate()).padStart(2, "0");
   return `${x.getFullYear()}-${mm}-${dd}`;
 }
+
 function anyToYMD(v) {
   if (!v) return "";
-  if (typeof v === "string") return v.length >= 10 ? v.slice(0, 10) : toYMD(new Date(v));
+  if (typeof v === "string") {
+    return v.length >= 10 ? v.slice(0, 10) : toYMD(new Date(v));
+  }
   if (v && typeof v.toDate === "function") return toYMD(v.toDate());
   return toYMD(v);
 }
+
 function brDate(v) {
   const d = (v && typeof v.toDate === "function") ? v.toDate() : v;
   try { return new Date(d || new Date()).toLocaleDateString("pt-BR"); } catch { return ""; }
 }
+
 function somaValorPedido(pedido = {}) {
   const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
   let total = 0;
   for (const it of itens) {
-    const q  = Number(it.qtd ?? it.quantidade ?? it.qtde ?? 0);
-    const vu = Number(it.preco ?? it.preço ?? it.valor ?? it.valorUnitario ?? it.vl ?? 0);
+    const q = Number(it.qtd ?? it.quantidade ?? it.qtde ?? 0);
+    const vuRaw = it.preco ?? it.preço ?? it.valor ?? it.valorUnitario ?? it.vl ?? 0;
+    const vu = Number(vuRaw);
     total += q * (Number.isFinite(vu) ? vu : 0);
   }
   return total;
 }
+
 function monthRange(ano, mes1a12) {
   const ini = new Date(ano, mes1a12 - 1, 1, 0, 0, 0, 0);
   const fim = new Date(ano, mes1a12, 1, 0, 0, 0, 0);
   return { ini, fim };
 }
+
+function dayRange(d) {
+  const dd = d instanceof Date ? new Date(d) : new Date(d);
+  dd.setHours(0, 0, 0, 0);
+  const ini = new Date(dd);
+  const fim = new Date(dd);
+  fim.setDate(fim.getDate() + 1);
+  return { ini, fim };
+}
+
 function rangeFromInputs(inicio, fimInc) {
   const ini = new Date(inicio instanceof Date ? inicio : new Date(inicio));
   const fim = new Date(fimInc instanceof Date ? fimInc : new Date(fimInc));
   ini.setHours(0, 0, 0, 0);
   fim.setHours(0, 0, 0, 0);
-  const fimExc = new Date(fim); // exclusivo
+  // tornar exclusivo (+1 dia)
+  const fimExc = new Date(fim);
   fimExc.setDate(fimExc.getDate() + 1);
   return { ini, fim: fimExc };
 }
+
+function inRangeYMD(ymd, ini, fimExc) {
+  if (!ymd) return false;
+  const d = new Date(ymd + "T00:00:00");
+  return d >= ini && d < fimExc;
+}
+
 function safeNumber(n, fallback = 0) {
   const v = Number(n);
   return Number.isFinite(v) ? v : fallback;
 }
 
 /* ===================== SALDOS INICIAIS ==================== */
+
 export function listenSaldosIniciais(ano, mes, onChange, onError) {
   try {
     const id = `${ano}-${String(mes).padStart(2, "0")}`;
     const ref = doc(db, COL_SALDOS, id);
     return onSnapshot(
       ref,
-      snap => {
+      (snap) => {
         const d = snap.data() || {};
-        onChange?.({
-          caixa: safeNumber(d.saldoInicialCaixa),
-          banco: safeNumber(d.saldoInicialBanco),
-        });
+        onChange &&
+          onChange({
+            caixa: safeNumber(d.saldoInicialCaixa),
+            banco: safeNumber(d.saldoInicialBanco),
+          });
       },
-      e => onError?.(e)
+      (e) => onError && onError(e)
     );
   } catch (e) {
-    onError?.(e);
+    onError && onError(e);
     return () => {};
   }
 }
+
 export async function salvarSaldosIniciais(ano, mes, { caixa = 0, banco = 0 } = {}) {
   const id = `${ano}-${String(mes).padStart(2, "0")}`;
   await setDoc(
@@ -93,6 +123,8 @@ export async function salvarSaldosIniciais(ano, mes, { caixa = 0, banco = 0 } = 
 }
 
 /* ===================== CAIXA DIÁRIO (AVULSOS) ===================== */
+
+/** Grava um lançamento avulso (nascem REALIZADOS no CAIXA DIÁRIO). */
 export async function gravarAvulsoCaixa({
   cidade = "Gravatá",
   pdv = "VAREJO",
@@ -107,6 +139,7 @@ export async function gravarAvulsoCaixa({
   valorUnit = null,
   valor = null,
 } = {}) {
+  // calcula valor se não vier pronto
   let valorCalc = valor;
   if (valorCalc == null) {
     const vu = safeNumber(valorUnit);
@@ -126,7 +159,7 @@ export async function gravarAvulsoCaixa({
     valorUnit: safeNumber(valorUnit),
     valor: safeNumber(valorCalc),
     dataLancamento: dataLancamento ? Timestamp.fromDate(new Date(dataLancamento)) : serverTimestamp(),
-    dataPrevista:   dataPrevista   ? Timestamp.fromDate(new Date(dataPrevista))   : null,
+    dataPrevista: dataPrevista ? Timestamp.fromDate(new Date(dataPrevista)) : null,
     fechado: false,
     criadoEm: serverTimestamp(),
     atualizadoEm: serverTimestamp(),
@@ -135,172 +168,207 @@ export async function gravarAvulsoCaixa({
   return { id: ref.id };
 }
 
-/** Atalho: mês. */
+/** Ouve os avulsos do mês (CAIXA DIÁRIO). */
 export function listenCaixaDiario(ano, mes, onChange, onError) {
   const { ini, fim } = monthRange(ano, mes);
   return listenCaixaDiarioRange(ini, fim, onChange, onError);
 }
 
-/** RANGE — tolerante a campos antigos (dataPrevista/data). */
+/** Ouve os avulsos em um RANGE de datas (inclusive fim). */
 export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
   const { ini, fim } = rangeFromInputs(inicio, fimInc);
   try {
     const col = collection(db, COL_AVULSOS);
-    return onSnapshot(
+    const qy = query(
       col,
+      where("dataLancamento", ">=", Timestamp.fromDate(ini)),
+      where("dataLancamento", "<", Timestamp.fromDate(fim))
+    );
+
+    return onSnapshot(
+      qy,
       (snap) => {
         const linhas = [];
         let total = 0;
 
-        snap.forEach((ds) => {
+        snap.docs.forEach((ds) => {
           const d = ds.data() || {};
+          const ymd = anyToYMD(d.dataLancamento || d.dataPrevista);
 
-          // Pega a melhor data disponível (qualquer formato legado)
-          const raw =
-            (d.dataLancamento && typeof d.dataLancamento.toDate === "function" ? d.dataLancamento.toDate() : d.dataLancamento) ||
-            (d.dataPrevista   && typeof d.dataPrevista.toDate   === "function" ? d.dataPrevista.toDate()   : d.dataPrevista)   ||
-            (d.data           && typeof d.data.toDate           === "function" ? d.data.toDate()           : d.data);
-          if (!raw) return;
-
-          const ymd = toYMD(raw);
-          const dt  = new Date(ymd + "T00:00:00");
-          if (!(dt >= ini && dt < fim)) return;
-
-          // Valor (positivo para entradas; negativo para saídas de fechamento)
+          // valor pode ser negativo (fechamento parcial)
           let valorCalc = d.valor;
           if (valorCalc == null) {
-            const vu  = safeNumber(d.valorUnit || d.vlrUnit);
+            const vu = safeNumber(d.valorUnit || d.vlrUnit);
             const qtd = safeNumber(d.quantidade || d.qtd);
             valorCalc = vu * qtd;
           }
           const valor = safeNumber(valorCalc);
 
-          const isSaidaFech = String(d.tipo || "").toUpperCase() === "SAIDA_FECHAMENTO";
-
           linhas.push({
             id: ds.id,
             data: ymd,
-            descricao: isSaidaFech
-              ? "Fechamento p/ Banco"
-              : `${d.pdv || "VAREJO"} • ${d.produto || ""}${d.quantidade ? " x" + d.quantidade : ""}`,
-            forma: isSaidaFech ? "Fechamento" : (d.formaPagamento || ""),
+            descricao:
+              d.fechamento
+                ? (d.descricao || `Fechamento Caixa • ${brDate(d.dataLancamento)}`)
+                : `${d.pdv || "VAREJO"} • ${d.produto || ""}${d.quantidade ? ` x${d.quantidade}` : ""}`,
+            forma: d.formaPagamento || (d.fechamento ? "Fechamento" : ""),
             valor,
-            fechado: !!d.fechado || isSaidaFech,
+            fechado: !!d.fechado || !!d.fechamento,
           });
           total += valor;
         });
 
         linhas.sort((a, b) => a.data.localeCompare(b.data));
-        onChange?.({ linhas, total });
+        onChange && onChange({ linhas, total });
       },
-      (e) => onError?.(e)
+      (e) => onError && onError(e)
     );
   } catch (e) {
-    onError?.(e);
+    onError && onError(e);
     return () => {};
   }
 }
 
-/** Fechamento (parcial ou total). Cria: +Realizado no banco, e -Saída no caixa. */
-export async function fecharCaixaDiario({ diaOrigem, dataBanco, valorParcial } = {}) {
-  const base    = diaOrigem || new Date();
-  const bancoD  = dataBanco || base;
-  const ymdOrig = toYMD(base);
-  const ymdBan  = toYMD(bancoD);
+/**
+ * Fecha o CAIXA DIÁRIO (total ou parcialmente).
+ * - Cria um lançamento NEGATIVO em cts_avulsos (saída do caixa).
+ * - Cria um CRÉDITO "Realizado" em financeiro_fluxo (entrada no banco).
+ *
+ * Parâmetros:
+ *   diaOrigem  : Date do movimento no CAIXA
+ *   dataBanco  : Date do crédito no BANCO
+ *   valorParcial: número > 0 (se ausente, fecha o total disponível do dia)
+ */
+export async function fecharCaixaDiario({
+  diaOrigem,
+  dataBanco,
+  valorParcial = null,
+} = {}) {
+  const base = diaOrigem || new Date();
+  const bancoD = dataBanco || base;
+  const { ini, fim } = dayRange(base);
 
-  // Quanto tem disponível (aberto) até o dia do fechamento
-  const { ini } = monthRange(base.getFullYear(), base.getMonth() + 1);
-  const limite = new Date(ymdOrig + "T23:59:59");
-
+  // Soma o total "disponível" DO DIA (apenas entradas desse dia)
   const snap = await getDocs(collection(db, COL_AVULSOS));
-  let disponivel = 0;
-  snap.forEach((ds) => {
-    const x = ds.data() || {};
-    if (String(x.tipo || "") === "SAIDA_FECHAMENTO") return; // saídas não contam
-    if (x.fechado) return;                                   // já liquidado
+  let totalDoDia = 0;
+  snap.forEach((d) => {
+    const x = d.data() || {};
     const raw =
       (x.dataLancamento && typeof x.dataLancamento.toDate === "function" ? x.dataLancamento.toDate() : x.dataLancamento) ||
-      (x.dataPrevista   && typeof x.dataPrevista.toDate   === "function" ? x.dataPrevista.toDate()   : x.dataPrevista)   ||
-      (x.data           && typeof x.data.toDate           === "function" ? x.data.toDate()           : x.data);
+      (x.dataPrevista && typeof x.dataPrevista.toDate === "function" ? x.dataPrevista.toDate() : x.dataPrevista);
     if (!raw) return;
-    const d = new Date(raw);
-    if (d > limite) return;
-
-    let v = x.valor;
-    if (v == null) {
-      const vu = safeNumber(x.valorUnit || x.vlrUnit);
-      const qt = safeNumber(x.quantidade || x.qtd);
-      v = vu * qt;
+    const t = new Date(raw);
+    if (t >= ini && t < fim) {
+      // somar entradas normais (podem existir fechamentos negativos anteriores)
+      const v = safeNumber(x.valor ?? (safeNumber(x.valorUnit) * safeNumber(x.quantidade)));
+      totalDoDia += v;
     }
-    disponivel += safeNumber(v);
   });
 
-  const valor = safeNumber(valorParcial == null ? disponivel : Math.min(valorParcial, disponivel));
-  if (valor <= 0) return { criado: false, motivo: "valor<=0" };
+  // Valor a fechar
+  let valorFechar = valorParcial == null ? totalDoDia : safeNumber(valorParcial);
+  if (valorFechar <= 0) return { criado: false, motivo: "valor_zero" };
+  if (valorFechar > totalDoDia && totalDoDia > 0) valorFechar = totalDoDia;
 
-  // Crédito no banco
-  const idFech = `FECH_${ymdOrig}_${Math.random().toString(36).slice(2, 8)}`;
+  // ---------- Banco: crédito realizado ----------
+  const ymdBanco = toYMD(bancoD);
+  const ymdOrig  = toYMD(base);
+  const idFech   = `FECH_${ymdOrig}_${Date.now()}`;
+
   await setDoc(
     doc(db, COL_FLUXO, idFech),
     {
       origem: "FECHAMENTO_CAIXA",
       conta: "EXTRATO BANCARIO",
       statusFinanceiro: "Realizado",
+      dataRealizado: ymdBanco,
       dataOrigem: ymdOrig,
-      dataRealizado: ymdBan,
       descricao: `Fechamento Caixa • ${brDate(base)}`,
       formaPagamento: "Fechamento",
-      valorRealizado: valor,
+      valorRealizado: safeNumber(valorFechar),
       criadoEm: serverTimestamp(),
       atualizadoEm: serverTimestamp(),
     },
     { merge: true }
   );
 
-  // Saída correspondente (negativa) no CAIXA DIÁRIO
+  // ---------- Caixa: saída (negativa) ----------
   await addDoc(collection(db, COL_AVULSOS), {
-    tipo: "SAIDA_FECHAMENTO",
+    fechamento: true,
     conta: "CAIXA DIARIO",
-    valor: -Math.abs(valor),
+    situacao: "Realizado",
+    pdv: "VAREJO",
+    produto: "FECHAMENTO",
+    quantidade: 1,
+    valorUnit: -safeNumber(valorFechar),
+    valor: -safeNumber(valorFechar),
     formaPagamento: "Fechamento",
-    dataLancamento: Timestamp.fromDate(new Date(ymdOrig + "T12:00:00")),
+    descricao: `Fechamento Caixa • ${brDate(base)}`,
+    dataLancamento: Timestamp.fromDate(new Date(base)),
+    dataPrevista: null,
     fechado: true,
     bancoRef: idFech,
-    bancoData: ymdBan,
+    bancoData: ymdBanco,
     criadoEm: serverTimestamp(),
     atualizadoEm: serverTimestamp(),
   });
 
-  return { criado: true, total: valor };
+  return { criado: true, total: safeNumber(valorFechar) };
+}
+
+// Alias para compatibilidade com o FluxCx.jsx
+export function fecharCaixaParcial(args) {
+  return fecharCaixaDiario(args);
 }
 
 /* ================== EXTRATO BANCÁRIO (PREV + REAL) ================= */
+
 function montarLinhaPrevisto(id, d) {
-  const valor = safeNumber(d.valorPrevisto != null ? d.valorPrevisto : d.valor);
-  const data  = d.dataPrevista || anyToYMD(d.vencimento) || anyToYMD(d.criadoEm) || anyToYMD(d.createdEm);
+  const valor = safeNumber(
+    d.valorPrevisto != null ? d.valorPrevisto : d.valor
+  );
+  const data =
+    d.dataPrevista ||
+    anyToYMD(d.vencimento) ||
+    anyToYMD(d.criadoEm) ||
+    anyToYMD(d.createdEm);
+
   return {
-    id, origem: "Previsto", data,
+    id,
+    origem: "Previsto",
+    data,
     descricao: `PEDIDO • ${d.pdv || d.escola || "-"}`,
-    forma: d.formaPagamento || "", valor,
+    forma: d.formaPagamento || "",
+    valor,
   };
 }
+
 function montarLinhaRealizado(id, d) {
-  const valor = safeNumber(d.valorRealizado != null ? d.valorRealizado : d.valor);
-  const data  = d.dataRealizado || anyToYMD(d.data);
+  const valor = safeNumber(
+    d.valorRealizado != null ? d.valorRealizado : d.valor
+  );
+  const data = d.dataRealizado || anyToYMD(d.data);
   return {
-    id, origem: "Realizado", data,
+    id,
+    origem: "Realizado",
+    data,
     descricao: d.descricao || "Crédito em conta",
-    forma: d.formaPagamento || "", valor,
+    forma: d.formaPagamento || "",
+    valor,
   };
 }
+
+/** Ouve o extrato por mês (atalho). */
 export function listenExtratoBancario(ano, mes, onChange, onError) {
   const { ini, fim } = monthRange(ano, mes);
   return listenExtratoBancarioRange(ini, fim, onChange, onError);
 }
+
+/** Ouve o extrato (Previstos + Realizados no Banco) por RANGE de datas. */
 export function listenExtratoBancarioRange(inicio, fimInc, onChange, onError) {
   const { ini, fim } = rangeFromInputs(inicio, fimInc);
   const iniY = toYMD(ini);
-  const fimY = toYMD(new Date(fim.getTime() - 86400000));
+  const fimY = toYMD(new Date(fim.getTime() - 86400000)); // exibição
 
   try {
     const col = collection(db, COL_FLUXO);
@@ -309,40 +377,47 @@ export function listenExtratoBancarioRange(inicio, fimInc, onChange, onError) {
       (snap) => {
         const prev = [];
         const real = [];
+
         snap.forEach((ds) => {
           const d = ds.data() || {};
+
+          // PREVISTO
           if (String(d.statusFinanceiro || "").toLowerCase() === "previsto") {
             const ymd = d.dataPrevista || anyToYMD(d.vencimento);
-            if (ymd) {
-              const dt = new Date(ymd + "T00:00:00");
-              if (dt >= ini && dt < fim) prev.push(montarLinhaPrevisto(ds.id, d));
-            }
+            if (!ymd) return;
+            if (inRangeYMD(ymd, ini, fim)) prev.push(montarLinhaPrevisto(ds.id, d));
             return;
           }
+
+          // REALIZADO NO BANCO (inclui fechamento do caixa)
           if (String(d.conta || "").toUpperCase().includes("EXTRATO")) {
             const ymd = d.dataRealizado || anyToYMD(d.data);
-            if (ymd) {
-              const dt = new Date(ymd + "T00:00:00");
-              if (dt >= ini && dt < fim) real.push(montarLinhaRealizado(ds.id, d));
-            }
+            if (!ymd) return;
+            if (inRangeYMD(ymd, ini, fim)) real.push(montarLinhaRealizado(ds.id, d));
           }
         });
 
-        const linhas = [...prev, ...real].sort((a, b) => a.data.localeCompare(b.data));
+        const linhas = [...prev, ...real].sort((x, y) => x.data.localeCompare(y.data));
         const totPrev = prev.reduce((s, l) => s + safeNumber(l.valor), 0);
         const totBan  = real.reduce((s, l) => s + safeNumber(l.valor), 0);
 
-        onChange?.({ linhas, totPrev, totBan, periodo: { de: iniY, ate: fimY } });
+        onChange && onChange({
+          linhas,
+          totPrev,
+          totBan,
+          periodo: { de: iniY, ate: fimY }
+        });
       },
-      (e) => onError?.(e)
+      (e) => onError && onError(e)
     );
   } catch (e) {
-    onError?.(e);
+    onError && onError(e);
     return () => {};
   }
 }
 
 /* ============== PREVISTOS (LanPed → financeiro_fluxo) ============== */
+
 export async function upsertPrevistoFromLanPed(pedidoId, dados) {
   const agora = serverTimestamp();
 
@@ -372,6 +447,7 @@ export async function upsertPrevistoFromLanPed(pedidoId, dados) {
     { merge: true }
   );
 }
+
 export async function marcarRealizado(pedidoId, { dataRealizado = new Date(), valor = null } = {}) {
   await setDoc(
     doc(db, COL_FLUXO, pedidoId),
@@ -393,8 +469,16 @@ export async function backfillPrevistosDoMes(ano, mes) {
 
   let docs = [];
   try {
-    const qA = query(ref, where("createdEm", ">=", Timestamp.fromDate(ini)), where("createdEm", "<", Timestamp.fromDate(fim)));
-    const qB = query(ref, where("criadoEm",  ">=", Timestamp.fromDate(ini)), where("criadoEm",  "<", Timestamp.fromDate(fim)));
+    const qA = query(
+      ref,
+      where("createdEm", ">=", Timestamp.fromDate(ini)),
+      where("createdEm", "<", Timestamp.fromDate(fim))
+    );
+    const qB = query(
+      ref,
+      where("criadoEm", ">=", Timestamp.fromDate(ini)),
+      where("criadoEm", "<", Timestamp.fromDate(fim))
+    );
     const [sA, sB] = await Promise.all([getDocs(qA), getDocs(qB)]);
     const map = new Map();
     sA.docs?.forEach((d) => map.set(d.id, d));
@@ -405,8 +489,8 @@ export async function backfillPrevistosDoMes(ano, mes) {
     sAll.forEach((d) => {
       const x = d.data() || {};
       const carimbo =
-        (x.createdEm  && typeof x.createdEm.toDate  === "function" ? x.createdEm.toDate()  : x.createdEm)  ||
-        (x.criadoEm   && typeof x.criadoEm.toDate   === "function" ? x.criadoEm.toDate()   : x.criadoEm)   ||
+        (x.createdEm && typeof x.createdEm.toDate === "function" ? x.createdEm.toDate() : x.createdEm) ||
+        (x.criadoEm && typeof x.criadoEm.toDate === "function" ? x.criadoEm.toDate() : x.criadoEm) ||
         (x.atualizadoEm && typeof x.atualizadoEm.toDate === "function" ? x.atualizadoEm.toDate() : x.atualizadoEm);
       if (!carimbo) return;
       if (carimbo >= ini && carimbo < fim) docs.push(d);
@@ -417,9 +501,12 @@ export async function backfillPrevistosDoMes(ano, mes) {
   for (const ds of docs) {
     const x = ds.data() || {};
 
-    let valor = x.total != null ? Number(x.total) : somaValorPedido(x);
+    // valor
+    const itens = Array.isArray(x.itens) ? x.itens : [];
+    let valor = x.total != null ? Number(x.total) : somaValorPedido({ itens });
     valor = safeNumber(valor);
 
+    // vencimento
     let venc = "";
     if (typeof x.dataVencimento === "string" && x.dataVencimento) {
       venc = x.dataVencimento.slice(0, 10);
@@ -449,12 +536,14 @@ export async function backfillPrevistosDoMes(ano, mes) {
         { merge: true }
       );
       gerados++;
-    } catch { /* segue */ }
+    } catch {
+      // segue mesmo que algum falhe
+    }
   }
   return { processados: docs.length, previstosGerados: gerados };
 }
 
-/** (Opcional) Migrar avulsos antigos para o fluxo, se desejar histórico. */
+/** Migra avulsos antigos para o fluxo (conta CAIXA DIARIO; opcional). */
 export async function migrarAvulsosAntigos(ano, mes) {
   const { ini } = monthRange(ano, mes);
   const ym = `${ini.getFullYear()}-${String(ini.getMonth() + 1).padStart(2, "0")}`;
@@ -463,7 +552,7 @@ export async function migrarAvulsosAntigos(ano, mes) {
   let criados = 0;
   for (const ds of snap.docs) {
     const x = ds.data() || {};
-    const ymd = anyToYMD(x.dataLancamento || x.dataPrevista || x.data);
+    const ymd = anyToYMD(x.dataLancamento || x.dataPrevista);
     if (!ymd) continue;
     if (ymd.slice(0, 7) !== ym) continue;
 
@@ -492,7 +581,9 @@ export async function migrarAvulsosAntigos(ano, mes) {
         { merge: true }
       );
       criados++;
-    } catch { /* ignora */ }
+    } catch {
+      // ignora e segue
+    }
   }
   return { migrados: criados };
-    }
+  }
