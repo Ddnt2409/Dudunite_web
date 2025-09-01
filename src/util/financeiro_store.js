@@ -24,14 +24,11 @@ function toYMD(d) {
 function anyToYMD(v) {
   if (!v) return "";
   if (typeof v === "string") {
-    // ISO 2025-09-01
-    if (/^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0, 10);
-    // BR 01/09/2025
-    if (/^\d{2}\/\d{2}\/\d{4}/.test(v)) {
-      const [dd, mm, yyyy] = v.slice(0, 10).split("/");
+    if (/^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0, 10); // ISO
+    if (/^\d{2}\/\d{2}\/\d{4}/.test(v)) {                     // BR
+      const [dd, mm, yyyy] = v.slice(0,10).split("/");
       return `${yyyy}-${mm}-${dd}`;
     }
-    // fallback
     return toYMD(new Date(v));
   }
   if (v && typeof v.toDate === "function") return toYMD(v.toDate());
@@ -73,16 +70,15 @@ function dayRange(d) {
 function rangeFromInputs(inicio, fimInc) {
   const ini = new Date(inicio instanceof Date ? inicio : new Date(inicio));
   const fim = new Date(fimInc instanceof Date ? fimInc : new Date(fimInc));
-  ini.setHours(0, 0, 0, 0);
-  fim.setHours(0, 0, 0, 0);
+  ini.setHours(0,0,0,0);
+  fim.setHours(0,0,0,0);
   const fimExc = new Date(fim);
-  fimExc.setDate(fimExc.getDate() + 1); // exclusivo
+  fimExc.setDate(fimExc.getDate()+1);
   return { ini, fim: fimExc };
 }
 
 function inRangeYMD(ymd, ini, fimExc) {
   if (!ymd) return false;
-  // ymd sempre no formato YYYY-MM-DD aqui
   const d = new Date(`${ymd}T00:00:00`);
   return d >= ini && d < fimExc;
 }
@@ -99,7 +95,7 @@ function toDateLoose(v){
   if (typeof v === "string") {
     if (/^\d{4}-\d{2}-\d{2}/.test(v)) return new Date(v);
     if (/^\d{2}\/\d{2}\/\d{4}/.test(v)) {
-      const [dd, mm, yyyy] = v.slice(0, 10).split("/");
+      const [dd, mm, yyyy] = v.slice(0,10).split("/");
       return new Date(`${yyyy}-${mm}-${dd}`);
     }
   }
@@ -187,19 +183,19 @@ export async function gravarAvulsoCaixa({
   return { id: ref.id };
 }
 
-/** Ouve os avulsos do mês (CAIXA DIÁRIO). */
+/** Mês inteiro -> range */
 export function listenCaixaDiario(ano, mes, onChange, onError) {
   const { ini, fim } = monthRange(ano, mes);
   return listenCaixaDiarioRange(ini, fim, onChange, onError);
 }
 
-/** Ouve avulsos por RANGE — tolerante a datas ISO/BR/Timestamp. */
+/** Listener do Caixa — agora considera `data` também. */
 export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
   const { ini, fim } = rangeFromInputs(inicio, fimInc);
   try {
     const col = collection(db, COL_AVULSOS);
 
-    // Sem where() para não perder docs com datas em string.
+    // sem where() para não perder docs com datas string
     return onSnapshot(
       col,
       (snap) => {
@@ -212,6 +208,7 @@ export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
           const dt =
             toDateLoose(d.dataLancamento) ||
             toDateLoose(d.dataPrevista)   ||
+            toDateLoose(d.data)           || // <<<<<< NOVO
             toDateLoose(d.criadoEm)       ||
             toDateLoose(d.createdEm);
 
@@ -230,7 +227,7 @@ export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
             id: ds.id,
             data: ymd,
             descricao: d.fechamento
-              ? (d.descricao || `Fechamento Caixa • ${brDate(d.dataLancamento)}`)
+              ? (d.descricao || `Fechamento Caixa • ${brDate(d.dataLancamento || d.data)}`)
               : `${d.pdv || "VAREJO"} • ${d.produto || ""}${d.quantidade ? ` x${d.quantidade}` : ""}`,
             forma: d.formaPagamento || (d.fechamento ? "Fechamento" : ""),
             valor,
@@ -252,24 +249,26 @@ export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
 }
 
 /**
- * Fecha o CAIXA DIÁRIO (total ou parcialmente).
- * - Cria saída NEGATIVA em cts_avulsos (caixa).
- * - Cria crédito REALIZADO em financeiro_fluxo (banco).
+ * Fechamento (total/parcial):
+ * - Banco: cria crédito Realizado em financeiro_fluxo
+ * - Caixa: cria saída negativa em cts_avulsos
  */
 export async function fecharCaixaDiario({ diaOrigem, dataBanco, valorParcial = null } = {}) {
   const base = diaOrigem || new Date();
   const bancoD = dataBanco || base;
   const { ini, fim } = dayRange(base);
 
+  // somatório do dia (considera data/dataLancamento/dataPrevista)
   const snap = await getDocs(collection(db, COL_AVULSOS));
   let totalDoDia = 0;
   snap.forEach((d) => {
     const x = d.data() || {};
     const raw =
       (x.dataLancamento && typeof x.dataLancamento.toDate === "function" ? x.dataLancamento.toDate() : x.dataLancamento) ||
-      (x.dataPrevista && typeof x.dataPrevista.toDate === "function" ? x.dataPrevista.toDate() : x.dataPrevista);
+      (x.dataPrevista   && typeof x.dataPrevista.toDate   === "function" ? x.dataPrevista.toDate()   : x.dataPrevista)   ||
+      x.data; // <<<<<< NOVO (string)
     if (!raw) return;
-    const t = new Date(raw);
+    const t = new Date(toDateLoose(raw));
     if (t >= ini && t < fim) {
       const v = safeNumber(x.valor ?? (safeNumber(x.valorUnit) * safeNumber(x.quantidade)));
       totalDoDia += v;
@@ -312,6 +311,8 @@ export async function fecharCaixaDiario({ diaOrigem, dataBanco, valorParcial = n
     valor: -safeNumber(valorFechar),
     formaPagamento: "Fechamento",
     descricao: `Fechamento Caixa • ${brDate(base)}`,
+    // guarda também em `data` para ficar consistente com a tela de Avulsos
+    data: toYMD(base), // <<<<<< NOVO
     dataLancamento: Timestamp.fromDate(new Date(base)),
     dataPrevista: null,
     fechado: true,
@@ -368,7 +369,7 @@ export function listenExtratoBancario(ano, mes, onChange, onError) {
 export function listenExtratoBancarioRange(inicio, fimInc, onChange, onError) {
   const { ini, fim } = rangeFromInputs(inicio, fimInc);
   const iniY = toYMD(ini);
-  const fimY = toYMD(new Date(fim.getTime() - 86400000)); // exibição
+  const fimY = toYMD(new Date(fim.getTime() - 86400000));
 
   try {
     const col = collection(db, COL_FLUXO);
@@ -541,7 +542,7 @@ export async function migrarAvulsosAntigos(ano, mes) {
   let criados = 0;
   for (const ds of snap.docs) {
     const x = ds.data() || {};
-    const ymd = anyToYMD(x.dataLancamento || x.dataPrevista);
+    const ymd = anyToYMD(x.dataLancamento || x.dataPrevista || x.data);
     if (!ymd) continue;
     if (ymd.slice(0, 7) !== ym) continue;
 
@@ -575,4 +576,4 @@ export async function migrarAvulsosAntigos(ano, mes) {
     }
   }
   return { migrados: criados };
-}
+    }
