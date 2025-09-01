@@ -37,9 +37,9 @@ function somaValorPedido(pedido = {}) {
   const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
   let total = 0;
   for (const it of itens) {
-    const q = Number(it.qtd ?? it.quantidade ?? it.qtde ?? 0);
-    const vuRaw = it.preco ?? it.preço ?? it.valor ?? it.valorUnitario ?? it.vl ?? 0;
-    const vu = Number(vuRaw);
+    const q  = Number(it.qtd ?? it.quantidade ?? it.qtde ?? 0);
+    const rv = it.preco ?? it.preço ?? it.valor ?? it.valorUnitario ?? it.vl ?? 0;
+    const vu = Number(rv);
     total += q * (Number.isFinite(vu) ? vu : 0);
   }
   return total;
@@ -62,8 +62,9 @@ function rangeFromInputs(inicio, fimInc) {
   const fim = new Date(fimInc instanceof Date ? fimInc : new Date(fimInc));
   ini.setHours(0, 0, 0, 0);
   fim.setHours(0, 0, 0, 0);
+  // tornar exclusivo (+1 dia)
   const fimExc = new Date(fim);
-  fimExc.setDate(fimExc.getDate() + 1); // exclusivo
+  fimExc.setDate(fimExc.getDate() + 1);
   return { ini, fim: fimExc };
 }
 function inRangeYMD(ymd, ini, fimExc) {
@@ -86,15 +87,16 @@ export function listenSaldosIniciais(ano, mes, onChange, onError) {
       ref,
       (snap) => {
         const d = snap.data() || {};
-        onChange?.({
-          caixa: safeNumber(d.saldoInicialCaixa),
-          banco: safeNumber(d.saldoInicialBanco),
-        });
+        onChange &&
+          onChange({
+            caixa: safeNumber(d.saldoInicialCaixa),
+            banco: safeNumber(d.saldoInicialBanco),
+          });
       },
-      (e) => onError?.(e)
+      (e) => onError && onError(e)
     );
   } catch (e) {
-    onError?.(e);
+    onError && onError(e);
     return () => {};
   }
 }
@@ -114,6 +116,7 @@ export async function salvarSaldosIniciais(ano, mes, { caixa = 0, banco = 0 } = 
 
 /* ===================== CAIXA DIÁRIO (AVULSOS) ===================== */
 
+/** Grava um lançamento avulso (nascem REALIZADOS no CAIXA DIÁRIO). */
 export async function gravarAvulsoCaixa({
   cidade = "Gravatá",
   pdv = "VAREJO",
@@ -128,6 +131,7 @@ export async function gravarAvulsoCaixa({
   valorUnit = null,
   valor = null,
 } = {}) {
+  // calcula valor se não vier pronto
   let valorCalc = valor;
   if (valorCalc == null) {
     const vu = safeNumber(valorUnit);
@@ -156,29 +160,33 @@ export async function gravarAvulsoCaixa({
   return { id: ref.id };
 }
 
-/** Ouve os avulsos do mês (atalho). */
+/** Ouve os avulsos do mês (CAIXA DIÁRIO). */
 export function listenCaixaDiario(ano, mes, onChange, onError) {
   const { ini, fim } = monthRange(ano, mes);
   return listenCaixaDiarioRange(ini, fim, onChange, onError);
 }
 
-/** Ouve os avulsos num RANGE (inclusive “fim”). */
+/** Ouve os avulsos em um RANGE de datas (inclusive fim). */
 export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
   const { ini, fim } = rangeFromInputs(inicio, fimInc);
   try {
+    const col = collection(db, COL_AVULSOS);
     const qy = query(
-      collection(db, COL_AVULSOS),
+      col,
       where("dataLancamento", ">=", Timestamp.fromDate(ini)),
       where("dataLancamento", "<", Timestamp.fromDate(fim))
     );
+
     return onSnapshot(
       qy,
       (snap) => {
         const linhas = [];
         let total = 0;
+
         snap.docs.forEach((ds) => {
           const d = ds.data() || {};
           const ymd = anyToYMD(d.dataLancamento || d.dataPrevista);
+
           let valorCalc = d.valor;
           if (valorCalc == null) {
             const vu = safeNumber(d.valorUnit || d.vlrUnit);
@@ -186,6 +194,7 @@ export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
             valorCalc = vu * qtd;
           }
           const valor = safeNumber(valorCalc);
+
           linhas.push({
             id: ds.id,
             data: ymd,
@@ -196,84 +205,80 @@ export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
           });
           total += valor;
         });
-        linhas.sort((a, b) => a.data.localeCompare(b.data));
-        onChange?.({ linhas, total });
-      },
-      (e) => onError?.(e)
-    );
-  } catch (e) {
-    onError?.(e);
-    return () => {};
-  }
-}
 
-/** NOVO: ouve TODOS os avulsos **em aberto** (fechado==false). */
-export function listenCaixaDiarioAberto(onChange, onError) {
-  try {
-    const qy = query(collection(db, COL_AVULSOS), where("fechado", "==", false));
-    return onSnapshot(
-      qy,
-      (snap) => {
-        const itens = snap.docs.map((ds) => ({ id: ds.id, ...(ds.data() || {}) }));
-        onChange?.(itens);
+        linhas.sort((a, b) => a.data.localeCompare(b.data));
+        onChange && onChange({ linhas, total });
       },
-      (e) => onError?.(e)
+      (e) => onError && onError(e)
     );
   } catch (e) {
-    onError?.(e);
+    onError && onError(e);
     return () => {};
   }
 }
 
 /**
- * NOVO: “Caixa diário constante”.
- * Escuta todos os avulsos em aberto e retorna as linhas **do primeiro dia aberto até `ate`**.
+ * FECHAMENTO PARCIAL:
+ * - Cria ENTRADA no EXTRATO BANCÁRIO (Realizado) na data do banco;
+ * - Cria SAÍDA no CAIXA DIÁRIO (valor negativo) na data de origem.
+ * Não altera/fecha avulsos existentes.
  */
-export function listenCaixaDiarioAbertoAte(ate, onChange, onError) {
-  const ateY = toYMD(ate || new Date());
-  return listenCaixaDiarioAberto((itens) => {
-    if (!Array.isArray(itens) || itens.length === 0) {
-      onChange?.({ linhas: [], total: 0, primeiroDiaAberto: "", ate: ateY });
-      return;
-    }
-    // encontra o primeiro dia aberto
-    let primeiro = null;
-    const parsed = [];
-    for (const x of itens) {
-      const ymd = anyToYMD(x.dataLancamento || x.dataPrevista);
-      if (!ymd) continue;
-      if (!primeiro || ymd < primeiro) primeiro = ymd;
-      parsed.push({ ymd, x });
-    }
-    // filtra até a data informada
-    const linhas = [];
-    let total = 0;
-    for (const { ymd, x } of parsed) {
-      if (ymd <= ateY) {
-        let v = x.valor;
-        if (v == null) {
-          const vu = safeNumber(x.valorUnit);
-          const qt = safeNumber(x.quantidade);
-          v = vu * qt;
-        }
-        const valor = safeNumber(v);
-        linhas.push({
-          id: x.id,
-          data: ymd,
-          descricao: `${x.pdv || "VAREJO"} • ${x.produto || ""} x${x.quantidade ?? ""}`,
-          forma: x.formaPagamento || "",
-          valor,
-          fechado: !!x.fechado,
-        });
-        total += valor;
-      }
-    }
-    linhas.sort((a, b) => a.data.localeCompare(b.data));
-    onChange?.({ linhas, total, primeiroDiaAberto: primeiro, ate: ateY });
-  }, onError);
+export async function fecharCaixaParcial({
+  diaOrigem,    // data do movimento no CAIXA DIÁRIO
+  dataBanco,    // data do crédito no EXTRATO BANCÁRIO
+  valor,        // quanto transferir
+} = {}) {
+  const v = safeNumber(valor);
+  if (v <= 0) throw new Error("Informe um valor > 0 para o fechamento.");
+
+  const ymdOrig = toYMD(diaOrigem || new Date());
+  const ymdBan  = toYMD(dataBanco || new Date());
+  const idFluxo = `FECH_${ymdOrig}_${Date.now()}`; // permite vários fechamentos no mesmo dia
+
+  // 1) ENTRADA no BANCO (Realizado)
+  await setDoc(
+    doc(db, COL_FLUXO, idFluxo),
+    {
+      origem: "FECHAMENTO_CAIXA",
+      conta: "EXTRATO BANCARIO",
+      statusFinanceiro: "Realizado",
+      dataRealizado: ymdBan,
+      dataOrigem: ymdOrig,
+      descricao: `Fechamento Caixa • ${brDate(new Date(ymdOrig))}`,
+      formaPagamento: "Fechamento",
+      valorRealizado: v,
+      criadoEm: serverTimestamp(),
+      atualizadoEm: serverTimestamp(),
+    },
+    { merge: true }
+  );
+
+  // 2) SAÍDA no CAIXA (valor negativo)
+  await addDoc(collection(db, COL_AVULSOS), {
+    conta: "CAIXA DIARIO",
+    tipo: "SAIDA_FECHAMENTO",
+    pdv: "CAIXA",
+    produto: "Fechamento p/ Banco",
+    quantidade: 1,
+    formaPagamento: "Fechamento",
+    valor: -v,
+    valorUnit: -v,
+    dataLancamento: Timestamp.fromDate(new Date(ymdOrig)),
+    fechado: false,
+    bancoRef: idFluxo,
+    bancoData: ymdBan,
+    criadoEm: serverTimestamp(),
+    atualizadoEm: serverTimestamp(),
+  });
+
+  return { criado: true, total: v, idFluxo };
 }
 
-/** Fecha o CAIXA DIÁRIO de um dia (gera 1 crédito Realizado no Banco). */
+/**
+ * FECHAMENTO “ANTIGO” (total do dia):
+ * soma avulsos abertos do dia e gera um único Realizado no banco,
+ * marcando avulsos como fechados. Mantido por compatibilidade.
+ */
 export async function fecharCaixaDiario({ diaOrigem, dataBanco } = {}) {
   const base = diaOrigem || new Date();
   const bancoD = dataBanco || base;
@@ -343,12 +348,15 @@ export async function fecharCaixaDiario({ diaOrigem, dataBanco } = {}) {
 /* ================== EXTRATO BANCÁRIO (PREV + REAL) ================= */
 
 function montarLinhaPrevisto(id, d) {
-  const valor = safeNumber(d.valorPrevisto != null ? d.valorPrevisto : d.valor);
+  const valor = safeNumber(
+    d.valorPrevisto != null ? d.valorPrevisto : d.valor
+  );
   const data =
     d.dataPrevista ||
     anyToYMD(d.vencimento) ||
     anyToYMD(d.criadoEm) ||
     anyToYMD(d.createdEm);
+
   return {
     id,
     origem: "Previsto",
@@ -359,7 +367,9 @@ function montarLinhaPrevisto(id, d) {
   };
 }
 function montarLinhaRealizado(id, d) {
-  const valor = safeNumber(d.valorRealizado != null ? d.valorRealizado : d.valor);
+  const valor = safeNumber(
+    d.valorRealizado != null ? d.valorRealizado : d.valor
+  );
   const data = d.dataRealizado || anyToYMD(d.data);
   return {
     id,
@@ -371,15 +381,18 @@ function montarLinhaRealizado(id, d) {
   };
 }
 
+/** Ouve o extrato por mês (atalho). */
 export function listenExtratoBancario(ano, mes, onChange, onError) {
   const { ini, fim } = monthRange(ano, mes);
   return listenExtratoBancarioRange(ini, fim, onChange, onError);
 }
 
+/** Ouve o extrato (Previstos + Realizados no Banco) por RANGE de datas. */
 export function listenExtratoBancarioRange(inicio, fimInc, onChange, onError) {
   const { ini, fim } = rangeFromInputs(inicio, fimInc);
   const iniY = toYMD(ini);
-  const fimY = toYMD(new Date(fim.getTime() - 86400000));
+  const fimY = toYMD(new Date(fim.getTime() - 86400000)); // eco do cabeçalho
+
   try {
     const col = collection(db, COL_FLUXO);
     return onSnapshot(
@@ -387,29 +400,41 @@ export function listenExtratoBancarioRange(inicio, fimInc, onChange, onError) {
       (snap) => {
         const prev = [];
         const real = [];
+
         snap.forEach((ds) => {
           const d = ds.data() || {};
+
+          // PREVISTO
           if (String(d.statusFinanceiro || "").toLowerCase() === "previsto") {
             const ymd = d.dataPrevista || anyToYMD(d.vencimento);
             if (!ymd) return;
             if (inRangeYMD(ymd, ini, fim)) prev.push(montarLinhaPrevisto(ds.id, d));
             return;
           }
+
+          // REALIZADO NO BANCO (inclui fechamento do caixa)
           if (String(d.conta || "").toUpperCase().includes("EXTRATO")) {
             const ymd = d.dataRealizado || anyToYMD(d.data);
             if (!ymd) return;
             if (inRangeYMD(ymd, ini, fim)) real.push(montarLinhaRealizado(ds.id, d));
           }
         });
+
         const linhas = [...prev, ...real].sort((x, y) => x.data.localeCompare(y.data));
         const totPrev = prev.reduce((s, l) => s + safeNumber(l.valor), 0);
         const totBan  = real.reduce((s, l) => s + safeNumber(l.valor), 0);
-        onChange?.({ linhas, totPrev, totBan, periodo: { de: iniY, ate: fimY } });
+
+        onChange && onChange({
+          linhas,
+          totPrev,
+          totBan,
+          periodo: { de: iniY, ate: fimY }
+        });
       },
-      (e) => onError?.(e)
+      (e) => onError && onError(e)
     );
   } catch (e) {
-    onError?.(e);
+    onError && onError(e);
     return () => {};
   }
 }
@@ -499,10 +524,12 @@ export async function backfillPrevistosDoMes(ano, mes) {
   for (const ds of docs) {
     const x = ds.data() || {};
 
+    // valor
     const itens = Array.isArray(x.itens) ? x.itens : [];
     let valor = x.total != null ? Number(x.total) : somaValorPedido({ itens });
     valor = safeNumber(valor);
 
+    // vencimento
     let venc = "";
     if (typeof x.dataVencimento === "string" && x.dataVencimento) {
       venc = x.dataVencimento.slice(0, 10);
@@ -582,4 +609,4 @@ export async function migrarAvulsosAntigos(ano, mes) {
     }
   }
   return { migrados: criados };
-      }
+        }
