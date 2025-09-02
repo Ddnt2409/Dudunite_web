@@ -1,3 +1,4 @@
+// src/pages/FluxCx.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
@@ -14,11 +15,13 @@ import {
   backfillPrevistosDoMes,
 } from "../util/financeiro_store";
 
+// helpers visuais
 const money = (n)=>`R$ ${Number(n||0).toFixed(2).replace(".", ",")}`;
 const dtBR   = (v)=> (v && typeof v === "string")
   ? v.split("-").reverse().join("/")
   : new Date(v || Date.now()).toLocaleDateString("pt-BR");
 
+// datas
 function ymToRange(ano, mes){
   const ini = new Date(ano, mes-1, 1);
   const fim = new Date(ano, mes,   1);
@@ -26,32 +29,51 @@ function ymToRange(ano, mes){
 }
 
 export default function FluxCx({ setTela }) {
+  // ===== Seleção =====
   const hoje = new Date();
-  const [modo, setModo] = useState("mes");
+  const [modo, setModo] = useState("mes");          // "mes" | "periodo"
   const [ano, setAno]   = useState(hoje.getFullYear());
   const [mes, setMes]   = useState(hoje.getMonth()+1);
   const [de,  setDe ]   = useState(new Date(ano, mes-1, 1).toISOString().slice(0,10));
   const [ate, setAte]   = useState(new Date(ano, mes,   1).toISOString().slice(0,10));
   const meses = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 
+  // ===== Saldos iniciais =====
   const [saldoIniCx, setSaldoIniCx] = useState(0);
   const [saldoIniBk, setSaldoIniBk] = useState(0);
 
+  // ===== Caixa Diário (topo) =====
   const [cxLinhas, setCxLinhas] = useState([]);
   const cxTotal = useMemo(()=> cxLinhas.reduce((s,l)=>s+Number(l.valor||0),0), [cxLinhas]);
+  const cxSaldoFinal = useMemo(()=> Number(saldoIniCx||0) + Number(cxTotal||0), [saldoIniCx, cxTotal]);
 
+  // Saldo acumulado por linha (estilo extrato)
+  const cxComSaldo = useMemo(()=>{
+    let acc = Number(saldoIniCx || 0);
+    return cxLinhas.map(l => {
+      acc += Number(l.valor || 0);
+      return { ...l, saldo: acc };
+    });
+  }, [cxLinhas, saldoIniCx]);
+
+  // ===== Banco (baixo) =====
   const [bkLinhas, setBkLinhas] = useState([]);
   const totPrev = useMemo(()=> bkLinhas.filter(l=>l.origem==="Previsto").reduce((s,l)=>s+Number(l.valor||0),0), [bkLinhas]);
   const totBan  = useMemo(()=> bkLinhas.filter(l=>l.origem==="Realizado").reduce((s,l)=>s+Number(l.valor||0),0), [bkLinhas]);
+  const saldoBancoVsPrev = useMemo(()=> Number(totBan||0) - Number(totPrev||0), [totBan, totPrev]);
+  const bkSaldoFinal = useMemo(()=> Number(saldoIniBk||0) + Number(totBan||0) - Number(totPrev||0), [saldoIniBk, totBan, totPrev]);
 
-  const [diaFechar, setDiaFechar]   = useState(new Date().toISOString().slice(0,10));
-  const [dataBanco, setDataBanco]   = useState(new Date().toISOString().slice(0,10));
-  const [valorFechar, setValorFechar] = useState(0);
+  // ===== Fechamento =====
+  const [diaFechar, setDiaFechar] = useState(new Date().toISOString().slice(0,10));
+  const [dataBanco, setDataBanco] = useState(new Date().toISOString().slice(0,10));
+  const [valorFechar, setValorFechar] = useState("");
 
+  // unsub refs
   const unsubCx = useRef(null);
   const unsubBk = useRef(null);
   const unsubSd = useRef(null);
 
+  // ouvir saldos iniciais do mês selecionado
   useEffect(()=>{
     unsubSd.current && unsubSd.current();
     unsubSd.current = listenSaldosIniciais(ano, mes, ({caixa,banco})=>{
@@ -61,16 +83,11 @@ export default function FluxCx({ setTela }) {
     return ()=> { unsubSd.current && unsubSd.current(); }
   },[ano, mes]);
 
+  // (re)assinar extratos conforme seleção
   useEffect(()=>{
     assinarListas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[modo, ano, mes, de, ate]);
-
-  // sugere o valor do fechamento = saldo final (>=0)
-  useEffect(()=>{
-    const saldoFinal = Number(saldoIniCx||0) + Number(cxTotal||0);
-    setValorFechar(Math.max(0, Number(saldoFinal.toFixed(2))));
-  }, [saldoIniCx, cxTotal]);
 
   function assinarListas(){
     unsubCx.current && unsubCx.current();
@@ -95,7 +112,6 @@ export default function FluxCx({ setTela }) {
     await salvarSaldosIniciais(ano, mes, { caixa: Number(saldoIniCx||0), banco: Number(saldoIniBk||0) });
     alert("Saldos iniciais salvos.");
   }
-
   async function onAtualizar(){
     if (modo==="mes") {
       try { await backfillPrevistosDoMes(ano, mes); } catch {}
@@ -104,21 +120,18 @@ export default function FluxCx({ setTela }) {
   }
 
   async function onFecharCaixa(){
+    const v = valorFechar === "" ? null : Number(valorFechar);
     try {
-      const v = Number(valorFechar || 0);
-      if (v <= 0) { alert("Informe um valor > 0 para fechar."); return; }
       const res = await fecharCaixaParcial({
         diaOrigem: new Date(diaFechar),
         dataBanco: new Date(dataBanco),
-        valor: v,
+        valorParcial: v, // <<<<<<<<<<<<<< PARCIAL AQUI
       });
-      alert(`Fechamento enviado: ${money(res.total)}.`);
+      if (!res?.criado) { alert("Nenhum lançamento aberto nesse dia ou valor a fechar é 0."); return; }
+      alert(`Fechamento enviado ao banco: ${money(res.total)}.`);
+      setValorFechar("");
     } catch(e){ alert("Erro ao fechar caixa: "+(e?.message||e)); }
   }
-
-  const cxSaldoFinal = Number(saldoIniCx||0) + Number(cxTotal||0);
-  const saldoBancoVsPrev = Number(totBan||0) - Number(totPrev||0);
-  const bkSaldoFinal = Number(saldoIniBk||0) + Number(totBan||0) - Number(totPrev||0);
 
   return (
     <>
@@ -154,7 +167,7 @@ export default function FluxCx({ setTela }) {
         <section className="extrato-card">
           <div className="fluxcx-header" style={{ marginBottom:6 }}>
             <h2 className="fluxcx-title" style={{ margin:0 }}>
-              Caixa Diário — {meses[mes-1]} de {ano}
+              Caixa Diário — {modo==="mes" ? `${meses[mes-1]} de ${ano}` : `${dtBR(de)} → ${dtBR(ate)}`}
             </h2>
             <div style={{ marginLeft:"auto", display:"flex", gap:12 }}>
               <b>Saldo inicial do período:</b> {money(saldoIniCx)}
@@ -163,7 +176,7 @@ export default function FluxCx({ setTela }) {
             </div>
           </div>
 
-          {/* Fechamento (PARCIAL) */}
+          {/* Fechamento */}
           <div style={{ display:"flex", gap:8, flexWrap:"wrap", alignItems:"center", marginBottom:8 }}>
             <label>Dia a fechar: <input type="date" value={diaFechar} onChange={e=>setDiaFechar(e.target.value)} /></label>
             <label>Data no banco: <input type="date" value={dataBanco} onChange={e=>setDataBanco(e.target.value)} /></label>
@@ -180,24 +193,25 @@ export default function FluxCx({ setTela }) {
                   <th style={{minWidth:110}}>Forma</th>
                   <th style={{minWidth:100}}>Status</th>
                   <th style={{minWidth:120, textAlign:"right"}}>Valor</th>
+                  <th style={{minWidth:120, textAlign:"right"}}>Saldo</th>
                 </tr>
               </thead>
               <tbody>
-                {cxLinhas.length===0 && (
-                  <tr><td colSpan={5} style={{ padding:10, color:"#7a5a2a" }}>Nenhum lançamento no período.</td></tr>
+                {cxComSaldo.length===0 && (
+                  <tr><td colSpan={6} style={{ padding:10, color:"#7a5a2a" }}>Nenhum lançamento no período.</td></tr>
                 )}
-                {cxLinhas.map(l=>(
+                {cxComSaldo.map(l=>(
                   <tr key={l.id}>
                     <td>{dtBR(l.data)}</td>
                     <td>{l.descricao}</td>
                     <td>{l.forma || "-"}</td>
                     <td>
-                      {Number(l.valor) < 0
-                        ? <span className="chip chip-real">Saída</span>
-                        : (l.fechado ? <span className="chip chip-real">Fechado</span> : <span className="chip chip-prev">Aberto</span>)
-                      }
+                      {l.fechado
+                        ? <span className="chip chip-real">Fechado</span>
+                        : <span className="chip chip-prev">Aberto</span>}
                     </td>
                     <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
+                    <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.saldo)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -208,7 +222,9 @@ export default function FluxCx({ setTela }) {
         {/* ===== BAIXO: EXTRATO BANCÁRIO ===== */}
         <section className="extrato-card">
           <div className="fluxcx-header" style={{ marginBottom:6 }}>
-            <h2 className="fluxcx-title" style={{ margin:0 }}>Extrato Bancário — {meses[mes-1]} de {ano}</h2>
+            <h2 className="fluxcx-title" style={{ margin:0 }}>
+              Extrato Bancário — {modo==="mes" ? `${meses[mes-1]} de ${ano}` : `${dtBR(de)} → ${dtBR(ate)}`}
+            </h2>
             <div style={{ marginLeft:"auto", display:"flex", gap:14, alignItems:"center" }}>
               <span>Previstos: <b>{money(totPrev)}</b></span>
               <span>Realizados (Banco): <b>{money(totBan)}</b></span>
@@ -256,4 +272,4 @@ export default function FluxCx({ setTela }) {
       <ERPFooter onBack={()=>setTela?.("HomeERP")} />
     </>
   );
-}
+                    }
