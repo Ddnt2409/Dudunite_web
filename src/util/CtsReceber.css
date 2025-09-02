@@ -121,3 +121,31 @@ input, select, button{ font-family: inherit; }
   .linha-meta, .linha-itens{ grid-template-columns: 1fr; }
   .btn-add{ width: 100%; }
 }
+
+/* ===== Overrides do menu Financeiro (tela CtsReceber) ===== */
+
+/* centraliza o bloco de botões no meio da tela */
+.botoes-financeiro {
+  min-height: calc(100vh - 64px - 36px - 20px); /* header + footer + respiro */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   /* centro vertical */
+  align-items: center;       /* centro horizontal */
+  gap: 28px;                 /* espaço entre os dois botões */
+  margin: 0 auto;
+}
+
+/* aumenta ~50% comparado ao padrão do HomeERP */
+.ctsreceber-main .botao-principal {
+  width: min(86vw, 560px);   /* largura maior */
+  min-height: 210px;         /* altura maior (~+50%) */
+  font-size: 28px;           /* texto maior */
+  border-radius: 22px;
+}
+
+/* garante clique/touch confiáveis, sem overlays atrapalhando */
+.ctsreceber-main .botao-wrapper,
+.ctsreceber-main .botao-principal {
+  position: relative;
+  pointer-events: auto;
+}
