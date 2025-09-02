@@ -23,12 +23,11 @@ export default function HomeERP({ setTela }) {
     {
       label: '💰\nFinanceiro',
       zoomAction: () => setZoomIndex(1),
-      // segundo segundo-clique no cartão navega para Contas a Receber
+      // 2º clique direto no cartão abre o módulo Financeiro (ex-Contas a Receber)
       navAction: () => setTela('CtsReceber'),
       dropdown: [
-        { nome: 'Contas a Receber',         acao: () => setTela('CtsReceber') },
-        { nome: 'Contas a Pagar',           acao: () => setTela('CtsPagar') },
-        { nome: 'Fluxo de Caixa (FinFlux)', acao: () => setTela('FluxCx') },
+        { nome: 'Financeiro',   acao: () => setTela('CtsReceber') }, // renomeado
+        { nome: 'Fluxo de Caixa', acao: () => setTela('FluxCx') },   // mantido, sem “(FinFlux)”
       ],
     },
     {
@@ -43,7 +42,6 @@ export default function HomeERP({ setTela }) {
     {
       label: '👨‍🍳\nCozinha',
       zoomAction: () => setZoomIndex(3),
-      // >>> ATIVAÇÃO DO BOTÃO COZINHA <<<
       navAction: () => setTela('Cozinha'),
       dropdown: [], // sem opções; 2º clique navega
     },
@@ -79,7 +77,7 @@ export default function HomeERP({ setTela }) {
 
   return (
     <div className="homepcp-container">
-      {/* === HEADER (seu CSS aprovado) === */}
+      {/* === HEADER === */}
       <div className="homepcp-header">
         <img
           src="/LogomarcaDDnt2025Vazado.png"
@@ -132,7 +130,7 @@ export default function HomeERP({ setTela }) {
         🔙 Voltar
       </button>
 
-      {/* === RODAPÉ FIXO COM MARQUEE (seu CSS aprovado) === */}
+      {/* === RODAPÉ FIXO COM MARQUEE === */}
       <div className="lista-escolas">
         <span className="marquee-content">
           • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh •
@@ -143,4 +141,4 @@ export default function HomeERP({ setTela }) {
       </div>
     </div>
   );
-      }
+}
