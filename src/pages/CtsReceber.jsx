@@ -1,15 +1,22 @@
-import React, { useEffect, useState } from "react";
-import "../util/CtsReceber.css"; // <-- agora usa o CSS novo
+// src/pages/CtsReceber.jsx
+// Financeiro — 2 botões grandes no centro (Recebimento / Pagamentos)
+import React, { useEffect, useState, useRef } from "react";
+import "../util/CtsReceber.css";
+import "./HomeERP.css"; // reaproveita o estilo dos botões grandes
 
 import { carregarPlanoDeContas } from "../util/cr_dataStub";
-import CtsReceberPedidos from "./CtsReceberPedidos.jsx";
-import CtsReceberAvulso from "./CtsReceberAvulso.jsx";
+import CtsReceberPedidos from "./CtsReceberPedidos.jsx"; // (antes: Acumulados / LanPed)
+import CtsReceberAvulso  from "./CtsReceberAvulso.jsx";  // (antes: Avulsos)
 
 export default function CtsReceber({ setTela }) {
-  const [aba, setAba] = useState("acumulados");
+  // view: menu (botões), receb (avulsos), pag (acumulados/lanped)
+  const [view, setView] = useState("menu");
+  const [zoomIndex, setZoomIndex] = useState(0); // mesmo comportamento do HomeERP
+  const touchStartX = useRef(null);
+
+  // plano de contas (usado no Recebimento/Avulsos)
   const [planoContas, setPlanoContas] = useState([]);
   const [loadingPC, setLoadingPC] = useState(true);
-
   useEffect(() => {
     (async () => {
       setLoadingPC(true);
@@ -18,51 +25,102 @@ export default function CtsReceber({ setTela }) {
     })();
   }, []);
 
+  const botoes = [
+    {
+      label: "🧾\nRecebimento",
+      onOpen: () => setView("receb"), // Avulsos
+    },
+    {
+      label: "💸\nPagamentos",
+      onOpen: () => setView("pag"),   // Acumulados (LanPed)
+    },
+  ];
+
+  function handleClick(idx) {
+    if (zoomIndex === idx) {
+      botoes[idx].onOpen();
+    } else {
+      setZoomIndex(idx);
+    }
+  }
+
+  const MenuCentral = (
+    <>
+      <div
+        className="botoes-pcp"
+        onTouchStart={(e) => (touchStartX.current = e.changedTouches[0].clientX)}
+        onTouchEnd={(e) => {
+          const diff = e.changedTouches[0].clientX - touchStartX.current;
+          if (diff > 50) setZoomIndex((i) => (i - 1 + botoes.length) % botoes.length);
+          else if (diff < -50) setZoomIndex((i) => (i + 1) % botoes.length);
+        }}
+      >
+        {botoes.map((btn, idx) => {
+          const ativo = idx === zoomIndex;
+          return (
+            <div key={idx} className="botao-wrapper">
+              <button
+                className={`botao-principal ${ativo ? "botao-ativo" : "botao-inativo"}`}
+                onClick={() => handleClick(idx)}
+              >
+                {btn.label}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      <button className="btn-voltar-foot" onClick={() => setTela?.("HomeERP")}>
+        🔙 Voltar
+      </button>
+    </>
+  );
+
   return (
-    <div className="ctsreceber-main">{/* <-- era alisab-main */}
+    <div className="ctsreceber-main">
+      {/* Header */}
       <header className="erp-header">
         <div className="erp-header__inner">
           <div className="erp-header__logo">
             <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
           </div>
-          <div className="erp-header__title">ERP DUDUNITÊ<br/>Contas a Receber</div>
+          <div className="erp-header__title">
+            ERP DUDUNITÊ
+            <br />
+            <span style={{ fontWeight: 800 }}>Financeiro</span>
+          </div>
         </div>
       </header>
 
-      <div className="alisab-header">
-        <h2 className="alisab-title">
-          {aba === "acumulados"
-            ? "Pedidos Acumulados (LanPed • Previsto • CAIXA FLUTUANTE)"
-            : "Pedidos Avulsos (Realizado • CAIXA DIARIO)"}
-        </h2>
-        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <button
-            onClick={() => setAba("acumulados")}
-            style={{ padding: "10px 12px", borderRadius: 10, border: 0, fontWeight: 800, color: "#fff",
-                     background: aba==="acumulados" ? "#8c3b1b" : "#c46a42" }}>
-            Acumulados
-          </button>
-          <button
-            onClick={() => setAba("avulsos")}
-            style={{ padding: "10px 12px", borderRadius: 10, border: 0, fontWeight: 800, color: "#fff",
-                     background: aba==="avulsos" ? "#8c3b1b" : "#c46a42" }}>
-            Avulsos
-          </button>
-        </div>
-      </div>
+      {/* Conteúdo conforme view */}
+      {view === "menu" && MenuCentral}
 
-      {loadingPC ? (
-        <div style={{ padding: 10 }}>Carregando Plano de Contas…</div>
-      ) : aba === "acumulados" ? (
-        <CtsReceberPedidos />
-      ) : (
-        <CtsReceberAvulso planoContas={planoContas} />
+      {view === "receb" && (
+        <>
+          {!loadingPC ? (
+            <CtsReceberAvulso planoContas={planoContas} />
+          ) : (
+            <div style={{ padding: 10 }}>Carregando Plano de Contas…</div>
+          )}
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", margin: "12px 0" }}>
+            <button className="btn-voltar-foot" onClick={() => setView("menu")}>◀ Menu Financeiro</button>
+          </div>
+        </>
       )}
 
-      <button className="btn-voltar-foot" onClick={() => setTela?.("HomeERP")}>🔙 Voltar</button>
+      {view === "pag" && (
+        <>
+          <CtsReceberPedidos />
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", margin: "12px 0" }}>
+            <button className="btn-voltar-foot" onClick={() => setView("menu")}>◀ Menu Financeiro</button>
+          </div>
+        </>
+      )}
+
+      {/* Footer fixo */}
       <footer className="erp-footer">
         <div className="erp-footer-track">
-          • Previstos (LanPed) + Realizados Avulsos (Varejo) • Extrato Geral no FinFlux •
+          • Recebimento (Avulsos) • Pagamentos (Previstos de Pedidos) •
         </div>
       </footer>
     </div>
