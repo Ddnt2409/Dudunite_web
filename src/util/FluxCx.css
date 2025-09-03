@@ -8,24 +8,36 @@
 }
 
 /* Header / Footer (padrão) */
-.erp-header{ position: sticky; top: 0; z-index: 50; min-height: 64px;
-  background: rgba(255,241,228,.92); backdrop-filter: blur(6px); border-bottom: 1px solid #e6d2c2; }
+.erp-header{
+  position: sticky; top: 0; z-index: 50; min-height: 64px;
+  background: rgba(255,241,228,.92);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid #e6d2c2;
+}
 .erp-header__inner{ position: relative; max-width: 1100px; margin: 0 auto; height: 64px; }
 .erp-header__logo{ position: absolute; left: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; }
 .erp-header__logo img{ height: 180px; width: auto; display: block; }
 .erp-header__title{ position: absolute; right: 2ch; bottom: 12px; font-size: 24px; font-weight: 800; color: #7b3c21; text-align: right; }
 
-.erp-footer{ position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: #7b3c21; color: #fbeee1;
-  font-size: 12px; line-height: 36px; height: 36px; box-shadow: 0 -4px 10px rgba(0,0,0,.15); text-align: center; }
+.erp-footer{
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  background: #7b3c21; color: #fbeee1;
+  font-size: 12px; line-height: 36px; height: 36px;
+  box-shadow: 0 -4px 10px rgba(0,0,0,.15); text-align: center;
+}
 .erp-footer-track{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 12px; }
-.btn-voltar-foot{ position: fixed; left: 10px; bottom: 48px; z-index: 45; background:#8c3b1b; color:#fff; border:none;
-  border-radius: 12px; padding: 10px 14px; font-weight: 800; box-shadow: 0 6px 16px rgba(0,0,0,.25); }
+.btn-voltar-foot{
+  position: fixed; left: 10px; bottom: 48px; z-index: 45;
+  background:#8c3b1b; color:#fff; border:none;
+  border-radius: 12px; padding: 10px 14px; font-weight: 800;
+  box-shadow: 0 6px 16px rgba(0,0,0,.25);
+}
 
 /* Título local */
 .fluxcx-header{ display:flex; align-items:center; gap:8px; margin: 10px 0 14px; }
 .fluxcx-title{ font-weight:800; color:#5C1D0E; }
 
-/* Card / tabela */
+/* Cards */
 .extrato-card{
   position: relative;
   max-width: 1100px;
@@ -37,220 +49,111 @@
   border: 1px solid #e6d2c2;
 }
 
-.extrato-actions{ display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+.extrato-actions{
+  display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;
+}
 .extrato-actions input, .extrato-actions select{
-  height: 44px; font-size: 16px; padding: 8px 10px; border-radius: 10px; border: 1px solid #d2b44b; background:#fff;
+  height: 44px; font-size: 16px; padding: 8px 10px;
+  border-radius: 10px; border: 1px solid #d2b44b; background:#fff;
 }
 
-.extrato{ width:100%; border-collapse: separate; border-spacing: 0; font-size: 15px; }
-.extrato th, .extrato td{ padding: 10px 10px; border-bottom: 1px solid #ead9c8; }
-.extrato th{ position: sticky; top: 0; background: #fff4e4; text-align: left; z-index: 1; }
+/* Tabela */
+.extrato{
+  width:100%; border-collapse: separate; border-spacing: 0;
+  font-size: 15px;
+}
+.extrato th, .extrato td{
+  padding: 10px 10px; border-bottom: 1px solid #ead9c8;
+}
+.extrato th{
+  position: sticky; top: 0; background: #fff4e4; text-align: left; z-index: 1;
+}
 .extrato tr:hover td{ background: #fff9ec; }
+.th-right{ text-align:right; }
 
-.chip{ display:inline-block; padding: 2px 8px; border-radius: 999px; font-weight:800; font-size:12px; }
-.chip-prev{ background:#fff0c2; color:#6a4a20; border:1px solid #e7c76a; }
-.chip-real{ background:#dff6d9; color:#1f6b2a; border:1px solid #7ad38e; }
+.valor-cell{
+  text-align: right;
+  font-weight: 800;
+  color: #8b0000; /* vermelho escuro */
+}
 
+/* Resumos */
 .saldos{ display:flex; gap:12px; flex-wrap:wrap; margin-top: 10px; }
 .saldos .box{
   background:#fff; border:1px solid #e6d2c2; border-radius:12px; padding:10px 12px; font-weight:800;
 }
 
-/* cabeçalhos/rodapés de cada dia */
+/* Cabeçalho/rodapé de cada dia */
 .dia-header{
-  font-weight:700;
-  padding:6px 8px;
-  background:#efe6d6;
-  border-radius:6px;
-  border:1px solid #e1d3bf;
-  margin-bottom:6px;
+  font-weight:700; padding:6px 8px; margin-bottom:6px;
+  background:#efe6d6; border-radius:6px; border:1px solid #e1d3bf;
 }
 .dia-footer{
-  text-align:right;
-  font-weight:700;
-  padding:6px 8px;
-  background:#f5efe6;
-  border-radius:6px;
-  border:1px solid #e1d3bf;
-  margin-top:6px;
+  text-align:right; font-weight:700; padding:6px 8px; margin-top:6px;
+  background:#f5efe6; border-radius:6px; border:1px solid #e1d3bf;
 }
 
-/* botões de ação */
-.btn-acao{
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #d9c3ac;
-  background: #f7eee2;
-  cursor: pointer;
-  margin-right: 6px;
-}
-.btn-acao:disabled{ opacity:.6; cursor: default; }
-.btn-danger{ background:#fbe9e7; border-color:#f6b5ac; color:#b02a1e; }
-
-/* chips de status */
-.chip-ok{
-  background:#e8f5e9;
-  color:#2e7d32;
-  border:1px solid #c8e6c9;
-  padding:2px 8px; border-radius:12px;
-}
-.chip-bad{
-  background:#ffebee;
-  color:#c62828;
-  border:1px solid #ffcdd2;
-  padding:2px 8px; border-radius:12px;
-}
-
-/* cabeçalhos/rodapés de cada dia */
-.dia-header{
-  font-weight:700;
-  padding:6px 8px;
-  background:#efe6d6;
-  border-radius:6px;
-  border:1px solid #e1d3bf;
-  margin-bottom:6px;
-}
-.dia-footer{
-  text-align:right;
-  font-weight:700;
-  padding:6px 8px;
-  background:#f5efe6;
-  border-radius:6px;
-  border:1px solid #e1d3bf;
-  margin-top:6px;
-}
-
-/* caixa oculto */
-.cx-oculto{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  justify-content:space-between;
-  padding:8px 10px;
-  border:1px dashed #d1c0a7;
-  background:#fbf7f1;
-  border-radius:8px;
-}
-
-/* botões de ação */
-.btn-acao{
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #d9c3ac;
-  background: #f7eee2;
-  cursor: pointer;
-  margin-right: 6px;
-}
-.btn-acao:disabled{ opacity:.6; cursor: default; }
-.btn-danger{ background:#fbe9e7; border-color:#f6b5ac; color:#b02a1e; }
-
-/* chips antigos (topo) */
-.chip{ padding:2px 8px; border-radius:12px; font-weight:600; }
-.chip-prev{ background:#fff8e1; color:#7b5e00; border:1px solid #ffecb3; }
-.chip-real{ background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; }
-
-/* STATUS na tabela do banco */
-.badge-ok{
-  display:inline-block;
-  padding:3px 10px;
-  border-radius:12px;
-  background:#c8e6c9;    /* verde */
-  color:#000;            /* preto */
-  font-weight:800;       /* negrito */
-  border:1px solid #9ccc65;
-}
-.badge-bad{
-  display:inline-block;
-  padding:3px 10px;
-  border-radius:12px;
-  background:#d32f2f;    /* vermelho */
-  color:#fff;            /* branco */
-  font-weight:800;       /* negrito */
-  border:1px solid #b71c1c;
-}
-
-
-/* cabeçalhos/rodapés de cada dia */
-.dia-header{
-  font-weight:700;
-  padding:6px 8px;
-  background:#efe6d6;
-  border-radius:6px;
-  border:1px solid #e1d3bf;
-  margin-bottom:6px;
-}
-.dia-footer{
-  text-align:right;
-  font-weight:700;
-  padding:6px 8px;
-  background:#f5efe6;
-  border-radius:6px;
-  border:1px solid #e1d3bf;
-  margin-top:6px;
-}
-
-/* caixa oculto */
-.cx-oculto{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  justify-content:space-between;
-  padding:8px 10px;
-  border:1px dashed #d1c0a7;
-  background:#fbf7f1;
-  border-radius:8px;
-}
-
-/* botões de ação */
-.btn-acao{
-  padding:6px 10px;
-  border-radius:8px;
-  border:1px solid #d9c3ac;
-  background:#f7eee2;
-  cursor:pointer;
-  margin-right:6px;
-}
-.btn-acao:disabled{ opacity:.6; cursor: default; }
-.btn-danger{ background:#fbe9e7; border-color:#f6b5ac; color:#b02a1e; }
-
-/* chips do caixa */
-.chip{ padding:2px 8px; border-radius:12px; font-weight:600; }
+/* chips do CAIXA (Aberto/Fechado) */
+.chip{ display:inline-block; padding:2px 8px; border-radius:12px; font-weight:600; }
 .chip-prev{ background:#fff8e1; color:#7b5e00; border:1px solid #ffecb3; }
 .chip-real{ background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; }
 
 /* STATUS no banco */
 .badge-ok{
-  display:inline-block;
-  padding:3px 10px;
-  border-radius:12px;
-  background:#c8e6c9; /* verde */
-  color:#000;         /* preto */
-  font-weight:800;
-  border:1px solid #9ccc65;
+  display:inline-block; padding:3px 10px; border-radius:12px;
+  background:#c8e6c9;  /* VERDE */
+  color:#000;          /* PRETO */
+  font-weight:800; border:1px solid #9ccc65;
 }
 .badge-bad{
-  display:inline-block;
-  padding:3px 10px;
-  border-radius:12px;
-  background:#d32f2f; /* vermelho */
-  color:#fff;         /* branco */
-  font-weight:800;
-  border:1px solid #b71c1c;
+  display:inline-block; padding:3px 10px; border-radius:12px;
+  background:#d32f2f;  /* VERMELHO */
+  color:#fff;          /* BRANCO */
+  font-weight:800; border:1px solid #b71c1c;
+}
+/* NOVAS: realizado => PAGO / RECEBIDO */
+.badge-paid{
+  display:inline-block; padding:3px 10px; border-radius:12px;
+  background:#bbdefb;  /* azul claro */
+  color:#000;          /* preto */
+  font-weight:800; border:1px solid #64b5f6;
+}
+.badge-received{
+  display:inline-block; padding:3px 10px; border-radius:12px;
+  background:#fff59d;  /* amarelo */
+  color:#000;          /* preto */
+  font-weight:800; border:1px solid #fbc02d;
 }
 
-/* ===== Modal de edição ===== */
+/* Caixa oculto (quando sem saldo) */
+.cx-oculto{
+  display:flex; gap:10px; align-items:center; justify-content:space-between;
+  padding:12px 14px; border:1px dashed #d1c0a7; background:#fbf7f1; border-radius:8px;
+}
+.cx-oculto .saldo-big{
+  font-size: 1.8rem;     /* ~3x do texto normal no mobile */
+  font-weight: 800;
+  color: #5C1D0E;
+}
+
+/* Botões */
+.btn-acao{
+  padding: 6px 10px; border-radius: 8px;
+  border: 1px solid #d9c3ac; background: #f7eee2;
+  cursor: pointer; margin-right: 6px;
+}
+.btn-acao + .btn-acao{ margin-left: 6px; }
+.btn-acao:disabled{ opacity:.6; cursor: default; }
+.btn-danger{ background:#fbe9e7; border-color:#f6b5ac; color:#b02a1e; }
+
+/* ===== Modal (reserva para edição inline futura) ===== */
 .modal-backdrop{
-  position:fixed; inset:0;
-  background:rgba(0,0,0,.35);
-  display:flex; align-items:center; justify-content:center;
-  z-index:9999;
+  position:fixed; inset:0; background:rgba(0,0,0,.35);
+  display:flex; align-items:center; justify-content:center; z-index:9999;
 }
 .modal-card{
-  width:min(680px, 92vw);
-  background:#fff;
-  border-radius:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.25);
-  padding:16px;
+  width:min(680px, 92vw); background:#fff; border-radius:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25); padding:16px;
 }
 .modal-card h3{ margin:0 0 8px 0; }
 .form-row{ display:flex; flex-direction:column; gap:6px; margin:8px 0; }
