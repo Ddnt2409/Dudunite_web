@@ -1,6 +1,6 @@
 // src/pages/CtsPagar.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import "../util/CtsPagar.css";
+import ".CtsPagar.css";
 
 // ===== persistência mínima via LocalStorage (mesma chave usada pelo FluxCx) =====
 const LS_KEY = "financeiro_fluxo";
