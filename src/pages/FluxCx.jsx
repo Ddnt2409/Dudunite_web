@@ -19,20 +19,11 @@ import {
   excluirFluxo,
 } from "../util/financeiro_store";
 
-// helpers visuais
 const money = (n)=>`R$ ${Number(n||0).toFixed(2).replace(".", ",")}`;
 const dtBR   = (v)=> (v && typeof v === "string")
   ? v.split("-").reverse().join("/")
   : new Date(v || Date.now()).toLocaleDateString("pt-BR");
 
-// datas
-function ymToRange(ano, mes){
-  const ini = new Date(ano, mes-1, 1);
-  const fim = new Date(ano, mes,   1);
-  return { ini, fim };
-}
-
-// agrupador por dia (para a tabela do banco)
 function groupByDia(linhas) {
   const map = new Map();
   for (const l of linhas) {
@@ -40,30 +31,25 @@ function groupByDia(linhas) {
     arr.push(l);
     map.set(l.data, arr);
   }
-  // ordenado por data
   return Array.from(map.entries()).sort((a,b)=>a[0].localeCompare(b[0]));
 }
 
 export default function FluxCx({ setTela }) {
-  // ===== Seleção =====
   const hoje = new Date();
-  const [modo, setModo] = useState("mes");          // "mes" | "periodo"
+  const [modo, setModo] = useState("mes");
   const [ano, setAno]   = useState(hoje.getFullYear());
   const [mes, setMes]   = useState(hoje.getMonth()+1);
   const [de,  setDe ]   = useState(new Date(ano, mes-1, 1).toISOString().slice(0,10));
   const [ate, setAte]   = useState(new Date(ano, mes,   1).toISOString().slice(0,10));
   const meses = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 
-  // ===== Saldos iniciais =====
   const [saldoIniCx, setSaldoIniCx] = useState(0);
   const [saldoIniBk, setSaldoIniBk] = useState(0);
 
-  // ===== Caixa Diário (topo) =====
   const [cxLinhas, setCxLinhas] = useState([]);
   const cxTotal = useMemo(()=> cxLinhas.reduce((s,l)=>s+Number(l.valor||0),0), [cxLinhas]);
   const cxSaldoFinal = useMemo(()=> Number(saldoIniCx||0) + Number(cxTotal||0), [saldoIniCx, cxTotal]);
 
-  // Saldo acumulado por linha (estilo extrato)
   const cxComSaldo = useMemo(()=>{
     let acc = Number(saldoIniCx || 0);
     return cxLinhas.map(l => {
@@ -72,27 +58,22 @@ export default function FluxCx({ setTela }) {
     });
   }, [cxLinhas, saldoIniCx]);
 
-  // ===== Banco (baixo) =====
   const [bkLinhas, setBkLinhas] = useState([]);
   const totPrev = useMemo(()=> bkLinhas.filter(l=>l.origem==="Previsto").reduce((s,l)=>s+Number(l.valor||0),0), [bkLinhas]);
   const totBan  = useMemo(()=> bkLinhas.filter(l=>l.origem==="Realizado").reduce((s,l)=>s+Number(l.valor||0),0), [bkLinhas]);
   const saldoBancoVsPrev = useMemo(()=> Number(totBan||0) - Number(totPrev||0), [totBan, totPrev]);
   const bkSaldoFinal = useMemo(()=> Number(saldoIniBk||0) + Number(totBan||0) - Number(totPrev||0), [saldoIniBk, totBan, totPrev]);
 
-  // ===== Fechamento =====
   const [diaFechar, setDiaFechar] = useState(new Date().toISOString().slice(0,10));
   const [dataBanco, setDataBanco] = useState(new Date().toISOString().slice(0,10));
   const [valorFechar, setValorFechar] = useState("");
 
-  // trabalhando (para desabilitar ações enquanto grava)
   const [workingId, setWorkingId] = useState(null);
 
-  // unsub refs
   const unsubCx = useRef(null);
   const unsubBk = useRef(null);
   const unsubSd = useRef(null);
 
-  // ouvir saldos iniciais do mês selecionado
   useEffect(()=>{
     unsubSd.current && unsubSd.current();
     unsubSd.current = listenSaldosIniciais(ano, mes, ({caixa,banco})=>{
@@ -102,7 +83,6 @@ export default function FluxCx({ setTela }) {
     return ()=> { unsubSd.current && unsubSd.current(); }
   },[ano, mes]);
 
-  // (re)assinar extratos conforme seleção
   useEffect(()=>{
     assinarListas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -144,7 +124,7 @@ export default function FluxCx({ setTela }) {
       const res = await fecharCaixaParcial({
         diaOrigem: new Date(diaFechar),
         dataBanco: new Date(dataBanco),
-        valorParcial: v, // <<<<<<<<<<<<<< PARCIAL AQUI
+        valorParcial: v,
       });
       if (!res?.criado) { alert("Nenhum lançamento aberto nesse dia ou valor a fechar é 0."); return; }
       alert(`Fechamento enviado ao banco: ${money(res.total)}.`);
@@ -152,16 +132,16 @@ export default function FluxCx({ setTela }) {
     } catch(e){ alert("Erro ao fechar caixa: "+(e?.message||e)); }
   }
 
-  // ===== Handlers de Ações (Banco) =====
+  // === Ações (Banco)
   async function handleToggleRealizado(linha, checked) {
     if (!linha?.id) return;
     try {
       setWorkingId(linha.id);
       if (checked) {
-        // Previsto -> Realizado
-        await marcarRealizado(linha.id, { dataRealizado: new Date(), valor: linha.valor });
+        // >>> NÃO altera o dia: usa a própria data exibida (que é a prevista)
+        await marcarRealizado(linha.id, { dataRealizado: linha.data, valor: linha.valor });
       } else {
-        // Realizado -> Previsto
+        // volta para Previsto
         await atualizarFluxo(linha.id, {
           statusFinanceiro: "Previsto",
           dataRealizado: "",
@@ -290,69 +270,77 @@ export default function FluxCx({ setTela }) {
             </div>
           </div>
 
-          {/* agrupamento + saldo diário */}
-          {groupByDia(bkLinhas).map(([dia, itens], gi) => {
-            const saldoDiaIni = gi === 0 ? Number(saldoIniBk||0) : 0; // exibido na legenda
-            const deltaDia = itens.reduce((s,l)=>s+(l.origem==="Realizado"?Number(l.valor||0):0)-(l.origem==="Previsto"?0:0),0);
-            // para exibição: saldo final do dia = saldo inicial + realizados do dia - (0) (previstos não saem do saldo real)
-            const saldoFinalDia = (gi===0 ? Number(saldoIniBk||0) : 0) + itens.filter(x=>x.origem==="Realizado").reduce((s,l)=>s+Number(l.valor||0),0);
+          {/* agrupamento com saldo acumulado por dia */}
+          {(() => {
+            const grupos = groupByDia(bkLinhas);
+            let acumulado = Number(saldoIniBk || 0);
 
-            return (
-              <div key={dia} style={{ marginBottom: 12 }}>
-                <div style={{ fontWeight:700, padding:"6px 8px", background:"#efe6d6", borderRadius:6, border:"1px solid #e1d3bf" }}>
-                  {dtBR(dia)} — <span>Saldo inicial do dia: {money(gi===0 ? saldoIniBk : 0)}</span>
-                </div>
+            return grupos.map(([dia, itens], gi) => {
+              const realizadosDoDia = itens
+                .filter(x => x.origem === "Realizado")
+                .reduce((s, l) => s + Number(l.valor || 0), 0);
 
-                <div style={{ overflowX:"auto" }}>
-                  <table className="extrato">
-                    <thead>
-                      <tr>
-                        <th style={{minWidth:110}}>Tipo</th>
-                        <th>Descrição</th>
-                        <th style={{minWidth:160}}>Forma / Realizado</th>
-                        <th style={{minWidth:120, textAlign:"right"}}>Valor</th>
-                        <th style={{minWidth:160}}>Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {itens.map((l) => (
-                        <tr key={l.id}>
-                          <td>
-                            <span className={`chip ${l.origem==="Realizado" ? "chip-real" : "chip-prev"}`}>
-                              {l.origem}
-                            </span>
-                          </td>
-                          <td>{l.descricao || "-"}</td>
-                          <td>
-                            {l.forma || "-"}
-                            <label style={{ marginLeft:8, userSelect:"none", cursor:"pointer" }}>
-                              <input
-                                type="checkbox"
-                                checked={l.origem === "Realizado"}
-                                disabled={workingId === l.id}
-                                onChange={(e)=>handleToggleRealizado(l, e.target.checked)}
-                                style={{ marginRight:4 }}
-                              />
-                              Realizado
-                            </label>
-                          </td>
-                          <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
-                          <td>
-                            <button className="btn-acao" disabled>Alterar</button>
-                            <button className="btn-acao btn-danger" disabled={workingId===l.id} onClick={()=>handleExcluir(l)}>Excluir</button>
-                          </td>
+              const saldoInicialDia = acumulado;
+              acumulado += realizadosDoDia; // só entradas/saídas reais afetam o saldo
+              const saldoFinalDia = acumulado;
+
+              return (
+                <div key={dia} style={{ marginBottom: 12 }}>
+                  <div style={{ fontWeight:700, padding:"6px 8px", background:"#efe6d6", borderRadius:6, border:"1px solid #e1d3bf" }}>
+                    {dtBR(dia)} — <span>Saldo inicial do dia: {money(saldoInicialDia)}</span>
+                  </div>
+
+                  <div style={{ overflowX:"auto" }}>
+                    <table className="extrato">
+                      <thead>
+                        <tr>
+                          <th style={{minWidth:110}}>Tipo</th>
+                          <th>Descrição</th>
+                          <th style={{minWidth:160}}>Forma / Realizado</th>
+                          <th style={{minWidth:120, textAlign:"right"}}>Valor</th>
+                          <th style={{minWidth:160}}>Ações</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {itens.map((l) => (
+                          <tr key={l.id}>
+                            <td>
+                              <span className={`chip ${l.origem==="Realizado" ? "chip-real" : "chip-prev"}`}>
+                                {l.origem}
+                              </span>
+                            </td>
+                            <td>{l.descricao || "-"}</td>
+                            <td>
+                              {l.forma || "-"}
+                              <label style={{ marginLeft:8, userSelect:"none", cursor:"pointer" }}>
+                                <input
+                                  type="checkbox"
+                                  checked={l.origem === "Realizado"}
+                                  disabled={workingId === l.id}
+                                  onChange={(e)=>handleToggleRealizado(l, e.target.checked)}
+                                  style={{ marginRight:4 }}
+                                />
+                                Realizado
+                              </label>
+                            </td>
+                            <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
+                            <td>
+                              <button className="btn-acao" disabled>Alterar</button>
+                              <button className="btn-acao btn-danger" disabled={workingId===l.id} onClick={()=>handleExcluir(l)}>Excluir</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
 
-                <div style={{ textAlign:"right", fontWeight:700, padding:"6px 8px", background:"#f5efe6", borderRadius:6, border:"1px solid #e1d3bf" }}>
-                  Saldo final do dia: {money(saldoFinalDia)}
+                  <div style={{ textAlign:"right", fontWeight:700, padding:"6px 8px", background:"#f5efe6", borderRadius:6, border:"1px solid #e1d3bf" }}>
+                    Saldo final do dia: {money(saldoFinalDia)}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            });
+          })()}
         </section>
 
         <button className="btn-voltar" onClick={()=>setTela?.("HomeERP")}>Voltar</button>
@@ -361,4 +349,4 @@ export default function FluxCx({ setTela }) {
       <ERPFooter onBack={()=>setTela?.("HomeERP")} />
     </>
   );
-                }
+      }
