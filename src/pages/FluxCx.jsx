@@ -5,15 +5,10 @@ import ERPFooter from "./ERPFooter";
 import "../util/FluxCx.css";
 
 import {
-  // Saldos
   listenSaldosIniciais, salvarSaldosIniciais,
-  // Caixa Diário
   listenCaixaDiario, listenCaixaDiarioRange, fecharCaixaParcial,
-  // Banco
   listenExtratoBancario, listenExtratoBancarioRange,
-  // Backfill
   backfillPrevistosDoMes,
-  // Edição/remoção no fluxo
   atualizarFluxo, excluirFluxo,
 } from "../util/financeiro_store";
 
@@ -253,26 +248,12 @@ export default function FluxCx({ setTela }) {
       <ERPHeader title="ERP DUDUNITÊ — Fluxo de Caixa" />
 
       <main className="fluxcx-main" style={{ padding: 12 }}>
-        {/* Seleção */}
         <div className="extrato-card" style={{ marginBottom: 10 }}>
           <div className="extrato-actions" style={{ gap: 8, flexWrap:"wrap" }}>
-            <label><input type="radio" checked={modo==="mes"} onChange={()=>setModo("mes")} /> Mês inteiro</label>
-            <select disabled={modo!=="mes"} value={mes} onChange={e=>setMes(Number(e.target.value))}>
-              {meses.map((m,i)=><option key={m} value={i+1}>{m}</option>)}
-            </select>
-            <input disabled={modo!=="mes"} type="number" value={ano} onChange={e=>setAno(Number(e.target.value))} style={{ width:80 }} />
-
-            <label style={{ marginLeft:12 }}>
-              <input type="radio" checked={modo==="periodo"} onChange={()=>setModo("periodo")} /> Período (De/Até)
-            </label>
-            <input type="date" disabled={modo!=="periodo"} value={de}  onChange={e=>setDe(e.target.value)} />
-            <input type="date" disabled={modo!=="periodo"} value={ate} onChange={e=>setAte(e.target.value)} />
-
-            <span style={{marginLeft:12}}>Saldo inicial Caixa: </span>
+            <span>Saldo inicial Caixa: </span>
             <input type="number" value={saldoIniCx} onChange={e=>setSaldoIniCx(e.target.value)} style={{ width:90 }} />
             <span style={{marginLeft:8}}>Saldo inicial Banco: </span>
             <input type="number" value={saldoIniBk} onChange={e=>setSaldoIniBk(e.target.value)} style={{ width:90 }} />
-
             <button onClick={onSalvarSaldos}>Salvar</button>
             <button onClick={onAtualizar}>Atualizar</button>
           </div>
@@ -291,7 +272,7 @@ export default function FluxCx({ setTela }) {
           <section className="extrato-card">
             <div className="fluxcx-header" style={{ marginBottom:6 }}>
               <h2 className="fluxcx-title" style={{ margin:0 }}>
-                Caixa Diário — {modo==="mes" ? `${meses[mes-1]} de ${ano}` : `${dtBR(de)} → ${dtBR(ate)}`}
+                Caixa Diário
               </h2>
               <div style={{ marginLeft:"auto", display:"flex", gap:12 }}>
                 <b>Saldo inicial do período:</b> {money(saldoIniCx)}
@@ -316,8 +297,8 @@ export default function FluxCx({ setTela }) {
                     <th>Descrição</th>
                     <th style={{minWidth:110}}>Forma</th>
                     <th style={{minWidth:100}}>Status</th>
-                    <th style={{minWidth:120, textAlign:"right"}}>Valor</th>
-                    <th style={{minWidth:120, textAlign:"right"}}>Saldo</th>
+                    <th style={{minWidth:120}} className="th-right">Valor</th>
+                    <th style={{minWidth:120}} className="th-right">Saldo</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -334,8 +315,8 @@ export default function FluxCx({ setTela }) {
                           ? <span className="chip chip-real">Fechado</span>
                           : <span className="chip chip-prev">Aberto</span>}
                       </td>
-                      <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
-                      <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.saldo)}</td>
+                      <td className="valor-cell">{money(l.valor)}</td>
+                      <td className="valor-cell">{money(l.saldo)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -348,7 +329,7 @@ export default function FluxCx({ setTela }) {
         <section className="extrato-card">
           <div className="fluxcx-header" style={{ marginBottom:6 }}>
             <h2 className="fluxcx-title" style={{ margin:0 }}>
-              Extrato Bancário — {modo==="mes" ? `${meses[mes-1]} de ${ano}` : `${dtBR(de)} → ${dtBR(ate)}`}
+              Extrato Bancário — {meses[mes-1]} de {ano}
             </h2>
             <div style={{ marginLeft:"auto", display:"flex", gap:14, alignItems:"center" }}>
               <span>Previstos: <b>{money(totPrev)}</b></span>
@@ -382,7 +363,7 @@ export default function FluxCx({ setTela }) {
                           <th>Descrição</th>
                           <th style={{minWidth:180}}>Forma / Realizado</th>
                           <th style={{minWidth:130}}>Status</th>
-                          <th style={{minWidth:120, textAlign:"right"}}>Valor</th>
+                          <th style={{minWidth:120}} className="th-right">Valor</th>
                           <th style={{minWidth:200}}>Ações</th>
                         </tr>
                       </thead>
@@ -406,10 +387,23 @@ export default function FluxCx({ setTela }) {
                                 </label>
                               </td>
                               <td><span className={st.cls}>{st.label}</span></td>
-                              <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
+                              <td className="valor-cell">{money(l.valor)}</td>
                               <td>
-                                <button className="btn-acao" onClick={()=>abrirEdicao(l)}>Alterar</button>
-                                <button className="btn-acao btn-danger" disabled={workingId===l.id} onClick={()=>handleExcluir(l)}>Excluir</button>
+                                <button
+                                  type="button"
+                                  className="btn-acao"
+                                  onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); abrirEdicao(l); }}
+                                >
+                                  Alterar
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn-acao btn-danger"
+                                  disabled={workingId===l.id}
+                                  onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); handleExcluir(l); }}
+                                >
+                                  Excluir
+                                </button>
                               </td>
                             </tr>
                           );
@@ -499,4 +493,4 @@ export default function FluxCx({ setTela }) {
       <ERPFooter onBack={()=>setTela?.("HomeERP")} />
     </>
   );
-          }
+            }
