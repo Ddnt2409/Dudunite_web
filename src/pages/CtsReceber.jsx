@@ -5,31 +5,28 @@ import "../util/CtsReceber.css";
  * FINANCEIRO (menu) — dois botões grandes ao centro:
  * - Recebimento  -> CtsReceberAvulso
  * - Pagamentos   -> CtsPagar
- * Comportamento igual ao HomeERP: 1º clique dá foco (zoom), 2º clique navega.
+ * Comportamento igual ao HomeERP: 1º clique foca (zoom), 2º clique navega.
  */
 export default function CtsReceber({ setTela }) {
-  // mesmo padrão do HomeERP
   const [zoomIndex, setZoomIndex] = useState(0);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const touchStartX = useRef(null);
 
-  // definição dos botões
   const botoes = [
     {
       label: "🧾\nRecebimento",
       zoomAction: () => setZoomIndex(0),
       navAction: () => setTela?.("CtsReceberAvulso"),
-      dropdown: [], // sem sub-opções
+      dropdown: [],
     },
     {
       label: "📤\nPagamentos",
       zoomAction: () => setZoomIndex(1),
       navAction: () => setTela?.("CtsPagar"),
-      dropdown: [], // sem sub-opções
+      dropdown: [],
     },
   ];
 
-  // clique: foca -> navega
   function handleClick(idx, btn) {
     if (zoomIndex === idx) {
       if (!mostrarDropdown) {
@@ -45,12 +42,10 @@ export default function CtsReceber({ setTela }) {
     }
   }
 
-  // swipe (mesmo conforto do HomeERP no mobile)
   function deslizar(dir) {
     setZoomIndex((prev) => {
       const total = botoes.length;
-      const next =
-        dir === "esquerda" ? (prev - 1 + total) % total : (prev + 1) % total;
+      const next = dir === "esquerda" ? (prev - 1 + total) % total : (prev + 1) % total;
       setMostrarDropdown(false);
       return next;
     });
@@ -58,7 +53,7 @@ export default function CtsReceber({ setTela }) {
 
   return (
     <div className="ctsreceber-main">
-      {/* ===== HEADER padrão aprovado ===== */}
+      {/* HEADER padrão aprovado */}
       <header className="erp-header">
         <div className="erp-header__inner">
           <div className="erp-header__logo">
@@ -72,7 +67,7 @@ export default function CtsReceber({ setTela }) {
         </div>
       </header>
 
-      {/* ===== MENU CENTRAL — 2 BOTÕES GRANDES (estilo HomeERP) ===== */}
+      {/* MENU CENTRAL — 2 BOTÕES GRANDES */}
       <div
         className="cr-menu"
         onTouchStart={(e) => (touchStartX.current = e.changedTouches[0].clientX)}
@@ -94,7 +89,6 @@ export default function CtsReceber({ setTela }) {
                   {btn.label}
                 </button>
 
-                {/* (reservado p/ futuro; hoje não tem dropdown) */}
                 {ativo && mostrarDropdown && btn.dropdown?.length > 0 && (
                   <div className="cr-dropdown">
                     {btn.dropdown.map((op, i) => (
@@ -110,11 +104,10 @@ export default function CtsReceber({ setTela }) {
         </div>
       </div>
 
-      {/* ===== VOLTAR + FOOTER (padrão aprovado) ===== */}
+      {/* VOLTAR + FOOTER */}
       <button className="btn-voltar-foot" onClick={() => setTela?.("HomeERP")}>
         🔙 Voltar
       </button>
-
       <footer className="erp-footer">
         <div className="erp-footer-track">
           • Financeiro (Recebimento + Pagamentos) •
