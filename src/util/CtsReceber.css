@@ -25,7 +25,7 @@
 .alisab-header{ display:flex; align-items:center; gap:8px; margin: 10px 0 14px; }
 .alisab-title{ font-weight:800; color:#5C1D0E; }
 
-/* ====== CARD CENTRAL (Avulsos / Pagar) ====== */
+/* ====== QUADRO FLUTUANTE CENTRAL ====== */
 .ctsreceber-card{
   position: relative;
   max-width: 740px;
@@ -43,39 +43,30 @@
   margin: 0 0 10px;
 }
 
-/* ====== CAMPOS / GRIDS ====== */
+/* ====== CAMPOS/GRIDS ====== */
 input, select, button{ font-family: inherit; }
-
-.linha-meta, .linha-itens{
-  display: grid; gap: 10px; align-items: center; margin-bottom: 12px;
-}
+.linha-meta,.linha-itens{ display: grid; gap: 10px; align-items: center; margin-bottom: 12px; }
 .linha-meta{ grid-template-columns: 1fr 180px 180px; }
 .linha-itens{ grid-template-columns: 1fr 120px 170px auto; }
 
 .linha-meta input, .linha-meta select,
 .linha-itens input, .linha-itens select{
-  height: 68px; font-size: 18px; padding: 10px 12px;
-  border-radius: 12px; border: 1px solid #d2b44b; background: #fff; outline: none;
+  height: 68px; font-size: 18px; padding: 10px 12px; border-radius: 12px; border: 1px solid #d2b44b; background: #fff; outline: none;
 }
 .input-ro{ background:#faf6e7; color:#6b4b2a; }
-
 .btn-add{
   height: 68px; padding: 0 16px; border: none; border-radius: 12px;
-  background: #8c3b1b; color:#fff; font-size: 16px; font-weight: 800;
-  box-shadow: 0 6px 14px rgba(0,0,0,.18); white-space: nowrap;
+  background: #8c3b1b; color:#fff; font-size: 16px; font-weight: 800; box-shadow: 0 6px 14px rgba(0,0,0,.18); white-space: nowrap;
 }
 
-/* Lista */
+/* ====== LISTA ====== */
 .linhas-list{ list-style: none; margin: 14px 0 10px; padding: 0; }
-.linhas-list li{
-  display:flex; justify-content:space-between; align-items:center;
-  background:#fffde9; border:1px dashed #e0c86d;
-  border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
-  font-size: 16px; color:#4b2a10;
-}
+.linhas-list li{ display:flex; justify-content:space-between; align-items:center;
+  background:#fffde9; border:1px dashed #e0c86d; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
+  font-size: 16px; color:#4b2a10; }
 .btn-x{ border:none; background:transparent; font-size:20px; cursor:pointer; }
 
-/* Ações */
+/* ====== AÇÕES ====== */
 .acoes{ display:flex; gap:12px; margin-top:12px; }
 .btn-salvar, .btn-cancelar{ flex:1; height:68px; border:none; border-radius:14px; font-weight:800; font-size:16px; }
 .btn-salvar{ background:#8c3b1b; color:#fff; box-shadow:0 6px 16px rgba(0,0,0,.22); }
@@ -83,53 +74,57 @@ input, select, button{ font-family: inherit; }
 
 .cts-totais{ font-weight:800; margin: 8px 0 6px; color:#5C1D0E; }
 
-/* Responsivo dos cards */
+/* ====== RESPONSIVO ====== */
 @media (max-width: 560px){
   .linha-meta, .linha-itens{ grid-template-columns: 1fr; }
   .btn-add{ width: 100%; }
 }
 
 /* ========================================================= */
-/* ====== MENU CENTRAL — 2 BOTÕES GRANDES (ÚNICO BLOCO) ==== */
+/* ====== MENU CENTRAL — 2 BOTÕES GRANDES (ajustado) ======= */
 /* ========================================================= */
 
-.cr-menu{
-  display: grid;
-  place-items: center;
-  padding: 18px 10px 84px;
-}
+.cr-menu{ display: grid; place-items: center; padding: 14px 10px 84px; }
 
+/* ↓ Desce os botões aproximadamente para a metade inferior da tela */
 .cr-menu-grid{
   display: grid;
-  gap: 22px;
+  gap: 24px;
   width: 100%;
   justify-items: center;
+  grid-template-columns: 1fr;      /* empilhados no centro */
+  margin-top: 38vh;                /* ~50% visual da altura, sem encostar no footer */
 }
 
 .cr-menu-item{ width: 100%; display: grid; place-items: center; }
 
+/* Triplica o tamanho do conteúdo dos botões e aumenta a área clicável */
 .cr-menu-btn{
-  width: min(92vw, 560px);
-  height: 22vh;
-  min-height: 150px;
-  max-height: 260px;
+  width: min(92vw, 680px);
+  height: 26vh;                    /* mais alto para comportar fonte grande */
+  min-height: 180px;
+  max-height: 320px;
   border: 0;
   border-radius: 22px;
   background: #8c3b1b;
   color: #fff;
-  white-space: pre-line;
+  white-space: pre-line;           /* quebra após o emoji (\n) */
+  line-height: 1.12;
   font-weight: 800;
-  font-size: 22px;
+  font-size: clamp(30px, 8.5vw, 60px); /* ~3x (responsivo) */
   box-shadow: 0 14px 28px rgba(0,0,0,.22);
   transition: transform .18s ease, opacity .18s ease, background .18s ease;
   transform: scale(.94);
   opacity: .85;
+  padding: 18px 16px;
 }
 
 .cr-menu-btn.ativo{ transform: scale(1); opacity: 1; background: #7b3c21; }
 .cr-menu-btn.inativo{ transform: scale(.94); opacity: .72; }
 .cr-menu-btn:active{ transform: scale(.98); }
 
+/* Ajuste para telas muito pequenas */
 @media (max-width: 380px){
-  .cr-menu-btn{ height: 20vh; min-height: 130px; font-size: 20px; }
+  .cr-menu-grid{ margin-top: 30vh; }
+  .cr-menu-btn{ height: 24vh; min-height: 150px; font-size: clamp(26px, 9vw, 52px); }
 }
