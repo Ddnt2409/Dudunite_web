@@ -50,15 +50,22 @@ function dentroDaSemana(docData, ini, fim) {
   return cand >= ini && cand < fim;
 }
 
-/** Marca como produzido considerando várias formas que a Cozinha pode usar */
+/** Cozinha -> “produzido”? Aceita vários formatos */
 function isProduzidoCozinha(d = {}) {
-  const s = String(d.statusEtapa || d?.pcp?.status || d.status || "").toLowerCase();
+  const s =
+    String(d.statusEtapa || d?.pcp?.status || d.status || d?.cozinhaStatus || "")
+      .toLowerCase();
   if (s.includes("produz")) return true;
 
-  if (d.produzido === true || d?.pcp?.produzido === true) return true;
+  if (d.produzido === true || d?.pcp?.produzido === true || d?.cozinha?.produzido === true)
+    return true;
 
   const badge = String(d.badge || d.selo || d.etiqueta || "").toLowerCase();
   if (badge.includes("produz")) return true;
+
+  const tags = d.tags || d.flags || d.etiquetas || d.labels;
+  if (Array.isArray(tags) && tags.some(t => String(t).toLowerCase().includes("produz")))
+    return true;
 
   return false;
 }
@@ -74,8 +81,8 @@ export default function StaPed({ setTela }) {
   const [listaAlimentados, setListaAlimentados] = useState([]);
   const [listaProduzidos, setListaProduzidos]   = useState([]);
 
-  // set de PDVs produzidos vindos da coleção da Cozinha
-  const cozinhaProdSetRef = useRef(new Set());
+  // Em vez de Set, guardo um Map para preservar nomes originais (cidade/pdv)
+  const cozinhaProdMapRef = useRef(new Map());
 
   // snapshot e metadados mais recentes da semana/raiz
   const lastDocsRef = useRef([]);   // [{ data }]
@@ -91,12 +98,13 @@ export default function StaPed({ setTela }) {
     if (!meta || !Array.isArray(docs)) return;
 
     const { ini, fim, from } = meta;
-    const cozinhaSet = cozinhaProdSetRef.current || new Set();
+    const cozinhaMap = cozinhaProdMapRef.current || new Map();
 
     // Mapa por PDV com prioridade de status
     const pri = { "Lançado": 1, "Alimentado": 2, "Produzido": 3 };
     const byKey = new Map();
 
+    // 1) Base: PEDIDOS (raiz/semana)
     docs.forEach(({ data: d }) => {
       if ((from?.startsWith("root") || from === "weekly-root") && !dentroDaSemana(d, ini, fim)) return;
 
@@ -107,8 +115,8 @@ export default function StaPed({ setTela }) {
       const k   = keyPDV(cidade, pdv);
       let stat  = normStatus(d.statusEtapa);
 
-      // sobreposição da Cozinha
-      if (cozinhaSet.has(k)) stat = "Produzido";
+      // overlay da Cozinha
+      if (cozinhaMap.has(k)) stat = "Produzido";
 
       const cur = byKey.get(k);
       if (!cur || pri[stat] > pri[cur.status]) {
@@ -119,6 +127,13 @@ export default function StaPed({ setTela }) {
           itens: Array.isArray(d.itens) ? d.itens : (Array.isArray(d.items) ? d.items : []),
           sabores: d.sabores || null
         });
+      }
+    });
+
+    // 2) Cozinha pode ter PRODUZIDO mesmo sem a base aparecer: inclui assim mesmo
+    cozinhaMap.forEach(({ cidade, pdv }, k) => {
+      if (!byKey.has(k)) {
+        byKey.set(k, { cidade, pdv, status: "Produzido", itens: [], sabores: null });
       }
     });
 
@@ -165,7 +180,7 @@ export default function StaPed({ setTela }) {
   /* ---------- 1) Assina COZINHA (pcp_pedidos) ---------- */
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "pcp_pedidos"), (snap) => {
-      const set = new Set();
+      const map = new Map();
       snap.forEach((docu) => {
         const d = docu.data() || {};
         if (!isProduzidoCozinha(d)) return;
@@ -173,9 +188,12 @@ export default function StaPed({ setTela }) {
         // aceita múltiplas formas de armazenar cidade/pdv
         const cidade = d.cidade || d.city || d?.local?.cidade || "";
         const pdv    = d.pdv    || d.escola || d?.local?.pdv    || "";
-        if (cidade && pdv) set.add(keyPDV(cidade, pdv));
+        if (!cidade || !pdv) return;
+
+        const k = keyPDV(cidade, pdv);
+        map.set(k, { cidade, pdv });
       });
-      cozinhaProdSetRef.current = set;
+      cozinhaProdMapRef.current = map;
       recompute();
     });
     return () => unsub();
@@ -359,4 +377,4 @@ export default function StaPed({ setTela }) {
       <ERPFooter onBack={() => setTela("HomePCP")} />
     </>
   );
-}
+      }
