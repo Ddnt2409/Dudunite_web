@@ -25,7 +25,7 @@
 .alisab-header{ display:flex; align-items:center; gap:8px; margin: 10px 0 14px; }
 .alisab-title{ font-weight:800; color:#5C1D0E; }
 
-/* ====== QUADRO FLUTUANTE CENTRAL (cards de AVULSOS/PAGAR) ====== */
+/* ====== CARD CENTRAL (Avulsos / Pagar) ====== */
 .ctsreceber-card{
   position: relative;
   max-width: 740px;
@@ -43,59 +43,30 @@
   margin: 0 0 10px;
 }
 
-/* ====== CAMPOS/GRIDS – alturas 50% maiores ====== */
+/* ====== CAMPOS / GRIDS ====== */
 input, select, button{ font-family: inherit; }
 
-.linha-meta,
-.linha-itens{
-  display: grid;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 12px;
+.linha-meta, .linha-itens{
+  display: grid; gap: 10px; align-items: center; margin-bottom: 12px;
 }
+.linha-meta{ grid-template-columns: 1fr 180px 180px; }
+.linha-itens{ grid-template-columns: 1fr 120px 170px auto; }
 
-/* Meta: [PDV] [Forma] [Data] */
-.linha-meta{
-  grid-template-columns: 1fr 180px 180px;
+.linha-meta input, .linha-meta select,
+.linha-itens input, .linha-itens select{
+  height: 68px; font-size: 18px; padding: 10px 12px;
+  border-radius: 12px; border: 1px solid #d2b44b; background: #fff; outline: none;
 }
-
-/* Itens: [Produto] [Qtd] [Valor] [Adicionar]  */
-.linha-itens{
-  grid-template-columns: 1fr 120px 170px auto;
-}
-
-.linha-meta input,
-.linha-meta select,
-.linha-itens input,
-.linha-itens select{
-  height: 68px;
-  font-size: 18px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid #d2b44b;
-  background: #fff;
-  outline: none;
-}
-
 .input-ro{ background:#faf6e7; color:#6b4b2a; }
 
-/* Botão ADICIONAR */
 .btn-add{
-  height: 68px;
-  padding: 0 16px;
-  border: none; border-radius: 12px;
-  background: #8c3b1b; color:#fff;
-  font-size: 16px; font-weight: 800;
-  box-shadow: 0 6px 14px rgba(0,0,0,.18);
-  white-space: nowrap;
+  height: 68px; padding: 0 16px; border: none; border-radius: 12px;
+  background: #8c3b1b; color:#fff; font-size: 16px; font-weight: 800;
+  box-shadow: 0 6px 14px rgba(0,0,0,.18); white-space: nowrap;
 }
 
-/* ====== LISTA ====== */
-.linhas-list{
-  list-style: none;
-  margin: 14px 0 10px;
-  padding: 0;
-}
+/* Lista */
+.linhas-list{ list-style: none; margin: 14px 0 10px; padding: 0; }
 .linhas-list li{
   display:flex; justify-content:space-between; align-items:center;
   background:#fffde9; border:1px dashed #e0c86d;
@@ -104,17 +75,15 @@ input, select, button{ font-family: inherit; }
 }
 .btn-x{ border:none; background:transparent; font-size:20px; cursor:pointer; }
 
-/* ====== AÇÕES ====== */
+/* Ações */
 .acoes{ display:flex; gap:12px; margin-top:12px; }
-.btn-salvar, .btn-cancelar{
-  flex:1; height:68px; border:none; border-radius:14px; font-weight:800; font-size:16px;
-}
+.btn-salvar, .btn-cancelar{ flex:1; height:68px; border:none; border-radius:14px; font-weight:800; font-size:16px; }
 .btn-salvar{ background:#8c3b1b; color:#fff; box-shadow:0 6px 16px rgba(0,0,0,.22); }
 .btn-cancelar{ background:#eee; color:#333; }
 
 .cts-totais{ font-weight:800; margin: 8px 0 6px; color:#5C1D0E; }
 
-/* ====== RESPONSIVO DOS CARDS ====== */
+/* Responsivo dos cards */
 @media (max-width: 560px){
   .linha-meta, .linha-itens{ grid-template-columns: 1fr; }
   .btn-add{ width: 100%; }
@@ -139,7 +108,6 @@ input, select, button{ font-family: inherit; }
 
 .cr-menu-item{ width: 100%; display: grid; place-items: center; }
 
-/* Botão grande (estilo HomeERP, ~50% maior) */
 .cr-menu-btn{
   width: min(92vw, 560px);
   height: 22vh;
@@ -149,7 +117,7 @@ input, select, button{ font-family: inherit; }
   border-radius: 22px;
   background: #8c3b1b;
   color: #fff;
-  white-space: pre-line;   /* respeita o \n do label */
+  white-space: pre-line;
   font-weight: 800;
   font-size: 22px;
   box-shadow: 0 14px 28px rgba(0,0,0,.22);
@@ -158,19 +126,10 @@ input, select, button{ font-family: inherit; }
   opacity: .85;
 }
 
-.cr-menu-btn.ativo{
-  transform: scale(1);
-  opacity: 1;
-  background: #7b3c21;
-}
-.cr-menu-btn.inativo{
-  transform: scale(.94);
-  opacity: .72;
-}
-
+.cr-menu-btn.ativo{ transform: scale(1); opacity: 1; background: #7b3c21; }
+.cr-menu-btn.inativo{ transform: scale(.94); opacity: .72; }
 .cr-menu-btn:active{ transform: scale(.98); }
 
-/* Responsivo */
 @media (max-width: 380px){
   .cr-menu-btn{ height: 20vh; min-height: 130px; font-size: 20px; }
 }
