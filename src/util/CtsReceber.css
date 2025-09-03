@@ -25,14 +25,14 @@
 .alisab-header{ display:flex; align-items:center; gap:8px; margin: 10px 0 14px; }
 .alisab-title{ font-weight:800; color:#5C1D0E; }
 
-/* ====== QUADRO FLUTUANTE CENTRAL ====== */
+/* ====== QUADRO FLUTUANTE CENTRAL (cards de AVULSOS/PAGAR) ====== */
 .ctsreceber-card{
   position: relative;
   max-width: 740px;
   margin: 12px auto;
   background: linear-gradient(180deg, #fffdfa 0%, #fef3d6 100%);
   border-radius: 14px;
-  padding: 22px 18px 22px; /* +50% sensação vertical com mais respiro */
+  padding: 22px 18px 22px;
   box-shadow: 0 14px 28px rgba(0,0,0,.18), inset 0 -6px 10px rgba(0,0,0,.06);
   border: 1px solid #e6d2c2;
 }
@@ -68,7 +68,7 @@ input, select, button{ font-family: inherit; }
 .linha-meta select,
 .linha-itens input,
 .linha-itens select{
-  height: 68px;                 /* ~50% maior (antes ~46px) */
+  height: 68px;
   font-size: 18px;
   padding: 10px 12px;
   border-radius: 12px;
@@ -105,9 +105,7 @@ input, select, button{ font-family: inherit; }
 .btn-x{ border:none; background:transparent; font-size:20px; cursor:pointer; }
 
 /* ====== AÇÕES ====== */
-.acoes{
-  display:flex; gap:12px; margin-top:12px;
-}
+.acoes{ display:flex; gap:12px; margin-top:12px; }
 .btn-salvar, .btn-cancelar{
   flex:1; height:68px; border:none; border-radius:14px; font-weight:800; font-size:16px;
 }
@@ -116,107 +114,42 @@ input, select, button{ font-family: inherit; }
 
 .cts-totais{ font-weight:800; margin: 8px 0 6px; color:#5C1D0E; }
 
-/* ====== RESPONSIVO ====== */
+/* ====== RESPONSIVO DOS CARDS ====== */
 @media (max-width: 560px){
   .linha-meta, .linha-itens{ grid-template-columns: 1fr; }
   .btn-add{ width: 100%; }
 }
 
 /* ========================================================= */
-/* ====== MENU CENTRAL — 2 BOTÕES GRANDES (NOVO) ========== */
+/* ====== MENU CENTRAL — 2 BOTÕES GRANDES (ÚNICO BLOCO) ==== */
 /* ========================================================= */
 
 .cr-menu{
-  max-width: 920px;
-  margin: 18px auto 12px;
-  padding: 6px;
-}
-
-.cr-menu-grid{
-  display: grid;
-  gap: 16px;
-  grid-template-columns: 1fr 1fr;
-  align-items: stretch;
-}
-
-.cr-menu-item{
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-
-/* Botões ~50% maiores que os padrões; estilo coerente com o tema */
-.cr-menu-btn{
-  display: block;
-  width: 100%;
-  min-height: 160px;                  /* ~50%+ */
-  white-space: pre-line;              /* permite quebra após o emoji */
-  font-size: 28px;                    /* maior */
-  font-weight: 900;
-  letter-spacing: .3px;
-  text-align: center;
-  border: none;
-  border-radius: 18px;
-  background: linear-gradient(180deg, #fffdfa 0%, #fee9be 100%);
-  color: #5C1D0E;
-  box-shadow: 0 16px 28px rgba(0,0,0,.18), inset 0 -8px 10px rgba(0,0,0,.06);
-  border: 1px solid #e6d2c2;
-  transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
-  padding: 18px 16px;
-}
-
-.cr-menu-btn.inativo{ opacity: .92; transform: scale(.96); }
-.cr-menu-btn.ativo  { opacity: 1;   transform: scale(1.02); background: linear-gradient(180deg, #fffdfa 0%, #ffd992 100%); }
-
-.cr-dropdown{
-  margin-top: 8px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.cr-dropdown > button{
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #e6d2c2;
-  background: #fff;
-  font-weight: 700;
-  color: #5C1D0E;
-}
-
-/* Responsivo: empilha os 2 botões no mobile */
-@media (max-width: 680px){
-  .cr-menu-grid{ grid-template-columns: 1fr; }
-  .cr-menu-btn{ min-height: 140px; font-size: 24px; }
-}
-
-
-/* ====== MENU CR – DOIS BOTÕES GRANDES (estilo HomeERP) ====== */
-.cr-menu{
   display: grid;
   place-items: center;
-  padding: 14px 10px 84px;
+  padding: 18px 10px 84px;
 }
 
 .cr-menu-grid{
   display: grid;
-  gap: 18px;
+  gap: 22px;
   width: 100%;
   justify-items: center;
 }
 
 .cr-menu-item{ width: 100%; display: grid; place-items: center; }
 
-/* Botão grande (empilhado no centro) */
+/* Botão grande (estilo HomeERP, ~50% maior) */
 .cr-menu-btn{
-  width: min(92vw, 520px);
-  height: 22vh;                 /* ~50% maior */
-  min-height: 140px;
-  max-height: 240px;
+  width: min(92vw, 560px);
+  height: 22vh;
+  min-height: 150px;
+  max-height: 260px;
   border: 0;
   border-radius: 22px;
   background: #8c3b1b;
   color: #fff;
-  white-space: pre-line;         /* respeita o \n do label */
+  white-space: pre-line;   /* respeita o \n do label */
   font-weight: 800;
   font-size: 22px;
   box-shadow: 0 14px 28px rgba(0,0,0,.22);
@@ -225,7 +158,6 @@ input, select, button{ font-family: inherit; }
   opacity: .85;
 }
 
-/* Estados de foco/inativo como no HomeERP */
 .cr-menu-btn.ativo{
   transform: scale(1);
   opacity: 1;
@@ -236,25 +168,9 @@ input, select, button{ font-family: inherit; }
   opacity: .72;
 }
 
-/* Toque/clique */
 .cr-menu-btn:active{ transform: scale(.98); }
-
-/* Dropdown (se for usado no futuro) */
-.cr-dropdown{
-  margin-top: 8px;
-  display: grid;
-  gap: 8px;
-}
-.cr-dropdown > button{
-  border: none;
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-weight: 800;
-  background: #c46a42;
-  color: #fff;
-}
 
 /* Responsivo */
 @media (max-width: 380px){
-  .cr-menu-btn{ height: 20vh; min-height: 120px; font-size: 20px; }
+  .cr-menu-btn{ height: 20vh; min-height: 130px; font-size: 20px; }
 }
