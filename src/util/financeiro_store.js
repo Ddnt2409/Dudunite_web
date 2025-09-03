@@ -185,9 +185,8 @@ export async function gravarAvulsoCaixa({
     conta: "CAIXA DIARIO",
     valorUnit: safeNumber(valorUnit),
     valor: safeNumber(valorCalc),
-    // armazenamos string e timestamp para robustez nos filtros
-    data: toYMD(dLanc), // string ISO (YYYY-MM-DD)
-    dataLancamento: Timestamp.fromDate(dLanc), // Timestamp para queries
+    data: toYMD(dLanc),
+    dataLancamento: Timestamp.fromDate(dLanc),
     dataPrevista: dataPrevista ? Timestamp.fromDate(toDateLoose(dataPrevista)) : null,
     fechado: false,
     criadoEm: serverTimestamp(),
@@ -358,8 +357,9 @@ function montarLinhaPrevisto(id, d) {
     id,
     origem: "Previsto",
     data,
-    descricao: `PEDIDO • ${d.pdv || d.escola || "-"}`,
-  forma: d.formaPagamento || "",
+    // usa a descrição quando existir (ex: Contas a Pagar). Fallback para PEDIDO • PDV.
+    descricao: d.descricao || `PEDIDO • ${d.pdv || d.escola || "-"}`,
+    forma: d.formaPagamento || "",
     valor,
   };
 }
@@ -590,7 +590,6 @@ export async function excluirFluxo(id) {
 /** Atualiza um avulso no CAIXA DIARIO. */
 export async function atualizarAvulso(id, patch = {}) {
   if (!id) throw new Error("ID obrigatório");
-  // normalização de datas se vierem no patch
   const fix = { ...patch };
   if (fix.dataLancamento) {
     const d = toDateLoose(fix.dataLancamento);
@@ -608,4 +607,10 @@ export async function atualizarAvulso(id, patch = {}) {
 export async function excluirAvulso(id) {
   if (!id) throw new Error("ID obrigatório");
   await deleteDoc(doc(db, COL_AVULSOS, id));
-    }
+}
+
+/* --------- ALIASES p/ compatibilidade com FluxCx.jsx --------- */
+export function updateFluxoLancamento(id, patch)  { return atualizarFluxo(id, patch); }
+export function deleteFluxoLancamento(id)         { return excluirFluxo(id); }
+export function updateAvulsoLancamento(id, patch) { return atualizarAvulso(id, patch); }
+export function deleteAvulsoLancamento(id)        { return excluirAvulso(id); }
