@@ -1,43 +1,35 @@
 import React from "react";
+import "../util/CtsReceber.css";
+
+// Reaproveita a UI de "acumulados" existente por enquanto
+import CtsReceberPedidos from "./CtsReceberPedidos.jsx";
 
 export default function CtsPagar({ setTela }) {
   return (
-    <div style={{ minHeight: "100vh", background: "#FFF3E9", padding: 16, color: "#7a1b1b" }}>
-      <button
-        onClick={() => setTela("HomeERP")}
-        style={{
-          marginBottom: 12,
-          background: "#e5e7eb",
-          border: "1px solid #d1d5db",
-          borderRadius: 8,
-          padding: "8px 12px",
-          cursor: "pointer",
-        }}
-      >
-        ← Voltar
-      </button>
+    <div className="ctsreceber-main">
+      <header className="erp-header">
+        <div className="erp-header__inner">
+          <div className="erp-header__logo">
+            <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
+          </div>
+          <div className="erp-header__title">ERP DUDUNITÊ<br />Contas a Pagar</div>
+        </div>
+      </header>
 
-      <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Contas a Pagar</h1>
-      <p style={{ marginBottom: 16 }}>
-        Em breve… lançamentos Isolado/Semanal/Quinzenal/Mensal (Previsto/Realizado).
-      </p>
-
-      <div
-        style={{
-          background: "#fff",
-          border: "1px solid #f4cccc",
-          borderRadius: 12,
-          padding: 14,
-        }}
-      >
-        Esqueleto pronto. Próximo passo: reflexo no Fluxo de Caixa.
+      <div className="ctsreceber-card">
+        <h2>Pagamentos (base na tela Acumulados)</h2>
+        <div style={{ color: "#7b3c21", marginBottom: 8 }}>
+          Esta tela utiliza temporariamente a UI de “Acumulados” enquanto finalizamos as regras de Pagar.
+        </div>
+        <CtsReceberPedidos />
       </div>
 
-      <div style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button onClick={() => setTela("TabPrec")}>← Tabela de Preços</button>
-        <button onClick={() => setTela("CtsReceber")}>← Contas a Receber</button>
-        <button onClick={() => setTela("FluxCx")}>→ Fluxo de Caixa</button>
-      </div>
+      <button className="btn-voltar-foot" onClick={() => setTela?.("CtsReceber")}>🔙 Voltar</button>
+      <footer className="erp-footer">
+        <div className="erp-footer-track">
+          • Planejamento de Pagamentos • Em breve: plano de contas pagar + filtros dedicados •
+        </div>
+      </footer>
     </div>
   );
 }
