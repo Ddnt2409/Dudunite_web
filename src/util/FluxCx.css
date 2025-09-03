@@ -55,3 +55,48 @@
 .saldos .box{
   background:#fff; border:1px solid #e6d2c2; border-radius:12px; padding:10px 12px; font-weight:800;
 }
+
+/* cabeçalhos/rodapés de cada dia */
+.dia-header{
+  font-weight:700;
+  padding:6px 8px;
+  background:#efe6d6;
+  border-radius:6px;
+  border:1px solid #e1d3bf;
+  margin-bottom:6px;
+}
+.dia-footer{
+  text-align:right;
+  font-weight:700;
+  padding:6px 8px;
+  background:#f5efe6;
+  border-radius:6px;
+  border:1px solid #e1d3bf;
+  margin-top:6px;
+}
+
+/* botões de ação */
+.btn-acao{
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #d9c3ac;
+  background: #f7eee2;
+  cursor: pointer;
+  margin-right: 6px;
+}
+.btn-acao:disabled{ opacity:.6; cursor: default; }
+.btn-danger{ background:#fbe9e7; border-color:#f6b5ac; color:#b02a1e; }
+
+/* chips de status */
+.chip-ok{
+  background:#e8f5e9;
+  color:#2e7d32;
+  border:1px solid #c8e6c9;
+  padding:2px 8px; border-radius:12px;
+}
+.chip-bad{
+  background:#ffebee;
+  color:#c62828;
+  border:1px solid #ffcdd2;
+  padding:2px 8px; border-radius:12px;
+}
