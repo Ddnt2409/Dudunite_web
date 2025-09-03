@@ -8,23 +8,19 @@ import LanPed      from "./pages/LanPed";
 import AliSab      from "./pages/AliSab";
 import StaPed      from "./pages/StaPed";
 import CtsReceber  from "./pages/CtsReceber";
-import CtsPagar    from "./pages/CtsPagar";   // existe no repo
-import FluxCx      from "./pages/FluxCx";     // extrato geral (FinFlux)
-import Cozinha     from "./pages/cozinha";    // << arquivo criado em pages/cozinha.jsx (minúsculo)
-
-// import "./pages/fade.css"; // opcional
+import CtsReceberAvulso from "./pages/CtsReceberAvulso"; // <<< NOVO
+import CtsPagar    from "./pages/CtsPagar";
+import FluxCx      from "./pages/FluxCx";
+import Cozinha     from "./pages/cozinha";
 
 export default function App() {
-  // Tela inicial
   const [tela, setTela] = useState("HomeERP");
 
-  // Volta pro topo ao trocar de tela (melhora UX no mobile)
   useEffect(() => {
     try { window.scrollTo({ top: 0, behavior: "instant" }); }
     catch { window.scrollTo(0, 0); }
   }, [tela]);
 
-  // Router simples por estado
   switch (tela) {
     case "HomeERP":
       return <HomeERP setTela={setTela} />;
@@ -43,6 +39,9 @@ export default function App() {
 
     case "CtsReceber":
       return <CtsReceber setTela={setTela} />;
+
+    case "CtsReceberAvulso":               // <<< NOVO
+      return <CtsReceberAvulso setTela={setTela} />;
 
     case "CtsPagar":
       return <CtsPagar setTela={setTela} />;
