@@ -4,11 +4,16 @@ import ERPFooter from "./ERPFooter";
 import "../util/FluxCx.css";
 
 import {
+  // saldos
   listenSaldosIniciais, salvarSaldosIniciais,
+  // caixa diário
   listenCaixaDiario, listenCaixaDiarioRange, fecharCaixaParcial,
+  // banco
   listenExtratoBancario, listenExtratoBancarioRange,
+  // backfill
   backfillPrevistosDoMes,
-  marcarRealizado, atualizarFluxo, excluirFluxo,
+  // edição no fluxo
+  atualizarFluxo, excluirFluxo,
 } from "../util/financeiro_store";
 
 const money = (n)=>`R$ ${Number(n||0).toFixed(2).replace(".", ",")}`;
@@ -36,9 +41,11 @@ export default function FluxCx({ setTela }) {
   const [ate, setAte]   = useState(new Date(ano, mes,   1).toISOString().slice(0,10));
   const meses = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 
+  // saldos
   const [saldoIniCx, setSaldoIniCx] = useState(0);
   const [saldoIniBk, setSaldoIniBk] = useState(0);
 
+  // caixa diário
   const [cxLinhas, setCxLinhas] = useState([]);
   const cxTotal = useMemo(()=> cxLinhas.reduce((s,l)=>s+Number(l.valor||0),0), [cxLinhas]);
   const cxSaldoFinal = useMemo(()=> Number(saldoIniCx||0) + Number(cxTotal||0), [saldoIniCx, cxTotal]);
@@ -51,22 +58,34 @@ export default function FluxCx({ setTela }) {
     });
   }, [cxLinhas, saldoIniCx]);
 
+  // esconde caixa quando tudo está fechado; pode reabrir manualmente
+  const [cxVisivel, setCxVisivel] = useState(true);
+  useEffect(()=>{
+    const temAberto = cxLinhas.some(l=>!l.fechado);
+    if (!temAberto) setCxVisivel(false);
+  }, [cxLinhas]);
+
+  // banco
   const [bkLinhas, setBkLinhas] = useState([]);
   const totPrev = useMemo(()=> bkLinhas.filter(l=>l.origem==="Previsto").reduce((s,l)=>s+Number(l.valor||0),0), [bkLinhas]);
   const totBan  = useMemo(()=> bkLinhas.filter(l=>l.origem==="Realizado").reduce((s,l)=>s+Number(l.valor||0),0), [bkLinhas]);
   const saldoBancoVsPrev = useMemo(()=> Number(totBan||0) - Number(totPrev||0), [totBan, totPrev]);
   const bkSaldoFinal = useMemo(()=> Number(saldoIniBk||0) + Number(totBan||0) - Number(totPrev||0), [saldoIniBk, totBan, totPrev]);
 
+  // fechamento caixa
   const [diaFechar, setDiaFechar] = useState(new Date().toISOString().slice(0,10));
   const [dataBanco, setDataBanco] = useState(new Date().toISOString().slice(0,10));
   const [valorFechar, setValorFechar] = useState("");
 
+  // working state
   const [workingId, setWorkingId] = useState(null);
 
+  // unsubs
   const unsubCx = useRef(null);
   const unsubBk = useRef(null);
   const unsubSd = useRef(null);
 
+  // saldos iniciais
   useEffect(()=>{
     unsubSd.current && unsubSd.current();
     unsubSd.current = listenSaldosIniciais(ano, mes, ({caixa,banco})=>{
@@ -76,6 +95,7 @@ export default function FluxCx({ setTela }) {
     return ()=> { unsubSd.current && unsubSd.current(); }
   },[ano, mes]);
 
+  // assina listas
   useEffect(()=>{
     assinarListas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -125,18 +145,28 @@ export default function FluxCx({ setTela }) {
     } catch(e){ alert("Erro ao fechar caixa: "+(e?.message||e)); }
   }
 
-  // ======== Banco: ações
+  // ===== Banco: ações =====
   async function handleToggleRealizado(linha, checked) {
     if (!linha?.id) return;
     try {
       setWorkingId(linha.id);
       if (checked) {
-        await marcarRealizado(linha.id, { dataRealizado: linha.data, valor: linha.valor });
+        // mantém descrição/forma/data/valor
+        await atualizarFluxo(linha.id, {
+          statusFinanceiro: "Realizado",
+          conta: "EXTRATO BANCARIO",
+          dataRealizado: linha.data,
+          valorRealizado: linha.valor,
+          descricao: linha.descricao || "",
+          formaPagamento: linha.forma || "",
+        });
       } else {
         await atualizarFluxo(linha.id, {
           statusFinanceiro: "Previsto",
           dataRealizado: "",
           valorRealizado: 0,
+          descricao: linha.descricao || "",
+          formaPagamento: linha.forma || "",
         });
       }
     } catch (e) {
@@ -161,22 +191,21 @@ export default function FluxCx({ setTela }) {
   }
 
   function handleAlterar(linha) {
-    // passa dados para a tela de edição/lançamento
     try {
       localStorage.setItem("financeiro_fluxo_edit", JSON.stringify(linha || {}));
     } catch {}
-    setTela?.("CtsPagar"); // abre a tela que já usa os mesmos campos
+    setTela?.("CtsPagar");
   }
 
-  // regra de status visual
+  // status visual
   function statusLancamento(l) {
-    if (l.origem === "Realizado") return { label: "EM DIA", cls: "chip-ok" };
+    if (l.origem === "Realizado") return { label: "EM DIA", cls: "badge-ok" };
     const ehPagamento = Number(l.valor || 0) < 0;
     const passou = (l.data || "") < HOJE_YMD;
     if (ehPagamento) {
-      return passou ? { label: "ATRASADO", cls: "chip-bad" } : { label: "EM DIA", cls: "chip-ok" };
+      return passou ? { label: "ATRASADO", cls: "badge-bad" } : { label: "EM DIA", cls: "badge-ok" };
     } else {
-      return passou ? { label: "INADIMPLENTE", cls: "chip-bad" } : { label: "EM DIA", cls: "chip-ok" };
+      return passou ? { label: "INADIMPLENTE", cls: "badge-bad" } : { label: "EM DIA", cls: "badge-ok" };
     }
   }
 
@@ -185,7 +214,7 @@ export default function FluxCx({ setTela }) {
       <ERPHeader title="ERP DUDUNITÊ — Fluxo de Caixa" />
 
       <main className="fluxcx-main" style={{ padding: 12 }}>
-        {/* Seleção */}
+        {/* Seleção topo */}
         <div className="extrato-card" style={{ marginBottom: 10 }}>
           <div className="extrato-actions" style={{ gap: 8, flexWrap:"wrap" }}>
             <label><input type="radio" checked={modo==="mes"} onChange={()=>setModo("mes")} /> Mês inteiro</label>
@@ -210,62 +239,74 @@ export default function FluxCx({ setTela }) {
           </div>
         </div>
 
-        {/* ===== TOPO: CAIXA DIÁRIO ===== */}
-        <section className="extrato-card">
-          <div className="fluxcx-header" style={{ marginBottom:6 }}>
-            <h2 className="fluxcx-title" style={{ margin:0 }}>
-              Caixa Diário — {modo==="mes" ? `${meses[mes-1]} de ${ano}` : `${dtBR(de)} → ${dtBR(ate)}`}
-            </h2>
-            <div style={{ marginLeft:"auto", display:"flex", gap:12 }}>
-              <b>Saldo inicial do período:</b> {money(saldoIniCx)}
-              <b>Total do período:</b> {money(cxTotal)}
-              <b>Saldo final:</b> {money(cxSaldoFinal)}
+        {/* ===== CAIXA DIÁRIO ===== */}
+        {!cxVisivel && (
+          <div className="extrato-card" style={{ marginBottom: 8 }}>
+            <div className="cx-oculto">
+              <span>Caixa Diário fechado (sem saldo aberto).</span>
+              <button className="btn-acao" onClick={()=>setCxVisivel(true)}>Mostrar</button>
             </div>
           </div>
+        )}
 
-          <div style={{ display:"flex", gap:8, flexWrap:"wrap", alignItems:"center", marginBottom:8 }}>
-            <label>Dia a fechar: <input type="date" value={diaFechar} onChange={e=>setDiaFechar(e.target.value)} /></label>
-            <label>Data no banco: <input type="date" value={dataBanco} onChange={e=>setDataBanco(e.target.value)} /></label>
-            <label>Valor a fechar: <input type="number" step="0.01" value={valorFechar} onChange={e=>setValorFechar(e.target.value)} style={{ width:120 }} /></label>
-            <button onClick={onFecharCaixa}>Fechar caixa do dia → Banco</button>
-          </div>
+        {cxVisivel && (
+          <section className="extrato-card">
+            <div className="fluxcx-header" style={{ marginBottom:6 }}>
+              <h2 className="fluxcx-title" style={{ margin:0 }}>
+                Caixa Diário — {modo==="mes" ? `${meses[mes-1]} de ${ano}` : `${dtBR(de)} → ${dtBR(ate)}`}
+              </h2>
+              <div style={{ marginLeft:"auto", display:"flex", gap:12 }}>
+                <b>Saldo inicial do período:</b> {money(saldoIniCx)}
+                <b>Total do período:</b> {money(cxTotal)}
+                <b>Saldo final:</b> {money(cxSaldoFinal)}
+              </div>
+            </div>
 
-          <div style={{ overflowX:"auto" }}>
-            <table className="extrato">
-              <thead>
-                <tr>
-                  <th style={{minWidth:90}}>Data</th>
-                  <th>Descrição</th>
-                  <th style={{minWidth:110}}>Forma</th>
-                  <th style={{minWidth:100}}>Status</th>
-                  <th style={{minWidth:120, textAlign:"right"}}>Valor</th>
-                  <th style={{minWidth:120, textAlign:"right"}}>Saldo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cxComSaldo.length===0 && (
-                  <tr><td colSpan={6} style={{ padding:10, color:"#7a5a2a" }}>Nenhum lançamento no período.</td></tr>
-                )}
-                {cxComSaldo.map(l=>(
-                  <tr key={l.id}>
-                    <td>{dtBR(l.data)}</td>
-                    <td>{l.descricao}</td>
-                    <td>{l.forma || "-"}</td>
-                    <td>
-                      {l.fechado
-                        ? <span className="chip chip-real">Fechado</span>
-                        : <span className="chip chip-prev">Aberto</span>}
-                    </td>
-                    <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
-                    <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.saldo)}</td>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap", alignItems:"center", marginBottom:8 }}>
+              <label>Dia a fechar: <input type="date" value={diaFechar} onChange={e=>setDiaFechar(e.target.value)} /></label>
+              <label>Data no banco: <input type="date" value={dataBanco} onChange={e=>setDataBanco(e.target.value)} /></label>
+              <label>Valor a fechar: <input type="number" step="0.01" value={valorFechar} onChange={e=>setValorFechar(e.target.value)} style={{ width:120 }} /></label>
+              <button onClick={onFecharCaixa}>Fechar caixa do dia → Banco</button>
+              <button className="btn-acao" onClick={()=>setCxVisivel(false)}>Ocultar</button>
+            </div>
+
+            <div style={{ overflowX:"auto" }}>
+              <table className="extrato">
+                <thead>
+                  <tr>
+                    <th style={{minWidth:90}}>Data</th>
+                    <th>Descrição</th>
+                    <th style={{minWidth:110}}>Forma</th>
+                    <th style={{minWidth:100}}>Status</th>
+                    <th style={{minWidth:120, textAlign:"right"}}>Valor</th>
+                    <th style={{minWidth:120, textAlign:"right"}}>Saldo</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                </thead>
+                <tbody>
+                  {cxComSaldo.length===0 && (
+                    <tr><td colSpan={6} style={{ padding:10, color:"#7a5a2a" }}>Nenhum lançamento no período.</td></tr>
+                  )}
+                  {cxComSaldo.map(l=>(
+                    <tr key={l.id}>
+                      <td>{dtBR(l.data)}</td>
+                      <td>{l.descricao}</td>
+                      <td>{l.forma || "-"}</td>
+                      <td>
+                        {l.fechado
+                          ? <span className="chip chip-real">Fechado</span>
+                          : <span className="chip chip-prev">Aberto</span>}
+                      </td>
+                      <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
+                      <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.saldo)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
-        {/* ===== BAIXO: EXTRATO BANCÁRIO ===== */}
+        {/* ===== EXTRATO BANCÁRIO ===== */}
         <section className="extrato-card">
           <div className="fluxcx-header" style={{ marginBottom:6 }}>
             <h2 className="fluxcx-title" style={{ margin:0 }}>
@@ -284,7 +325,7 @@ export default function FluxCx({ setTela }) {
             let acumulado = Number(saldoIniBk || 0);
 
             return grupos.map(([dia, itens]) => {
-              // novo: considera TODOS os lançamentos do dia (prev + real)
+              // saldo do dia considera TODOS (prev + real)
               const somaDoDia = itens.reduce((s, l) => s + Number(l.valor || 0), 0);
               const saldoInicialDia = acumulado;
               const saldoFinalDia   = saldoInicialDia + somaDoDia;
@@ -301,10 +342,10 @@ export default function FluxCx({ setTela }) {
                       <thead>
                         <tr>
                           <th>Descrição</th>
-                          <th style={{minWidth:160}}>Forma / Realizado</th>
-                          <th style={{minWidth:110}}>Status</th>
+                          <th style={{minWidth:180}}>Forma / Realizado</th>
+                          <th style={{minWidth:130}}>Status</th>
                           <th style={{minWidth:120, textAlign:"right"}}>Valor</th>
-                          <th style={{minWidth:180}}>Ações</th>
+                          <th style={{minWidth:200}}>Ações</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -326,7 +367,7 @@ export default function FluxCx({ setTela }) {
                                   Realizado
                                 </label>
                               </td>
-                              <td><span className={`chip ${st.cls}`}>{st.label}</span></td>
+                              <td><span className={st.cls}>{st.label}</span></td>
                               <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
                               <td>
                                 <button className="btn-acao" onClick={()=>handleAlterar(l)}>Alterar</button>
