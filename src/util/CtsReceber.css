@@ -32,7 +32,7 @@
   margin: 12px auto;
   background: linear-gradient(180deg, #fffdfa 0%, #fef3d6 100%);
   border-radius: 14px;
-  padding: 22px 18px 22px; /* +50% sensão vertical com mais respiro */
+  padding: 22px 18px 22px; /* +50% sensação vertical com mais respiro */
   box-shadow: 0 14px 28px rgba(0,0,0,.18), inset 0 -6px 10px rgba(0,0,0,.06);
   border: 1px solid #e6d2c2;
 }
@@ -122,30 +122,69 @@ input, select, button{ font-family: inherit; }
   .btn-add{ width: 100%; }
 }
 
-/* ===== Overrides do menu Financeiro (tela CtsReceber) ===== */
+/* ========================================================= */
+/* ====== MENU CENTRAL — 2 BOTÕES GRANDES (NOVO) ========== */
+/* ========================================================= */
 
-/* centraliza o bloco de botões no meio da tela */
-.botoes-financeiro {
-  min-height: calc(100vh - 64px - 36px - 20px); /* header + footer + respiro */
+.cr-menu{
+  max-width: 920px;
+  margin: 18px auto 12px;
+  padding: 6px;
+}
+
+.cr-menu-grid{
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+}
+
+.cr-menu-item{
   display: flex;
   flex-direction: column;
-  justify-content: center;   /* centro vertical */
-  align-items: center;       /* centro horizontal */
-  gap: 28px;                 /* espaço entre os dois botões */
-  margin: 0 auto;
+  align-items: stretch;
 }
 
-/* aumenta ~50% comparado ao padrão do HomeERP */
-.ctsreceber-main .botao-principal {
-  width: min(86vw, 560px);   /* largura maior */
-  min-height: 210px;         /* altura maior (~+50%) */
-  font-size: 28px;           /* texto maior */
-  border-radius: 22px;
+/* Botões ~50% maiores que os padrões; estilo coerente com o tema */
+.cr-menu-btn{
+  display: block;
+  width: 100%;
+  min-height: 160px;                  /* ~50%+ */
+  white-space: pre-line;              /* permite quebra após o emoji */
+  font-size: 28px;                    /* maior */
+  font-weight: 900;
+  letter-spacing: .3px;
+  text-align: center;
+  border: none;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffdfa 0%, #fee9be 100%);
+  color: #5C1D0E;
+  box-shadow: 0 16px 28px rgba(0,0,0,.18), inset 0 -8px 10px rgba(0,0,0,.06);
+  border: 1px solid #e6d2c2;
+  transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
+  padding: 18px 16px;
 }
 
-/* garante clique/touch confiáveis, sem overlays atrapalhando */
-.ctsreceber-main .botao-wrapper,
-.ctsreceber-main .botao-principal {
-  position: relative;
-  pointer-events: auto;
+.cr-menu-btn.inativo{ opacity: .92; transform: scale(.96); }
+.cr-menu-btn.ativo  { opacity: 1;   transform: scale(1.02); background: linear-gradient(180deg, #fffdfa 0%, #ffd992 100%); }
+
+.cr-dropdown{
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cr-dropdown > button{
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e6d2c2;
+  background: #fff;
+  font-weight: 700;
+  color: #5C1D0E;
+}
+
+/* Responsivo: empilha os 2 botões no mobile */
+@media (max-width: 680px){
+  .cr-menu-grid{ grid-template-columns: 1fr; }
+  .cr-menu-btn{ min-height: 140px; font-size: 24px; }
 }
