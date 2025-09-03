@@ -128,3 +128,61 @@ input, select, button{ font-family: inherit; }
   .cr-menu-grid{ margin-top: 30vh; }
   .cr-menu-btn{ height: 24vh; min-height: 150px; font-size: clamp(26px, 9vw, 52px); }
 }
+
+/* ... (tudo que você já tem permanece) ... */
+
+/* ========= MENU — CENTRALIZADO E GRANDE ========= */
+
+.cr-menu{ display: grid; place-items: center; padding: 14px 10px 84px; }
+
+.cr-menu-grid{
+  display: grid;
+  gap: 28px;
+  grid-template-columns: 1fr;      /* empilhados */
+  place-items: center;              /* centraliza horizontal e vertical */
+  width: 100%;
+  margin-top: 38vh;                 /* desce ~50% visual da tela */
+  margin-inline: auto;
+}
+
+.cr-menu-item{
+  width: 100%;
+  display: flex;
+  justify-content: center;          /* garante centro absoluto */
+}
+
+.cr-menu-btn{
+  width: min(92vw, 680px);
+  height: 26vh;
+  min-height: 180px;
+  max-height: 320px;
+  border: 0;
+  border-radius: 22px;
+  background: #8c3b1b;
+  color: #fff;
+  white-space: pre-line;
+  line-height: 1.12;
+  font-weight: 800;
+  font-size: clamp(30px, 8.5vw, 60px); /* ~3x maior */
+  box-shadow: 0 14px 28px rgba(0,0,0,.22);
+  transition: transform .18s ease, opacity .18s ease, background .18s ease;
+  transform: scale(.94);
+  opacity: .85;
+  padding: 18px 16px;
+  margin-inline: auto;              /* segurança extra p/ centralizar */
+}
+.cr-menu-btn.ativo{ transform: scale(1); opacity: 1; background: #7b3c21; }
+.cr-menu-btn.inativo{ transform: scale(.94); opacity: .72; }
+.cr-menu-btn:active{ transform: scale(.98); }
+
+@media (max-width: 380px){
+  .cr-menu-grid{ margin-top: 30vh; }
+  .cr-menu-btn{ height: 24vh; min-height: 150px; font-size: clamp(26px, 9vw, 52px); }
+}
+
+/* ========= EMBED: esconder header/footer duplicados de CtsPagar ========= */
+.cr-embed .erp-header,
+.cr-embed .erp-footer,
+.cr-embed .btn-voltar-foot{
+  display: none !important;
+}
