@@ -94,3 +94,15 @@ input, select, button{ font-family: inherit; }
   .cp-row{ grid-template-columns: 1fr 1fr; }
   .cp-row-n{ grid-column: 1 / -1; text-align: left; }
 }
+
+/* ... (restante do arquivo que você já tem) ... */
+
+.ok-msg{
+  margin-top: 10px;
+  font-weight: 800;
+  color: #106b1f;
+  background: #e8f8ea;
+  border: 1px solid #bfe7c6;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
