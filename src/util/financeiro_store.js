@@ -1,7 +1,19 @@
+// src/util/financeiro_store.js
 import db from "../firebase";
 import {
-  collection, doc, addDoc, setDoc, updateDoc, getDoc, getDocs,
-  onSnapshot, query, where, serverTimestamp, Timestamp, writeBatch
+  collection,
+  doc,
+  addDoc,
+  setDoc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  where,
+  serverTimestamp,
+  Timestamp,
 } from "firebase/firestore";
 
 /* ======================= CONSTANTES ======================= */
@@ -20,6 +32,7 @@ function toYMD(d) {
   const dd = String(x.getDate()).padStart(2, "0");
   return `${x.getFullYear()}-${mm}-${dd}`;
 }
+
 function anyToYMD(v) {
   if (!v) return "";
   if (typeof v === "string") {
@@ -33,10 +46,12 @@ function anyToYMD(v) {
   if (v && typeof v.toDate === "function") return toYMD(v.toDate());
   return toYMD(v);
 }
+
 function brDate(v) {
   const d = (v && typeof v.toDate === "function") ? v.toDate() : v;
   try { return new Date(d || new Date()).toLocaleDateString("pt-BR"); } catch { return ""; }
 }
+
 function somaValorPedido(pedido = {}) {
   const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
   let total = 0;
@@ -48,11 +63,13 @@ function somaValorPedido(pedido = {}) {
   }
   return total;
 }
+
 function monthRange(ano, mes1a12) {
   const ini = new Date(ano, mes1a12 - 1, 1, 0, 0, 0, 0);
   const fim = new Date(ano, mes1a12, 1, 0, 0, 0, 0);
   return { ini, fim };
 }
+
 function dayRange(d) {
   const dd = d instanceof Date ? new Date(d) : new Date(d);
   dd.setHours(0, 0, 0, 0);
@@ -61,6 +78,7 @@ function dayRange(d) {
   fim.setDate(fim.getDate() + 1);
   return { ini, fim };
 }
+
 function rangeFromInputs(inicio, fimInc) {
   const ini = new Date(inicio instanceof Date ? inicio : new Date(inicio));
   const fim = new Date(fimInc instanceof Date ? fimInc : new Date(fimInc));
@@ -70,15 +88,18 @@ function rangeFromInputs(inicio, fimInc) {
   fimExc.setDate(fimExc.getDate()+1);
   return { ini, fim: fimExc };
 }
+
 function inRangeYMD(ymd, ini, fimExc) {
   if (!ymd) return false;
   const d = new Date(`${ymd}T00:00:00`);
   return d >= ini && d < fimExc;
 }
+
 function safeNumber(n, fallback = 0) {
   const v = Number(n);
   return Number.isFinite(v) ? v : fallback;
 }
+
 function toDateLoose(v){
   if (!v) return null;
   if (typeof v?.toDate === "function") return v.toDate();
@@ -91,12 +112,6 @@ function toDateLoose(v){
   }
   const d = new Date(v);
   return Number.isNaN(d.getTime()) ? null : d;
-}
-function tsMs(x){
-  if (x && typeof x.toDate === "function") return x.toDate().getTime();
-  if (x instanceof Date) return x.getTime();
-  if (typeof x === "number") return x;
-  return 0;
 }
 
 /* ===================== SALDOS INICIAIS ==================== */
@@ -170,9 +185,9 @@ export async function gravarAvulsoCaixa({
     conta: "CAIXA DIARIO",
     valorUnit: safeNumber(valorUnit),
     valor: safeNumber(valorCalc),
-    // datas
-    data: toYMD(dLanc),
-    dataLancamento: Timestamp.fromDate(dLanc),
+    // armazenamos string e timestamp para robustez nos filtros
+    data: toYMD(dLanc), // string ISO (YYYY-MM-DD)
+    dataLancamento: Timestamp.fromDate(dLanc), // Timestamp para queries
     dataPrevista: dataPrevista ? Timestamp.fromDate(toDateLoose(dataPrevista)) : null,
     fechado: false,
     criadoEm: serverTimestamp(),
@@ -188,7 +203,7 @@ export function listenCaixaDiario(ano, mes, onChange, onError) {
   return listenCaixaDiarioRange(ini, fim, onChange, onError);
 }
 
-/** Listener do Caixa com ordenação por data + criação/ordem. */
+/** Listener do Caixa (considera dataLancamento → dataPrevista → data → criadoEm/createdEm). */
 export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
   const { ini, fim } = rangeFromInputs(inicio, fimInc);
   try {
@@ -221,12 +236,6 @@ export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
           }
           const valor = safeNumber(valorCalc);
 
-          const ord =
-            Number(d.ordemFechamentoMs ?? 0) ||
-            tsMs(d.criadoEm) ||
-            tsMs(d.atualizadoEm) ||
-            (dt ? dt.getTime() : 0);
-
           linhas.push({
             id: ds.id,
             data: ymd,
@@ -236,16 +245,11 @@ export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
             forma: d.formaPagamento || (d.fechamento ? "Fechamento" : ""),
             valor,
             fechado: !!d.fechado || !!d.fechamento,
-            ord,
           });
           total += valor;
         });
 
-        linhas.sort((a, b) => {
-          if (a.data === b.data) return (a.ord || 0) - (b.ord || 0);
-          return a.data.localeCompare(b.data);
-        });
-
+        linhas.sort((a, b) => a.data.localeCompare(b.data));
         onChange && onChange({ linhas, total });
       },
       (e) => onError && onError(e)
@@ -260,7 +264,6 @@ export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
  * Fechamento (total/parcial):
  * - Banco: crédito Realizado em financeiro_fluxo
  * - Caixa: saída negativa em cts_avulsos
- * Mantém ordem: usa ordemFechamentoMs = Date.now()
  */
 export async function fecharCaixaDiario({ diaOrigem, dataBanco, valorParcial = null } = {}) {
   const base = diaOrigem || new Date();
@@ -293,10 +296,9 @@ export async function fecharCaixaDiario({ diaOrigem, dataBanco, valorParcial = n
 
   const ymdBanco = toYMD(bancoD);
   const ymdOrig  = toYMD(base);
-  const ordemFechamentoMs = Date.now();            // <<<<< garante sequência
-  const idFech   = `FECH_${ymdOrig}_${ordemFechamentoMs}`;
+  const idFech   = `FECH_${ymdOrig}_${Date.now()}`;
 
-  // Banco
+  // Banco: Realizado (entrada)
   await setDoc(
     doc(db, COL_FLUXO, idFech),
     {
@@ -308,7 +310,6 @@ export async function fecharCaixaDiario({ diaOrigem, dataBanco, valorParcial = n
       descricao: `Fechamento Caixa • ${brDate(base)}`,
       formaPagamento: "Fechamento",
       valorRealizado: safeNumber(valorFechar),
-      ordemFechamentoMs,                         // <<<<<
       criadoEm: serverTimestamp(),
       atualizadoEm: serverTimestamp(),
     },
@@ -333,7 +334,6 @@ export async function fecharCaixaDiario({ diaOrigem, dataBanco, valorParcial = n
     fechado: true,
     bancoRef: idFech,
     bancoData: ymdBanco,
-    ordemFechamentoMs,                         // <<<<<
     criadoEm: serverTimestamp(),
     atualizadoEm: serverTimestamp(),
   });
@@ -341,7 +341,7 @@ export async function fecharCaixaDiario({ diaOrigem, dataBanco, valorParcial = n
   return { criado: true, total: safeNumber(valorFechar) };
 }
 
-// alias
+// alias compatível
 export function fecharCaixaParcial(args) { return fecharCaixaDiario(args); }
 
 /* ================== EXTRATO BANCÁRIO (PREV + REAL) ================= */
@@ -354,30 +354,19 @@ function montarLinhaPrevisto(id, d) {
     anyToYMD(d.criadoEm) ||
     anyToYMD(d.createdEm);
 
-  const ord =
-    tsMs(d.criadoEm) ||
-    tsMs(d.atualizadoEm) ||
-    0;
-
   return {
     id,
     origem: "Previsto",
     data,
     descricao: `PEDIDO • ${d.pdv || d.escola || "-"}`,
-    forma: d.formaPagamento || "",
+  forma: d.formaPagamento || "",
     valor,
-    ord,
   };
 }
+
 function montarLinhaRealizado(id, d) {
   const valor = safeNumber(d.valorRealizado != null ? d.valorRealizado : d.valor);
   const data = d.dataRealizado || anyToYMD(d.data);
-  const ord =
-    Number(d.ordemFechamentoMs ?? 0) ||
-    tsMs(d.criadoEm) ||
-    // fallback: tenta extrair do id FECH_YYYY-MM-DD_<ms>
-    (() => { const p = String(id).split("_").pop(); const n = Number(p); return Number.isFinite(n) ? n : 0; })();
-
   return {
     id,
     origem: "Realizado",
@@ -385,7 +374,6 @@ function montarLinhaRealizado(id, d) {
     descricao: d.descricao || "Crédito em conta",
     forma: d.formaPagamento || "",
     valor,
-    ord,
   };
 }
 
@@ -393,6 +381,7 @@ export function listenExtratoBancario(ano, mes, onChange, onError) {
   const { ini, fim } = monthRange(ano, mes);
   return listenExtratoBancarioRange(ini, fim, onChange, onError);
 }
+
 export function listenExtratoBancarioRange(inicio, fimInc, onChange, onError) {
   const { ini, fim } = rangeFromInputs(inicio, fimInc);
   const iniY = toYMD(ini);
@@ -416,13 +405,7 @@ export function listenExtratoBancarioRange(inicio, fimInc, onChange, onError) {
             if (ymd && inRangeYMD(ymd, ini, fim)) real.push(montarLinhaRealizado(ds.id, d));
           }
         });
-
-        const linhas = [...prev, ...real];
-        linhas.sort((a, b) => {
-          if (a.data === b.data) return (a.ord || 0) - (b.ord || 0);
-          return a.data.localeCompare(b.data);
-        });
-
+        const linhas = [...prev, ...real].sort((x, y) => x.data.localeCompare(y.data));
         const totPrev = prev.reduce((s, l) => s + safeNumber(l.valor), 0);
         const totBan  = real.reduce((s, l) => s + safeNumber(l.valor), 0);
         onChange && onChange({ linhas, totPrev, totBan, periodo: { de: iniY, ate: fimY } });
@@ -463,6 +446,7 @@ export async function upsertPrevistoFromLanPed(pedidoId, dados) {
     { merge: true }
   );
 }
+
 export async function marcarRealizado(pedidoId, { dataRealizado = new Date(), valor = null } = {}) {
   await setDoc(
     doc(db, COL_FLUXO, pedidoId),
@@ -587,63 +571,41 @@ export async function migrarAvulsosAntigos(ano, mes) {
     } catch { /* ignora */ }
   }
   return { migrados: criados };
-                                               }
-// === Atualizações/remoções para o fluxo financeiro ===
-import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
-import db from "../firebase";
-
-/**
- * Marca um lançamento como Realizado (ou volta para Previsto).
- * - Atualiza campos redundantes usados pelo Extrato.
- * - Copia o valor previsto para valorRealizado quando realizar.
- */
-export async function marcarRealizado(lancId, realizado = true) {
-  const ref = doc(db, "financeiro_fluxo", lancId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) throw new Error("Lançamento não encontrado.");
-
-  const d = snap.data();
-  const base = Number(d?.valorPrevisto ?? d?.valor ?? 0);
-  const saida = base < 0; // manter sinal
-  const valorReal = realizado ? base : 0;
-
-  const upd = {
-    atualizadoEm: serverTimestamp(),
-    status: realizado ? "Realizado" : "Previsto",
-    statusFinanceiro: realizado ? "Realizado" : "Previsto",
-    tipo: realizado ? "Realizado" : "Previsto",
-    valorRealizado: valorReal,
-  };
-
-  // carimbo de data de realização (só na ida para Realizado)
-  if (realizado && !d?.dataRealizado) upd.dataRealizado = new Date();
-
-  await updateDoc(ref, upd);
 }
 
-/** Remove definitivamente um lançamento */
-export async function excluirLancamento(lancId) {
-  const ref = doc(db, "financeiro_fluxo", lancId);
-  await deleteDoc(ref);
+/* ============ ATUALIZAÇÃO / EXCLUSÃO (edição na UI) ============= */
+
+/** Atualiza um documento do fluxo financeiro (financeiro_fluxo). */
+export async function atualizarFluxo(id, patch = {}) {
+  if (!id) throw new Error("ID obrigatório");
+  await updateDoc(doc(db, COL_FLUXO, id), { ...patch, atualizadoEm: serverTimestamp() });
 }
 
-/**
- * Prepara dados de edição: salva no localStorage e informa qual tela abrir.
- * NÃO altera nenhuma tela existente; a tela de destino (se desejar)
- * pode ler "editar_financeiro" do localStorage.
- */
-export function prepararEdicaoLancamento(lanc) {
-  const payload = {
-    id: lanc.id,
-    origem: lanc.origem || (Number(lanc?.valorPrevisto ?? lanc?.valor ?? 0) < 0 ? "PAGAR" : "RECEBER"),
-    data: lanc.dataPrevista || lanc.dataLancamento || lanc.data,
-    formaPagamento: lanc.formaPagamento || "",
-    planoContas: lanc.planoContas || "",
-    planoNome: lanc.planoNome || "",
-    descricao: lanc.descricao || lanc.titulo || lanc.memo || "",
-    valor: Number(lanc?.valorPrevisto ?? lanc?.valor ?? 0),
-  };
-  localStorage.setItem("editar_financeiro", JSON.stringify(payload));
-  // retorna sugestão de tela
-  return payload.origem === "PAGAR" ? "CtsPagar" : "CtsReceberAvulso";
+/** Exclui um documento do fluxo financeiro (financeiro_fluxo). */
+export async function excluirFluxo(id) {
+  if (!id) throw new Error("ID obrigatório");
+  await deleteDoc(doc(db, COL_FLUXO, id));
 }
+
+/** Atualiza um avulso no CAIXA DIARIO. */
+export async function atualizarAvulso(id, patch = {}) {
+  if (!id) throw new Error("ID obrigatório");
+  // normalização de datas se vierem no patch
+  const fix = { ...patch };
+  if (fix.dataLancamento) {
+    const d = toDateLoose(fix.dataLancamento);
+    fix.dataLancamento = d ? Timestamp.fromDate(d) : fix.dataLancamento;
+    fix.data = d ? toYMD(d) : fix.data;
+  }
+  if (fix.dataPrevista) {
+    const d = toDateLoose(fix.dataPrevista);
+    fix.dataPrevista = d ? Timestamp.fromDate(d) : fix.dataPrevista;
+  }
+  await updateDoc(doc(db, COL_AVULSOS, id), { ...fix, atualizadoEm: serverTimestamp() });
+}
+
+/** Exclui um avulso do CAIXA DIARIO. */
+export async function excluirAvulso(id) {
+  if (!id) throw new Error("ID obrigatório");
+  await deleteDoc(doc(db, COL_AVULSOS, id));
+    }
