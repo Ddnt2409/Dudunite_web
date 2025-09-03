@@ -4,17 +4,11 @@ import "../util/CtsReceber.css";
 import CtsReceberAvulso from "./CtsReceberAvulso.jsx";
 import CtsPagar from "./CtsPagar.jsx";
 
-/**
- * FINANCEIRO
- * - Menu interno com 2 botões grandes
- * - Ao entrar, fica no "menu" (NÃO abre Avulsos automaticamente)
- * - Avulso é exibido intacto (arquivo original), apenas envolvido por header/footer e botão Voltar
- */
 export default function CtsReceber({ setTela }) {
   // menu | avulsos | pagar
   const [view, setView] = useState("menu");
 
-  // Mesmo comportamento de foco do HomeERP (1º clique foca, 2º navega)
+  // mesmo comportamento do HomeERP: 1º clique foca, 2º navega
   const [zoomIndex, setZoomIndex] = useState(0);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const touchStartX = useRef(null);
@@ -36,16 +30,16 @@ export default function CtsReceber({ setTela }) {
     setZoomIndex(prev => {
       const total = botoes.length;
       const next = dir === "esquerda" ? (prev - 1 + total) % total : (prev + 1) % total;
-      setMostrarDropdown(false); return next;
+      setMostrarDropdown(false);
+      return next;
     });
   }
 
-  // ====== SUBTELAS ============================================================
+  // ===== SUBTELAS =====
   if (view === "avulsos" || view === "pagar") {
     const Conteudo = view === "avulsos" ? CtsReceberAvulso : CtsPagar;
     return (
       <div className="ctsreceber-main">
-        {/* Header padrão */}
         <header className="erp-header">
           <div className="erp-header__inner">
             <div className="erp-header__logo">
@@ -55,12 +49,11 @@ export default function CtsReceber({ setTela }) {
           </div>
         </header>
 
-        {/* O componente fica “intacto” aqui dentro */}
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        {/* Pagamentos vêm “embutidos” para não duplicar header/footer */}
+        <div style={{ maxWidth: 1100, margin: "0 auto" }} className={view === "pagar" ? "cr-embed" : ""}>
           <Conteudo />
         </div>
 
-        {/* Voltar para o menu financeiro */}
         <button className="btn-voltar-foot" onClick={() => setView("menu")}>◀ Menu Financeiro</button>
         <footer className="erp-footer">
           <div className="erp-footer-track">
@@ -71,7 +64,7 @@ export default function CtsReceber({ setTela }) {
     );
   }
 
-  // ====== MENU (entrada) ======================================================
+  // ===== MENU =====
   return (
     <div className="ctsreceber-main">
       <header className="erp-header">
@@ -101,14 +94,6 @@ export default function CtsReceber({ setTela }) {
                 >
                   {btn.label}
                 </button>
-
-                {ativo && mostrarDropdown && btn.dropdown?.length > 0 && (
-                  <div className="cr-dropdown">
-                    {btn.dropdown.map((op, i) => (
-                      <button key={i} onClick={op.acao}>{op.nome}</button>
-                    ))}
-                  </div>
-                )}
               </div>
             );
           })}
