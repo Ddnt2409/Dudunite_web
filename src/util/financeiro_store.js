@@ -588,3 +588,62 @@ export async function migrarAvulsosAntigos(ano, mes) {
   }
   return { migrados: criados };
                                                }
+// === Atualizações/remoções para o fluxo financeiro ===
+import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import db from "../firebase";
+
+/**
+ * Marca um lançamento como Realizado (ou volta para Previsto).
+ * - Atualiza campos redundantes usados pelo Extrato.
+ * - Copia o valor previsto para valorRealizado quando realizar.
+ */
+export async function marcarRealizado(lancId, realizado = true) {
+  const ref = doc(db, "financeiro_fluxo", lancId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error("Lançamento não encontrado.");
+
+  const d = snap.data();
+  const base = Number(d?.valorPrevisto ?? d?.valor ?? 0);
+  const saida = base < 0; // manter sinal
+  const valorReal = realizado ? base : 0;
+
+  const upd = {
+    atualizadoEm: serverTimestamp(),
+    status: realizado ? "Realizado" : "Previsto",
+    statusFinanceiro: realizado ? "Realizado" : "Previsto",
+    tipo: realizado ? "Realizado" : "Previsto",
+    valorRealizado: valorReal,
+  };
+
+  // carimbo de data de realização (só na ida para Realizado)
+  if (realizado && !d?.dataRealizado) upd.dataRealizado = new Date();
+
+  await updateDoc(ref, upd);
+}
+
+/** Remove definitivamente um lançamento */
+export async function excluirLancamento(lancId) {
+  const ref = doc(db, "financeiro_fluxo", lancId);
+  await deleteDoc(ref);
+}
+
+/**
+ * Prepara dados de edição: salva no localStorage e informa qual tela abrir.
+ * NÃO altera nenhuma tela existente; a tela de destino (se desejar)
+ * pode ler "editar_financeiro" do localStorage.
+ */
+export function prepararEdicaoLancamento(lanc) {
+  const payload = {
+    id: lanc.id,
+    origem: lanc.origem || (Number(lanc?.valorPrevisto ?? lanc?.valor ?? 0) < 0 ? "PAGAR" : "RECEBER"),
+    data: lanc.dataPrevista || lanc.dataLancamento || lanc.data,
+    formaPagamento: lanc.formaPagamento || "",
+    planoContas: lanc.planoContas || "",
+    planoNome: lanc.planoNome || "",
+    descricao: lanc.descricao || lanc.titulo || lanc.memo || "",
+    valor: Number(lanc?.valorPrevisto ?? lanc?.valor ?? 0),
+  };
+  localStorage.setItem("editar_financeiro", JSON.stringify(payload));
+  // retorna sugestão de tela
+  return payload.origem === "PAGAR" ? "CtsPagar" : "CtsReceberAvulso";
+}
