@@ -19,11 +19,13 @@ import {
   excluirFluxo,
 } from "../util/financeiro_store";
 
+// helpers visuais
 const money = (n)=>`R$ ${Number(n||0).toFixed(2).replace(".", ",")}`;
 const dtBR   = (v)=> (v && typeof v === "string")
   ? v.split("-").reverse().join("/")
   : new Date(v || Date.now()).toLocaleDateString("pt-BR");
 
+// agrupa extrato por dia (YYYY-MM-DD => itens[])
 function groupByDia(linhas) {
   const map = new Map();
   for (const l of linhas) {
@@ -35,21 +37,25 @@ function groupByDia(linhas) {
 }
 
 export default function FluxCx({ setTela }) {
+  // ===== Seleção =====
   const hoje = new Date();
-  const [modo, setModo] = useState("mes");
+  const [modo, setModo] = useState("mes");          // "mes" | "periodo"
   const [ano, setAno]   = useState(hoje.getFullYear());
   const [mes, setMes]   = useState(hoje.getMonth()+1);
   const [de,  setDe ]   = useState(new Date(ano, mes-1, 1).toISOString().slice(0,10));
   const [ate, setAte]   = useState(new Date(ano, mes,   1).toISOString().slice(0,10));
   const meses = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 
+  // ===== Saldos iniciais =====
   const [saldoIniCx, setSaldoIniCx] = useState(0);
   const [saldoIniBk, setSaldoIniBk] = useState(0);
 
+  // ===== Caixa Diário (topo) =====
   const [cxLinhas, setCxLinhas] = useState([]);
   const cxTotal = useMemo(()=> cxLinhas.reduce((s,l)=>s+Number(l.valor||0),0), [cxLinhas]);
   const cxSaldoFinal = useMemo(()=> Number(saldoIniCx||0) + Number(cxTotal||0), [saldoIniCx, cxTotal]);
 
+  // Saldo acumulado por linha (estilo extrato)
   const cxComSaldo = useMemo(()=>{
     let acc = Number(saldoIniCx || 0);
     return cxLinhas.map(l => {
@@ -58,22 +64,27 @@ export default function FluxCx({ setTela }) {
     });
   }, [cxLinhas, saldoIniCx]);
 
+  // ===== Banco (baixo) =====
   const [bkLinhas, setBkLinhas] = useState([]);
   const totPrev = useMemo(()=> bkLinhas.filter(l=>l.origem==="Previsto").reduce((s,l)=>s+Number(l.valor||0),0), [bkLinhas]);
   const totBan  = useMemo(()=> bkLinhas.filter(l=>l.origem==="Realizado").reduce((s,l)=>s+Number(l.valor||0),0), [bkLinhas]);
   const saldoBancoVsPrev = useMemo(()=> Number(totBan||0) - Number(totPrev||0), [totBan, totPrev]);
   const bkSaldoFinal = useMemo(()=> Number(saldoIniBk||0) + Number(totBan||0) - Number(totPrev||0), [saldoIniBk, totBan, totPrev]);
 
+  // ===== Fechamento =====
   const [diaFechar, setDiaFechar] = useState(new Date().toISOString().slice(0,10));
   const [dataBanco, setDataBanco] = useState(new Date().toISOString().slice(0,10));
   const [valorFechar, setValorFechar] = useState("");
 
+  // working-flag para desabilitar ações enquanto salva
   const [workingId, setWorkingId] = useState(null);
 
+  // unsub refs
   const unsubCx = useRef(null);
   const unsubBk = useRef(null);
   const unsubSd = useRef(null);
 
+  // ouvir saldos iniciais do mês selecionado
   useEffect(()=>{
     unsubSd.current && unsubSd.current();
     unsubSd.current = listenSaldosIniciais(ano, mes, ({caixa,banco})=>{
@@ -83,6 +94,7 @@ export default function FluxCx({ setTela }) {
     return ()=> { unsubSd.current && unsubSd.current(); }
   },[ano, mes]);
 
+  // (re)assinar extratos conforme seleção
   useEffect(()=>{
     assinarListas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -124,7 +136,7 @@ export default function FluxCx({ setTela }) {
       const res = await fecharCaixaParcial({
         diaOrigem: new Date(diaFechar),
         dataBanco: new Date(dataBanco),
-        valorParcial: v,
+        valorParcial: v, // parcial ou total
       });
       if (!res?.criado) { alert("Nenhum lançamento aberto nesse dia ou valor a fechar é 0."); return; }
       alert(`Fechamento enviado ao banco: ${money(res.total)}.`);
@@ -138,7 +150,7 @@ export default function FluxCx({ setTela }) {
     try {
       setWorkingId(linha.id);
       if (checked) {
-        // >>> NÃO altera o dia: usa a própria data exibida (que é a prevista)
+        // NÃO muda de dia: usa a própria data exibida (prevista)
         await marcarRealizado(linha.id, { dataRealizado: linha.data, valor: linha.valor });
       } else {
         // volta para Previsto
@@ -169,7 +181,6 @@ export default function FluxCx({ setTela }) {
     }
   }
 
-  // ===== Render =====
   return (
     <>
       <ERPHeader title="ERP DUDUNITÊ — Fluxo de Caixa" />
@@ -275,13 +286,13 @@ export default function FluxCx({ setTela }) {
             const grupos = groupByDia(bkLinhas);
             let acumulado = Number(saldoIniBk || 0);
 
-            return grupos.map(([dia, itens], gi) => {
+            return grupos.map(([dia, itens]) => {
               const realizadosDoDia = itens
                 .filter(x => x.origem === "Realizado")
                 .reduce((s, l) => s + Number(l.valor || 0), 0);
 
               const saldoInicialDia = acumulado;
-              acumulado += realizadosDoDia; // só entradas/saídas reais afetam o saldo
+              acumulado += realizadosDoDia; // só realizados afetam o saldo
               const saldoFinalDia = acumulado;
 
               return (
@@ -326,7 +337,13 @@ export default function FluxCx({ setTela }) {
                             <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
                             <td>
                               <button className="btn-acao" disabled>Alterar</button>
-                              <button className="btn-acao btn-danger" disabled={workingId===l.id} onClick={()=>handleExcluir(l)}>Excluir</button>
+                              <button
+                                className="btn-acao btn-danger"
+                                disabled={workingId===l.id}
+                                onClick={()=>handleExcluir(l)}
+                              >
+                                Excluir
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -349,4 +366,4 @@ export default function FluxCx({ setTela }) {
       <ERPFooter onBack={()=>setTela?.("HomeERP")} />
     </>
   );
-      }
+            }
