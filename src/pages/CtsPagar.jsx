@@ -58,8 +58,7 @@ const PC_PAGAR = [
 
 export default function CtsPagar({ setTela }) {
   /* ===== Ordem pedida =====
-     1) Periodicidade
-     2) Ocorrências (se >1 abre N linhas de [Vencimento, Valor])
+     1) Periodicidade → 2) Ocorrências → (linhas) Vencimento + Valor
      3) Forma de pagamento
      4) Plano de contas + Descrição
   */
@@ -78,11 +77,12 @@ export default function CtsPagar({ setTela }) {
   const [plano, setPlano] = useState("");
   const [descricao, setDescricao] = useState("");
 
-  // Totais
+  // Totais + OK
   const total = useMemo(
     () => rows.reduce((s, r) => s + Number(r.valor || 0), 0),
     [rows]
   );
+  const [okMsg, setOkMsg] = useState("");
 
   // Ajusta quantidade de linhas conforme ocorrências
   useEffect(() => {
@@ -128,12 +128,13 @@ export default function CtsPagar({ setTela }) {
   }
 
   async function salvar() {
+    setOkMsg("");
     // Validações
     const [cod, nome] = plano ? plano.split(" | ") : [];
     if (!cod) { alert("Selecione o Plano de Contas."); return; }
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i];
-      if (!r.data)       { alert(`Informe a data do vencimento ${i + 1}.`); return; }
+      if (!r.data) { alert(`Informe a data do vencimento ${i + 1}.`); return; }
       if (!(Number(r.valor) > 0)) { alert(`Informe o valor (>0) do vencimento ${i + 1}.`); return; }
     }
 
@@ -142,23 +143,44 @@ export default function CtsPagar({ setTela }) {
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
         const parc = rows.length > 1 ? ` (${i + 1}/${rows.length})` : "";
+        const desc = `PAGAR — ${nome}${descricao ? " — " + descricao : ""}${parc}`;
+
         await addDoc(col, {
+          // chaves amplas para compatibilidade com o Extrato
           origem: "PAGAR",
-          conta: "EXTRATO BANCARIO",
+          tipo: "Previsto",
+          status: "Previsto",
           statusFinanceiro: "Previsto",
+
           planoContas: cod,
           planoNome: nome,
-          descricao: `PAGAR • ${nome}${descricao ? " — " + descricao : ""}${parc}`,
+
+          descricao: desc,
+          titulo: desc,
+          memo: desc,
+          historico: desc,
+
           formaPagamento: forma,
+
           dataPrevista: r.data,
+          dataLancamento: r.data, // alguns relatórios usam esta
+
           valorPrevisto: -Math.abs(Number(r.valor)),
           valorRealizado: 0,
+
+          conta: "EXTRATO BANCARIO",
+
           criadoEm: serverTimestamp(),
           atualizadoEm: serverTimestamp(),
         });
       }
-      alert(`Lançados ${rows.length} pagamento(s) previsto(s).`);
-      // Reseta só valores/descrição; mantém parâmetros
+
+      setOkMsg(
+        `Lançados ${rows.length} pagamento(s) PREVISTO(s) • 1º venc.: ${rows[0].data} • ` +
+        `Periodicidade: ${periodicidade} • Total do lote: -${fmtBRL(total)}`
+      );
+
+      // Reseta só valores/descrição; mantém a 1ª data como base
       setDescricao("");
       setRows([{ data: rows[0].data, valor: "" }]);
       setOcorrencias(1);
@@ -285,6 +307,7 @@ export default function CtsPagar({ setTela }) {
           <button
             className="btn-cancelar"
             onClick={()=>{
+              setOkMsg("");
               setDescricao("");
               setRows([{ data: rows[0].data, valor: "" }]);
               setOcorrencias(1);
@@ -294,6 +317,8 @@ export default function CtsPagar({ setTela }) {
             Limpar
           </button>
         </div>
+
+        {okMsg && <div className="ok-msg">{okMsg}</div>}
 
         <div className="cp-rodape-note">
           Conta: EXTRATO BANCARIO • Status: PREVISTO • Valores gravados como SAÍDA (negativos).
@@ -307,4 +332,4 @@ export default function CtsPagar({ setTela }) {
       </footer>
     </div>
   );
-          }
+        }
