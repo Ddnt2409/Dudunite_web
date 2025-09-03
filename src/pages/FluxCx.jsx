@@ -15,7 +15,46 @@ import {
   backfillPrevistosDoMes,
 } from "../util/financeiro_store";
 
-// helpers visuais
+// ========= helpers de persistência locais (sem mexer no financeiro_store) =========
+const LS_KEY = "financeiro_fluxo";
+const getAll = () => JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+const saveAll = (arr) => localStorage.setItem(LS_KEY, JSON.stringify(arr));
+const updateById = (id, mut) => {
+  const arr = getAll();
+  const idx = arr.findIndex((x) => x.id === id);
+  if (idx < 0) throw new Error("Lançamento não encontrado.");
+  arr[idx] = mut({ ...arr[idx] });
+  saveAll(arr);
+  return arr[idx];
+};
+const marcarRealizadoLS = (id, flag) =>
+  updateById(id, (d) => {
+    const status = flag ? "Realizado" : "Previsto";
+    d.origem = status;
+    d.status = status;
+    d.statusFinanceiro = status;
+    if (flag && !d.dataRealizado) d.dataRealizado = new Date().toISOString();
+    return d;
+  });
+const excluirLancamentoLS = (id) => {
+  const arr = getAll().filter((x) => x.id !== id);
+  saveAll(arr);
+};
+const prepararEdicao = (row) => {
+  const payload = {
+    id: row.id,
+    origem: Number(row?.valor || 0) < 0 ? "PAGAR" : "RECEBER",
+    data: row.data || row.dataPrevista || row.dataLancamento,
+    formaPagamento: row.forma || row.formaPagamento || "",
+    planoContas: row.planoContas || "",
+    descricao: row.descricao || "",
+    valor: Number(row.valor || 0),
+  };
+  localStorage.setItem("editar_financeiro", JSON.stringify(payload));
+  return payload.origem === "PAGAR" ? "CtsPagar" : "CtsReceberAvulso";
+};
+
+// ========= helpers visuais =========
 const money = (n)=>`R$ ${Number(n||0).toFixed(2).replace(".", ",")}`;
 const dtBR   = (v)=> (v && typeof v === "string")
   ? v.split("-").reverse().join("/")
@@ -133,11 +172,38 @@ export default function FluxCx({ setTela }) {
     } catch(e){ alert("Erro ao fechar caixa: "+(e?.message||e)); }
   }
 
+  // ===== handlers do Extrato Bancário (Realizado/Alterar/Excluir) =====
+  const toggleRealizado = (row, checked) => {
+    try {
+      marcarRealizadoLS(row.id, checked);
+      onAtualizar();
+    } catch (err) {
+      alert("Falha ao atualizar status: " + (err?.message || err));
+    }
+  };
+  const excluirLanc = (row) => {
+    if (!confirm("Confirma a exclusão deste lançamento?")) return;
+    try {
+      excluirLancamentoLS(row.id);
+      onAtualizar();
+    } catch (err) {
+      alert("Erro ao excluir: " + (err?.message || err));
+    }
+  };
+  const alterarLanc = (row) => {
+    const destino = prepararEdicao(row);
+    setTela?.(destino);
+  };
+
   return (
     <>
       <ERPHeader title="ERP DUDUNITÊ — Fluxo de Caixa" />
 
-      <main className="fluxcx-main" style={{ padding: 12 }}>
+      {/* Scroll garantido aqui */}
+      <main
+        className="fluxcx-main"
+        style={{ padding: 12, minHeight: "100vh", overflowY: "auto", WebkitOverflowScrolling: "touch" }}
+      >
         {/* Seleção */}
         <div className="extrato-card" style={{ marginBottom: 10 }}>
           <div className="extrato-actions" style={{ gap: 8, flexWrap:"wrap" }}>
@@ -240,13 +306,14 @@ export default function FluxCx({ setTela }) {
                   <th style={{minWidth:90}}>Data</th>
                   <th style={{minWidth:110}}>Tipo</th>
                   <th>Descrição</th>
-                  <th style={{minWidth:110}}>Forma</th>
+                  <th style={{minWidth:210}}>Forma / Realizado</th>
                   <th style={{minWidth:120, textAlign:"right"}}>Valor</th>
+                  <th style={{minWidth:150}}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {bkLinhas.length===0 && (
-                  <tr><td colSpan={5} style={{ padding:10, color:"#7a5a2a" }}>Sem lançamentos para estas datas.</td></tr>
+                  <tr><td colSpan={6} style={{ padding:10, color:"#7a5a2a" }}>Sem lançamentos para estas datas.</td></tr>
                 )}
                 {bkLinhas.map((l,i)=>(
                   <tr key={l.id || i}>
@@ -257,8 +324,40 @@ export default function FluxCx({ setTela }) {
                       </span>
                     </td>
                     <td>{l.descricao || "-"}</td>
-                    <td>{l.forma || "-"}</td>
-                    <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
+
+                    {/* Forma + checkbox Realizado */}
+                    <td>
+                      <div style={{ display:"inline-flex", alignItems:"center", gap:10 }}>
+                        <span>{l.forma || "-"}</span>
+                        <label style={{ display:"inline-flex", alignItems:"center", gap:6 }}>
+                          <input
+                            type="checkbox"
+                            checked={String(l.origem).toLowerCase()==="realizado"}
+                            onChange={(e)=>toggleRealizado(l, e.target.checked)}
+                          />
+                          Realizado
+                        </label>
+                      </div>
+                    </td>
+
+                    <td style={{ textAlign:"right", fontWeight:800, color: Number(l.valor)<0 ? "#b74a3a":"inherit" }}>
+                      {money(l.valor)}
+                    </td>
+
+                    <td style={{ whiteSpace:"nowrap", display:"flex", gap:6 }}>
+                      <button
+                        onClick={()=>alterarLanc(l)}
+                        style={{ border:"none", borderRadius:10, padding:"6px 10px", fontWeight:800, background:"#c46a42", color:"#fff" }}
+                      >
+                        Alterar
+                      </button>
+                      <button
+                        onClick={()=>excluirLanc(l)}
+                        style={{ border:"none", borderRadius:10, padding:"6px 10px", fontWeight:800, background:"#b74a3a", color:"#fff" }}
+                      >
+                        Excluir
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -272,4 +371,4 @@ export default function FluxCx({ setTela }) {
       <ERPFooter onBack={()=>setTela?.("HomeERP")} />
     </>
   );
-                    }
+              }
