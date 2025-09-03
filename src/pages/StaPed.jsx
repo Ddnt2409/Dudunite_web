@@ -17,6 +17,7 @@ const rmAcc = (s) => String(s || "")
   .replace(/[\u0300-\u036f]/g, "")
   .trim()
   .toUpperCase();
+
 const keyPDV = (cidade, pdv) => `${rmAcc(cidade)}::${rmAcc(pdv)}`;
 
 function normStatus(raw) {
@@ -26,6 +27,7 @@ function normStatus(raw) {
   if (s.includes("lanç") || s.includes("lanc") || s === "pendente") return "Lançado";
   return "Lançado";
 }
+
 function intervaloSemanaBase(ref = new Date()) {
   const d = new Date(ref);
   const dow = (d.getDay() + 6) % 7; // seg=0
@@ -36,6 +38,7 @@ function intervaloSemanaBase(ref = new Date()) {
   fim.setDate(fim.getDate() + 7);
   return { ini, fim };
 }
+
 function dentroDaSemana(docData, ini, fim) {
   const cand =
     docData?.createdEm?.toDate?.() ||
@@ -45,6 +48,19 @@ function dentroDaSemana(docData, ini, fim) {
     null;
   if (!cand) return true;
   return cand >= ini && cand < fim;
+}
+
+/** Marca como produzido considerando várias formas que a Cozinha pode usar */
+function isProduzidoCozinha(d = {}) {
+  const s = String(d.statusEtapa || d?.pcp?.status || d.status || "").toLowerCase();
+  if (s.includes("produz")) return true;
+
+  if (d.produzido === true || d?.pcp?.produzido === true) return true;
+
+  const badge = String(d.badge || d.selo || d.etiqueta || "").toLowerCase();
+  if (badge.includes("produz")) return true;
+
+  return false;
 }
 /* ==================== */
 
@@ -96,7 +112,13 @@ export default function StaPed({ setTela }) {
 
       const cur = byKey.get(k);
       if (!cur || pri[stat] > pri[cur.status]) {
-        byKey.set(k, { cidade, pdv, status: stat, itens: Array.isArray(d.itens) ? d.itens : (Array.isArray(d.items) ? d.items : []), sabores: d.sabores || null });
+        byKey.set(k, {
+          cidade,
+          pdv,
+          status: stat,
+          itens: Array.isArray(d.itens) ? d.itens : (Array.isArray(d.items) ? d.items : []),
+          sabores: d.sabores || null
+        });
       }
     });
 
@@ -146,12 +168,12 @@ export default function StaPed({ setTela }) {
       const set = new Set();
       snap.forEach((docu) => {
         const d = docu.data() || {};
-        const status = normStatus(d.statusEtapa);
-        if (status === "Produzido") {
-          const cidade = d.cidade || d.city || "";
-          const pdv    = d.pdv || d.escola || "";
-          if (cidade && pdv) set.add(keyPDV(cidade, pdv));
-        }
+        if (!isProduzidoCozinha(d)) return;
+
+        // aceita múltiplas formas de armazenar cidade/pdv
+        const cidade = d.cidade || d.city || d?.local?.cidade || "";
+        const pdv    = d.pdv    || d.escola || d?.local?.pdv    || "";
+        if (cidade && pdv) set.add(keyPDV(cidade, pdv));
       });
       cozinhaProdSetRef.current = set;
       recompute();
