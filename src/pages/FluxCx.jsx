@@ -1,18 +1,19 @@
+// src/pages/FluxCx.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
 import "../util/FluxCx.css";
 
 import {
-  // saldos
+  // Saldos
   listenSaldosIniciais, salvarSaldosIniciais,
-  // caixa diário
+  // Caixa Diário
   listenCaixaDiario, listenCaixaDiarioRange, fecharCaixaParcial,
-  // banco
+  // Banco
   listenExtratoBancario, listenExtratoBancarioRange,
-  // backfill
+  // Backfill
   backfillPrevistosDoMes,
-  // edição no fluxo
+  // Edição/remoção no fluxo
   atualizarFluxo, excluirFluxo,
 } from "../util/financeiro_store";
 
@@ -49,7 +50,6 @@ export default function FluxCx({ setTela }) {
   const [cxLinhas, setCxLinhas] = useState([]);
   const cxTotal = useMemo(()=> cxLinhas.reduce((s,l)=>s+Number(l.valor||0),0), [cxLinhas]);
   const cxSaldoFinal = useMemo(()=> Number(saldoIniCx||0) + Number(cxTotal||0), [saldoIniCx, cxTotal]);
-
   const cxComSaldo = useMemo(()=>{
     let acc = Number(saldoIniCx || 0);
     return cxLinhas.map(l => {
@@ -58,7 +58,7 @@ export default function FluxCx({ setTela }) {
     });
   }, [cxLinhas, saldoIniCx]);
 
-  // esconde caixa quando tudo está fechado; pode reabrir manualmente
+  // mostrar/ocultar caixa quando tudo estiver fechado
   const [cxVisivel, setCxVisivel] = useState(true);
   useEffect(()=>{
     const temAberto = cxLinhas.some(l=>!l.fechado);
@@ -77,7 +77,8 @@ export default function FluxCx({ setTela }) {
   const [dataBanco, setDataBanco] = useState(new Date().toISOString().slice(0,10));
   const [valorFechar, setValorFechar] = useState("");
 
-  // working state
+  // edição inline (modal)
+  const [edit, setEdit] = useState(null); // { id, descricao, planoContas, forma, data, valor, realizado, tipo }
   const [workingId, setWorkingId] = useState(null);
 
   // unsubs
@@ -151,21 +152,20 @@ export default function FluxCx({ setTela }) {
     try {
       setWorkingId(linha.id);
       if (checked) {
-        // mantém descrição/forma/data/valor
         await atualizarFluxo(linha.id, {
           statusFinanceiro: "Realizado",
           conta: "EXTRATO BANCARIO",
-          dataRealizado: linha.data,
-          valorRealizado: linha.valor,
-          descricao: linha.descricao || "",
+          dataRealizado: linha.data,       // mantém o mesmo dia
+          valorRealizado: linha.valor,     // mantém o mesmo valor
+          descricao: linha.descricao || linha.planoContas || "",
           formaPagamento: linha.forma || "",
         });
       } else {
         await atualizarFluxo(linha.id, {
           statusFinanceiro: "Previsto",
-          dataRealizado: "",
-          valorRealizado: 0,
-          descricao: linha.descricao || "",
+          dataPrevista: linha.data,
+          valorPrevisto: linha.valor,
+          descricao: linha.descricao || linha.planoContas || "",
           formaPagamento: linha.forma || "",
         });
       }
@@ -190,14 +190,53 @@ export default function FluxCx({ setTela }) {
     }
   }
 
-  function handleAlterar(linha) {
-    try {
-      localStorage.setItem("financeiro_fluxo_edit", JSON.stringify(linha || {}));
-    } catch {}
-    setTela?.("CtsPagar");
+  function abrirEdicao(l) {
+    setEdit({
+      id: l.id,
+      descricao: l.descricao || l.planoContas || "",
+      planoContas: l.planoContas || "",
+      forma: l.forma || "",
+      data: l.data,
+      valor: Number(l.valor || 0),
+      realizado: l.origem === "Realizado",
+      tipo: Number(l.valor||0) < 0 ? "Pagamento" : "Recebimento",
+    });
   }
 
-  // status visual
+  async function salvarEdicao() {
+    if (!edit?.id) return;
+    const y = edit.data;
+    const v = Number(edit.valor||0);
+    const patchBase = {
+      descricao: (edit.descricao||"").trim(),
+      planoContas: (edit.planoContas||"").trim(),
+      formaPagamento: (edit.forma||"").trim(),
+    };
+    try {
+      setWorkingId(edit.id);
+      if (edit.realizado) {
+        await atualizarFluxo(edit.id, {
+          ...patchBase,
+          statusFinanceiro: "Realizado",
+          dataRealizado: y,
+          valorRealizado: v,
+        });
+      } else {
+        await atualizarFluxo(edit.id, {
+          ...patchBase,
+          statusFinanceiro: "Previsto",
+          dataPrevista: y,
+          valorPrevisto: v,
+        });
+      }
+      setEdit(null);
+    } catch (e) {
+      alert("Erro ao salvar alteração: " + (e?.message||e));
+    } finally {
+      setWorkingId(null);
+    }
+  }
+
   function statusLancamento(l) {
     if (l.origem === "Realizado") return { label: "EM DIA", cls: "badge-ok" };
     const ehPagamento = Number(l.valor || 0) < 0;
@@ -214,7 +253,7 @@ export default function FluxCx({ setTela }) {
       <ERPHeader title="ERP DUDUNITÊ — Fluxo de Caixa" />
 
       <main className="fluxcx-main" style={{ padding: 12 }}>
-        {/* Seleção topo */}
+        {/* Seleção */}
         <div className="extrato-card" style={{ marginBottom: 10 }}>
           <div className="extrato-actions" style={{ gap: 8, flexWrap:"wrap" }}>
             <label><input type="radio" checked={modo==="mes"} onChange={()=>setModo("mes")} /> Mês inteiro</label>
@@ -248,7 +287,6 @@ export default function FluxCx({ setTela }) {
             </div>
           </div>
         )}
-
         {cxVisivel && (
           <section className="extrato-card">
             <div className="fluxcx-header" style={{ marginBottom:6 }}>
@@ -325,7 +363,7 @@ export default function FluxCx({ setTela }) {
             let acumulado = Number(saldoIniBk || 0);
 
             return grupos.map(([dia, itens]) => {
-              // saldo do dia considera TODOS (prev + real)
+              // saldo do dia considera TODOS (prev+real)
               const somaDoDia = itens.reduce((s, l) => s + Number(l.valor || 0), 0);
               const saldoInicialDia = acumulado;
               const saldoFinalDia   = saldoInicialDia + somaDoDia;
@@ -353,7 +391,7 @@ export default function FluxCx({ setTela }) {
                           const st = statusLancamento(l);
                           return (
                             <tr key={l.id}>
-                              <td>{l.descricao || "-"}</td>
+                              <td>{l.descricao || l.planoContas || "-"}</td>
                               <td>
                                 {l.forma || "-"}
                                 <label style={{ marginLeft:8, userSelect:"none", cursor:"pointer" }}>
@@ -370,7 +408,7 @@ export default function FluxCx({ setTela }) {
                               <td><span className={st.cls}>{st.label}</span></td>
                               <td style={{ textAlign:"right", fontWeight:800 }}>{money(l.valor)}</td>
                               <td>
-                                <button className="btn-acao" onClick={()=>handleAlterar(l)}>Alterar</button>
+                                <button className="btn-acao" onClick={()=>abrirEdicao(l)}>Alterar</button>
                                 <button className="btn-acao btn-danger" disabled={workingId===l.id} onClick={()=>handleExcluir(l)}>Excluir</button>
                               </td>
                             </tr>
@@ -391,6 +429,72 @@ export default function FluxCx({ setTela }) {
 
         <button className="btn-voltar" onClick={()=>setTela?.("HomeERP")}>Voltar</button>
       </main>
+
+      {/* ===== MODAL EDIÇÃO ===== */}
+      {edit && (
+        <div className="modal-backdrop" onClick={()=>setEdit(null)}>
+          <div className="modal-card" onClick={(e)=>e.stopPropagation()}>
+            <h3>Edição — {edit.tipo}</h3>
+
+            <div className="form-row">
+              <label>Descrição / Plano de Contas</label>
+              <input
+                type="text"
+                value={edit.descricao}
+                onChange={(e)=>setEdit(v=>({ ...v, descricao: e.target.value }))}
+                placeholder="Ex.: Energia elétrica (Adm)"
+              />
+              <small className="hint">Se a descrição ficar vazia, uso o plano de contas automaticamente.</small>
+            </div>
+
+            <div className="form-row">
+              <label>Plano de Contas (opcional)</label>
+              <input
+                type="text"
+                value={edit.planoContas}
+                onChange={(e)=>setEdit(v=>({ ...v, planoContas: e.target.value }))}
+              />
+            </div>
+
+            <div className="form-row">
+              <label>Forma de pagamento</label>
+              <input
+                type="text"
+                value={edit.forma}
+                onChange={(e)=>setEdit(v=>({ ...v, forma: e.target.value }))}
+                placeholder="PIX, Débito, Crédito…"
+              />
+            </div>
+
+            <div className="form-row grid-2">
+              <div>
+                <label>Data</label>
+                <input type="date" value={edit.data} onChange={(e)=>setEdit(v=>({ ...v, data: e.target.value }))} />
+              </div>
+              <div>
+                <label>Valor</label>
+                <input type="number" step="0.01" value={edit.valor} onChange={(e)=>setEdit(v=>({ ...v, valor: e.target.value }))} />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
+                <input
+                  type="checkbox"
+                  checked={!!edit.realizado}
+                  onChange={(e)=>setEdit(v=>({ ...v, realizado: e.target.checked }))}
+                />
+                Marcar como realizado
+              </label>
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn-acao" onClick={salvarEdicao} disabled={workingId===edit.id}>Salvar</button>
+              <button className="btn-acao btn-danger" onClick={()=>setEdit(null)}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ERPFooter onBack={()=>setTela?.("HomeERP")} />
     </>
