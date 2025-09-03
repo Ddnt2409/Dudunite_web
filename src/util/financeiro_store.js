@@ -36,8 +36,8 @@ function toYMD(d) {
 function anyToYMD(v) {
   if (!v) return "";
   if (typeof v === "string") {
-    if (/^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0, 10);              // ISO
-    if (/^\d{2}\/\d{2}\/\d{4}/.test(v)) {                                  // BR
+    if (/^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0, 10);
+    if (/^\d{2}\/\d{2}\/\d{4}/.test(v)) {
       const [dd, mm, yyyy] = v.slice(0,10).split("/");
       return `${yyyy}-${mm}-${dd}`;
     }
@@ -202,7 +202,7 @@ export function listenCaixaDiario(ano, mes, onChange, onError) {
   return listenCaixaDiarioRange(ini, fim, onChange, onError);
 }
 
-/** Listener do Caixa (considera dataLancamento → dataPrevista → data → criadoEm/createdEm). */
+/** Listener do Caixa (considera várias datas possíveis). */
 export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
   const { ini, fim } = rangeFromInputs(inicio, fimInc);
   try {
@@ -267,7 +267,7 @@ export function listenCaixaDiarioRange(inicio, fimInc, onChange, onError) {
 export async function fecharCaixaDiario({ diaOrigem, dataBanco, valorParcial = null } = {}) {
   const base = diaOrigem || new Date();
   const bancoD = dataBanco || base;
-  const { ini, fim } = dayRange(base);
+  const { ini } = dayRange(base);
 
   const snap = await getDocs(collection(db, COL_AVULSOS));
   let totalDoDia = 0;
@@ -283,7 +283,7 @@ export async function fecharCaixaDiario({ diaOrigem, dataBanco, valorParcial = n
     if (!raw) return;
     const t = toDateLoose(raw);
     if (!t) return;
-    if (t >= ini && t < fim) {
+    if (toYMD(t) === toYMD(ini)) {
       const v = safeNumber(x.valor ?? (safeNumber(x.valorUnit) * safeNumber(x.quantidade)));
       totalDoDia += v;
     }
@@ -357,8 +357,7 @@ function montarLinhaPrevisto(id, d) {
     id,
     origem: "Previsto",
     data,
-    // usa a descrição quando existir (ex: Contas a Pagar). Fallback para PEDIDO • PDV.
-    descricao: d.descricao || `PEDIDO • ${d.pdv || d.escola || "-"}`,
+    descricao: `PEDIDO • ${d.pdv || d.escola || "-"}`,
     forma: d.formaPagamento || "",
     valor,
   };
@@ -366,7 +365,8 @@ function montarLinhaPrevisto(id, d) {
 
 function montarLinhaRealizado(id, d) {
   const valor = safeNumber(d.valorRealizado != null ? d.valorRealizado : d.valor);
-  const data = d.dataRealizado || anyToYMD(d.data);
+  // >>> mantém no dia do previsto quando existir
+  const data = d.dataPrevista || d.dataRealizado || anyToYMD(d.data);
   return {
     id,
     origem: "Realizado",
@@ -401,7 +401,7 @@ export function listenExtratoBancarioRange(inicio, fimInc, onChange, onError) {
             return;
           }
           if (String(d.conta || "").toUpperCase().includes("EXTRATO")) {
-            const ymd = d.dataRealizado || anyToYMD(d.data);
+            const ymd = d.dataPrevista || d.dataRealizado || anyToYMD(d.data);
             if (ymd && inRangeYMD(ymd, ini, fim)) real.push(montarLinhaRealizado(ds.id, d));
           }
         });
@@ -575,19 +575,16 @@ export async function migrarAvulsosAntigos(ano, mes) {
 
 /* ============ ATUALIZAÇÃO / EXCLUSÃO (edição na UI) ============= */
 
-/** Atualiza um documento do fluxo financeiro (financeiro_fluxo). */
 export async function atualizarFluxo(id, patch = {}) {
   if (!id) throw new Error("ID obrigatório");
   await updateDoc(doc(db, COL_FLUXO, id), { ...patch, atualizadoEm: serverTimestamp() });
 }
 
-/** Exclui um documento do fluxo financeiro (financeiro_fluxo). */
 export async function excluirFluxo(id) {
   if (!id) throw new Error("ID obrigatório");
   await deleteDoc(doc(db, COL_FLUXO, id));
 }
 
-/** Atualiza um avulso no CAIXA DIARIO. */
 export async function atualizarAvulso(id, patch = {}) {
   if (!id) throw new Error("ID obrigatório");
   const fix = { ...patch };
@@ -603,14 +600,7 @@ export async function atualizarAvulso(id, patch = {}) {
   await updateDoc(doc(db, COL_AVULSOS, id), { ...fix, atualizadoEm: serverTimestamp() });
 }
 
-/** Exclui um avulso do CAIXA DIARIO. */
 export async function excluirAvulso(id) {
   if (!id) throw new Error("ID obrigatório");
   await deleteDoc(doc(db, COL_AVULSOS, id));
-}
-
-/* --------- ALIASES p/ compatibilidade com FluxCx.jsx --------- */
-export function updateFluxoLancamento(id, patch)  { return atualizarFluxo(id, patch); }
-export function deleteFluxoLancamento(id)         { return excluirFluxo(id); }
-export function updateAvulsoLancamento(id, patch) { return atualizarAvulso(id, patch); }
-export function deleteAvulsoLancamento(id)        { return excluirAvulso(id); }
+      }
