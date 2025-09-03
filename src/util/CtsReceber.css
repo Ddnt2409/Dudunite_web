@@ -188,3 +188,73 @@ input, select, button{ font-family: inherit; }
   .cr-menu-grid{ grid-template-columns: 1fr; }
   .cr-menu-btn{ min-height: 140px; font-size: 24px; }
 }
+
+
+/* ====== MENU CR – DOIS BOTÕES GRANDES (estilo HomeERP) ====== */
+.cr-menu{
+  display: grid;
+  place-items: center;
+  padding: 14px 10px 84px;
+}
+
+.cr-menu-grid{
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  justify-items: center;
+}
+
+.cr-menu-item{ width: 100%; display: grid; place-items: center; }
+
+/* Botão grande (empilhado no centro) */
+.cr-menu-btn{
+  width: min(92vw, 520px);
+  height: 22vh;                 /* ~50% maior */
+  min-height: 140px;
+  max-height: 240px;
+  border: 0;
+  border-radius: 22px;
+  background: #8c3b1b;
+  color: #fff;
+  white-space: pre-line;         /* respeita o \n do label */
+  font-weight: 800;
+  font-size: 22px;
+  box-shadow: 0 14px 28px rgba(0,0,0,.22);
+  transition: transform .18s ease, opacity .18s ease, background .18s ease;
+  transform: scale(.94);
+  opacity: .85;
+}
+
+/* Estados de foco/inativo como no HomeERP */
+.cr-menu-btn.ativo{
+  transform: scale(1);
+  opacity: 1;
+  background: #7b3c21;
+}
+.cr-menu-btn.inativo{
+  transform: scale(.94);
+  opacity: .72;
+}
+
+/* Toque/clique */
+.cr-menu-btn:active{ transform: scale(.98); }
+
+/* Dropdown (se for usado no futuro) */
+.cr-dropdown{
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+.cr-dropdown > button{
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 800;
+  background: #c46a42;
+  color: #fff;
+}
+
+/* Responsivo */
+@media (max-width: 380px){
+  .cr-menu-btn{ height: 20vh; min-height: 120px; font-size: 20px; }
+}
