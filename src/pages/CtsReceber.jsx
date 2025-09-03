@@ -1,13 +1,19 @@
 import React, { useRef, useState } from "react";
 import "../util/CtsReceber.css";
 
+// telas internas
+import CtsReceberAvulso from "./CtsReceberAvulso.jsx";
+import CtsPagar from "./CtsPagar.jsx";
+
 /**
- * FINANCEIRO (menu) — dois botões grandes ao centro:
- * - Recebimento  -> CtsReceberAvulso
- * - Pagamentos   -> CtsPagar
- * Comportamento igual ao HomeERP: 1º clique foca (zoom), 2º clique navega.
+ * FINANCEIRO (menu) — dois botões grandes ao centro.
+ * NÃO altera App.jsx: tudo acontece dentro desta tela.
  */
 export default function CtsReceber({ setTela }) {
+  // menu | avulsos | pagar
+  const [view, setView] = useState("menu");
+
+  // mesmo comportamento do HomeERP (1º clique foca, 2º navega)
   const [zoomIndex, setZoomIndex] = useState(0);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const touchStartX = useRef(null);
@@ -16,22 +22,21 @@ export default function CtsReceber({ setTela }) {
     {
       label: "🧾\nRecebimento",
       zoomAction: () => setZoomIndex(0),
-      navAction: () => setTela?.("CtsReceberAvulso"),
+      navAction: () => setView("avulsos"),
       dropdown: [],
     },
     {
       label: "📤\nPagamentos",
       zoomAction: () => setZoomIndex(1),
-      navAction: () => setTela?.("CtsPagar"),
+      navAction: () => setView("pagar"),
       dropdown: [],
     },
   ];
 
   function handleClick(idx, btn) {
     if (zoomIndex === idx) {
-      if (!mostrarDropdown) {
-        setMostrarDropdown(true);
-      } else {
+      if (!mostrarDropdown) setMostrarDropdown(true);
+      else {
         setMostrarDropdown(false);
         btn.navAction?.();
       }
@@ -51,9 +56,28 @@ export default function CtsReceber({ setTela }) {
     });
   }
 
+  // ——— VIEWS ———
+  if (view === "avulsos") {
+    // intercepta o "Voltar" do Avulsos (setTela("CtsReceber")) para voltar ao menu
+    const setTelaIntercept = (t) => {
+      if (t === "CtsReceber") setView("menu");
+      else setTela?.(t);
+    };
+    return <CtsReceberAvulso setTela={setTelaIntercept} />;
+  }
+
+  if (view === "pagar") {
+    const setTelaIntercept = (t) => {
+      if (t === "CtsReceber") setView("menu");
+      else setTela?.(t);
+    };
+    return <CtsPagar setTela={setTelaIntercept} />;
+  }
+
+  // ——— MENU (padrão HomeERP) ———
   return (
     <div className="ctsreceber-main">
-      {/* HEADER padrão aprovado */}
+      {/* HEADER */}
       <header className="erp-header">
         <div className="erp-header__inner">
           <div className="erp-header__logo">
@@ -109,9 +133,7 @@ export default function CtsReceber({ setTela }) {
         🔙 Voltar
       </button>
       <footer className="erp-footer">
-        <div className="erp-footer-track">
-          • Financeiro (Recebimento + Pagamentos) •
-        </div>
+        <div className="erp-footer-track">• Financeiro (Recebimento + Pagamentos) •</div>
       </footer>
     </div>
   );
