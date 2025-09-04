@@ -79,6 +79,7 @@ const PLANO_PAGAR = [
   { code: "2.01.03.004", label: "terceiros emp" },
   { code: "2.01.03.005", label: "papelaria emp" },
   { code: "2.01.03.006", label: "equipamentos" },
+  { code: "2.01.03.007", label: "gasolina emp"},
 ];
 
 export default function CtsPagar({ setTela }) {
