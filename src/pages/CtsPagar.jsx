@@ -36,7 +36,7 @@ const PLANO_PAGAR = [
   { code: "1.01.03.001", label: "escolas" },
   { code: "1.01.03.002", label: "academia" },
   { code: "1.01.03.003", label: "personal" },
-  { code: "1.01.03.004", label: "futuro 1" },
+  { code: "1.01.03.004", label: "gasolina" },
   { code: "1.01.03.005", label: "futuro 2" },
   { code: "1.01.03.006", label: "futuro 3" },
   { code: "1.01.04.001", label: "Internet casa (assinaturas)" },
