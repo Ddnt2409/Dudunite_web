@@ -14,17 +14,16 @@ import db from "../firebase";
 import "./LanPed.css";
 import { upsertPrevistoFromLanPed } from "../util/financeiro_store";
 
-// PDF
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// ───────────────── helpers ─────────────────
+// ───────── helpers ─────────
 const money = (n) => `R$ ${Number(n || 0).toFixed(2).replace(".", ",")}`;
 const hojeISO = () => new Date().toISOString().slice(0, 10);
 const brDate = (d) => (d ? new Date(d) : new Date()).toLocaleDateString("pt-BR");
-const UF = "PE"; // todas as cidades estão em PE
+const UF = "PE";
 
-// Sequência 001/AAAA por ano (atômica, reinicia a cada ano)
+// Sequência 01/AAAA (reinicia a cada ano; transação atômica)
 async function getNextPedidoNumero() {
   const year = String(new Date().getFullYear());
   const ref = doc(db, "SEQUENCES", `pedido_${year}`);
@@ -39,11 +38,12 @@ async function getNextPedidoNumero() {
       next = Number(data.next || 1);
       tx.set(ref, { year, next: next + 1 }, { merge: true });
     }
-    return `${String(next).padStart(3, "0")}/${year}`;
+    // ← 2 dígitos conforme solicitado (01/AAAA)
+    return `${String(next).padStart(2, "0")}/${year}`;
   });
 }
 
-// tenta carregar imagem e converter para dataURL (fallback silencioso)
+// pega imagem e retorna dataURL (para logo/marca d’água)
 async function fetchAsDataURL(path) {
   try {
     const res = await fetch(path, { cache: "no-store" });
@@ -99,13 +99,12 @@ export default function LanPed({ setTela }) {
   const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
   const formasPagamento = ["PIX", "Espécie", "Cartão", "Boleto"];
 
-  // ─── TOTAL = SOMA DOS ITENS ADICIONADOS ───────────────────
+  // total = soma dos itens (não do formulário)
   useEffect(() => {
     const soma = itens.reduce((acc, it) => acc + Number(it.total || 0), 0);
     setTotalPedido(soma.toFixed(2));
   }, [itens]);
 
-  // ─── ADICIONA ITEM ──────────────────
   function adicionarItem() {
     if (!produto || quantidade <= 0 || !valorUnitario) {
       alert("Preencha todos os campos de item.");
@@ -126,7 +125,6 @@ export default function LanPed({ setTela }) {
     setValorUnitario("");
   }
 
-  // ─── SALVA PEDIDO ───────────────────
   async function handleSalvar() {
     if (!cidade || !pdv || itens.length === 0 || !formaPagamento) {
       alert("Preencha todos os campos obrigatórios.");
@@ -145,7 +143,6 @@ export default function LanPed({ setTela }) {
     try {
       const ref = await addDoc(collection(db, "PEDIDOS"), novo);
 
-      // → Envia imediatamente ao financeiro como PREVISTO
       await upsertPrevistoFromLanPed(ref.id, {
         cidade,
         pdv,
@@ -158,7 +155,6 @@ export default function LanPed({ setTela }) {
       });
 
       alert("✅ Pedido salvo!");
-      // reset mínimo
       setCidade("");
       setPdv("");
       setItens([]);
@@ -170,7 +166,6 @@ export default function LanPed({ setTela }) {
     }
   }
 
-  // ─── MONITORA STATUS DOS PDVs ───────
   useEffect(() => {
     const ref = collection(db, "PEDIDOS");
     const q = query(ref, orderBy("criadoEm", "asc"));
@@ -184,25 +179,22 @@ export default function LanPed({ setTela }) {
     });
   }, []);
 
-  // ─── PDF + WHATSAPP (COMANDA A5, TERRACOTA) ─────────────────
+  // ─── PDF terracota A5 + WhatsApp ─────────────────
   async function gerarPdfECompartilhar() {
     if (!cidade || !pdv || itens.length === 0 || !formaPagamento) {
       alert("Preencha cidade, PDV, ao menos 1 item e a forma de pagamento.");
       return;
     }
 
-    // número 001/AAAA
-    let numeroComanda = "000/0000";
+    let numeroComanda = "00/0000";
     try {
-      numeroComanda = await getNextPedidoNumero();
-    } catch {
-      /* offline: segue sem bloquear */
-    }
+      numeroComanda = await getNextPedidoNumero(); // 01/AAAA
+    } catch {}
 
     // paleta terracota
     const terra = { r: 123, g: 60, b: 33 }; // #7b3c21
-    const terraLight = { r: 240, g: 224, b: 210 };
-    const grid = { r: 203, g: 168, b: 150 };
+    const terraLight = { r: 245, g: 231, b: 222 }; // bem claro
+    const grid = { r: 173, g: 132, b: 112 };
 
     const doc = new jsPDF({ unit: "pt", format: "a5", compress: true });
     const W = doc.internal.pageSize.getWidth();
@@ -210,48 +202,57 @@ export default function LanPed({ setTela }) {
     const M = 26;
     let y = M;
 
-    doc.setDrawColor(grid.r, grid.g, grid.b);
-    doc.setTextColor(0, 0, 0);
+    // Marca d’água (logo translúcida)
+    try {
+      const logo64 = await fetchAsDataURL("/LogomarcaDDnt2025Vazado.png");
+      if (logo64) {
+        if (doc.GState && doc.setGState) {
+          const gs = new doc.GState({ opacity: 0.12 });
+          doc.setGState(gs);
+          doc.addImage(logo64, "PNG", W / 2 - 150, H / 2 - 80, 300, 160, undefined, "FAST");
+          const gs1 = new doc.GState({ opacity: 1 });
+          doc.setGState(gs1);
+        } else {
+          // fallback sem opacidade (melhor que nada)
+          doc.addImage(logo64, "PNG", W / 2 - 150, H / 2 - 80, 300, 160, undefined, "FAST");
+        }
+      }
+    } catch {}
 
-    // Marca d’água
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(80);
-    doc.setTextColor(235, 220, 210); // clarinho
-    doc.text("DUDUNITÊ", W / 2, H / 2, { align: "center", angle: 20 });
-    doc.setTextColor(0, 0, 0);
-
-    // Cabeçalho: "Pedido Nº"
-    doc.setFillColor(terraLight.r, terraLight.g, terraLight.b);
+    // Cabeçalho: Pedido Nº (pílula terracota clara)
     doc.setDrawColor(terra.r, terra.g, terra.b);
-    doc.roundedRect(M, y, 120, 28, 6, 6, "FD");
-    doc.setFontSize(12);
+    doc.setFillColor(terraLight.r, terraLight.g, terraLight.b);
+    doc.roundedRect(M, y, 120, 28, 8, 8, "FD");
+    doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
     doc.text("Pedido Nº", M + 12, y + 18);
 
     // Caixa do número
-    doc.roundedRect(M + 120 + 6, y, 110, 28, 6, 6, "S");
-    doc.text(numeroComanda, M + 132, y + 18);
+    doc.roundedRect(M + 120 + 8, y, 120, 28, 8, 8, "S");
+    doc.text(numeroComanda, M + 120 + 8 + 12, y + 18);
 
-    // Logo (canto superior direito)
+    // Logo canto superior direito
     try {
       const logo64 = await fetchAsDataURL("/LogomarcaDDnt2025Vazado.png");
-      if (logo64) doc.addImage(logo64, "PNG", W - 110 - M, y - 4, 110, 34, undefined, "FAST");
-    } catch {
-      // se falhar, segue sem logo
-    }
+      if (logo64) {
+        doc.addImage(logo64, "PNG", W - M - 110, y - 2, 110, 32, undefined, "FAST");
+      }
+    } catch {}
 
-    // Vendedor + Data
+    // Bloco Vendedor/Data alinhado à direita (fora das caixas)
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
-    doc.text(`Vendedor: Dudunitê`, M + 120 + 6 + 120 + 10, y + 12);
-    doc.text(`Data: ${brDate(hojeISO())}`, M + 120 + 6 + 120 + 10, y + 24);
+    const rightBoxX = W - M - 160;
+    doc.text(`Vendedor: Dudunitê`, rightBoxX, y + 12);
+    doc.text(`Data: ${brDate(hojeISO())}`, rightBoxX, y + 24);
 
     y += 40;
 
-    // Infos do cliente (linhas terracota)
-    const drawLine = (x1, yy) => doc.line(x1, yy, W - M, yy);
+    // Linhas do cadastro (tom terracota)
     doc.setDrawColor(grid.r, grid.g, grid.b);
     doc.setLineWidth(0.8);
+    const drawLine = (x1, yy) => doc.line(x1, yy, W - M, yy);
 
     doc.text("Cliente:", M, y);
     doc.text(pdv, M + 54, y);
@@ -282,7 +283,7 @@ export default function LanPed({ setTela }) {
     drawLine(M + 40, y + 2);
     y += 10;
 
-    // Tabela de itens
+    // Tabela (cores terracota)
     const body = itens.map((it) => [
       String(it.quantidade),
       it.produto,
@@ -294,27 +295,29 @@ export default function LanPed({ setTela }) {
       startY: y,
       head: [["Qtde.", "Descrição", "Unid.", "Total"]],
       body,
-      styles: { fontSize: 11, lineColor: grid, textColor: [0, 0, 0] },
+      theme: "grid",
+      margin: { left: M, right: M },
+      styles: {
+        fontSize: 11,
+        lineColor: [grid.r, grid.g, grid.b],
+        textColor: [0, 0, 0],
+      },
       headStyles: {
         fillColor: [terraLight.r, terraLight.g, terraLight.b],
         textColor: [0, 0, 0],
         lineColor: [terra.r, terra.g, terra.b],
         halign: "center",
       },
-      theme: "grid",
-      margin: { left: M, right: M },
       columnStyles: {
         0: { cellWidth: 58, halign: "right" },
         2: { cellWidth: 60, halign: "center" },
         3: { cellWidth: 86, halign: "right" },
       },
-      stylesAdditional: { cellPadding: 6 },
-      didDrawPage: () => {},
     });
 
     y = doc.lastAutoTable.finalY + 14;
 
-    // Rodapé em 3 caixas: Forma de Pagamento / Vencimento / Valor total
+    // Rodapé: Forma de pagamento | Vencimento | Valor total do pedido
     const hBox = 54;
     const wBox = (W - M * 2) / 3;
 
@@ -334,7 +337,7 @@ export default function LanPed({ setTela }) {
     doc.setFont("helvetica", "bold");
     doc.text(money(totalPedido), M + wBox * 2 + 10, y + 36);
 
-    // Observações forma/vencimento em linha extra
+    // Linha de observação (opcional)
     y += hBox + 18;
     doc.setFont("helvetica", "normal");
     doc.text(
@@ -345,9 +348,9 @@ export default function LanPed({ setTela }) {
       y
     );
 
-    // Gera blob e compartilha
+    // share
     const pdfBlob = doc.output("blob");
-    const fileName = `Pedido_${numeroComanda}_${pdv}_${hojeISO()}.pdf`;
+    const fileName = `${numeroComanda.replace("/", "-")}_${pdv}_${hojeISO()}.pdf`;
     const file = new File([pdfBlob], fileName, { type: "application/pdf" });
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -358,32 +361,26 @@ export default function LanPed({ setTela }) {
           files: [file],
         });
         return;
-      } catch {
-        /* usuário pode ter cancelado; cai no fallback */
-      }
+      } catch {}
     }
 
-    // Fallback: abrir WhatsApp com texto + link temporário
+    // Fallback: link + texto no WhatsApp
     const url = URL.createObjectURL(pdfBlob);
-    const mensagem =
+    const msg =
       `Pedido ${numeroComanda}\n` +
       `PDV: ${pdv} • Cidade: ${cidade}\n` +
       `Total: ${money(totalPedido)}\n` +
       (dataVencimento ? `Vencimento: ${brDate(dataVencimento)}\n` : "") +
       `PDF: ${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(mensagem)}`, "_blank");
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
-  // ─── UI (mantendo seu layout aprovado) ─────────────────
+  // ─── UI (seu layout aprovado) ─────────────────
   return (
     <div className="lanped-container">
       <div className="lanped-header">
-        <img
-          src="/LogomarcaDDnt2025Vazado.png"
-          alt="Logo Dudunitê"
-          className="lanped-logo"
-        />
+        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo Dudunitê" className="lanped-logo" />
         <h1 className="lanped-titulo">Lançar Pedido</h1>
       </div>
 
@@ -394,7 +391,7 @@ export default function LanPed({ setTela }) {
             value={cidade}
             onChange={(e) => {
               setCidade(e.target.value);
-              setPdv(""); // limpa PDV ao trocar de cidade
+              setPdv("");
             }}
           >
             <option value="">Selecione</option>
@@ -408,11 +405,7 @@ export default function LanPed({ setTela }) {
 
         <div className="lanped-field">
           <label>Ponto de Venda</label>
-          <select
-            value={pdv}
-            onChange={(e) => setPdv(e.target.value)}
-            disabled={!cidade}
-          >
+          <select value={pdv} onChange={(e) => setPdv(e.target.value)} disabled={!cidade}>
             <option value="">Selecione</option>
             {cidade &&
               pdvsPorCidade[cidade].map((p) => (
@@ -462,12 +455,8 @@ export default function LanPed({ setTela }) {
           <ul className="lista-itens">
             {itens.map((it, i) => (
               <li key={i}>
-                {it.quantidade}× {it.produto} — {money(it.valorUnitario)} (Total:{" "}
-                {money(it.total)})
-                <button
-                  className="botao-excluir"
-                  onClick={() => setItens(itens.filter((_, j) => j !== i))}
-                >
+                {it.quantidade}× {it.produto} — {money(it.valorUnitario)} (Total: {money(it.total)})
+                <button className="botao-excluir" onClick={() => setItens(itens.filter((_, j) => j !== i))}>
                   ✖
                 </button>
               </li>
@@ -481,10 +470,7 @@ export default function LanPed({ setTela }) {
 
         <div className="lanped-field">
           <label>Forma de Pagamento</label>
-          <select
-            value={formaPagamento}
-            onChange={(e) => setFormaPagamento(e.target.value)}
-          >
+          <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)}>
             <option value="">Selecione</option>
             {formasPagamento.map((f) => (
               <option key={f} value={f}>
@@ -509,11 +495,7 @@ export default function LanPed({ setTela }) {
 
         <div className="lanped-field">
           <label>Data de Vencimento</label>
-          <input
-            type="date"
-            value={dataVencimento}
-            onChange={(e) => setDataVencimento(e.target.value)}
-          />
+          <input type="date" value={dataVencimento} onChange={(e) => setDataVencimento(e.target.value)} />
         </div>
 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -534,8 +516,8 @@ export default function LanPed({ setTela }) {
       <footer className="lanped-footer">
         <div className="lista-escolas-marquee">
           <span className="marquee-content">
-            • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
-            Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz
+            • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio
+            Valter • Vera Cruz
           </span>
         </div>
         <div className="status-pdvs">
@@ -548,4 +530,4 @@ export default function LanPed({ setTela }) {
       </footer>
     </div>
   );
-}
+          }
