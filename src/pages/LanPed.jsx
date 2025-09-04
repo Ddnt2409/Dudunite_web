@@ -38,21 +38,28 @@ async function getNextPedidoNumero() {
       next = Number(data.next || 1);
       tx.set(ref, { year, next: next + 1 }, { merge: true });
     }
-    // ← 2 dígitos conforme solicitado (01/AAAA)
+    // 2 dígitos: 01/AAAA
     return `${String(next).padStart(2, "0")}/${year}`;
   });
 }
 
-// pega imagem e retorna dataURL (para logo/marca d’água)
-async function fetchAsDataURL(path) {
+// carrega imagem e retorna {dataURL, w, h} para manter proporção
+async function fetchImageInfo(path) {
   try {
     const res = await fetch(path, { cache: "no-store" });
     const blob = await res.blob();
-    return await new Promise((ok) => {
+    const dataURL = await new Promise((ok) => {
       const fr = new FileReader();
       fr.onload = () => ok(fr.result);
       fr.readAsDataURL(blob);
     });
+    const img = await new Promise((ok, err) => {
+      const im = new Image();
+      im.onload = () => ok(im);
+      im.onerror = err;
+      im.src = dataURL;
+    });
+    return { dataURL, w: img.naturalWidth || img.width, h: img.naturalHeight || img.height };
   } catch {
     return null;
   }
@@ -99,7 +106,7 @@ export default function LanPed({ setTela }) {
   const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
   const formasPagamento = ["PIX", "Espécie", "Cartão", "Boleto"];
 
-  // total = soma dos itens (não do formulário)
+  // total = soma dos itens
   useEffect(() => {
     const soma = itens.reduce((acc, it) => acc + Number(it.total || 0), 0);
     setTotalPedido(soma.toFixed(2));
@@ -193,7 +200,7 @@ export default function LanPed({ setTela }) {
 
     // paleta terracota
     const terra = { r: 123, g: 60, b: 33 }; // #7b3c21
-    const terraLight = { r: 245, g: 231, b: 222 }; // bem claro
+    const terraLight = { r: 245, g: 231, b: 222 }; // claro
     const grid = { r: 173, g: 132, b: 112 };
 
     const doc = new jsPDF({ unit: "pt", format: "a5", compress: true });
@@ -202,24 +209,37 @@ export default function LanPed({ setTela }) {
     const M = 26;
     let y = M;
 
-    // Marca d’água (logo translúcida)
-    try {
-      const logo64 = await fetchAsDataURL("/LogomarcaDDnt2025Vazado.png");
-      if (logo64) {
+    // carrega logo (para canto e para marca d'água) mantendo proporção
+    const logoInfo = await fetchImageInfo("/LogomarcaDDnt2025Vazado.png");
+
+    // Marca d’água central, translúcida e proporcional
+    if (logoInfo) {
+      const wmMaxW = W * 0.6;
+      const wmMaxH = H * 0.35;
+      const ratio = logoInfo.w / logoInfo.h;
+      let wmW = wmMaxW;
+      let wmH = wmW / ratio;
+      if (wmH > wmMaxH) {
+        wmH = wmMaxH;
+        wmW = wmH * ratio;
+      }
+      const wmX = (W - wmW) / 2;
+      const wmY = (H - wmH) / 2;
+      try {
         if (doc.GState && doc.setGState) {
-          const gs = new doc.GState({ opacity: 0.12 });
+          const gs = new doc.GState({ opacity: 0.10 });
           doc.setGState(gs);
-          doc.addImage(logo64, "PNG", W / 2 - 150, H / 2 - 80, 300, 160, undefined, "FAST");
+          doc.addImage(logoInfo.dataURL, "PNG", wmX, wmY, wmW, wmH, undefined, "FAST");
           const gs1 = new doc.GState({ opacity: 1 });
           doc.setGState(gs1);
         } else {
-          // fallback sem opacidade (melhor que nada)
-          doc.addImage(logo64, "PNG", W / 2 - 150, H / 2 - 80, 300, 160, undefined, "FAST");
+          // fallback sem opacidade (aceitável)
+          doc.addImage(logoInfo.dataURL, "PNG", wmX, wmY, wmW, wmH, undefined, "FAST");
         }
-      }
-    } catch {}
+      } catch {}
+    }
 
-    // Cabeçalho: Pedido Nº (pílula terracota clara)
+    // Cabeçalho: "Pedido Nº" (pílula) + número
     doc.setDrawColor(terra.r, terra.g, terra.b);
     doc.setFillColor(terraLight.r, terraLight.g, terraLight.b);
     doc.roundedRect(M, y, 120, 28, 8, 8, "FD");
@@ -232,20 +252,31 @@ export default function LanPed({ setTela }) {
     doc.roundedRect(M + 120 + 8, y, 120, 28, 8, 8, "S");
     doc.text(numeroComanda, M + 120 + 8 + 12, y + 18);
 
-    // Logo canto superior direito
-    try {
-      const logo64 = await fetchAsDataURL("/LogomarcaDDnt2025Vazado.png");
-      if (logo64) {
-        doc.addImage(logo64, "PNG", W - M - 110, y - 2, 110, 32, undefined, "FAST");
+    // Logo canto superior direito (sem esticar)
+    let logoW = 0,
+      logoH = 0;
+    if (logoInfo) {
+      const maxW = 110,
+        maxH = 34;
+      const ratio = logoInfo.w / logoInfo.h;
+      logoW = maxW;
+      logoH = logoW / ratio;
+      if (logoH > maxH) {
+        logoH = maxH;
+        logoW = logoH * ratio;
       }
-    } catch {}
+      const lx = W - M - logoW;
+      const ly = y - 2;
+      doc.addImage(logoInfo.dataURL, "PNG", lx, ly, logoW, logoH, undefined, "FAST");
+    }
 
-    // Bloco Vendedor/Data alinhado à direita (fora das caixas)
+    // Vendedor/Data posicionados à esquerda da logo (sem sobrepor)
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
-    const rightBoxX = W - M - 160;
-    doc.text(`Vendedor: Dudunitê`, rightBoxX, y + 12);
-    doc.text(`Data: ${brDate(hojeISO())}`, rightBoxX, y + 24);
+    const rightLimit = W - M - (logoW ? logoW + 12 : 0);
+    const vendorX = Math.max(M + 260, rightLimit - 160);
+    doc.text(`Vendedor: Dudunitê`, vendorX, y + 12);
+    doc.text(`Data: ${brDate(hojeISO())}`, vendorX, y + 24);
 
     y += 40;
 
@@ -337,7 +368,7 @@ export default function LanPed({ setTela }) {
     doc.setFont("helvetica", "bold");
     doc.text(money(totalPedido), M + wBox * 2 + 10, y + 36);
 
-    // Linha de observação (opcional)
+    // Observação alinhada à esquerda
     y += hBox + 18;
     doc.setFont("helvetica", "normal");
     doc.text(
@@ -376,7 +407,7 @@ export default function LanPed({ setTela }) {
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
-  // ─── UI (seu layout aprovado) ─────────────────
+  // ─── UI (layout aprovado) ─────────────────
   return (
     <div className="lanped-container">
       <div className="lanped-header">
@@ -530,4 +561,4 @@ export default function LanPed({ setTela }) {
       </footer>
     </div>
   );
-          }
+}
