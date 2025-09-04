@@ -7,6 +7,8 @@ import {
   query,
   orderBy,
   serverTimestamp,
+  doc,
+  runTransaction,
 } from "firebase/firestore";
 import db from "../firebase";
 import "./LanPed.css";
@@ -16,10 +18,45 @@ import { upsertPrevistoFromLanPed } from "../util/financeiro_store";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// helpers
+// ───────────────── helpers ─────────────────
 const money = (n) => `R$ ${Number(n || 0).toFixed(2).replace(".", ",")}`;
 const hojeISO = () => new Date().toISOString().slice(0, 10);
 const brDate = (d) => (d ? new Date(d) : new Date()).toLocaleDateString("pt-BR");
+const UF = "PE"; // todas as cidades estão em PE
+
+// Sequência 001/AAAA por ano (atômica, reinicia a cada ano)
+async function getNextPedidoNumero() {
+  const year = String(new Date().getFullYear());
+  const ref = doc(db, "SEQUENCES", `pedido_${year}`);
+  return await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    let next = 1;
+    if (!snap.exists()) {
+      tx.set(ref, { year, next: 2 });
+      next = 1;
+    } else {
+      const data = snap.data() || {};
+      next = Number(data.next || 1);
+      tx.set(ref, { year, next: next + 1 }, { merge: true });
+    }
+    return `${String(next).padStart(3, "0")}/${year}`;
+  });
+}
+
+// tenta carregar imagem e converter para dataURL (fallback silencioso)
+async function fetchAsDataURL(path) {
+  try {
+    const res = await fetch(path, { cache: "no-store" });
+    const blob = await res.blob();
+    return await new Promise((ok) => {
+      const fr = new FileReader();
+      fr.onload = () => ok(fr.result);
+      fr.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
 
 export default function LanPed({ setTela }) {
   // ─── STATES ───────────────────────
@@ -147,160 +184,198 @@ export default function LanPed({ setTela }) {
     });
   }, []);
 
-  // ─── PDF (A5 – COMANDA) + WHATSAPP ─────────────────
+  // ─── PDF + WHATSAPP (COMANDA A5, TERRACOTA) ─────────────────
   async function gerarPdfECompartilhar() {
     if (!cidade || !pdv || itens.length === 0 || !formaPagamento) {
       alert("Preencha cidade, PDV, ao menos 1 item e a forma de pagamento.");
       return;
     }
 
-    const doc = new jsPDF({ unit: "pt", format: "a5", compress: true }); // A5 retrato
+    // número 001/AAAA
+    let numeroComanda = "000/0000";
+    try {
+      numeroComanda = await getNextPedidoNumero();
+    } catch {
+      /* offline: segue sem bloquear */
+    }
+
+    // paleta terracota
+    const terra = { r: 123, g: 60, b: 33 }; // #7b3c21
+    const terraLight = { r: 240, g: 224, b: 210 };
+    const grid = { r: 203, g: 168, b: 150 };
+
+    const doc = new jsPDF({ unit: "pt", format: "a5", compress: true });
     const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
     const M = 26;
     let y = M;
 
-    doc.setLineWidth(0.8);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(0);
+    doc.setDrawColor(grid.r, grid.g, grid.b);
+    doc.setTextColor(0, 0, 0);
 
-    // Cabeçalho "Pedido Nº" (barra azul) + vendedor/data
-    doc.setFillColor(33, 150, 243);
-    doc.roundedRect(M, y, 120, 24, 4, 4, "F");
+    // Marca d’água
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(80);
+    doc.setTextColor(235, 220, 210); // clarinho
+    doc.text("DUDUNITÊ", W / 2, H / 2, { align: "center", angle: 20 });
+    doc.setTextColor(0, 0, 0);
+
+    // Cabeçalho: "Pedido Nº"
+    doc.setFillColor(terraLight.r, terraLight.g, terraLight.b);
+    doc.setDrawColor(terra.r, terra.g, terra.b);
+    doc.roundedRect(M, y, 120, 28, 6, 6, "FD");
     doc.setFontSize(12);
-    doc.setTextColor(255);
-    doc.text("Pedido Nº", M + 10, y + 16);
-    doc.setTextColor(0);
-    doc.rect(M + 120, y, 90, 24);
-    doc.text(String(Date.now()).slice(-5), M + 125, y + 16); // número simples
+    doc.setFont("helvetica", "bold");
+    doc.text("Pedido Nº", M + 12, y + 18);
 
+    // Caixa do número
+    doc.roundedRect(M + 120 + 6, y, 110, 28, 6, 6, "S");
+    doc.text(numeroComanda, M + 132, y + 18);
+
+    // Logo (canto superior direito)
+    try {
+      const logo64 = await fetchAsDataURL("/LogomarcaDDnt2025Vazado.png");
+      if (logo64) doc.addImage(logo64, "PNG", W - 110 - M, y - 4, 110, 34, undefined, "FAST");
+    } catch {
+      // se falhar, segue sem logo
+    }
+
+    // Vendedor + Data
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
-    doc.text(`Vendedor: Dudunitê`, W - M - 200, y + 12);
-    doc.text(`Data: ${brDate(hojeISO())}`, W - M - 200, y + 24);
-    y += 36;
+    doc.text(`Vendedor: Dudunitê`, M + 120 + 6 + 120 + 10, y + 12);
+    doc.text(`Data: ${brDate(hojeISO())}`, M + 120 + 6 + 120 + 10, y + 24);
 
-    // Linhas estilo comanda
-    const drawLine = (label, value) => {
-      doc.setFontSize(11);
-      doc.text(label, M, y + 12);
-      doc.line(M + 52, y + 14, W - M, y + 14);
-      if (value) doc.text(String(value), M + 56, y + 12);
-      y += 20;
-    };
+    y += 40;
 
-    drawLine("Cliente:", pdv);
-    drawLine("Endereço:", "");
-    // CEP | Cidade | Estado | Tel
-    let x = M;
-    const triple = [
-      { label: "CEP:", value: "", w: 120 },
-      { label: "Cidade:", value: cidade, w: 180 },
-      { label: "Estado:", value: "PE", w: 80 },
-      { label: "Tel:", value: "", w: 100 },
-    ];
-    doc.setFontSize(11);
-    triple.forEach((col) => {
-      doc.text(col.label, x, y + 12);
-      doc.line(x + 40, y + 14, x + (col.w || 140), y + 14);
-      if (col.value) doc.text(String(col.value), x + 44, y + 12);
-      x += (col.w || 140) + 12;
-    });
-    y += 20;
-    // CNPJ | IE
-    x = M;
-    const duo = [
-      { label: "C.N.P.J.:", value: "", w: 220 },
-      { label: "Inscr. Est.:", value: "", w: 160 },
-    ];
-    duo.forEach((col) => {
-      doc.text(col.label, x, y + 12);
-      doc.line(x + 58, y + 14, x + (col.w || 180), y + 14);
-      if (col.value) doc.text(String(col.value), x + 62, y + 12);
-      x += (col.w || 180) + 12;
-    });
-    y += 20;
-    drawLine("E-mail:", "");
+    // Infos do cliente (linhas terracota)
+    const drawLine = (x1, yy) => doc.line(x1, yy, W - M, yy);
+    doc.setDrawColor(grid.r, grid.g, grid.b);
+    doc.setLineWidth(0.8);
 
-    y += 6;
+    doc.text("Cliente:", M, y);
+    doc.text(pdv, M + 54, y);
+    drawLine(M + 50, y + 2);
+    y += 18;
 
-    // Tabela de itens (com linhas em branco para “cara de comanda”)
-    const head = [["Qtde.", "Descrição", "Unid.", "Total"]];
+    doc.text("Endereço:", M, y);
+    drawLine(M + 60, y + 2);
+    y += 18;
+
+    doc.text("CEP:", M, y);
+    drawLine(M + 30, y + 2);
+    doc.text("Cidade:", M + 160, y);
+    doc.text(cidade, M + 210, y);
+    drawLine(M + 200, y + 2);
+    doc.text("Estado:", W - 140, y);
+    doc.text(UF, W - 84, y);
+    drawLine(W - 96, y + 2);
+    y += 18;
+
+    doc.text("C.N.P.J.:", M, y);
+    drawLine(M + 50, y + 2);
+    doc.text("Inscr. Est.:", M + 250, y);
+    drawLine(M + 310, y + 2);
+    y += 18;
+
+    doc.text("E-mail:", M, y);
+    drawLine(M + 40, y + 2);
+    y += 10;
+
+    // Tabela de itens
     const body = itens.map((it) => [
       String(it.quantidade),
       it.produto,
       "UN",
       money(it.total),
     ]);
-    while (body.length < 12) body.push(["", "", "", ""]); // completa até 12 linhas
 
     autoTable(doc, {
       startY: y,
-      head,
+      head: [["Qtde.", "Descrição", "Unid.", "Total"]],
       body,
-      margin: { left: M, right: M },
-      styles: { fontSize: 11, lineWidth: 0.6 },
-      headStyles: { fillColor: [230, 240, 255], textColor: 0, halign: "left" },
-      columnStyles: {
-        0: { cellWidth: 54 },
-        1: { cellWidth: W - 2 * M - 54 - 60 - 80 },
-        2: { cellWidth: 60, halign: "center" },
-        3: { cellWidth: 80, halign: "right" },
+      styles: { fontSize: 11, lineColor: grid, textColor: [0, 0, 0] },
+      headStyles: {
+        fillColor: [terraLight.r, terraLight.g, terraLight.b],
+        textColor: [0, 0, 0],
+        lineColor: [terra.r, terra.g, terra.b],
+        halign: "center",
       },
       theme: "grid",
+      margin: { left: M, right: M },
+      columnStyles: {
+        0: { cellWidth: 58, halign: "right" },
+        2: { cellWidth: 60, halign: "center" },
+        3: { cellWidth: 86, halign: "right" },
+      },
+      stylesAdditional: { cellPadding: 6 },
+      didDrawPage: () => {},
     });
-    y = doc.lastAutoTable.finalY + 10;
 
-    // Rodapé: Comprador | Visto | Valor total
-    const boxH = 46;
-    const colW = (W - 2 * M) / 3;
+    y = doc.lastAutoTable.finalY + 14;
 
-    doc.text("Comprador", M + 4, y + 12);
-    doc.rect(M, y, colW, boxH);
+    // Rodapé em 3 caixas: Forma de Pagamento / Vencimento / Valor total
+    const hBox = 54;
+    const wBox = (W - M * 2) / 3;
 
-    doc.text("Visto", M + colW + 4, y + 12);
-    doc.rect(M + colW, y, colW, boxH);
+    doc.setDrawColor(grid.r, grid.g, grid.b);
+    doc.rect(M, y, wBox, hBox);
+    doc.rect(M + wBox, y, wBox, hBox);
+    doc.rect(M + wBox * 2, y, wBox, hBox);
 
-    doc.text("Valor total do pedido", M + 2 * colW + 4, y + 12);
     doc.setFont("helvetica", "bold");
-    doc.text(money(totalPedido), M + 2 * colW + 4, y + 30);
+    doc.text("Forma de pagamento", M + 10, y + 16);
+    doc.text("Vencimento", M + wBox + 10, y + 16);
+    doc.text("Valor total do pedido", M + wBox * 2 + 10, y + 16);
+
     doc.setFont("helvetica", "normal");
-    doc.rect(M + 2 * colW, y, colW, boxH);
-    y += boxH + 10;
+    doc.text(formaPagamento || "-", M + 10, y + 36);
+    doc.text(dataVencimento ? brDate(dataVencimento) : "-", M + wBox + 10, y + 36);
+    doc.setFont("helvetica", "bold");
+    doc.text(money(totalPedido), M + wBox * 2 + 10, y + 36);
 
-    // Forma + Vencimento
-    const linhaFinal =
-      `Forma de pagamento: ${formaPagamento}` +
-      (dataVencimento ? `  •  Vencimento: ${brDate(dataVencimento)}` : "");
-    doc.text(linhaFinal, M, y + 12);
+    // Observações forma/vencimento em linha extra
+    y += hBox + 18;
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `Forma de pagamento: ${formaPagamento}${
+        dataVencimento ? `  •  Vencimento: ${brDate(dataVencimento)}` : ""
+      }`,
+      M,
+      y
+    );
 
-    // Blob e compartilhamento
+    // Gera blob e compartilha
     const pdfBlob = doc.output("blob");
-    const file = new File([pdfBlob], `Pedido_${pdv}_${hojeISO()}.pdf`, {
-      type: "application/pdf",
-    });
+    const fileName = `Pedido_${numeroComanda}_${pdv}_${hojeISO()}.pdf`;
+    const file = new File([pdfBlob], fileName, { type: "application/pdf" });
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({
           title: "Pedido Dudunitê",
-          text: "Segue a comanda do pedido.",
+          text: "Segue o pedido em anexo.",
           files: [file],
         });
         return;
       } catch {
-        // usuário cancelou: segue o fallback
+        /* usuário pode ter cancelado; cai no fallback */
       }
     }
 
-    // Fallback: baixa e abre WhatsApp com mensagem
-    doc.save(`Pedido_${pdv}_${hojeISO()}.pdf`);
-    const msg =
-      `PDV: ${pdv} • ${cidade}\n` +
+    // Fallback: abrir WhatsApp com texto + link temporário
+    const url = URL.createObjectURL(pdfBlob);
+    const mensagem =
+      `Pedido ${numeroComanda}\n` +
+      `PDV: ${pdv} • Cidade: ${cidade}\n` +
       `Total: ${money(totalPedido)}\n` +
       (dataVencimento ? `Vencimento: ${brDate(dataVencimento)}\n` : "") +
-      `PDF baixado no aparelho.`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+      `PDF: ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(mensagem)}`, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
+  // ─── UI (mantendo seu layout aprovado) ─────────────────
   return (
     <div className="lanped-container">
       <div className="lanped-header">
@@ -387,8 +462,8 @@ export default function LanPed({ setTela }) {
           <ul className="lista-itens">
             {itens.map((it, i) => (
               <li key={i}>
-                {it.quantidade}× {it.produto} — {money(it.valorUnitario)}{" "}
-                (Total: {money(it.total)})
+                {it.quantidade}× {it.produto} — {money(it.valorUnitario)} (Total:{" "}
+                {money(it.total)})
                 <button
                   className="botao-excluir"
                   onClick={() => setItens(itens.filter((_, j) => j !== i))}
@@ -447,7 +522,7 @@ export default function LanPed({ setTela }) {
           </button>
 
           <button className="botao-salvar" onClick={gerarPdfECompartilhar}>
-            🧾 Gerar PDF (A5) e enviar no WhatsApp
+            🧾 Gerar PDF e enviar no WhatsApp
           </button>
 
           <button className="botao-voltar" onClick={() => setTela("HomePCP")}>
