@@ -428,7 +428,7 @@ export function listenExtratoBancarioRange(inicio, fimInc, onChange, onError) {
 }
 
 /* ============== PREVISTOS (LanPed → financeiro_fluxo) ============== */
-// (restante permanece igual — sem mudanças relevantes)
+
 export async function upsertPrevistoFromLanPed(pedidoId, dados) {
   const agora = serverTimestamp();
   let valor = dados && dados.valorTotal != null ? dados.valorTotal : somaValorPedido(dados || {});
@@ -470,16 +470,89 @@ export async function marcarRealizado(pedidoId, { dataRealizado = new Date(), va
   );
 }
 
-/* ...demais funções (backfill, migração, atualizar/excluir, etc.) ficam idênticas às já enviadas anteriormente... */
-export async function backfillPrevistosDoMes(ano, mes) { /* igual ao enviado antes */ }
-export async function migrarAvulsosAntigos(ano, mes) { /* igual ao enviado antes */ }
+/* ============== PREVISTOS (CtsPagar → financeiro_fluxo) ============== */
+/** Cria lançamentos PREVISTOS de pagar no EXTRATO BANCARIO.
+ *  `lancs`: [{ dataPrevista, valor, forma, planoContas, descricao, meta? }, ...]
+ *  Retorna: { ids: string[], count: number }
+ */
+export async function criarPrevistosPagar(lancs = []) {
+  const batchIds = [];
+  for (let i = 0; i < lancs.length; i++) {
+    const it = lancs[i] || {};
+    const id = `PAGAR_${Date.now().toString(36)}_${i}_${Math.random().toString(36).slice(2,6)}`;
+    await setDoc(
+      doc(db, COL_FLUXO, id),
+      {
+        origem: "PAGAR",
+        conta: "EXTRATO BANCARIO",
+        statusFinanceiro: "Previsto",
+        lado: "SAIDA",
+        tipo: "PAGAR",
+
+        dataPrevista: anyToYMD(it.dataPrevista) || toYMD(new Date()),
+        valorPrevisto: -Math.abs(Number(it.valor || 0)), // saída negativa
+        valorRealizado: null,
+
+        formaPagamento: it.forma || "",
+        planoContas: it.planoContas || "",
+        descricao: it.descricao || "PAGAMENTO",
+
+        meta: it.meta || null,
+        criadoEm: serverTimestamp(),
+        atualizadoEm: serverTimestamp(),
+      },
+      { merge: true }
+    );
+    batchIds.push(id);
+  }
+  return { ids: batchIds, count: batchIds.length };
+}
+
+/* ============== UTIL/MANUTENÇÃO (opcionais) ============== */
+
+/** Recria/garante previstos de PEDIDOS do mês informado. */
+export async function backfillPrevistosDoMes(ano, mes) {
+  const { ini, fim } = monthRange(ano, mes);
+  const snap = await getDocs(collection(db, COL_PEDIDOS));
+  let count = 0;
+  for (const ds of snap.docs) {
+    const d = ds.data() || {};
+    // tenta usar data de vencimento; se não houver, usa criadoEm
+    const ven = anyToYMD(d.dataVencimento || d.vencimento);
+    const created = d.criadoEm && typeof d.criadoEm.toDate === "function" ? d.criadoEm.toDate() : d.criadoEm;
+    const dRef = ven ? new Date(`${ven}T00:00:00`) : toDateLoose(created) || null;
+    if (!dRef) continue;
+    if (dRef >= ini && dRef < fim) {
+      await upsertPrevistoFromLanPed(ds.id, d);
+      count++;
+    }
+  }
+  return { count };
+}
+
+export async function migrarAvulsosAntigos(/* ano, mes */) {
+  // no-op simples para compatibilidade; ajuste se precisar migrar dados legados
+  return { migrados: 0 };
+}
+
+/* ============== CRUD básicos (fluxo/avulso) ============== */
+
 export async function atualizarFluxo(id, patch = {}) {
   if (!id) throw new Error("ID obrigatório");
   await updateDoc(doc(db, COL_FLUXO, id), { ...patch, atualizadoEm: serverTimestamp() });
 }
+
 export async function excluirFluxo(id) {
   if (!id) throw new Error("ID obrigatório");
   await deleteDoc(doc(db, COL_FLUXO, id));
 }
-export async function atualizarAvulso(id, patch = {}) { /* igual ao enviado antes */ }
-export async function excluirAvulso(id) { /* igual ao enviado antes */ }
+
+export async function atualizarAvulso(id, patch = {}) {
+  if (!id) throw new Error("ID obrigatório");
+  await updateDoc(doc(db, COL_AVULSOS, id), { ...patch, atualizadoEm: serverTimestamp() });
+}
+
+export async function excluirAvulso(id) {
+  if (!id) throw new Error("ID obrigatório");
+  await deleteDoc(doc(db, COL_AVULSOS, id));
+        }
