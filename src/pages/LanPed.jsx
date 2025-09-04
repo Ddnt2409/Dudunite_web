@@ -196,17 +196,25 @@ export default function LanPed({ setTela }) {
     // bordas/cores padrão terracota
     doc.setDrawColor(TERRA.r, TERRA.g, TERRA.b);
 
-    // logomarca topo direito (proporcional)
+    // página
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+
+    // logomarca topo direito (proporcional) + cálculo para evitar colisão
+    let logoLeft = pageW - M;
+    let logoW = 0;
+    let logoH = 0;
     const logo = await loadImageSafe("/LogomarcaDDnt2025Vazado.png");
     if (logo) {
       const maxW = 120;
       const ratio = Math.min(maxW / logo.width, 1);
-      const w = logo.width * ratio;
-      const h = logo.height * ratio;
-      doc.addImage(logo, "PNG", doc.internal.pageSize.getWidth() - M - w, M - 6, w, h);
+      logoW = logo.width * ratio;
+      logoH = logo.height * ratio;
+      logoLeft = pageW - M - logoW;
+      doc.addImage(logo, "PNG", logoLeft, M - 6, logoW, logoH);
     }
 
-    // cabeçalho "Pedido Nº" + número + vendedor/data
+    // cabeçalho "Pedido Nº" + número
     const pillH = 28;
     doc.setFillColor(247, 236, 230);
     doc.roundedRect(M, M + 18, 110, pillH, 10, 10, "FD");
@@ -216,15 +224,16 @@ export default function LanPed({ setTela }) {
     doc.roundedRect(M + 120, M + 18, 120, pillH, 10, 10, "S");
     doc.text(numeroPedido, M + 130, M + 18 + 19);
 
+    // Vendedor/Data alinhados à direita ANTES da logo (anti-colisão)
+    const rightEdge = logoW > 0 ? logoLeft - 8 : pageW - M;
     doc.setFont("helvetica", "normal");
-    doc.text(`Vendedor: Dudunitê`, M + 250, M + 18 + 12);
-    doc.text(`Data: ${brDate(hojeISO())}`, M + 250, M + 18 + 26);
+    doc.text("Vendedor: Dudunitê", rightEdge, M + 18 + 12, { align: "right" });
+    doc.text(`Data: ${brDate(hojeISO())}`, rightEdge, M + 18 + 26, { align: "right" });
 
     // bloco dados cliente
     const yBase = M + 18 + pillH + 18;
-    const linha = (y) => doc.line(M, y, doc.internal.pageSize.getWidth() - M, y);
+    const linha = (y) => doc.line(M, y, pageW - M, y);
 
-    doc.setFont("helvetica", "normal");
     doc.text("Cliente:", M, yBase);
     doc.text(pdv, M + 56, yBase);
     linha(yBase + 8);
@@ -255,7 +264,6 @@ export default function LanPed({ setTela }) {
         money(it.total),
       ]),
     ];
-    // +8 linhas vazias
     for (let i = 0; i < EXTRA_ROWS; i++) body.push(["", "", "", ""]);
 
     autoTable(doc, {
@@ -276,16 +284,12 @@ export default function LanPed({ setTela }) {
         2: { cellWidth: 60, halign: "center" },
         3: { cellWidth: 90, halign: "right" },
       },
-      didParseCell(data) {
-        // reduzir fonte do cabeçalho "Forma de pagamento" no quadro de resumo (feito abaixo)
-        // (nada aqui por enquanto)
-      },
     });
 
     let y = doc.lastAutoTable.finalY + 10;
 
     // Quadro resumo (Forma de pagamento / Vencimento / Total)
-    const wTotal = doc.internal.pageSize.getWidth() - 2 * M;
+    const wTotal = pageW - 2 * M;
     const colW = [wTotal * 0.35, wTotal * 0.30, wTotal * 0.35];
     autoTable(doc, {
       startY: y,
@@ -294,7 +298,7 @@ export default function LanPed({ setTela }) {
       theme: "grid",
       styles: { fontSize: 11, lineColor: [TERRA.r, TERRA.g, TERRA.b] },
       headStyles: {
-        fontSize: 10, // <<< menor para caber
+        fontSize: 10, // menor para caber
         fillColor: [247, 236, 230],
         textColor: [60, 40, 30],
         lineColor: [TERRA.r, TERRA.g, TERRA.b],
@@ -307,11 +311,7 @@ export default function LanPed({ setTela }) {
       },
     });
 
-    y = doc.lastAutoTable.finalY + 10;
-
     // Marca d'água central (logo) — proporcional e translúcida
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
     if (logo) {
       const maxW = pageW * 0.45;
       const ratio = Math.min(maxW / logo.width, 1);
@@ -319,7 +319,6 @@ export default function LanPed({ setTela }) {
       const h = logo.height * ratio;
       const x = (pageW - w) / 2;
       const yWM = (pageH - h) / 2 + 10;
-      // opacidade (com fallback se não houver GState)
       const hasG = typeof doc.GState === "function";
       if (hasG) doc.setGState(new doc.GState({ opacity: 0.08 }));
       doc.addImage(logo, "PNG", x, yWM, w, h);
@@ -327,7 +326,7 @@ export default function LanPed({ setTela }) {
     }
 
     // Bloco de contato (sem repetir forma de pgto/vencimento)
-    y += 24;
+    y = doc.lastAutoTable.finalY + 24;
     doc.setFont("helvetica", "bold");
     doc.text("Dudunitê", M, y);
     doc.setFont("helvetica", "normal");
@@ -416,9 +415,12 @@ export default function LanPed({ setTela }) {
           <label>Ponto de Venda</label>
           <select value={pdv} onChange={(e) => setPdv(e.target.value)} disabled={!cidade}>
             <option value="">Selecione</option>
-            {cidade && pdvsPorCidade[cidade].map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
+            {cidade &&
+              pdvsPorCidade[cidade].map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
           </select>
         </div>
 
@@ -427,42 +429,67 @@ export default function LanPed({ setTela }) {
           <select value={produto} onChange={(e) => setProduto(e.target.value)}>
             <option value="">Selecione</option>
             {produtos.map((p) => (
-              <option key={p} value={p}>{p}</option>
+              <option key={p} value={p}>
+                {p}
+              </option>
             ))}
           </select>
         </div>
 
         <div className="lanped-field">
           <label>Quantidade</label>
-          <input type="number" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} />
+          <input
+            type="number"
+            value={quantidade}
+            onChange={(e) => setQuantidade(Number(e.target.value))}
+          />
         </div>
 
         <div className="lanped-field">
           <label>Valor Unitário</label>
-          <input type="number" step="0.01" value={valorUnitario} onChange={(e) => setValorUnitario(e.target.value)} />
+          <input
+            type="number"
+            step="0.01"
+            value={valorUnitario}
+            onChange={(e) => setValorUnitario(e.target.value)}
+          />
         </div>
 
-        <button className="botao-adicionar" onClick={adicionarItem}>➕ Adicionar Item</button>
+        <button className="botao-adicionar" onClick={adicionarItem}>
+          ➕ Adicionar Item
+        </button>
 
         {itens.length > 0 && (
           <ul className="lista-itens">
             {itens.map((it, i) => (
               <li key={i}>
                 {it.quantidade}× {it.produto} — {money(it.valorUnitario)} (Total: {money(it.total)})
-                <button className="botao-excluir" onClick={() => setItens(itens.filter((_, j) => j !== i))}>✖</button>
+                <button
+                  className="botao-excluir"
+                  onClick={() => setItens(itens.filter((_, j) => j !== i))}
+                >
+                  ✖
+                </button>
               </li>
             ))}
           </ul>
         )}
 
-        <div className="total-pedido"><strong>Total:</strong> {money(totalPedido)}</div>
+        <div className="total-pedido">
+          <strong>Total:</strong> {money(totalPedido)}
+        </div>
 
         <div className="lanped-field">
           <label>Forma de Pagamento</label>
-          <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)}>
+          <select
+            value={formaPagamento}
+            onChange={(e) => setFormaPagamento(e.target.value)}
+          >
             <option value="">Selecione</option>
             {formasPagamento.map((f) => (
-              <option key={f} value={f}>{f}</option>
+              <option key={f} value={f}>
+                {f}
+              </option>
             ))}
           </select>
         </div>
@@ -482,7 +509,11 @@ export default function LanPed({ setTela }) {
 
         <div className="lanped-field">
           <label>Data de Vencimento</label>
-          <input type="date" value={dataVencimento} onChange={(e) => setDataVencimento(e.target.value)} />
+          <input
+            type="date"
+            value={dataVencimento}
+            onChange={(e) => setDataVencimento(e.target.value)}
+          />
         </div>
 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -508,4 +539,4 @@ export default function LanPed({ setTela }) {
       </footer>
     </div>
   );
-}
+                                          }
