@@ -9,26 +9,28 @@ import {
   serverTimestamp,
   doc,
   runTransaction,
+  setDoc,
 } from "firebase/firestore";
 import db from "../firebase";
 import "./LanPed.css";
 import { upsertPrevistoFromLanPed } from "../util/financeiro_store";
 
+// PDF
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
 // ===== Helpers =====
 const money = (n) => `R$ ${Number(n || 0).toFixed(2).replace(".", ",")}`;
 const hojeISO = () => new Date().toISOString().slice(0, 10);
-const brDate = (d) => (d ? new Date(d) : new Date()).toLocaleDateString("pt-BR");
+const brDate = (d) =>
+  (d ? new Date(d) : new Date()).toLocaleDateString("pt-BR");
 
-const TERRA = { r: 166, g: 84, b: 53 }; // terracota
-const EXTRA_ROWS_TARGET = 8;             // objetivo (ajusta automático p/ caber)
+// Terracota (linhas e contornos)
+const TERRA = { r: 166, g: 84, b: 53 };
+// Linhas em branco extras
+const EXTRA_ROWS = 8;
 
-// Tipografia (padrão do rodapé)
-const FONT = { base: 11, headSmall: 10, min: 9 };
-
-// Sequência NNN/AAAA (reinicia a cada ano)
+// Sequência 001/AAAA, reinicia a cada ano (transação atômica)
 async function getNextPedidoNumero() {
   const year = String(new Date().getFullYear());
   const ref = doc(db, "SEQUENCES", `pedido_${year}`);
@@ -48,6 +50,7 @@ async function getNextPedidoNumero() {
   return `${String(seq).padStart(3, "0")}/${year}`;
 }
 
+// Carrega imagem com segurança
 async function loadImageSafe(src) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -57,18 +60,8 @@ async function loadImageSafe(src) {
   });
 }
 
-function drawFitText(doc, text, x, y, maxW, baseSize = FONT.base, minSize = FONT.min) {
-  const prev = doc.getFontSize();
-  doc.setFontSize(baseSize);
-  const w = doc.getTextWidth(text);
-  if (w > maxW) doc.setFontSize(Math.max(minSize, Math.floor((baseSize * maxW) / w)));
-  doc.text(text, x, y);
-  doc.setFontSize(prev);
-}
-
-// ===== Componente =====
 export default function LanPed({ setTela }) {
-  // Form state
+  // ===== States =====
   const [cidade, setCidade] = useState("");
   const [pdv, setPdv] = useState("");
   const [produto, setProduto] = useState("");
@@ -80,28 +73,53 @@ export default function LanPed({ setTela }) {
   const [totalPedido, setTotalPedido] = useState("0.00");
   const [statusPorPdv, setStatusPorPdv] = useState({});
 
-  // Dados fixos
+  // Sequência reservada p/ este pedido (evita “pulos”)
+  const [pedidoId, setPedidoId] = useState(null);
+  const [numeroPedido, setNumeroPedido] = useState(null);
+
+  // ===== Dados fixos =====
   const cidades = ["Gravatá", "Recife", "Caruaru"];
   const pdvsPorCidade = {
     Gravatá: [
-      "Pequeno Príncipe", "Salesianas", "Céu Azul", "Russas",
-      "Bora Gastar", "Kaduh", "Empório da Serra", "Degusty",
+      "Pequeno Príncipe",
+      "Salesianas",
+      "Céu Azul",
+      "Russas",
+      "Bora Gastar",
+      "Kaduh",
+      "Empório da Serra",
+      "Degusty",
     ],
     Recife: [
-      "Tio Valter", "Vera Cruz", "Pinheiros", "Dourado",
-      "BMQ", "CFC", "Madre de Deus", "Saber Viver", "Anita Garbaldi",
+      "Tio Valter",
+      "Vera Cruz",
+      "Pinheiros",
+      "Dourado",
+      "BMQ",
+      "CFC",
+      "Madre de Deus",
+      "Saber Viver",
+      "Anita Garibaldi",
     ],
-    Caruaru: ["Interativo", "Sesi", "Motivo", "Jesus Salvador"],
+    Caruaru: [
+      "Interativo",
+      "Exato Sede",
+      "Exato Anexo",
+      "Sesi",
+      "Motivo",
+      "Jesus Salvador",
+    ],
   };
   const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
   const formasPagamento = ["PIX", "Espécie", "Cartão", "Boleto"];
 
-  // Total é a soma dos itens adicionados
+  // ===== Total = soma dos itens adicionados =====
   useEffect(() => {
     const soma = itens.reduce((acc, it) => acc + Number(it.total || 0), 0);
     setTotalPedido(soma.toFixed(2));
   }, [itens]);
 
+  // ===== Adiciona item =====
   function adicionarItem() {
     if (!produto || quantidade <= 0 || !valorUnitario) {
       alert("Preencha todos os campos de item.");
@@ -117,41 +135,88 @@ export default function LanPed({ setTela }) {
         total: totalItem.toFixed(2),
       },
     ]);
-    setProduto(""); setQuantidade(1); setValorUnitario("");
+    setProduto("");
+    setQuantidade(1);
+    setValorUnitario("");
   }
 
+  // ===== Sequência: reserva/recupera para ESTE pedido =====
+  async function ensureNumeroPedido({ persist = false } = {}) {
+    if (numeroPedido) return numeroPedido;
+    const num = await getNextPedidoNumero();
+    setNumeroPedido(num);
+    if (persist && pedidoId) {
+      await setDoc(
+        doc(db, "PEDIDOS", pedidoId),
+        { numeroPedido: num },
+        { merge: true }
+      );
+    }
+    return num;
+  }
+
+  // ===== Salvar Pedido =====
   async function handleSalvar() {
     if (!cidade || !pdv || itens.length === 0 || !formaPagamento) {
-      alert("Preencha todos os campos obrigatórios."); return;
+      alert("Preencha todos os campos obrigatórios.");
+      return;
     }
+
+    // reserva/recupera a sequência para ESTE pedido
+    const num = await ensureNumeroPedido();
+
     const novo = {
-      cidade, escola: pdv, itens, formaPagamento,
+      cidade,
+      escola: pdv,
+      itens,
+      formaPagamento,
       dataVencimento: dataVencimento || null,
       total: Number(totalPedido),
       statusEtapa: "Lançado",
       criadoEm: serverTimestamp(),
+      numeroPedido: num,
     };
+
     try {
       const ref = await addDoc(collection(db, "PEDIDOS"), novo);
+      setPedidoId(ref.id);
+
+      // → envia ao financeiro como PREVISTO
       await upsertPrevistoFromLanPed(ref.id, {
-        cidade, pdv, escola: pdv, itens, formaPagamento, dataVencimento,
-        valorTotal: Number(novo.total) || undefined, criadoEm: new Date(),
+        cidade,
+        pdv,
+        escola: pdv,
+        itens,
+        formaPagamento,
+        dataVencimento,
+        valorTotal: Number(novo.total) || undefined,
+        criadoEm: new Date(),
       });
+
       alert("✅ Pedido salvo!");
-      setCidade(""); setPdv(""); setItens([]); setFormaPagamento("");
-      setDataVencimento(""); setTotalPedido("0.00");
+
+      // reset
+      setCidade("");
+      setPdv("");
+      setItens([]);
+      setFormaPagamento("");
+      setDataVencimento("");
+      setTotalPedido("0.00");
+      setNumeroPedido(null);
+      setPedidoId(null);
     } catch {
       alert("❌ Falha ao salvar.");
     }
   }
 
+  // ===== Monitora status dos PDVs =====
   useEffect(() => {
     const ref = collection(db, "PEDIDOS");
     const q = query(ref, orderBy("criadoEm", "asc"));
     return onSnapshot(q, (snap) => {
       const m = {};
-      snap.docs.forEach((doc) => {
-        const d = doc.data();
+      snap.docs.forEach((docu) => {
+        const d = docu.data();
         if (d.escola) m[d.escola] = d.statusEtapa;
       });
       setStatusPorPdv(m);
@@ -165,253 +230,354 @@ export default function LanPed({ setTela }) {
       return;
     }
 
-    const numeroPedido = await getNextPedidoNumero();
+    // usa a reserva (não consome mais de uma vez)
+    const numero = await ensureNumeroPedido();
 
-    const doc = new jsPDF({ unit: "pt", format: "a5", orientation: "portrait" });
-    const M = 32;
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
+    const docPdf = new jsPDF({
+      unit: "pt",
+      format: "a5",
+      orientation: "portrait",
+    });
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(FONT.base);
-    doc.setTextColor(0, 0, 0);
-    doc.setDrawColor(TERRA.r, TERRA.g, TERRA.b);
+    const M = 32; // margem
+    const pageW = docPdf.internal.pageSize.getWidth();
+    const pageH = docPdf.internal.pageSize.getHeight();
+    const innerW = pageW - 2 * M;
 
-    // Logo topo direito
-    let logoLeft = pageW - M, logoW = 0, logoH = 0;
+    docPdf.setFont("helvetica", "normal");
+    docPdf.setTextColor(0, 0, 0);
+    docPdf.setDrawColor(TERRA.r, TERRA.g, TERRA.b);
+
+    // Topo: Vendedor/Data (linha única)
+    docPdf.setFontSize(11);
+    docPdf.text(
+      `Vendedor: Dudunitê • Data: ${brDate(hojeISO())}`,
+      M,
+      M + 6
+    );
+
+    // Logo topo direito (proporcional)
     const logo = await loadImageSafe("/LogomarcaDDnt2025Vazado.png");
     if (logo) {
-      const maxW = 120;
+      const maxW = 124;
       const ratio = Math.min(maxW / logo.width, 1);
-      logoW = logo.width * ratio;
-      logoH = logo.height * ratio;
-      logoLeft = pageW - M - logoW;
-      doc.addImage(logo, "PNG", logoLeft, M - 6, logoW, logoH);
+      const w = logo.width * ratio;
+      const h = logo.height * ratio;
+      docPdf.addImage(
+        logo,
+        "PNG",
+        pageW - M - w,
+        M + 6,
+        w,
+        h
+      );
     }
 
-    // Cabeçalho (uma linha)
-    const headerText = `Vendedor: Dudunitê • Data: ${brDate(hojeISO())}`;
-    const headerMaxW = logoW > 0 ? logoLeft - M - 8 : pageW - 2 * M;
-    drawFitText(doc, headerText, M, M + 8, headerMaxW, FONT.base, FONT.min);
+    // “Pedido Nº” + número (pílulas)
+    const pillH = 26;
+    docPdf.setFillColor(247, 236, 230);
+    docPdf.roundedRect(M, M + 20, 110, pillH, 10, 10, "FD");
+    docPdf.setFont("helvetica", "bold");
+    docPdf.setFontSize(11);
+    docPdf.text("Pedido Nº", M + 12, M + 20 + 17);
 
-    // Pill "Pedido Nº" + número
-    const pillH = 24;
-    doc.setFillColor(247, 236, 230);
-    doc.roundedRect(M, M + 22, 110, pillH, 10, 10, "FD");
-    doc.setFont("helvetica", "bold"); doc.setFontSize(FONT.base);
-    doc.text("Pedido Nº", M + 10, M + 22 + 16);
+    docPdf.roundedRect(M + 120, M + 20, 120, pillH, 10, 10, "S");
+    docPdf.text(numero, M + 130, M + 20 + 17);
 
-    doc.roundedRect(M + 120, M + 22, 120, pillH, 10, 10, "S");
-    doc.text(numeroPedido, M + 130, M + 22 + 16);
+    // Dados do cliente
+    let y = M + 20 + pillH + 18;
+    const linha = (yy) => docPdf.line(M, yy, pageW - M, yy);
 
-    // Bloco cliente
-    const yBase = M + 22 + pillH + 18;
-    const linha = (y) => doc.line(M, y, pageW - M, y);
+    docPdf.setFont("helvetica", "normal");
+    docPdf.setFontSize(11);
 
-    doc.setFont("helvetica", "normal"); doc.setFontSize(FONT.base);
-    doc.text("Cliente:", M, yBase);     doc.text(pdv, M + 56, yBase); linha(yBase + 8);
-    doc.text("Endereço:", M, yBase + 24); linha(yBase + 32);
-    doc.text("CEP:", M, yBase + 48);
-    doc.text("Cidade:", M + 120, yBase + 48); doc.text(cidade, M + 180, yBase + 48);
-    doc.text("Estado:", M + 300, yBase + 48); linha(yBase + 56);
-    doc.text("C.N.P.J.:", M, yBase + 72); doc.text("Inscr. Est.:", M + 240, yBase + 72); linha(yBase + 80);
-    doc.text("E-mail:", M, yBase + 96); linha(yBase + 104);
+    docPdf.text("Cliente:", M, y);
+    docPdf.text(pdv, M + 56, y);
+    linha(y + 8);
 
-    // ===== TABELA DE ITENS =====
-    const tableStartY = yBase + 120;
+    docPdf.text("Endereço:", M, y + 24);
+    linha(y + 32);
 
-    // Estimativas de altura para caber tudo em 1 página
-    const rowH = 22;          // ~ FONT.base + paddings
-    const headH = 22;
-    const resumoH = rowH * 2 + 10; // header+linha + espacinho
-    const rodapeH = 96;            // “Dudunitê” + 4 linhas + margens
-    const bottomGuard = M;
+    docPdf.text("CEP:", M, y + 48);
+    docPdf.text("Cidade:", M + 120, y + 48);
+    docPdf.text(cidade, M + 180, y + 48);
+    docPdf.text("Estado:", M + 300, y + 48);
+    linha(y + 56);
 
-    // quanto espaço sobra para linhas da tabela?
-    const availForRows =
-      pageH - (tableStartY + resumoH + rodapeH + bottomGuard);
+    docPdf.text("C.N.P.J.:", M, y + 72);
+    docPdf.text("Inscr. Est.:", M + 240, y + 72);
+    linha(y + 80);
 
-    // quantas linhas cabem no total (já contando cabeçalho da tabela)
-    const totalRowsCap = Math.max(0, Math.floor((availForRows - headH) / rowH));
+    docPdf.text("E-mail:", M, y + 96);
+    linha(y + 104);
 
-    // linhas em branco que cabem mantendo objetivo 8 quando possível
-    const extraRows =
-      Math.max(0, Math.min(EXTRA_ROWS_TARGET, totalRowsCap - itens.length));
+    // ===== Tabela de itens =====
+    const startItemsY = y + 120;
+
+    // Larguras fixas para caber exatamente no miolo (innerW)
+    const wQtde = 55;
+    const wDesc = innerW - (wQtde + 50 + 75); // unid + total
+    const wUnid = 50;
+    const wTot = 75;
 
     const head = [["Qtde.", "Descrição", "Unid.", "Total"]];
     const body = [
-      ...itens.map((it) => [String(it.quantidade), it.produto, "UN", money(it.total)]),
-      ...Array.from({ length: extraRows }, () => ["", "", "", ""]),
+      ...itens.map((it) => [
+        String(it.quantidade),
+        it.produto,
+        "UN",
+        money(it.total),
+      ]),
     ];
+    // + linhas em branco
+    for (let i = 0; i < EXTRA_ROWS; i++) body.push(["", "", "", ""]);
 
-    const availW = pageW - 2 * M;
-    const cw = [0.14, 0.50, 0.12, 0.24].map((p) => p * availW);
-
-    autoTable(doc, {
-      startY: tableStartY,
+    autoTable(docPdf, {
+      startY: startItemsY,
       head,
       body,
+      theme: "grid",
       styles: {
-        fontSize: FONT.base,
+        fontSize: 11,
         lineColor: [TERRA.r, TERRA.g, TERRA.b],
         cellPadding: 6,
-        overflow: "linebreak",
       },
       headStyles: {
-        fontSize: FONT.headSmall,
+        fontSize: 11,
         fillColor: [247, 236, 230],
         textColor: [60, 40, 30],
         lineColor: [TERRA.r, TERRA.g, TERRA.b],
       },
-      theme: "grid",
       margin: { left: M, right: M },
       columnStyles: {
-        0: { cellWidth: cw[0], halign: "center" },
-        1: { cellWidth: cw[1] },
-        2: { cellWidth: cw[2], halign: "center" },
-        3: { cellWidth: cw[3], halign: "right" },
+        0: { cellWidth: wQtde, halign: "center" },
+        1: { cellWidth: wDesc },
+        2: { cellWidth: wUnid, halign: "center" },
+        3: { cellWidth: wTot, halign: "right" },
       },
     });
 
-    let y = doc.lastAutoTable.finalY + 10;
+    y = docPdf.lastAutoTable.finalY + 10;
 
-    // Quadro resumo
-    const wTotal = pageW - 2 * M;
-    const colW = [wTotal * 0.35, wTotal * 0.30, wTotal * 0.35];
-    autoTable(doc, {
+    // ===== Quadro Resumo =====
+    const payW = Math.round(innerW * 0.36);
+    const venW = Math.round(innerW * 0.28);
+    const totW = innerW - payW - venW;
+
+    autoTable(docPdf, {
       startY: y,
       head: [["Forma de pagamento", "Vencimento", "Valor total do pedido"]],
-      body: [[formaPagamento, dataVencimento ? brDate(dataVencimento) : "-", money(totalPedido)]],
+      body: [
+        [
+          formaPagamento,
+          dataVencimento ? brDate(dataVencimento) : "-",
+          money(totalPedido),
+        ],
+      ],
       theme: "grid",
-      styles: { fontSize: FONT.base, lineColor: [TERRA.r, TERRA.g, TERRA.b] },
+      styles: {
+        fontSize: 11,
+        lineColor: [TERRA.r, TERRA.g, TERRA.b],
+        cellPadding: 6,
+      },
       headStyles: {
-        fontSize: FONT.headSmall,
+        fontSize: 10, // menor para caber
         fillColor: [247, 236, 230],
         textColor: [60, 40, 30],
         lineColor: [TERRA.r, TERRA.g, TERRA.b],
       },
       margin: { left: M, right: M },
       columnStyles: {
-        0: { cellWidth: colW[0] },
-        1: { cellWidth: colW[1], halign: "left" },
-        2: { cellWidth: colW[2], halign: "right" },
+        0: { cellWidth: payW },
+        1: { cellWidth: venW, halign: "left" },
+        2: { cellWidth: totW, halign: "right" },
       },
     });
 
-    // Marca d’água
+    y = docPdf.lastAutoTable.finalY + 14;
+
+    // ===== Marca d'água central (logo translúcida) =====
     if (logo) {
-      const maxW = pageW * 0.45;
+      const maxW = pageW * 0.46;
       const ratio = Math.min(maxW / logo.width, 1);
       const w = logo.width * ratio;
       const h = logo.height * ratio;
       const x = (pageW - w) / 2;
-      const yWM = (pageH - h) / 2 + 10;
-      const hasG = typeof doc.GState === "function";
-      if (hasG) doc.setGState(new doc.GState({ opacity: 0.08 }));
-      doc.addImage(logo, "PNG", x, yWM, w, h);
-      if (hasG) doc.setGState(new doc.GState({ opacity: 1 }));
+      const yWM = (pageH - h) / 2 + 6;
+      const hasG = typeof docPdf.GState === "function";
+      if (hasG) docPdf.setGState(new docPdf.GState({ opacity: 0.08 }));
+      docPdf.addImage(logo, "PNG", x, yWM, w, h);
+      if (hasG) docPdf.setGState(new docPdf.GState({ opacity: 1 }));
     }
 
-    // Rodapé (garantido caber — por causa do cálculo acima)
-    y = doc.lastAutoTable.finalY + 24;
-    doc.setFont("helvetica", "bold"); doc.setFontSize(FONT.base);
-    doc.text("Dudunitê", M, y);
-    doc.setFont("helvetica", "normal");
+    // ===== Bloco de contato =====
+    const rodapeAlt = 56; // ~altura usada pelo texto do rodapé
+    if (y + rodapeAlt > pageH - M) {
+      docPdf.addPage("a5", "portrait");
+      y = M;
+    }
 
-    const ig = await loadImageSafe("/ig.png");
-    const wa = await loadImageSafe("/wa.png");
-    const iconSize = 12;
-    let y2 = y + 16;
+    docPdf.setFont("helvetica", "bold");
+    docPdf.setFontSize(11);
+    docPdf.text("Dudunitê", M, y);
+    docPdf.setFont("helvetica", "normal");
 
-    if (ig) { doc.addImage(ig, "PNG", M, y2 - iconSize + 2, iconSize, iconSize); doc.text("@dudunite", M + iconSize + 6, y2); }
-    else { doc.text("Instagram: @dudunite", M, y2); }
+    y += 16;
+    docPdf.text("Instagram: @dudunite", M, y);
+    y += 14;
+    docPdf.text("WhatsApp: 81998889360", M, y);
+    y += 14;
+    docPdf.text("Janela de pedidos: toda quinta/sexta feira", M, y);
+    y += 14;
+    docPdf.text("Entrega: toda segunda feira", M, y);
 
-    y2 += 16;
-    if (wa) { doc.addImage(wa, "PNG", M, y2 - iconSize + 2, iconSize, iconSize); doc.text("81998889360", M + iconSize + 6, y2); }
-    else { doc.text("WhatsApp: 81998889360", M, y2); }
-
-    y2 += 16; doc.text("Janela de pedidos: toda quinta/sexta feira", M, y2);
-    y2 += 14; doc.text("Entrega: toda segunda feira", M, y2);
-
-    // Compartilhamento
-    const pdfBlob = doc.output("blob");
-    const file = new File([pdfBlob], `${numeroPedido}_${pdv}_${hojeISO()}.pdf`, { type: "application/pdf" });
+    // ===== Compartilhar =====
+    const pdfBlob = docPdf.output("blob");
+    const file = new File([pdfBlob], `${numero}_${pdv}_${hojeISO()}.pdf`, {
+      type: "application/pdf",
+    });
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
-        await navigator.share({ title: `Pedido ${numeroPedido} - ${pdv}`, text: "Segue o pedido em anexo.", files: [file] });
+        await navigator.share({
+          title: `Pedido ${numero} - ${pdv}`,
+          text: "Segue o pedido em anexo.",
+          files: [file],
+        });
         return;
-      } catch {}
+      } catch (e) {
+        // cancelado → usa fallback
+      }
     }
+
     const url = URL.createObjectURL(pdfBlob);
-    const msg = `Pedido ${numeroPedido}\nPDV: ${pdv}\nCidade: ${cidade}\nTotal: ${money(totalPedido)}\nPDF: ${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+    const mensagem =
+      `Pedido ${numero}\nPDV: ${pdv}\nCidade: ${cidade}\n` +
+      `Total: ${money(totalPedido)}\nPDF: ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(mensagem)}`, "_blank");
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
-  // ==== UI ====
   return (
     <div className="lanped-container">
       <div className="lanped-header">
-        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo Dudunitê" className="lanped-logo" />
+        <img
+          src="/LogomarcaDDnt2025Vazado.png"
+          alt="Logo Dudunitê"
+          className="lanped-logo"
+        />
         <h1 className="lanped-titulo">Lançar Pedido</h1>
       </div>
 
       <div className="lanped-formulario">
         <div className="lanped-field">
           <label>Cidade</label>
-          <select value={cidade} onChange={(e) => { setCidade(e.target.value); setPdv(""); }}>
+          <select
+            value={cidade}
+            onChange={(e) => {
+              setCidade(e.target.value);
+              setPdv("");
+            }}
+          >
             <option value="">Selecione</option>
-            {cidades.map((c) => <option key={c} value={c}>{c}</option>)}
+            {cidades.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
         </div>
 
         <div className="lanped-field">
           <label>Ponto de Venda</label>
-          <select value={pdv} onChange={(e) => setPdv(e.target.value)} disabled={!cidade}>
+          <select
+            value={pdv}
+            onChange={(e) => setPdv(e.target.value)}
+            disabled={!cidade}
+          >
             <option value="">Selecione</option>
-            {cidade && pdvsPorCidade[cidade].map((p) => <option key={p} value={p}>{p}</option>)}
+            {cidade &&
+              pdvsPorCidade[cidade].map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
           </select>
         </div>
 
         <div className="lanped-field">
           <label>Produto</label>
-          <select value={produto} onChange={(e) => setProduto(e.target.value)}>
+          <select
+            value={produto}
+            onChange={(e) => setProduto(e.target.value)}
+          >
             <option value="">Selecione</option>
-            {produtos.map((p) => <option key={p} value={p}>{p}</option>)}
+            {produtos.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
           </select>
         </div>
 
         <div className="lanped-field">
           <label>Quantidade</label>
-          <input type="number" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} />
+          <input
+            type="number"
+            value={quantidade}
+            onChange={(e) => setQuantidade(Number(e.target.value))}
+          />
         </div>
 
         <div className="lanped-field">
           <label>Valor Unitário</label>
-          <input type="number" step="0.01" value={valorUnitario} onChange={(e) => setValorUnitario(e.target.value)} />
+          <input
+            type="number"
+            step="0.01"
+            value={valorUnitario}
+            onChange={(e) => setValorUnitario(e.target.value)}
+          />
         </div>
 
-        <button className="botao-adicionar" onClick={adicionarItem}>➕ Adicionar Item</button>
+        <button className="botao-adicionar" onClick={adicionarItem}>
+          ➕ Adicionar Item
+        </button>
 
         {itens.length > 0 && (
           <ul className="lista-itens">
             {itens.map((it, i) => (
               <li key={i}>
-                {it.quantidade}× {it.produto} — {money(it.valorUnitario)} (Total: {money(it.total)})
-                <button className="botao-excluir" onClick={() => setItens(itens.filter((_, j) => j !== i))}>✖</button>
+                {it.quantidade}× {it.produto} — {money(it.valorUnitario)}{" "}
+                (Total: {money(it.total)})
+                <button
+                  className="botao-excluir"
+                  onClick={() =>
+                    setItens(itens.filter((_, j) => j !== i))
+                  }
+                >
+                  ✖
+                </button>
               </li>
             ))}
           </ul>
         )}
 
-        <div className="total-pedido"><strong>Total:</strong> {money(totalPedido)}</div>
+        <div className="total-pedido">
+          <strong>Total:</strong> {money(totalPedido)}
+        </div>
 
         <div className="lanped-field">
           <label>Forma de Pagamento</label>
-          <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)}>
+          <select
+            value={formaPagamento}
+            onChange={(e) => setFormaPagamento(e.target.value)}
+          >
             <option value="">Selecione</option>
-            {formasPagamento.map((f) => <option key={f} value={f}>{f}</option>)}
+            {formasPagamento.map((f) => (
+              <option key={f} value={f}>
+                {f}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -430,20 +596,33 @@ export default function LanPed({ setTela }) {
 
         <div className="lanped-field">
           <label>Data de Vencimento</label>
-          <input type="date" value={dataVencimento} onChange={(e) => setDataVencimento(e.target.value)} />
+          <input
+            type="date"
+            value={dataVencimento}
+            onChange={(e) => setDataVencimento(e.target.value)}
+          />
         </div>
 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button className="botao-salvar" onClick={handleSalvar}>💾 Salvar Pedido</button>
-          <button className="botao-salvar" onClick={gerarPdfECompartilhar}>🧾 Gerar PDF e enviar no WhatsApp</button>
-          <button className="botao-voltar" onClick={() => setTela("HomePCP")}>🔙 Voltar</button>
+          <button className="botao-salvar" onClick={handleSalvar}>
+            💾 Salvar Pedido
+          </button>
+
+          <button className="botao-salvar" onClick={gerarPdfECompartilhar}>
+            🧾 Gerar PDF e enviar no WhatsApp
+          </button>
+
+          <button className="botao-voltar" onClick={() => setTela("HomePCP")}>
+            🔙 Voltar
+          </button>
         </div>
       </div>
 
       <footer className="lanped-footer">
         <div className="lista-escolas-marquee">
           <span className="marquee-content">
-            • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz
+            • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar •
+            Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz
           </span>
         </div>
         <div className="status-pdvs">
@@ -456,4 +635,4 @@ export default function LanPed({ setTela }) {
       </footer>
     </div>
   );
-            }
+      }
