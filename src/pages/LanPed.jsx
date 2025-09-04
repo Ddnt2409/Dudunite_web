@@ -53,17 +53,13 @@ async function loadImageSafe(src) {
   });
 }
 
-// escreve uma linha ajustando a fonte para caber em maxW (sem quebrar)
 function drawFitText(doc, text, x, y, maxW, baseSize = 12, minSize = 9) {
-  const prevSize = doc.getFontSize();
+  const prev = doc.getFontSize();
   doc.setFontSize(baseSize);
-  let w = doc.getTextWidth(text);
-  if (w > maxW) {
-    const fitted = Math.max(minSize, Math.floor((baseSize * maxW) / w));
-    doc.setFontSize(fitted);
-  }
+  const w = doc.getTextWidth(text);
+  if (w > maxW) doc.setFontSize(Math.max(minSize, Math.floor((baseSize * maxW) / w)));
   doc.text(text, x, y);
-  doc.setFontSize(prevSize);
+  doc.setFontSize(prev);
 }
 
 export default function LanPed({ setTela }) {
@@ -153,7 +149,6 @@ export default function LanPed({ setTela }) {
     try {
       const ref = await addDoc(collection(db, "PEDIDOS"), novo);
 
-      // → Envia ao financeiro como PREVISTO
       await upsertPrevistoFromLanPed(ref.id, {
         cidade,
         pdv,
@@ -201,7 +196,7 @@ export default function LanPed({ setTela }) {
     const numeroPedido = await getNextPedidoNumero();
 
     const doc = new jsPDF({ unit: "pt", format: "a5", orientation: "portrait" });
-    const M = 32; // margem
+    const M = 32;
     doc.setFont("helvetica", "normal");
     doc.setTextColor(0, 0, 0);
     doc.setDrawColor(TERRA.r, TERRA.g, TERRA.b);
@@ -209,10 +204,9 @@ export default function LanPed({ setTela }) {
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
 
-    // LOGO topo direito (proporcional)
+    // Logo topo direito (proporcional)
     let logoLeft = pageW - M;
-    let logoW = 0;
-    let logoH = 0;
+    let logoW = 0, logoH = 0;
     const logo = await loadImageSafe("/LogomarcaDDnt2025Vazado.png");
     if (logo) {
       const maxW = 120;
@@ -223,11 +217,10 @@ export default function LanPed({ setTela }) {
       doc.addImage(logo, "PNG", logoLeft, M - 6, logoW, logoH);
     }
 
-    // >>> CABEÇALHO EM UMA LINHA (ANTES de Pedido Nº) <<<
+    // Cabeçalho em uma linha (não invade logo)
     const headerText = `Vendedor: Dudunitê • Data: ${brDate(hojeISO())}`;
     const headerMaxW = logoW > 0 ? logoLeft - M - 8 : pageW - 2 * M;
-    doc.setFont("helvetica", "normal");
-    drawFitText(doc, headerText, M, M + 8, headerMaxW, 12, 9); // evita invadir a logo
+    drawFitText(doc, headerText, M, M + 8, headerMaxW, 12, 9);
 
     // "Pedido Nº" + número
     const pillH = 28;
@@ -235,11 +228,10 @@ export default function LanPed({ setTela }) {
     doc.roundedRect(M, M + 22, 110, pillH, 10, 10, "FD");
     doc.setFont("helvetica", "bold");
     doc.text("Pedido Nº", M + 10, M + 22 + 19);
-
     doc.roundedRect(M + 120, M + 22, 120, pillH, 10, 10, "S");
     doc.text(numeroPedido, M + 130, M + 22 + 19);
 
-    // BLOCO CLIENTE
+    // Bloco cliente
     const yBase = M + 22 + pillH + 18;
     const linha = (y) => doc.line(M, y, pageW - M, y);
 
@@ -264,23 +256,26 @@ export default function LanPed({ setTela }) {
     doc.text("E-mail:", M, yBase + 96);
     linha(yBase + 104);
 
-    // Tabela de ITENS
+    // ===== TABELA DE ITENS (colunas ajustadas ao espaço útil) =====
     const head = [["Qtde.", "Descrição", "Unid.", "Total"]];
     const body = [
-      ...itens.map((it) => [
-        String(it.quantidade),
-        it.produto,
-        "UN",
-        money(it.total),
-      ]),
+      ...itens.map((it) => [String(it.quantidade), it.produto, "UN", money(it.total)]),
     ];
     for (let i = 0; i < EXTRA_ROWS; i++) body.push(["", "", "", ""]);
+
+    const avail = pageW - 2 * M;                    // largura útil
+    const cw = [0.14, 0.50, 0.12, 0.24].map(p => p * avail); // soma 1.0 → cabe certinho
 
     autoTable(doc, {
       startY: yBase + 120,
       head,
       body,
-      styles: { fontSize: 11, lineColor: [TERRA.r, TERRA.g, TERRA.b] },
+      styles: {
+        fontSize: 11,
+        lineColor: [TERRA.r, TERRA.g, TERRA.b],
+        cellPadding: 6,
+        overflow: "linebreak",
+      },
       headStyles: {
         fillColor: [247, 236, 230],
         textColor: [60, 40, 30],
@@ -289,16 +284,16 @@ export default function LanPed({ setTela }) {
       theme: "grid",
       margin: { left: M, right: M },
       columnStyles: {
-        0: { cellWidth: 60, halign: "center" },
-        1: { cellWidth: 220 },
-        2: { cellWidth: 60, halign: "center" },
-        3: { cellWidth: 90, halign: "right" },
+        0: { cellWidth: cw[0], halign: "center" },
+        1: { cellWidth: cw[1] },                     // <<< Descrição menor
+        2: { cellWidth: cw[2], halign: "center" },
+        3: { cellWidth: cw[3], halign: "right" },    // <<< Total cabe na página
       },
     });
 
     let y = doc.lastAutoTable.finalY + 10;
 
-    // Quadro RESUMO
+    // Quadro resumo
     const wTotal = pageW - 2 * M;
     const colW = [wTotal * 0.35, wTotal * 0.30, wTotal * 0.35];
     autoTable(doc, {
@@ -321,7 +316,7 @@ export default function LanPed({ setTela }) {
       },
     });
 
-    // Marca d'água (logo) — translúcida
+    // Marca d’água
     if (logo) {
       const maxW = pageW * 0.45;
       const ratio = Math.min(maxW / logo.width, 1);
@@ -335,7 +330,7 @@ export default function LanPed({ setTela }) {
       if (hasG) doc.setGState(new doc.GState({ opacity: 1 }));
     }
 
-    // Rodapé de CONTATO (mesma fonte do “PIX” = 11pt normal)
+    // Rodapé (fonte igual à do “PIX”: 11pt normal)
     y = doc.lastAutoTable.finalY + 24;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
@@ -367,7 +362,7 @@ export default function LanPed({ setTela }) {
     y2 += 14;
     doc.text("Entrega: toda segunda feira", M, y2);
 
-    // PDF -> share/WhatsApp
+    // Share / WhatsApp
     const pdfBlob = doc.output("blob");
     const file = new File([pdfBlob], `${numeroPedido}_${pdv}_${hojeISO()}.pdf`, {
       type: "application/pdf",
@@ -385,10 +380,10 @@ export default function LanPed({ setTela }) {
     }
 
     const url = URL.createObjectURL(pdfBlob);
-    const mensagem =
+    const msg =
       `Pedido ${numeroPedido}\nPDV: ${pdv}\nCidade: ${cidade}\n` +
       `Total: ${money(totalPedido)}\nPDF: ${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(mensagem)}`, "_blank");
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
@@ -471,32 +466,20 @@ export default function LanPed({ setTela }) {
             {itens.map((it, i) => (
               <li key={i}>
                 {it.quantidade}× {it.produto} — {money(it.valorUnitario)} (Total: {money(it.total)})
-                <button
-                  className="botao-excluir"
-                  onClick={() => setItens(itens.filter((_, j) => j !== i))}
-                >
-                  ✖
-                </button>
+                <button className="botao-excluir" onClick={() => setItens(itens.filter((_, j) => j !== i))}>✖</button>
               </li>
             ))}
           </ul>
         )}
 
-        <div className="total-pedido">
-          <strong>Total:</strong> {money(totalPedido)}
-        </div>
+        <div className="total-pedido"><strong>Total:</strong> {money(totalPedido)}</div>
 
         <div className="lanped-field">
           <label>Forma de Pagamento</label>
-          <select
-            value={formaPagamento}
-            onChange={(e) => setFormaPagamento(e.target.value)}
-          >
+          <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)}>
             <option value="">Selecione</option>
             {formasPagamento.map((f) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
+              <option key={f} value={f}>{f}</option>
             ))}
           </select>
         </div>
@@ -516,11 +499,7 @@ export default function LanPed({ setTela }) {
 
         <div className="lanped-field">
           <label>Data de Vencimento</label>
-          <input
-            type="date"
-            value={dataVencimento}
-            onChange={(e) => setDataVencimento(e.target.value)}
-          />
+          <input type="date" value={dataVencimento} onChange={(e) => setDataVencimento(e.target.value)} />
         </div>
 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -546,4 +525,4 @@ export default function LanPed({ setTela }) {
       </footer>
     </div>
   );
-             }
+      }
