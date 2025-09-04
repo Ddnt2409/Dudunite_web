@@ -106,3 +106,55 @@ input, select, button{ font-family: inherit; }
   padding: 8px 10px;
   border-radius: 10px;
 }
+
+/* ===== HEADER (ajustes) ===== */
+.erp-header{ min-height:56px; }
+.erp-header__inner{ height:56px; }
+.erp-header__logo img{ height:40px; width:auto; } /* era 180px */
+.erp-header__title{
+  right: 12px;
+  top: 50%;
+  bottom: auto;               /* não ancorar na base */
+  transform: translateY(-50%);
+  font-size: 18px;
+}
+
+/* ===== Paleta e bordas no padrão LanPed ===== */
+:root{
+  --terra:#8c3b1b;
+  --terra-300:#e6d2c2;
+}
+.ctspagar-card{ border-color: var(--terra-300); }
+.lbl > select, .lbl > input,
+.cp-row-date, .cp-row-val{
+  border-color: var(--terra-300);   /* em vez do amarelo #d2b44b */
+}
+
+/* ===== Alturas dos campos/botões (44px) ===== */
+.lbl > select, .lbl > input{ height:44px; font-size:16px; }
+.btn-auto{ height:44px; }
+.cp-row-date, .cp-row-val{ height:44px; font-size:16px; }
+.btn-salvar, .btn-cancelar{ height:48px; }  /* igual ao LanPed */
+
+/* ===== Linhas de vencimento no estilo LanPed ===== */
+.cp-row{
+  background:#fff;                     /* branco, não amarelinho */
+  border:1px solid var(--terra-300);   /* sólida e clara */
+  border-radius: 12px;
+  grid-template-columns: 56px 1fr 180px;  /* valor um pouco menor */
+}
+.cp-row-n{ font-weight:900; color:var(--terra); }
+
+/* ===== Responsivo ===== */
+@media (max-width:620px){
+  .cp-row{ grid-template-columns: 1fr 1fr; }
+  .cp-row-n{ grid-column: 1 / -1; text-align: left; }
+}
+
+/* ===== Botões no tom correto ===== */
+.btn-salvar{ background: var(--terra); color:#fff; }
+.btn-salvar:hover{ filter: brightness(.95); }
+
+/* ===== Reuso para Receber Avulso (opcional) ===== */
+/* Se a página de Receber Avulso usar <div class="ctspagar-card ctsavulso-card">,
+   ela já herda todo o visual. Não precisa CSS novo. */
