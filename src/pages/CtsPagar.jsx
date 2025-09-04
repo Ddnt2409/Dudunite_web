@@ -22,28 +22,172 @@ const PERIODOS = ["Único","Semanal","Quinzenal","Mensal","Bimestral","Trimestra
 // util
 const fmtBRL = (v)=> (Number(v||0)).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
+// ===== Plano de Contas fixo (com grupos) =====
+const FIXED_PLANOS_GROUPED = [
+  {
+    group: "1. Pessoal",
+    items: [
+      // 1.01 casa
+      { codigo: "1.01.01.001", descricao: "água casa" },
+      { codigo: "1.01.01.002", descricao: "celpe casa" },
+      { codigo: "1.01.01.003", descricao: "aluguel casa" },
+      { codigo: "1.01.01.004", descricao: "internet casa" },
+      { codigo: "1.01.01.005", descricao: "cuidados casa (fixas)" },
+
+      // 1.01.02 desp variáveis pessoal
+      { codigo: "1.01.02.001", descricao: "feira" },
+      { codigo: "1.01.02.002", descricao: "lanches" },
+      { codigo: "1.01.02.003", descricao: "eventos casa" },
+      { codigo: "1.01.02.004", descricao: "suplementos" },
+
+      // 1.01.03 desp fixas pessoal
+      { codigo: "1.01.03.001", descricao: "escolas" },
+      { codigo: "1.01.03.002", descricao: "academia" },
+      { codigo: "1.01.03.003", descricao: "personal" },
+      { codigo: "1.01.03.004", descricao: "futuro 1" },
+      { codigo: "1.01.03.005", descricao: "futuro 2" },
+      { codigo: "1.01.03.006", descricao: "futuro 3" },
+
+      // 1.01.04 assinaturas
+      { codigo: "1.01.04.001", descricao: "internet casa (assinatura)" },
+      { codigo: "1.01.04.002", descricao: "tv box" },
+      { codigo: "1.01.04.003", descricao: "celular" },
+      { codigo: "1.01.04.004", descricao: "futuro 1" },
+      { codigo: "1.01.04.005", descricao: "futuro 2" },
+
+      // 1.01.05 cuidados casa
+      { codigo: "1.01.05.001", descricao: "pintura casa" },
+      { codigo: "1.01.05.002", descricao: "elétrica casa" },
+      { codigo: "1.01.05.003", descricao: "hidráulica casa" },
+      { codigo: "1.01.05.004", descricao: "decoração casa" },
+      { codigo: "1.01.05.005", descricao: "gás casa" },
+
+      // 1.01.06 pessoais
+      { codigo: "1.01.06.001", descricao: "cabelo" },
+      { codigo: "1.01.06.002", descricao: "manicure" }, // corrigido conflito
+      { codigo: "1.01.06.004", descricao: "unha" },
+      { codigo: "1.01.06.005", descricao: "sobrancelha" },
+      { codigo: "1.01.06.006", descricao: "maquiagem" },
+      { codigo: "1.01.06.007", descricao: "buço" },
+      { codigo: "1.01.06.008", descricao: "massagem" },
+      { codigo: "1.01.06.009", descricao: "futuro 1" },
+      { codigo: "1.01.06.010", descricao: "futuro 2" },
+
+      // 1.01.07 diversão
+      { codigo: "1.01.07.001", descricao: "locação" },
+      { codigo: "1.01.07.002", descricao: "alimentação" },
+      { codigo: "1.01.07.003", descricao: "deslocamento" },
+    ],
+  },
+  {
+    group: "2. Dudunitê",
+    items: [
+      // 2.01.01 despesas fixas empresa
+      { codigo: "2.01.01.001", descricao: "água emp" },
+      { codigo: "2.01.01.002", descricao: "celpe emp" },
+      { codigo: "2.01.01.003", descricao: "aluguel emp" },
+      { codigo: "2.01.01.004", descricao: "internet emp" },
+      { codigo: "2.01.01.005", descricao: "ferramentas" },
+      { codigo: "2.01.01.006", descricao: "manutenção serviço emp" },
+
+      // 2.01.02 despesas variáveis empresa
+      { codigo: "2.01.02.001", descricao: "gás emp" },
+      { codigo: "2.01.02.002", descricao: "manutenção emp" },
+      { codigo: "2.01.02.003", descricao: "pintura emp" },
+      { codigo: "2.01.02.004", descricao: "hidráulica emp" },
+      { codigo: "2.01.02.005", descricao: "futuro" },
+
+      // 2.01.03 insumos
+      { codigo: "2.01.03.001", descricao: "produção emp" },
+      { codigo: "2.01.03.002", descricao: "embalagem emp" },
+      { codigo: "2.01.03.003", descricao: "recheio emp" },
+      { codigo: "2.01.03.004", descricao: "terceiros emp" },
+      { codigo: "2.01.03.005", descricao: "papelaria emp" },
+      { codigo: "2.01.03.006", descricao: "equipamentos" },
+    ],
+  },
+];
+
+const FIXED_FLAT = FIXED_PLANOS_GROUPED.flatMap(g =>
+  g.items.map(i => ({ ...i, label: `${i.codigo} ${i.descricao}`, group: g.group }))
+);
+
+// ==== suporte a LocalStorage com outras chaves ====
+const PLANO_KEYS = [
+  "financeiro_plano_pagar",
+  "plano_contas_pagar",
+  "financeiro_plano_contas_pagar",
+  "financeiro_plano_contas"
+];
+
+function normalizePlanos(raw) {
+  if (!raw) return [];
+  const out = [];
+  for (const item of raw) {
+    if (typeof item === "string") {
+      const parts = item.trim().split(/\s+/);
+      if (parts.length) {
+        const codigo = parts.shift();
+        const descricao = parts.join(" ");
+        out.push({ codigo, descricao, label: `${codigo} ${descricao}`.trim() });
+      }
+    } else if (item && typeof item === "object") {
+      const codigo = item.codigo || item.code || item.id || "";
+      const descricao = item.descricao || item.desc || item.nome || "";
+      if (codigo || descricao) out.push({ codigo: String(codigo), descricao: String(descricao), label: `${codigo} ${descricao}`.trim() });
+    }
+  }
+  // remove duplicados por codigo
+  const seen = new Set();
+  return out.filter(p => {
+    const k = p.codigo || p.label;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+function loadPlanosFromLS() {
+  for (const k of PLANO_KEYS) {
+    try {
+      const raw = localStorage.getItem(k);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      const planos = normalizePlanos(parsed);
+      if (planos.length) return planos;
+    } catch {}
+  }
+  return [];
+}
+
+function mergeByCodigo(a = [], b = []) {
+  const map = new Map();
+  [...a, ...b].forEach(p => map.set(p.codigo || p.label, p));
+  return Array.from(map.values());
+}
+
 export default function CtsPagar({ setTela }) {
   // ===== estado base =====
   const [periodicidade, setPeriodicidade] = useState("Único");
   const [ocorrencias, setOcorrencias] = useState(1);
-
-  // campos dinâmicos de vencimentos
   const [vencs, setVencs] = useState([{ data: new Date().toISOString().slice(0,10), valor: "" }]);
-
-  // demais campos
   const [forma, setForma] = useState("PIX");
   const [plano, setPlano] = useState("");
   const [descricao, setDescricao] = useState("");
 
-  // modo edição (quando vem de Alterar no FluxCx)
+  const [planosLS, setPlanosLS] = useState([]);
   const [editId, setEditId] = useState(null);
 
-  // total do lote (negativo, pois é saída)
   const totalLote = useMemo(() =>
     -1 * vencs.reduce((s, v) => s + Math.abs(Number(v.valor || 0)), 0), [vencs]
   );
 
-  // ===== PRÉ-PREENCHER A PARTIR DO localStorage("editar_financeiro") =====
+  // carrega planos LS
+  useEffect(() => {
+    setPlanosLS(loadPlanosFromLS());
+  }, []);
+
+  // pré-preencher ao editar
   useEffect(() => {
     try {
       const raw = localStorage.getItem("editar_financeiro");
@@ -69,7 +213,7 @@ export default function CtsPagar({ setTela }) {
     }
   }, []);
 
-  // ===== helpers UI =====
+  // helpers UI
   function aplicarOcorrencias(n){
     const num = Math.max(1, Number(n||1));
     setOcorrencias(num);
@@ -110,9 +254,8 @@ export default function CtsPagar({ setTela }) {
     });
   }
 
-  // ===== salvar =====
+  // salvar
   function salvarPrevisto(){
-    // valida
     if (!plano) return alert("Selecione o Plano de Contas.");
     if (!forma) return alert("Informe a Forma de pagamento.");
     for (const [i,v] of vencs.entries()){
@@ -120,7 +263,6 @@ export default function CtsPagar({ setTela }) {
       if (!v.valor || Number(v.valor)<=0) return alert(`Informe o valor da ocorrência #${i+1}.`);
     }
 
-    // MODO EDIÇÃO: se vier com editId, atualiza um único lançamento
     if (editId){
       try{
         updateById(editId, (doc)=>{
@@ -131,7 +273,7 @@ export default function CtsPagar({ setTela }) {
           doc.descricao = descricao || doc.descricao || "PAGAMENTO";
           doc.origem = "Previsto";
           doc.statusFinanceiro = "Previsto";
-          doc.valor = -v; // saída negativa
+          doc.valor = -v;
           return doc;
         });
         alert("Lançamento atualizado com sucesso.");
@@ -143,7 +285,6 @@ export default function CtsPagar({ setTela }) {
       }
     }
 
-    // NOVOS lançamentos (replicação por ocorrências)
     const arr = getAll();
     vencs.forEach((v, idx)=>{
       const doc = {
@@ -154,17 +295,14 @@ export default function CtsPagar({ setTela }) {
         descricao: descricao || "PAGAMENTO",
         forma,
         planoContas: plano,
-        valor: -Math.abs(Number(v.valor||0)), // saída é negativa
-        meta: {
-          periodicidade, ocorrencias, ordem: idx+1,
-        }
+        valor: -Math.abs(Number(v.valor||0)),
+        meta: { periodicidade, ocorrencias, ordem: idx+1 }
       };
       arr.push(doc);
     });
     saveAll(arr);
 
     alert(`Previsto salvo. Ocorrências: ${vencs.length}. Total do lote: ${fmtBRL(Math.abs(totalLote))}.`);
-    // limpar
     setDescricao("");
     setPlano("");
     setForma("PIX");
@@ -172,6 +310,12 @@ export default function CtsPagar({ setTela }) {
     setOcorrencias(1);
     setVencs([{ data: new Date().toISOString().slice(0,10), valor:"" }]);
   }
+
+  // listas para o select
+  const extrasLS = mergeByCodigo(
+    planosLS,
+    [] // poderia vir de back/Store no futuro
+  ).filter(p => !FIXED_FLAT.some(f => f.codigo === p.codigo));
 
   return (
     <div className="ctspagar-main">
@@ -193,21 +337,16 @@ export default function CtsPagar({ setTela }) {
           </div>
         )}
 
-        {/* Linha 1 — periodicidade e ocorrências */}
+        {/* Linha 1 */}
         <div className="cp-linha cp-grid-3">
           <select value={periodicidade} onChange={e=>setPeriodicidade(e.target.value)}>
             {PERIODOS.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
-          <input
-            type="number" min={1}
-            value={ocorrencias}
-            onChange={e=>aplicarOcorrencias(e.target.value)}
-            placeholder="Ocorrências"
-          />
+          <input type="number" min={1} value={ocorrencias} onChange={e=>aplicarOcorrencias(e.target.value)} placeholder="Ocorrências" />
           <button className="cp-btn" onClick={preencherDatasAuto}>Preencher datas automaticamente</button>
         </div>
 
-        {/* Ocorrências (data/valor) */}
+        {/* Ocorrências */}
         {vencs.map((v,i)=>(
           <div key={i} className="cp-linha cp-grid-3">
             <div className="cp-chip">#{i+1}</div>
@@ -221,12 +360,36 @@ export default function CtsPagar({ setTela }) {
           <select value={forma} onChange={e=>setForma(e.target.value)}>
             {FORMAS.map(f => <option key={f} value={f}>{f}</option>)}
           </select>
+
           <select value={plano} onChange={e=>setPlano(e.target.value)}>
             <option value="">Plano de Contas (pagar)</option>
-            {/* mantenha aqui as opções já aprovadas ou alimente via store */}
-            <option value="1.01.01.001">1.01.01.001 água casa</option>
-            <option value="2.01.03.006">2.01.03.006 equipamentos</option>
+
+            {FIXED_PLANOS_GROUPED.map(g=>(
+              <optgroup key={g.group} label={g.group}>
+                {g.items.map(p=>(
+                  <option key={p.codigo} value={p.codigo}>
+                    {p.codigo} {p.descricao}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+
+            {extrasLS.length>0 && (
+              <optgroup label="Outros (LS)">
+                {extrasLS.map(p=>(
+                  <option key={p.codigo || p.label} value={p.codigo || p.label}>
+                    {(p.codigo || p.label)} {p.descricao || ""}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+
+            {/* Se estiver editando e o código não existir em nenhuma lista */}
+            {plano && ![...FIXED_FLAT, ...extrasLS].some(p => p.codigo === plano || p.label === plano) && (
+              <option value={plano}>{plano}</option>
+            )}
           </select>
+
           <input placeholder="Descrição (opcional)" value={descricao} onChange={e=>setDescricao(e.target.value)} />
         </div>
 
@@ -255,4 +418,4 @@ export default function CtsPagar({ setTela }) {
       </footer>
     </div>
   );
-                               }
+                                       }
