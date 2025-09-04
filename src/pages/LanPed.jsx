@@ -17,11 +17,9 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
 // helpers
-const money = (n) =>
-  `R$ ${Number(n || 0).toFixed(2).replace(".", ",")}`;
+const money = (n) => `R$ ${Number(n || 0).toFixed(2).replace(".", ",")}`;
 const hojeISO = () => new Date().toISOString().slice(0, 10);
-const brDate = (d) =>
-  (d ? new Date(d) : new Date()).toLocaleDateString("pt-BR");
+const brDate = (d) => (d ? new Date(d) : new Date()).toLocaleDateString("pt-BR");
 
 export default function LanPed({ setTela }) {
   // ─── STATES ───────────────────────
@@ -149,94 +147,158 @@ export default function LanPed({ setTela }) {
     });
   }, []);
 
-  // ─── PDF + WHATSAPP ─────────────────
+  // ─── PDF (A5 – COMANDA) + WHATSAPP ─────────────────
   async function gerarPdfECompartilhar() {
     if (!cidade || !pdv || itens.length === 0 || !formaPagamento) {
       alert("Preencha cidade, PDV, ao menos 1 item e a forma de pagamento.");
       return;
     }
 
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const margem = 40;
+    const doc = new jsPDF({ unit: "pt", format: "a5", compress: true }); // A5 retrato
+    const W = doc.internal.pageSize.getWidth();
+    const M = 26;
+    let y = M;
 
-    // Cabeçalho simples
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text("Pedido", margem, 50);
-
+    doc.setLineWidth(0.8);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    doc.text(`Data: ${brDate(hojeISO())}`, margem, 70);
-    doc.text(`Ponto de venda: ${pdv}`, margem, 88);
-    doc.text(`Cidade: ${cidade}`, margem, 106);
+    doc.setTextColor(0);
 
-    // Tabela de itens
+    // Cabeçalho "Pedido Nº" (barra azul) + vendedor/data
+    doc.setFillColor(33, 150, 243);
+    doc.roundedRect(M, y, 120, 24, 4, 4, "F");
+    doc.setFontSize(12);
+    doc.setTextColor(255);
+    doc.text("Pedido Nº", M + 10, y + 16);
+    doc.setTextColor(0);
+    doc.rect(M + 120, y, 90, 24);
+    doc.text(String(Date.now()).slice(-5), M + 125, y + 16); // número simples
+
+    doc.setFontSize(11);
+    doc.text(`Vendedor: Dudunitê`, W - M - 200, y + 12);
+    doc.text(`Data: ${brDate(hojeISO())}`, W - M - 200, y + 24);
+    y += 36;
+
+    // Linhas estilo comanda
+    const drawLine = (label, value) => {
+      doc.setFontSize(11);
+      doc.text(label, M, y + 12);
+      doc.line(M + 52, y + 14, W - M, y + 14);
+      if (value) doc.text(String(value), M + 56, y + 12);
+      y += 20;
+    };
+
+    drawLine("Cliente:", pdv);
+    drawLine("Endereço:", "");
+    // CEP | Cidade | Estado | Tel
+    let x = M;
+    const triple = [
+      { label: "CEP:", value: "", w: 120 },
+      { label: "Cidade:", value: cidade, w: 180 },
+      { label: "Estado:", value: "PE", w: 80 },
+      { label: "Tel:", value: "", w: 100 },
+    ];
+    doc.setFontSize(11);
+    triple.forEach((col) => {
+      doc.text(col.label, x, y + 12);
+      doc.line(x + 40, y + 14, x + (col.w || 140), y + 14);
+      if (col.value) doc.text(String(col.value), x + 44, y + 12);
+      x += (col.w || 140) + 12;
+    });
+    y += 20;
+    // CNPJ | IE
+    x = M;
+    const duo = [
+      { label: "C.N.P.J.:", value: "", w: 220 },
+      { label: "Inscr. Est.:", value: "", w: 160 },
+    ];
+    duo.forEach((col) => {
+      doc.text(col.label, x, y + 12);
+      doc.line(x + 58, y + 14, x + (col.w || 180), y + 14);
+      if (col.value) doc.text(String(col.value), x + 62, y + 12);
+      x += (col.w || 180) + 12;
+    });
+    y += 20;
+    drawLine("E-mail:", "");
+
+    y += 6;
+
+    // Tabela de itens (com linhas em branco para “cara de comanda”)
+    const head = [["Qtde.", "Descrição", "Unid.", "Total"]];
     const body = itens.map((it) => [
       String(it.quantidade),
       it.produto,
-      money(it.valorUnitario),
+      "UN",
       money(it.total),
     ]);
+    while (body.length < 12) body.push(["", "", "", ""]); // completa até 12 linhas
 
     autoTable(doc, {
-      startY: 130,
-      head: [["Qtde", "Descrição", "Unitário", "Total"]],
+      startY: y,
+      head,
       body,
-      styles: { fontSize: 11 },
-      headStyles: { fillColor: [240, 240, 240] },
-      theme: "grid",
-      margin: { left: margem, right: margem },
+      margin: { left: M, right: M },
+      styles: { fontSize: 11, lineWidth: 0.6 },
+      headStyles: { fillColor: [230, 240, 255], textColor: 0, halign: "left" },
       columnStyles: {
-        0: { cellWidth: 60, halign: "right" },
-        2: { cellWidth: 120, halign: "right" },
-        3: { cellWidth: 120, halign: "right" },
+        0: { cellWidth: 54 },
+        1: { cellWidth: W - 2 * M - 54 - 60 - 80 },
+        2: { cellWidth: 60, halign: "center" },
+        3: { cellWidth: 80, halign: "right" },
       },
+      theme: "grid",
     });
+    y = doc.lastAutoTable.finalY + 10;
 
-    let y = doc.lastAutoTable.finalY || 130;
+    // Rodapé: Comprador | Visto | Valor total
+    const boxH = 46;
+    const colW = (W - 2 * M) / 3;
 
-    // Rodapé
-    y += 18;
+    doc.text("Comprador", M + 4, y + 12);
+    doc.rect(M, y, colW, boxH);
+
+    doc.text("Visto", M + colW + 4, y + 12);
+    doc.rect(M + colW, y, colW, boxH);
+
+    doc.text("Valor total do pedido", M + 2 * colW + 4, y + 12);
     doc.setFont("helvetica", "bold");
-    doc.text(`Valor total: ${money(totalPedido)}`, margem, y);
-    y += 18;
+    doc.text(money(totalPedido), M + 2 * colW + 4, y + 30);
     doc.setFont("helvetica", "normal");
-    doc.text(
-      `Forma de pagamento: ${formaPagamento}${dataVencimento ? `  •  Vencimento: ${brDate(dataVencimento)}` : ""}`,
-      margem,
-      y
-    );
+    doc.rect(M + 2 * colW, y, colW, boxH);
+    y += boxH + 10;
 
-    // Gera blob
+    // Forma + Vencimento
+    const linhaFinal =
+      `Forma de pagamento: ${formaPagamento}` +
+      (dataVencimento ? `  •  Vencimento: ${brDate(dataVencimento)}` : "");
+    doc.text(linhaFinal, M, y + 12);
+
+    // Blob e compartilhamento
     const pdfBlob = doc.output("blob");
     const file = new File([pdfBlob], `Pedido_${pdv}_${hojeISO()}.pdf`, {
       type: "application/pdf",
     });
 
-    // Tenta compartilhar com arquivo (Android/Chrome, iOS Safari moderno, etc.)
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({
           title: "Pedido Dudunitê",
-          text: "Segue o pedido em anexo.",
+          text: "Segue a comanda do pedido.",
           files: [file],
         });
         return;
-      } catch (err) {
-        // usuário pode ter cancelado — cair no fallback não é problema
+      } catch {
+        // usuário cancelou: segue o fallback
       }
     }
 
-    // Fallback: gerar URL e abrir WhatsApp com texto + link
-    const url = URL.createObjectURL(pdfBlob);
-    const mensagem =
-      `Segue o pedido:\nPDV: ${pdv}\nCidade: ${cidade}\n` +
+    // Fallback: baixa e abre WhatsApp com mensagem
+    doc.save(`Pedido_${pdv}_${hojeISO()}.pdf`);
+    const msg =
+      `PDV: ${pdv} • ${cidade}\n` +
       `Total: ${money(totalPedido)}\n` +
       (dataVencimento ? `Vencimento: ${brDate(dataVencimento)}\n` : "") +
-      `PDF: ${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(mensagem)}`, "_blank");
-    // liberar a URL um pouco depois
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      `PDF baixado no aparelho.`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   }
 
   return (
@@ -288,10 +350,7 @@ export default function LanPed({ setTela }) {
 
         <div className="lanped-field">
           <label>Produto</label>
-          <select
-            value={produto}
-            onChange={(e) => setProduto(e.target.value)}
-          >
+          <select value={produto} onChange={(e) => setProduto(e.target.value)}>
             <option value="">Selecione</option>
             {produtos.map((p) => (
               <option key={p} value={p}>
@@ -332,9 +391,7 @@ export default function LanPed({ setTela }) {
                 (Total: {money(it.total)})
                 <button
                   className="botao-excluir"
-                  onClick={() =>
-                    setItens(itens.filter((_, j) => j !== i))
-                  }
+                  onClick={() => setItens(itens.filter((_, j) => j !== i))}
                 >
                   ✖
                 </button>
@@ -390,7 +447,7 @@ export default function LanPed({ setTela }) {
           </button>
 
           <button className="botao-salvar" onClick={gerarPdfECompartilhar}>
-            🧾 Gerar PDF e enviar no WhatsApp
+            🧾 Gerar PDF (A5) e enviar no WhatsApp
           </button>
 
           <button className="botao-voltar" onClick={() => setTela("HomePCP")}>
@@ -416,4 +473,4 @@ export default function LanPed({ setTela }) {
       </footer>
     </div>
   );
-                  }
+}
