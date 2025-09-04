@@ -89,9 +89,9 @@ export default function LanPed({ setTela }) {
     ],
     Recife: [
       "Tio Valter", "Vera Cruz", "Pinheiros", "Dourado",
-      "BMQ", "CFC", "Madre de Deus", "Saber Viver",
+      "BMQ", "CFC", "Madre de Deus", "Saber Viver", "Anita Garbaldi",
     ],
-    Caruaru: ["Interativo", "Exato Sede", "Exato Anexo", "Sesi", "Motivo", "Jesus Salvador"],
+    Caruaru: ["Interativo", "Sesi", "Motivo", "Jesus Salvador"],
   };
   const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
   const formasPagamento = ["PIX", "Espécie", "Cartão", "Boleto"];
