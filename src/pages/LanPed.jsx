@@ -1,225 +1,258 @@
-// src/pages/LanPed.jsx
-import React, { useState, useEffect } from "react";
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  query,
-  orderBy,
-  serverTimestamp,
-} from "firebase/firestore";
+import React, { useMemo, useState } from "react";
+import ERPHeader from "./ERPHeader";
+import ERPFooter from "./ERPFooter";
 import db from "../firebase";
-import "./LanPed.css";
-import { upsertPrevistoFromLanPed } from "../util/financeiro_store";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
-export default function LanPed({ setTela }) {
-  // ─── STATES ───────────────────────
-  const [cidade, setCidade] = useState("");
+// PDF
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+// helpers
+const fmt = (n) =>
+  (Number(n) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const dtBR = (v) =>
+  (v ? new Date(v) : new Date()).toLocaleDateString("pt-BR");
+
+export default function LancarPedido({ setTela }) {
+  // campos principais (adapte aos seus sources de opções)
+  const [cidade, setCidade] = useState("Gravatá");
   const [pdv, setPdv] = useState("");
+  const [forma, setForma] = useState("");
+  const [venc, setVenc] = useState("");
+
+  // item em edição
   const [produto, setProduto] = useState("");
-  const [quantidade, setQuantidade] = useState(1);
-  const [valorUnitario, setValorUnitario] = useState("");
-  const [formaPagamento, setFormaPagamento] = useState("");
-  const [dataVencimento, setDataVencimento] = useState("");
+  const [qtd, setQtd] = useState(1);
+  const [vlUnit, setVlUnit] = useState("");
+
+  // lista final de itens do pedido
   const [itens, setItens] = useState([]);
-  const [totalPedido, setTotalPedido] = useState("0.00");
-  const [statusPorPdv, setStatusPorPdv] = useState({});
 
-  // ─── DADOS FIXOS ───────────────────
-  const cidades = ["Gravatá", "Recife", "Caruaru"];
-  const pdvsPorCidade = {
-    Gravatá: ["Pequeno Príncipe", "Salesianas", "Céu Azul", "Russas", "Bora Gastar", "Kaduh", "Society Show", "Degusty"],
-    Recife: ["Tio Valter", "Vera Cruz", "Pinheiros", "Dourado", "BMQ", "CFC", "Madre de Deus", "Saber Viver"],
-    Caruaru: ["Interativo", "Exato Sede", "Exato Anexo", "Sesi", "Motivo", "Jesus Salvador"],
-  };
-  const produtos = ["BRW 7x7", "BRW 6x6", "PKT 5x5", "PKT 6x6", "Esc", "DUDU"];
-  const formasPagamento = ["PIX", "Espécie", "Cartão", "Boleto"];
+  // ====== TOTAL (corrigido) ======
+  const totalPedido = useMemo(
+    () =>
+      itens.reduce(
+        (s, it) => s + (Number(it.qtd) || 0) * (Number(it.preco) || 0),
+        0
+      ),
+    [itens]
+  );
 
-  // ─── CALCULA TOTAL ───────────────────
-  useEffect(() => {
-    const t = parseFloat(quantidade) * parseFloat(valorUnitario || 0);
-    setTotalPedido(t.toFixed(2));
-  }, [quantidade, valorUnitario]);
-
-  // ─── ADICIONA ITEM ──────────────────
-  function adicionarItem() {
-    if (!produto || quantidade <= 0 || !valorUnitario) {
-      alert("Preencha todos os campos de item.");
-      return;
-    }
-    setItens(old => [
-      ...old,
-      {
-        produto,
-        quantidade,
-        valorUnitario,
-        total: (quantidade * parseFloat(valorUnitario)).toFixed(2),
-      },
-    ]);
+  function addItem() {
+    const q = Number(qtd) || 0;
+    const vu = Number(String(vlUnit).replace(",", ".")) || 0;
+    if (!produto || q <= 0 || vu <= 0) return alert("Preencha produto, quantidade e valor unitário.");
+    setItens((old) => [...old, { desc: produto, qtd: q, preco: vu }]);
+    // limpa apenas os campos do item
     setProduto("");
-    setQuantidade(1);
-    setValorUnitario("");
+    setQtd(1);
+    setVlUnit("");
   }
 
-  // ─── SALVA PEDIDO ───────────────────
-  async function handleSalvar() {
-    if (!cidade || !pdv || itens.length === 0 || !formaPagamento) {
-      alert("Preencha todos os campos obrigatórios.");
-      return;
-    }
-    const novo = {
-      cidade,
-      escola: pdv,
-      itens,
-      formaPagamento,
-      dataVencimento: dataVencimento || null,
-      total: parseFloat(totalPedido),
-      statusEtapa: "Lançado",
-      criadoEm: serverTimestamp(),
-    };
-    try {
-      const ref = await addDoc(collection(db, "PEDIDOS"), novo);
+  function removeItem(idx) {
+    setItens((arr) => arr.filter((_, i) => i !== idx));
+  }
 
-      // → Envia imediatamente ao financeiro como PREVISTO
-      await upsertPrevistoFromLanPed(ref.id, {
+  async function salvarPedido() {
+    if (!pdv || !forma || itens.length === 0) {
+      return alert("Preencha PDV, forma de pagamento e inclua pelo menos um item.");
+    }
+    try {
+      const payload = {
         cidade,
         pdv,
-        escola: pdv,
-        itens,
-        formaPagamento,
-        dataVencimento,
-        valorTotal: Number(novo.total) || undefined,
-        criadoEm: new Date(),
-      });
-
-      alert("✅ Pedido salvo!");
-      setCidade("");
-      setPdv("");
+        formaPagamento: forma,
+        dataVencimento: venc || null,
+        itens: itens.map((it) => ({
+          produto: it.desc,
+          quantidade: Number(it.qtd),
+          valorUnitario: Number(it.preco),
+        })),
+        total: totalPedido,
+        criadoEm: serverTimestamp(),
+      };
+      await addDoc(collection(db, "PEDIDOS"), payload);
+      alert("Pedido salvo!");
+      // limpa
       setItens([]);
-      setFormaPagamento("");
-      setDataVencimento("");
-      setTotalPedido("0.00");
-    } catch {
-      alert("❌ Falha ao salvar.");
+      setForma("");
+      setVenc("");
+    } catch (e) {
+      alert("Erro ao salvar: " + (e?.message || e));
     }
   }
 
-  // ─── MONITORA STATUS DOS PDVs ───────
-  useEffect(() => {
-    const ref = collection(db, "PEDIDOS");
-    const q = query(ref, orderBy("criadoEm", "asc"));
-    return onSnapshot(q, snap => {
-      const m = {};
-      snap.docs.forEach(doc => {
-        const d = doc.data();
-        if (d.escola) m[d.escola] = d.statusEtapa;
-      });
-      setStatusPorPdv(m);
+  async function gerarPdfECompartilhar() {
+    if (!pdv || itens.length === 0) return alert("Preencha o PDV e adicione itens.");
+
+    // ====== PDF ======
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const margem = 40;
+
+    // Cabeçalho
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("Pedido", margem, 40);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Data: ${dtBR()}`, margem, 60);
+    doc.text(`Ponto de Venda: ${pdv}`, margem, 76);
+    if (cidade) doc.text(`Cidade: ${cidade}`, margem, 92);
+
+    // Tabela
+    const body = itens.map((it) => [
+      String(it.qtd),
+      it.desc,
+      fmt(it.preco),
+      fmt(Number(it.qtd) * Number(it.preco)),
+    ]);
+
+    autoTable(doc, {
+      startY: 120,
+      head: [["Qtde", "Descrição", "Unit.", "Total"]],
+      body,
+      styles: { font: "helvetica", fontSize: 11 },
+      headStyles: { fillColor: [230, 230, 230] },
+      columnStyles: { 0: { halign: "right", cellWidth: 60 }, 2: { halign: "right", cellWidth: 90 }, 3: { halign: "right", cellWidth: 100 } },
+      margin: { left: margem, right: margem },
     });
-  }, []);
+
+    const y = doc.lastAutoTable.finalY + 16;
+    doc.setFont("helvetica", "bold");
+    doc.text(`Valor total do pedido: ${fmt(totalPedido)}`, margem, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Forma de pagamento: ${forma || "-"}`, margem, y + 18);
+    doc.text(`Vencimento: ${venc ? dtBR(venc) : "-"}`, margem, y + 36);
+
+    const blob = doc.output("blob");
+    const file = new File([blob], `Pedido_${pdv}_${Date.now()}.pdf`, {
+      type: "application/pdf",
+    });
+
+    // Compartilhar (WhatsApp) — Web Share API com fallback para link
+    const shareText = `Pedido ${pdv} — ${dtBR()}\nTotal: ${fmt(totalPedido)}\nVenc: ${
+      venc ? dtBR(venc) : "-"
+    }`;
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: `Pedido ${pdv}`, text: shareText });
+      } else {
+        // Fallback: cria URL de download e abre WhatsApp com texto + link
+        const url = URL.createObjectURL(blob);
+        const wa = `https://wa.me/?text=${encodeURIComponent(`${shareText}\nPDF: ${url}`)}`;
+        window.open(wa, "_blank");
+      }
+    } catch (e) {
+      // se usuário cancelar o share, nada a fazer
+      console.log("share cancel/err", e);
+    }
+  }
 
   return (
-    <div className="lanped-container">
-      <div className="lanped-header">
-        <img src="/LogomarcaDDnt2025Vazado.png" alt="Logo Dudunitê" className="lanped-logo" />
-        <h1 className="lanped-titulo">Lançar Pedido</h1>
-      </div>
+    <>
+      <ERPHeader title="Lançar Pedido" />
+      <main className="fluxcx-main" style={{ padding: 10 }}>
+        <div className="extrato-card" style={{ maxWidth: 860, margin: "0 auto" }}>
+          {/* Cabeçalho */}
+          <div className="form-row">
+            <label>Cidade</label>
+            <select value={cidade} onChange={(e) => setCidade(e.target.value)}>
+              <option>Gravatá</option>
+              <option>Caruaru</option>
+              <option>Recife</option>
+            </select>
+          </div>
 
-      <div className="lanped-formulario">
-        <div className="lanped-field">
-          <label>Cidade</label>
-          <select value={cidade} onChange={e => { setCidade(e.target.value); setPdv(""); }}>
-            <option value="">Selecione</option>
-            {cidades.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
+          <div className="form-row">
+            <label>Ponto de Venda</label>
+            <select value={pdv} onChange={(e) => setPdv(e.target.value)}>
+              <option value="">Selecione</option>
+              <option>Vera Cruz</option>
+              <option>Salesianas</option>
+              <option>Russas</option>
+              <option>Society Show</option>
+              {/* ... */}
+            </select>
+          </div>
 
-        <div className="lanped-field">
-          <label>Ponto de Venda</label>
-          <select value={pdv} onChange={e => setPdv(e.target.value)} disabled={!cidade}>
-            <option value="">Selecione</option>
-            {cidade && pdvsPorCidade[cidade].map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </div>
+          {/* Item em edição */}
+          <div className="form-row">
+            <label>Produto</label>
+            <input
+              placeholder="Descrição do produto"
+              value={produto}
+              onChange={(e) => setProduto(e.target.value)}
+            />
+          </div>
 
-        <div className="lanped-field">
-          <label>Produto</label>
-          <select value={produto} onChange={e => setProduto(e.target.value)}>
-            <option value="">Selecione</option>
-            {produtos.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </div>
+          <div className="form-row grid-2">
+            <div>
+              <label>Quantidade</label>
+              <input
+                type="number"
+                min="1"
+                value={qtd}
+                onChange={(e) => setQtd(e.target.value)}
+              />
+            </div>
+            <div>
+              <label>Valor Unitário</label>
+              <input
+                type="number"
+                step="0.01"
+                value={vlUnit}
+                onChange={(e) => setVlUnit(e.target.value)}
+              />
+            </div>
+          </div>
 
-        <div className="lanped-field">
-          <label>Quantidade</label>
-          <input type="number" value={quantidade} onChange={e => setQuantidade(Number(e.target.value))} />
-        </div>
+          <button className="btn-acao" onClick={addItem}>+ Adicionar Item</button>
 
-        <div className="lanped-field">
-          <label>Valor Unitário</label>
-          <input type="number" step="0.01" value={valorUnitario} onChange={e => setValorUnitario(e.target.value)} />
-        </div>
-
-        <button className="botao-adicionar" onClick={adicionarItem}>➕ Adicionar Item</button>
-
-        {itens.length > 0 && (
-          <ul className="lista-itens">
-            {itens.map((it, i) => (
-              <li key={i}>
-                {it.quantidade}× {it.produto} — R$ {it.valorUnitario} (Total: R$ {it.total})
-                <button className="botao-excluir" onClick={() => setItens(itens.filter((_, j) => j !== i))}>✖</button>
-              </li>
+          {/* Lista de itens */}
+          <div style={{ marginTop: 12 }}>
+            {itens.map((it, idx) => (
+              <div key={idx} style={{ display: "flex", alignItems: "center", gap: 8, margin: "6px 0" }}>
+                <div style={{ flex: 1 }}>
+                  {it.qtd}× {it.desc} — {fmt(it.preco)} (Total: {fmt(it.qtd * it.preco)})
+                </div>
+                <button className="btn-acao btn-danger" onClick={() => removeItem(idx)}>Excluir</button>
+              </div>
             ))}
-          </ul>
-        )}
+          </div>
 
-        <div className="total-pedido"><strong>Total:</strong> R$ {totalPedido}</div>
+          {/* Total corrigido */}
+          <h2 style={{ textAlign: "right", marginTop: 8 }}>
+            Total: <span style={{ color: "#8B0000" }}>{fmt(totalPedido)}</span>
+          </h2>
 
-        <div className="lanped-field">
-          <label>Forma de Pagamento</label>
-          <select value={formaPagamento} onChange={e => setFormaPagamento(e.target.value)}>
-            <option value="">Selecione</option>
-            {formasPagamento.map(f => <option key={f} value={f}>{f}</option>)}
-          </select>
+          {/* Pagamento / vencimento */}
+          <div className="form-row">
+            <label>Forma de Pagamento</label>
+            <select value={forma} onChange={(e) => setForma(e.target.value)}>
+              <option value="">Selecione</option>
+              <option>PIX</option>
+              <option>Espécie</option>
+              <option>Cartão</option>
+            </select>
+          </div>
+
+          <div className="form-row">
+            <label>Data de Vencimento</label>
+            <input type="date" value={venc} onChange={(e) => setVenc(e.target.value)} />
+          </div>
+
+          {/* Ações */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+            <button className="btn-acao" onClick={salvarPedido}>💾 Salvar Pedido</button>
+            <button className="btn-acao" onClick={gerarPdfECompartilhar}>
+              📄 Gerar PDF e enviar no WhatsApp
+            </button>
+            <button className="btn-acao" onClick={() => setTela?.("HomeERP")}>Voltar</button>
+          </div>
         </div>
-
-        {formaPagamento === "Boleto" && (
-          <>
-            <div className="lanped-field">
-              <label>Anexar Nota Fiscal</label>
-              <input type="file" accept=".pdf,.jpg,.png" />
-            </div>
-            <div className="lanped-field">
-              <label>Anexar Boleto</label>
-              <input type="file" accept=".pdf,.jpg,.png" />
-            </div>
-          </>
-        )}
-
-        <div className="lanped-field">
-          <label>Data de Vencimento</label>
-          <input type="date" value={dataVencimento} onChange={e => setDataVencimento(e.target.value)} />
-        </div>
-
-        <button className="botao-salvar" onClick={handleSalvar}>💾 Salvar Pedido</button>
-      </div>
-
-      <button className="botao-voltar" onClick={() => setTela("HomePCP")}>🔙 Voltar</button>
-
-      <footer className="lanped-footer">
-        <div className="lista-escolas-marquee">
-          <span className="marquee-content">
-            • Pequeno Príncipe • Salesianas • Céu Azul • Russas • Bora Gastar • Kaduh • Society Show • Degusty • Tio Valter • Vera Cruz
-          </span>
-        </div>
-        <div className="status-pdvs">
-          {Object.entries(statusPorPdv).map(([p, s]) => (
-            <span key={p} className="status-item">
-              {p}: <strong>{s}</strong>
-            </span>
-          ))}
-        </div>
-      </footer>
-    </div>
+      </main>
+      <ERPFooter onBack={() => setTela?.("HomeERP")} />
+    </>
   );
-}
+    }
