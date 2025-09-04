@@ -1,38 +1,14 @@
 // src/pages/CtsPagar.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import "./CtsPagar.css";
-
-/* ===================== PERSISTÊNCIA (LocalStorage) ===================== */
-const LS_KEY = "financeiro_fluxo";
-const getAll = () => JSON.parse(localStorage.getItem(LS_KEY) || "[]");
-const saveAll = (arr) => localStorage.setItem(LS_KEY, JSON.stringify(arr));
-const randId = () =>
-  `bk_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
-
-const updateById = (id, mut) => {
-  const arr = getAll();
-  const idx = arr.findIndex((x) => x.id === id);
-  if (idx < 0) throw new Error("Lançamento não encontrado.");
-  arr[idx] = mut({ ...arr[idx] });
-  saveAll(arr);
-  return arr[idx];
-};
+import { criarPrevistosPagar, atualizarFluxo } from "../util/financeiro_store";
 
 /* ===================== CONSTANTES / HELPERS ===================== */
 const FORMAS = ["PIX", "Débito", "Crédito", "Boleto", "Transferência", "Dinheiro"];
 const PERIODOS = [
-  "Único",
-  "Semanal",
-  "Quinzenal",
-  "Mensal",
-  "Bimestral",
-  "Trimestral",
-  "Semestral",
-  "Anual",
+  "Único","Semanal","Quinzenal","Mensal","Bimestral","Trimestral","Semestral","Anual",
 ];
-
-const fmtBRL = (v) =>
-  (Number(v || 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const fmtBRL = (v) => (Number(v || 0)).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
 /** Plano de Contas (pagar) — opções completas */
 const PLANOS_PAGAR = [
@@ -121,23 +97,16 @@ const PLANOS_PAGAR = [
 export default function CtsPagar({ setTela }) {
   // estados básicos
   const [periodicidade, setPeriodicidade] = useState("Único");
-
   // Ocorrências como string: permite "" no mobile
   const [ocorrencias, setOcorrencias] = useState("1");
-
   // linhas de vencimento (data/valor)
-  const [vencs, setVencs] = useState([
-    { data: new Date().toISOString().slice(0, 10), valor: "" },
-  ]);
-
+  const [vencs, setVencs] = useState([{ data: new Date().toISOString().slice(0, 10), valor: "" }]);
   const [forma, setForma] = useState("PIX");
   const [plano, setPlano] = useState("");
   const [descricao, setDescricao] = useState("");
-
   // modo edição
   const [editId, setEditId] = useState(null);
-
-  // debug no mobile
+  // debug
   const [dbgOpen, setDbgOpen] = useState(false);
   const [dbgDump, setDbgDump] = useState("");
 
@@ -165,8 +134,7 @@ export default function CtsPagar({ setTela }) {
           : new Date().toISOString().slice(0, 10);
         setVencs([{ data: d, valor: Math.abs(Number(info.valor || 0)) || "" }]);
 
-        if (info.formaPagamento && FORMAS.includes(info.formaPagamento))
-          setForma(info.formaPagamento);
+        if (info.formaPagamento && FORMAS.includes(info.formaPagamento)) setForma(info.formaPagamento);
         if (info.planoContas) setPlano(info.planoContas);
         if (info.descricao) setDescricao(info.descricao);
       }
@@ -196,29 +164,14 @@ export default function CtsPagar({ setTela }) {
         if (i === 0) return v;
         const d = new Date(base);
         switch (periodicidade) {
-          case "Semanal":
-            d.setDate(base.getDate() + 7 * i);
-            break;
-          case "Quinzenal":
-            d.setDate(base.getDate() + 15 * i);
-            break;
-          case "Mensal":
-            d.setMonth(base.getMonth() + i);
-            break;
-          case "Bimestral":
-            d.setMonth(base.getMonth() + 2 * i);
-            break;
-          case "Trimestral":
-            d.setMonth(base.getMonth() + 3 * i);
-            break;
-          case "Semestral":
-            d.setMonth(base.getMonth() + 6 * i);
-            break;
-          case "Anual":
-            d.setFullYear(base.getFullYear() + i);
-            break;
-          default:
-            break;
+          case "Semanal":   d.setDate(base.getDate() + 7 * i); break;
+          case "Quinzenal": d.setDate(base.getDate() + 15 * i); break;
+          case "Mensal":    d.setMonth(base.getMonth() + i); break;
+          case "Bimestral": d.setMonth(base.getMonth() + 2 * i); break;
+          case "Trimestral":d.setMonth(base.getMonth() + 3 * i); break;
+          case "Semestral": d.setMonth(base.getMonth() + 6 * i); break;
+          case "Anual":     d.setFullYear(base.getFullYear() + i); break;
+          default: break;
         }
         return { ...v, data: d.toISOString().slice(0, 10) };
       });
@@ -236,8 +189,8 @@ export default function CtsPagar({ setTela }) {
 
   function dumpUltimos() {
     try {
-      const all = getAll();
-      const ult = all.slice(-10);
+      const arr = JSON.parse(localStorage.getItem("financeiro_fluxo") || "[]");
+      const ult = arr.slice(-10);
       setDbgDump(JSON.stringify(ult, null, 2));
       setDbgOpen(true);
     } catch (e) {
@@ -247,7 +200,7 @@ export default function CtsPagar({ setTela }) {
   }
 
   /* ----------------------------- Salvar ----------------------------- */
-  function salvarPrevisto() {
+  async function salvarPrevisto() {
     // validações
     if (!plano) return alert("Selecione o Plano de Contas.");
     if (!forma) return alert("Informe a Forma de pagamento.");
@@ -257,24 +210,23 @@ export default function CtsPagar({ setTela }) {
         return alert(`Informe o valor da ocorrência #${i + 1}.`);
     }
 
-    // modo edição: atualiza um único lançamento
+    // ===== MODO EDIÇÃO =====
     if (editId) {
       try {
-        updateById(editId, (doc) => {
-          const v = Math.abs(Number(vencs[0].valor || 0));
-          doc.data = new Date(vencs[0].data).toISOString();
-          doc.conta = "EXTRATO BANCARIO";
-          doc.lado = "SAIDA";
-          doc.tipo = "PAGAR";
-          doc.origem = "Previsto";
-          doc.status = "Previsto";
-          doc.statusFinanceiro = "Previsto";
-          doc.forma = forma;
-          doc.formaPagamento = forma;
-          doc.planoContas = plano;
-          doc.descricao = descricao || doc.descricao || "PAGAMENTO";
-          doc.valor = -v; // saída negativa
-          return doc;
+        const v = Math.abs(Number(vencs[0].valor || 0));
+        await atualizarFluxo(editId, {
+          conta: "EXTRATO BANCARIO",
+          statusFinanceiro: "Previsto",
+          origem: "PAGAR",
+          lado: "SAIDA",
+          tipo: "PAGAR",
+          dataPrevista: vencs[0].data,
+          valorPrevisto: -v,
+          dataRealizado: null,
+          valorRealizado: null,
+          formaPagamento: forma,
+          planoContas: plano,
+          descricao: descricao || "PAGAMENTO",
         });
         alert("Lançamento atualizado com sucesso.");
         setTela?.("FluxCx");
@@ -285,57 +237,48 @@ export default function CtsPagar({ setTela }) {
       }
     }
 
-    // novos lançamentos – replicados pelas ocorrências
-    const arr = getAll();
-    vencs.forEach((v, idx) => {
-      const doc = {
-        id: randId(),
-        data: new Date(v.data).toISOString(),
-        conta: "EXTRATO BANCARIO", // ajuste se seu FluxCx filtrar outra conta
-        lado: "SAIDA",
-        tipo: "PAGAR",
-        origem: "Previsto",
-        status: "Previsto",
-        statusFinanceiro: "Previsto",
-        forma: forma,
-        formaPagamento: forma, // compatibilidade
+    // ===== NOVOS LANÇAMENTOS =====
+    try {
+      const docs = vencs.map((v, idx) => ({
+        dataPrevista: v.data,
+        valor: Number(v.valor || 0), // a função no store transforma em negativo
+        forma,
         planoContas: plano,
         descricao: descricao || "PAGAMENTO",
-        valor: -Math.abs(Number(v.valor || 0)), // saída negativa
         meta: { periodicidade, ocorrencias: Number(ocorrencias || 1), ordem: idx + 1 },
-      };
-      arr.push(doc);
-    });
-    saveAll(arr);
+      }));
 
-    alert(
-      `Previsto salvo. Ocorrências: ${vencs.length}. Total do lote: ${fmtBRL(
-        Math.abs(totalLote)
-      )}.`
-    );
+      await criarPrevistosPagar(docs);
 
-    // limpar
-    setDescricao("");
-    setPlano("");
-    setForma("PIX");
-    setPeriodicidade("Único");
-    setOcorrencias("1");
-    setVencs([{ data: new Date().toISOString().slice(0, 10), valor: "" }]);
+      alert(
+        `Previsto salvo. Ocorrências: ${vencs.length}. Total do lote: ${fmtBRL(
+          Math.abs(totalLote)
+        )}.`
+      );
+
+      // limpar
+      setDescricao("");
+      setPlano("");
+      setForma("PIX");
+      setPeriodicidade("Único");
+      setOcorrencias("1");
+      setVencs([{ data: new Date().toISOString().slice(0, 10), valor: "" }]);
+    } catch (e) {
+      alert("Erro ao salvar previsto: " + (e?.message || e));
+    }
   }
 
   /* ------------------------------ RENDER ------------------------------ */
   return (
     <div className="ctspagar-main">
-      {/* HEADER padrão (mesmo visual do LanPed) */}
+      {/* HEADER padrão */}
       <header className="erp-header">
         <div className="erp-header__inner">
           <div className="erp-header__logo">
             <img src="/LogomarcaDDnt2025Vazado.png" alt="Dudunitê" />
           </div>
           <div className="erp-header__title">
-            ERP DUDUNITÊ
-            <br />
-            Financeiro
+            ERP DUDUNITÊ<br/>Financeiro
           </div>
         </div>
       </header>
@@ -348,19 +291,12 @@ export default function CtsPagar({ setTela }) {
           Conta: EXTRATO BANCARIO • Status: PREVISTO • Valores gravados como SAÍDA (negativos)
         </div>
 
-        {/* Linha topo: Periodicidade / Ocorrências / Auto */}
+        {/* Periodicidade / Ocorrências / Auto */}
         <div className="cp-top">
           <label className="lbl">
             <span>Periodicidade</span>
-            <select
-              value={periodicidade}
-              onChange={(e) => setPeriodicidade(e.target.value)}
-            >
-              {PERIODOS.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
+            <select value={periodicidade} onChange={(e)=>setPeriodicidade(e.target.value)}>
+              {PERIODOS.map((p)=> <option key={p} value={p}>{p}</option>)}
             </select>
           </label>
 
@@ -370,41 +306,29 @@ export default function CtsPagar({ setTela }) {
               inputMode="numeric"
               pattern="[0-9]*"
               value={String(ocorrencias)}
-              onChange={(e) => {
-                const raw = e.target.value.replace(/\D/g, "");
+              onChange={(e)=>{
+                const raw = e.target.value.replace(/\D/g,"");
                 setOcorrencias(raw === "" ? "" : raw);
               }}
-              onBlur={() =>
-                setOcorrencias((v) => (v === "" || Number(v) < 1 ? "1" : String(Number(v))))
-              }
+              onBlur={()=> setOcorrencias(v => (v === "" || Number(v)<1 ? "1" : String(Number(v))))}
               placeholder="Ocorrências"
             />
           </label>
 
-          <button className="btn-auto" onClick={() => aplicarOcorrencias(ocorrencias)}>
+          <button className="btn-auto" onClick={()=>aplicarOcorrencias(ocorrencias)}>
             Preencher datas automaticamente
           </button>
         </div>
 
-        {/* Linhas de vencimento */}
+        {/* Vencimentos */}
         <div className="cp-rows">
-          {vencs.map((v, i) => (
+          {vencs.map((v,i)=>(
             <div className="cp-row" key={i}>
-              <div className="cp-row-n">#{i + 1}</div>
-              <input
-                className="cp-row-date"
-                type="date"
-                value={v.data}
-                onChange={(e) => setVencField(i, "data", e.target.value)}
-              />
-              <input
-                className="cp-row-val"
-                type="number"
-                step="0.01"
-                placeholder="Valor"
-                value={v.valor}
-                onChange={(e) => setVencField(i, "valor", e.target.value)}
-              />
+              <div className="cp-row-n">#{i+1}</div>
+              <input className="cp-row-date" type="date" value={v.data}
+                     onChange={(e)=>setVencField(i,"data",e.target.value)} />
+              <input className="cp-row-val" type="number" step="0.01" placeholder="Valor" value={v.valor}
+                     onChange={(e)=>setVencField(i,"valor",e.target.value)} />
             </div>
           ))}
         </div>
@@ -413,34 +337,23 @@ export default function CtsPagar({ setTela }) {
         <div className="cp-mid">
           <label className="lbl">
             <span>Forma</span>
-            <select value={forma} onChange={(e) => setForma(e.target.value)}>
-              {FORMAS.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
+            <select value={forma} onChange={(e)=>setForma(e.target.value)}>
+              {FORMAS.map((f)=> <option key={f} value={f}>{f}</option>)}
             </select>
           </label>
 
           <label className="lbl">
             <span>Plano de Contas (pagar)</span>
-            <select value={plano} onChange={(e) => setPlano(e.target.value)}>
+            <select value={plano} onChange={(e)=>setPlano(e.target.value)}>
               <option value="">Selecione...</option>
-              {PLANOS_PAGAR.map((p) => (
-                <option key={p.v} value={p.v}>
-                  {p.t}
-                </option>
-              ))}
+              {PLANOS_PAGAR.map((p)=> <option key={p.v} value={p.v}>{p.t}</option>)}
             </select>
           </label>
 
           <label className="lbl">
             <span>Descrição (opcional)</span>
-            <input
-              placeholder="ex.: assinatura, manutenção, etc."
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-            />
+            <input placeholder="ex.: assinatura, manutenção, etc."
+                   value={descricao} onChange={(e)=>setDescricao(e.target.value)} />
           </label>
         </div>
 
@@ -448,64 +361,39 @@ export default function CtsPagar({ setTela }) {
           Total do lote: <strong>{fmtBRL(Math.abs(totalLote))}</strong>
         </div>
 
-        {/* Ações principais */}
+        {/* Ações */}
         <div className="cp-acoes">
           <button className="btn-salvar" onClick={salvarPrevisto}>
             {editId ? "Salvar ALTERAÇÃO" : "Salvar PREVISTO"}
           </button>
-          <button
-            className="btn-cancelar"
-            onClick={() => {
-              setDescricao("");
-              setPlano("");
-              setForma("PIX");
-              setPeriodicidade("Único");
-              setOcorrencias("1");
-              setVencs([{ data: new Date().toISOString().slice(0, 10), valor: "" }]);
-              setEditId(null);
-            }}
-          >
+          <button className="btn-cancelar" onClick={()=>{
+            setDescricao(""); setPlano(""); setForma("PIX");
+            setPeriodicidade("Único"); setOcorrencias("1");
+            setVencs([{ data: new Date().toISOString().slice(0,10), valor:"" }]);
+            setEditId(null);
+          }}>
             Limpar
           </button>
         </div>
 
         {/* Utilidades para celular */}
-        <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-          <button
-            className="cp-btn"
-            style={{ background: "#eee", color: "#333", borderRadius: 10, padding: "10px 12px", fontWeight: 800 }}
-            onClick={dumpUltimos}
-          >
+        <div style={{ display:"flex", gap:8, marginTop:8, flexWrap:"wrap" }}>
+          <button className="cp-btn" style={{ background:"#eee", color:"#333", borderRadius:10, padding:"10px 12px", fontWeight:800 }}
+                  onClick={dumpUltimos}>
             Ver lançamentos (últimos 10)
           </button>
-          <button
-            className="cp-btn"
-            style={{ background: "#d3c1a9", color: "#4a2b13", borderRadius: 10, padding: "10px 12px", fontWeight: 800 }}
-            onClick={() => setTela?.("FluxCx")}
-          >
+          <button className="cp-btn" style={{ background:"#d3c1a9", color:"#4a2b13", borderRadius:10, padding:"10px 12px", fontWeight:800 }}
+                  onClick={()=>setTela?.("FluxCx")}>
             Ir para Fluxo
           </button>
         </div>
 
         {dbgOpen && (
           <pre
-            style={{
-              marginTop: 8,
-              maxHeight: 260,
-              overflow: "auto",
-              background: "#fffdf6",
-              border: "1px solid #e6d2c2",
-              borderRadius: 10,
-              padding: 10,
-              fontSize: 12,
-              lineHeight: 1.3,
-              color: "#3b2a1d",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-            }}
-            onClick={() => setDbgOpen(false)}
-            title="Toque para fechar"
-          >
+            style={{ marginTop:8, maxHeight:260, overflow:"auto", background:"#fffdf6",
+                     border:"1px solid #e6d2c2", borderRadius:10, padding:10, fontSize:12,
+                     lineHeight:1.3, color:"#3b2a1d", whiteSpace:"pre-wrap", wordBreak:"break-word" }}
+            onClick={()=>setDbgOpen(false)} title="Toque para fechar">
             {dbgDump || "Sem registros."}
           </pre>
         )}
@@ -515,13 +403,8 @@ export default function CtsPagar({ setTela }) {
         </div>
       </div>
 
-      <button className="btn-voltar-foot" onClick={() => setTela?.("CtsReceber")}>
-        ◀ Menu Financeiro
-      </button>
-
-      <footer className="erp-footer">
-        <div className="erp-footer-track">• Pagamentos •</div>
-      </footer>
+      <button className="btn-voltar-foot" onClick={()=>setTela?.("CtsReceber")}>◀ Menu Financeiro</button>
+      <footer className="erp-footer"><div className="erp-footer-track">• Pagamentos •</div></footer>
     </div>
   );
-                   }
+        }
