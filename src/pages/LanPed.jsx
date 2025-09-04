@@ -24,6 +24,9 @@ const brDate = (d) => (d ? new Date(d) : new Date()).toLocaleDateString("pt-BR")
 const TERRA = { r: 166, g: 84, b: 53 }; // terracota
 const EXTRA_ROWS = 8; // linhas em branco extras
 
+// fonte padrão (igual ao rodapé)
+const FONT = { base: 11, headSmall: 10, min: 9 };
+
 // 001/AAAA — reinicia a cada ano (transação atômica)
 async function getNextPedidoNumero() {
   const year = String(new Date().getFullYear());
@@ -53,7 +56,7 @@ async function loadImageSafe(src) {
   });
 }
 
-function drawFitText(doc, text, x, y, maxW, baseSize = 12, minSize = 9) {
+function drawFitText(doc, text, x, y, maxW, baseSize = FONT.base, minSize = FONT.min) {
   const prev = doc.getFontSize();
   doc.setFontSize(baseSize);
   const w = doc.getTextWidth(text);
@@ -198,6 +201,7 @@ export default function LanPed({ setTela }) {
     const doc = new jsPDF({ unit: "pt", format: "a5", orientation: "portrait" });
     const M = 32;
     doc.setFont("helvetica", "normal");
+    doc.setFontSize(FONT.base);
     doc.setTextColor(0, 0, 0);
     doc.setDrawColor(TERRA.r, TERRA.g, TERRA.b);
 
@@ -217,25 +221,29 @@ export default function LanPed({ setTela }) {
       doc.addImage(logo, "PNG", logoLeft, M - 6, logoW, logoH);
     }
 
-    // Cabeçalho em uma linha (não invade logo)
+    // Cabeçalho em uma linha (mesma fonte do rodapé)
     const headerText = `Vendedor: Dudunitê • Data: ${brDate(hojeISO())}`;
     const headerMaxW = logoW > 0 ? logoLeft - M - 8 : pageW - 2 * M;
-    drawFitText(doc, headerText, M, M + 8, headerMaxW, 12, 9);
+    drawFitText(doc, headerText, M, M + 8, headerMaxW, FONT.base, FONT.min);
 
-    // "Pedido Nº" + número
-    const pillH = 28;
+    // "Pedido Nº" + número (mesmo corpo 11, só negrito)
+    const pillH = 24; // mais baixo pra ficar proporcional
     doc.setFillColor(247, 236, 230);
     doc.roundedRect(M, M + 22, 110, pillH, 10, 10, "FD");
     doc.setFont("helvetica", "bold");
-    doc.text("Pedido Nº", M + 10, M + 22 + 19);
+    doc.setFontSize(FONT.base);
+    doc.text("Pedido Nº", M + 10, M + 22 + 16);
+
     doc.roundedRect(M + 120, M + 22, 120, pillH, 10, 10, "S");
-    doc.text(numeroPedido, M + 130, M + 22 + 19);
+    doc.text(numeroPedido, M + 130, M + 22 + 16);
 
     // Bloco cliente
     const yBase = M + 22 + pillH + 18;
     const linha = (y) => doc.line(M, y, pageW - M, y);
 
     doc.setFont("helvetica", "normal");
+    doc.setFontSize(FONT.base);
+
     doc.text("Cliente:", M, yBase);
     doc.text(pdv, M + 56, yBase);
     linha(yBase + 8);
@@ -256,27 +264,28 @@ export default function LanPed({ setTela }) {
     doc.text("E-mail:", M, yBase + 96);
     linha(yBase + 104);
 
-    // ===== TABELA DE ITENS (colunas ajustadas ao espaço útil) =====
+    // ===== TABELA DE ITENS (colunas ajustadas) =====
     const head = [["Qtde.", "Descrição", "Unid.", "Total"]];
     const body = [
       ...itens.map((it) => [String(it.quantidade), it.produto, "UN", money(it.total)]),
     ];
     for (let i = 0; i < EXTRA_ROWS; i++) body.push(["", "", "", ""]);
 
-    const avail = pageW - 2 * M;                    // largura útil
-    const cw = [0.14, 0.50, 0.12, 0.24].map(p => p * avail); // soma 1.0 → cabe certinho
+    const avail = pageW - 2 * M;
+    const cw = [0.14, 0.50, 0.12, 0.24].map((p) => p * avail);
 
     autoTable(doc, {
       startY: yBase + 120,
       head,
       body,
       styles: {
-        fontSize: 11,
+        fontSize: FONT.base,
         lineColor: [TERRA.r, TERRA.g, TERRA.b],
         cellPadding: 6,
         overflow: "linebreak",
       },
       headStyles: {
+        fontSize: FONT.headSmall,
         fillColor: [247, 236, 230],
         textColor: [60, 40, 30],
         lineColor: [TERRA.r, TERRA.g, TERRA.b],
@@ -285,15 +294,15 @@ export default function LanPed({ setTela }) {
       margin: { left: M, right: M },
       columnStyles: {
         0: { cellWidth: cw[0], halign: "center" },
-        1: { cellWidth: cw[1] },                     // <<< Descrição menor
+        1: { cellWidth: cw[1] }, // Descrição menor pra caber Total
         2: { cellWidth: cw[2], halign: "center" },
-        3: { cellWidth: cw[3], halign: "right" },    // <<< Total cabe na página
+        3: { cellWidth: cw[3], halign: "right" },
       },
     });
 
     let y = doc.lastAutoTable.finalY + 10;
 
-    // Quadro resumo
+    // Quadro resumo (mesma tipografia)
     const wTotal = pageW - 2 * M;
     const colW = [wTotal * 0.35, wTotal * 0.30, wTotal * 0.35];
     autoTable(doc, {
@@ -301,9 +310,9 @@ export default function LanPed({ setTela }) {
       head: [["Forma de pagamento", "Vencimento", "Valor total do pedido"]],
       body: [[formaPagamento, dataVencimento ? brDate(dataVencimento) : "-", money(totalPedido)]],
       theme: "grid",
-      styles: { fontSize: 11, lineColor: [TERRA.r, TERRA.g, TERRA.b] },
+      styles: { fontSize: FONT.base, lineColor: [TERRA.r, TERRA.g, TERRA.b] },
       headStyles: {
-        fontSize: 10,
+        fontSize: FONT.headSmall,
         fillColor: [247, 236, 230],
         textColor: [60, 40, 30],
         lineColor: [TERRA.r, TERRA.g, TERRA.b],
@@ -330,10 +339,10 @@ export default function LanPed({ setTela }) {
       if (hasG) doc.setGState(new doc.GState({ opacity: 1 }));
     }
 
-    // Rodapé (fonte igual à do “PIX”: 11pt normal)
+    // Rodapé (base 11)
     y = doc.lastAutoTable.finalY + 24;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
+    doc.setFontSize(FONT.base);
     doc.text("Dudunitê", M, y);
     doc.setFont("helvetica", "normal");
 
@@ -525,4 +534,4 @@ export default function LanPed({ setTela }) {
       </footer>
     </div>
   );
-      }
+  }
