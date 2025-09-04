@@ -22,7 +22,7 @@ const money = (n) => `R$ ${Number(n || 0).toFixed(2).replace(".", ",")}`;
 const hojeISO = () => new Date().toISOString().slice(0, 10);
 const brDate = (d) => (d ? new Date(d) : new Date()).toLocaleDateString("pt-BR");
 const TERRA = { r: 166, g: 84, b: 53 }; // terracota
-const EXTRA_ROWS = 8; // linhas em branco extras na tabela de itens
+const EXTRA_ROWS = 8; // linhas em branco extras
 
 // 001/AAAA — reinicia a cada ano (transação atômica)
 async function getNextPedidoNumero() {
@@ -51,6 +51,19 @@ async function loadImageSafe(src) {
     img.onerror = () => resolve(null);
     img.src = src;
   });
+}
+
+// escreve uma linha ajustando a fonte para caber em maxW (sem quebrar)
+function drawFitText(doc, text, x, y, maxW, baseSize = 12, minSize = 9) {
+  const prevSize = doc.getFontSize();
+  doc.setFontSize(baseSize);
+  let w = doc.getTextWidth(text);
+  if (w > maxW) {
+    const fitted = Math.max(minSize, Math.floor((baseSize * maxW) / w));
+    doc.setFontSize(fitted);
+  }
+  doc.text(text, x, y);
+  doc.setFontSize(prevSize);
 }
 
 export default function LanPed({ setTela }) {
@@ -185,22 +198,18 @@ export default function LanPed({ setTela }) {
       return;
     }
 
-    // numeração NNN/AAAA
     const numeroPedido = await getNextPedidoNumero();
 
     const doc = new jsPDF({ unit: "pt", format: "a5", orientation: "portrait" });
     const M = 32; // margem
     doc.setFont("helvetica", "normal");
     doc.setTextColor(0, 0, 0);
-
-    // bordas/cores padrão terracota
     doc.setDrawColor(TERRA.r, TERRA.g, TERRA.b);
 
-    // página
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
 
-    // logomarca topo direito (proporcional) + cálculo para evitar colisão
+    // LOGO topo direito (proporcional)
     let logoLeft = pageW - M;
     let logoW = 0;
     let logoH = 0;
@@ -214,26 +223,27 @@ export default function LanPed({ setTela }) {
       doc.addImage(logo, "PNG", logoLeft, M - 6, logoW, logoH);
     }
 
-    // cabeçalho "Pedido Nº" + número
+    // >>> CABEÇALHO EM UMA LINHA (ANTES de Pedido Nº) <<<
+    const headerText = `Vendedor: Dudunitê • Data: ${brDate(hojeISO())}`;
+    const headerMaxW = logoW > 0 ? logoLeft - M - 8 : pageW - 2 * M;
+    doc.setFont("helvetica", "normal");
+    drawFitText(doc, headerText, M, M + 8, headerMaxW, 12, 9); // evita invadir a logo
+
+    // "Pedido Nº" + número
     const pillH = 28;
     doc.setFillColor(247, 236, 230);
-    doc.roundedRect(M, M + 18, 110, pillH, 10, 10, "FD");
+    doc.roundedRect(M, M + 22, 110, pillH, 10, 10, "FD");
     doc.setFont("helvetica", "bold");
-    doc.text("Pedido Nº", M + 10, M + 18 + 19);
+    doc.text("Pedido Nº", M + 10, M + 22 + 19);
 
-    doc.roundedRect(M + 120, M + 18, 120, pillH, 10, 10, "S");
-    doc.text(numeroPedido, M + 130, M + 18 + 19);
+    doc.roundedRect(M + 120, M + 22, 120, pillH, 10, 10, "S");
+    doc.text(numeroPedido, M + 130, M + 22 + 19);
 
-    // Vendedor/Data alinhados à direita ANTES da logo (anti-colisão)
-    const rightEdge = logoW > 0 ? logoLeft - 8 : pageW - M;
-    doc.setFont("helvetica", "normal");
-    doc.text("Vendedor: Dudunitê", rightEdge, M + 18 + 12, { align: "right" });
-    doc.text(`Data: ${brDate(hojeISO())}`, rightEdge, M + 18 + 26, { align: "right" });
-
-    // bloco dados cliente
-    const yBase = M + 18 + pillH + 18;
+    // BLOCO CLIENTE
+    const yBase = M + 22 + pillH + 18;
     const linha = (y) => doc.line(M, y, pageW - M, y);
 
+    doc.setFont("helvetica", "normal");
     doc.text("Cliente:", M, yBase);
     doc.text(pdv, M + 56, yBase);
     linha(yBase + 8);
@@ -254,7 +264,7 @@ export default function LanPed({ setTela }) {
     doc.text("E-mail:", M, yBase + 96);
     linha(yBase + 104);
 
-    // Tabela de itens
+    // Tabela de ITENS
     const head = [["Qtde.", "Descrição", "Unid.", "Total"]];
     const body = [
       ...itens.map((it) => [
@@ -288,7 +298,7 @@ export default function LanPed({ setTela }) {
 
     let y = doc.lastAutoTable.finalY + 10;
 
-    // Quadro resumo (Forma de pagamento / Vencimento / Total)
+    // Quadro RESUMO
     const wTotal = pageW - 2 * M;
     const colW = [wTotal * 0.35, wTotal * 0.30, wTotal * 0.35];
     autoTable(doc, {
@@ -298,7 +308,7 @@ export default function LanPed({ setTela }) {
       theme: "grid",
       styles: { fontSize: 11, lineColor: [TERRA.r, TERRA.g, TERRA.b] },
       headStyles: {
-        fontSize: 10, // menor para caber
+        fontSize: 10,
         fillColor: [247, 236, 230],
         textColor: [60, 40, 30],
         lineColor: [TERRA.r, TERRA.g, TERRA.b],
@@ -311,7 +321,7 @@ export default function LanPed({ setTela }) {
       },
     });
 
-    // Marca d'água central (logo) — proporcional e translúcida
+    // Marca d'água (logo) — translúcida
     if (logo) {
       const maxW = pageW * 0.45;
       const ratio = Math.min(maxW / logo.width, 1);
@@ -325,9 +335,10 @@ export default function LanPed({ setTela }) {
       if (hasG) doc.setGState(new doc.GState({ opacity: 1 }));
     }
 
-    // Bloco de contato (sem repetir forma de pgto/vencimento)
+    // Rodapé de CONTATO (mesma fonte do “PIX” = 11pt normal)
     y = doc.lastAutoTable.finalY + 24;
     doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
     doc.text("Dudunitê", M, y);
     doc.setFont("helvetica", "normal");
 
@@ -356,13 +367,12 @@ export default function LanPed({ setTela }) {
     y2 += 14;
     doc.text("Entrega: toda segunda feira", M, y2);
 
-    // Gera blob
+    // PDF -> share/WhatsApp
     const pdfBlob = doc.output("blob");
     const file = new File([pdfBlob], `${numeroPedido}_${pdv}_${hojeISO()}.pdf`, {
       type: "application/pdf",
     });
 
-    // Compartilhar (se suportado)
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({
@@ -371,12 +381,9 @@ export default function LanPed({ setTela }) {
           files: [file],
         });
         return;
-      } catch (err) {
-        // usuário pode ter cancelado — segue fallback
-      }
+      } catch {}
     }
 
-    // Fallback: link do blob no WhatsApp
     const url = URL.createObjectURL(pdfBlob);
     const mensagem =
       `Pedido ${numeroPedido}\nPDV: ${pdv}\nCidade: ${cidade}\n` +
@@ -539,4 +546,4 @@ export default function LanPed({ setTela }) {
       </footer>
     </div>
   );
-                                          }
+             }
