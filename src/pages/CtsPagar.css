@@ -212,3 +212,32 @@
 /* ===== Reuso para Receber Avulso (opcional) ===== */
 /* Se a página de Receber Avulso usar <div class="ctspagar-card ctsavulso-card">,
    ela já herda todo o visual. Não precisa CSS novo. */
+
+/* Mantém seu fundo e footer; o visual dos campos vem do LanPed.css */
+
+/* Card/info acima do formulário */
+.cp-info{
+  margin: 4px 0 8px;
+  font-size: 12px;
+  color: #7b3c21;
+  opacity: .9;
+}
+
+/* Linha de cada ocorrência (#, Data, Valor) com cara de LanPed */
+.cp-oc-row{
+  display: grid;
+  grid-template-columns: 64px 1fr 1fr;
+  gap: 8px;
+  align-items: end;
+  background: #fff8f1;
+  border: 1px dashed #e6d2c2;
+  border-radius: 12px;
+  padding: 8px;
+  margin: 6px 0;
+}
+.cp-oc-chip{
+  align-self: center;
+  justify-self: center;
+  font-weight: 800;
+  color: #7b3c21;
+}
