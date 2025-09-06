@@ -373,7 +373,9 @@ export default function FluxCx({ setTela }) {
                         <td>{l.descricao}</td>
                         <td>{l.forma || "-"}</td>
                         <td>{l.fechado ? <span className="chip chip-real">Fechado</span> : <span className="chip chip-prev">Aberto</span>}</td>
-                        <td className="valor-cell">{money(l.valor)}</td>
+                        <td className={`valor-cell ${Number(l.valor) < 0 ? "valor-pag" : "valor-rec"}`}>
+                          {money(l.valor)}
+                        </td>
                         <td className="valor-cell">{money(l.saldo)}</td>
                       </tr>
                     ))}
@@ -412,11 +414,13 @@ export default function FluxCx({ setTela }) {
                       <th style={{ minWidth: 110 }}>Status</th>
                       <th className="th-right" style={{ minWidth: 110 }}>Valor</th>
                       <th style={{ minWidth: 140 }}>Ações</th>
+                      <th style={{ minWidth: 70, textAlign: "center" }}>Tipo</th>
                     </tr>
                   </thead>
                   <tbody>
                     {g.linhas.map((l, i) => {
                       const desc = (l.descricao || "").replace(/^PEDIDO\s*•\s*/i, "") || "-";
+                      const isPag = Number(l.valor) < 0; // pagamento (negativo) vs recebimento (positivo)
                       return (
                         <tr key={l.id || i}>
                           <td>{desc}</td>
@@ -431,7 +435,9 @@ export default function FluxCx({ setTela }) {
                             Realizado
                           </td>
                           <td>{badgeStatus(l)}</td>
-                          <td className="valor-cell">{money(l.valor)}</td>
+                          <td className={`valor-cell ${isPag ? "valor-pag" : "valor-rec"}`}>
+                            {money(l.valor)}
+                          </td>
                           <td>
                             <button className="btn-acao" onClick={() => openEdit(l)}>Alterar</button>
                             <button
@@ -445,6 +451,12 @@ export default function FluxCx({ setTela }) {
                             >
                               Excluir
                             </button>
+                          </td>
+                          {/* Coluna TIPO */}
+                          <td style={{ textAlign: "center" }}>
+                            <span className={`tipo-chip ${isPag ? "tipo-pag" : "tipo-rec"}`}>
+                              {isPag ? "PAG" : "REC"}
+                            </span>
                           </td>
                         </tr>
                       );
@@ -516,4 +528,4 @@ export default function FluxCx({ setTela }) {
       <ERPFooter onBack={() => setTela?.("HomeERP")} />
     </>
   );
-                }
+}
