@@ -2,6 +2,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
+import "./Supr.css"; // <<< BG/spacing padrão
+
 import {
   listarProdutosAZ,
   listenListaComprasDia,
@@ -15,21 +17,15 @@ const money = (n) => `R$ ${Number(n||0).toFixed(2).replace(".", ",")}`;
 export default function SuprComprasLista({ setTela }){
   const [data, setData] = useState(new Date().toISOString().slice(0,10));
   const [produtos, setProdutos] = useState([]);     // catálogo A–Z
-  const [itens, setItens] = useState([]);          // itens do dia (aqui 1 por produto)
+  const [itens, setItens] = useState([]);          // itens do dia (1 por produto)
   const [busca, setBusca] = useState("");
 
-  // carregar catálogo A–Z
+  useEffect(()=>{ listarProdutosAZ().then(setProdutos).catch(()=>setProdutos([])); }, []);
   useEffect(()=>{
-    listarProdutosAZ().then(setProdutos).catch(()=>setProdutos([]));
-  }, []);
-
-  // assinar lista do dia
-  useEffect(()=>{
-    const off = listenListaComprasDia(data, ({ itens, total }) => setItens(itens));
+    const off = listenListaComprasDia(data, ({ itens }) => setItens(itens));
     return () => off && off();
   }, [data]);
 
-  // index rápido dos itens já digitados (para preencher inputs)
   const mapItens = useMemo(()=>{
     const m = new Map(); itens.forEach(i => m.set(i.produtoId, i)); return m;
   }, [itens]);
@@ -37,7 +33,7 @@ export default function SuprComprasLista({ setTela }){
   const filtrados = useMemo(()=>{
     const q = (busca||"").trim().toLowerCase();
     const base = q ? produtos.filter(p=> String(p.descricao).toLowerCase().includes(q)) : produtos;
-    return base; // já vem A–Z do util
+    return base; // já vem A–Z
   }, [produtos, busca]);
 
   async function onChangeQtd(prod, qtdStr){
@@ -57,22 +53,19 @@ export default function SuprComprasLista({ setTela }){
     });
   }
   async function onToggleCheck(prod, checked){
-    const itemId = prod.id;
-    await marcarItemCompra(data, itemId, checked);
+    await marcarItemCompra(data, prod.id, checked);
   }
-
   async function onLimparItem(prod){
     await removerItemCompra(data, prod.id);
   }
 
-  const totalGeral = useMemo(()=>{
-    return itens.reduce((s,i)=> s + Number(i.total || 0), 0);
-  }, [itens]);
+  const totalGeral = useMemo(()=> itens.reduce((s,i)=> s + Number(i.total || 0), 0), [itens]);
 
   return (
     <>
       <ERPHeader title="ERP DUDUNITÊ — Compras por Lista (A–Z)" />
-      <main style={{ padding: 10 }}>
+
+      <main className="supr-main" style={{ padding: 10 }}>
         {/* Filtros topo */}
         <div className="extrato-card" style={{ marginBottom: 10 }}>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
@@ -95,7 +88,7 @@ export default function SuprComprasLista({ setTela }){
         <section className="extrato-card">
           <h2 style={{ marginTop: 0 }}>Lista de Compras</h2>
 
-          {/* container com rolagem (mantém até metade da tela) */}
+          {/* container com rolagem (até metade da tela) */}
           <div style={{
             maxHeight: "50vh",
             overflow: "auto",
@@ -180,7 +173,8 @@ export default function SuprComprasLista({ setTela }){
 
         <button className="btn-voltar" onClick={() => setTela?.("HomeERP")}>Voltar</button>
       </main>
+
       <ERPFooter onBack={() => setTela?.("HomeERP")} />
     </>
   );
-                    }
+}
