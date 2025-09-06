@@ -1,10 +1,27 @@
-import React, { useState } from "react";
+// src/pages/HomePCP.jsx
+import React, { useEffect, useState } from "react";
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
 import "./HomePCP.css";
 
 export default function HomePCP({ setTela }) {
   const [abrirSup, setAbrirSup] = useState(false);
+
+  // fecha com ESC e bloqueia scroll do body quando modal aberto
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === "Escape") setAbrirSup(false);
+    }
+    if (abrirSup) {
+      document.addEventListener("keydown", onKey);
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.removeEventListener("keydown", onKey);
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [abrirSup]);
 
   return (
     <>
@@ -55,20 +72,30 @@ export default function HomePCP({ setTela }) {
         >
           <div className="sup-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="sup-modal-title">Suprimentos</div>
+
             <div className="sup-modal-actions">
               <button
-                className="botao-principal"
+                className="sup-modal-btn"
+                autoFocus
                 onClick={() => setTela("SuprComprasLista")}
+                title="Registrar compras por lista (A–Z)"
               >
-                🧾 {"\n"} Compras (Lista A–Z)
+                🧾 Compras (Lista A–Z)
               </button>
+
               <button
-                className="botao-principal"
+                className="sup-modal-btn"
                 onClick={() => setTela("SuprEstoque")}
+                title="Inventário: entrada/baixa e custo médio"
               >
-                📦 {"\n"} Estoque (Inventário)
+                📦 Estoque (Inventário)
               </button>
-              <button className="btn-fechar-modal" onClick={() => setAbrirSup(false)}>
+
+              <button
+                className="btn-fechar-modal"
+                onClick={() => setAbrirSup(false)}
+                title="Fechar"
+              >
                 Fechar
               </button>
             </div>
