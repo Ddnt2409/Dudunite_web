@@ -8,10 +8,12 @@ import LanPed      from "./pages/LanPed";
 import AliSab      from "./pages/AliSab";
 import StaPed      from "./pages/StaPed";
 import CtsReceber  from "./pages/CtsReceber";
-import CtsReceberAvulso from "./pages/CtsReceberAvulso"; // <<< NOVO
+import CtsReceberAvulso from "./pages/CtsReceberAvulso";
 import CtsPagar    from "./pages/CtsPagar";
 import FluxCx      from "./pages/FluxCx";
 import Cozinha     from "./pages/cozinha";
+// >>> NOVO
+import SuprComprasLista from "./pages/SuprComprasLista";
 
 export default function App() {
   const [tela, setTela] = useState("HomeERP");
@@ -40,7 +42,7 @@ export default function App() {
     case "CtsReceber":
       return <CtsReceber setTela={setTela} />;
 
-    case "CtsReceberAvulso":               // <<< NOVO
+    case "CtsReceberAvulso":
       return <CtsReceberAvulso setTela={setTela} />;
 
     case "CtsPagar":
@@ -51,6 +53,10 @@ export default function App() {
 
     case "Cozinha":
       return <Cozinha setTela={setTela} />;
+
+    // >>> NOVO
+    case "SuprComprasLista":
+      return <SuprComprasLista setTela={setTela} />;
 
     default:
       return (
