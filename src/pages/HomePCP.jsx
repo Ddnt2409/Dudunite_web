@@ -1,3 +1,4 @@
+// src/pages/HomePCP.jsx
 import React from "react";
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
@@ -40,7 +41,7 @@ export default function HomePCP({ setTela }) {
           <button
             type="button"
             className="botao-principal"
-            onClick={() => setTela("Suprimentos")}
+            onClick={() => setTela("SuprComprasLista")}
           >
             🧺 {"\n"} Suprimentos
           </button>
