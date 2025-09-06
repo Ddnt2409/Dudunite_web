@@ -1,0 +1,17 @@
+/* BG, paddings e rodapé compatível com as demais telas */
+.supr-main{
+  min-height: 100vh;
+  padding: 10px 10px 92px; /* espaço para o footer fixo */
+  box-sizing: border-box;
+  background:
+    url("/bg001.png") center 140px / cover no-repeat,
+    #fcf4e9;
+}
+
+/* (opcional) pequenas harmonizações reutilizando o tema */
+.supr-main .extrato-card h2{
+  font-size: 20px;
+  font-weight: 800;
+  color: #5C1D0E;
+  margin: 0 0 12px;
+}
