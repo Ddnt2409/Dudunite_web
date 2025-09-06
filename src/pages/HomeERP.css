@@ -150,3 +150,38 @@
   from { transform: translateX(0); }
   to   { transform: translateX(-100%); }
 }
+
+/* Cards com botões internos */
+.painel-card{
+  max-width: 720px;
+  margin: 14px auto;
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(139, 63, 29, 0.90); /* marrom do sistema */
+  box-shadow: 0 10px 24px rgba(0,0,0,.18);
+  border: 1px solid #e6d2c2;
+}
+.painel-title{
+  color: #fbeee1;
+  font-weight: 900;
+  font-size: 22px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.acoes-col{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.btn-mini{
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: #fff7f0;
+  color: #5c341e;
+  font-weight: 800;
+  box-shadow: 0 6px 14px rgba(0,0,0,.18);
+}
+.btn-mini:active{ transform: translateY(1px); }
