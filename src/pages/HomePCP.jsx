@@ -1,4 +1,3 @@
-// src/pages/HomePCP.jsx
 import React from "react";
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
@@ -7,48 +6,62 @@ import "./HomePCP.css";
 export default function HomePCP({ setTela }) {
   return (
     <>
-      {/* Mantém o cabeçalho padrão do sistema */}
       <ERPHeader title="PCP – Planejamento" />
 
-      {/* Container com o BG e o layout que você já usava */}
       <div className="homepcp-container">
-        {/* grade/flex dos botões grandes aprovados */}
-        <div className="botoes-pcp">
-          <button
-            type="button"
-            className="botao-principal"
-            onClick={() => setTela("LanPed")}
-          >
-            📌 {"\n"} Lançar Pedido
-          </button>
+        {/* ==== CARD: PRODUÇÃO (PCP) ==== */}
+        <section className="painel-card">
+          <div className="painel-title">📦 Produção (PCP)</div>
+          <div className="acoes-col">
+            <button
+              type="button"
+              className="btn-mini"
+              onClick={() => setTela("LanPed")}
+            >
+              Lançar Pedido
+            </button>
 
-          <button
-            type="button"
-            className="botao-principal"
-            onClick={() => setTela("AliSab")}
-          >
-            🍫 {"\n"} Alimentar Sabores
-          </button>
+            <button
+              type="button"
+              className="btn-mini"
+              onClick={() => setTela("AliSab")}
+            >
+              Alimentar Sabores
+            </button>
 
-          <button
-            type="button"
-            className="botao-principal"
-            onClick={() => setTela("StaPed")}
-          >
-            📊 {"\n"} Status dos Pedidos
-          </button>
+            <button
+              type="button"
+              className="btn-mini"
+              onClick={() => setTela("StaPed")}
+            >
+              Status dos Pedidos
+            </button>
+          </div>
+        </section>
 
-          <button
-            type="button"
-            className="botao-principal"
-            onClick={() => setTela("SuprComprasLista")}
-          >
-            🧺 {"\n"} Suprimentos
-          </button>
-        </div>
+        {/* ==== CARD: SUPRIMENTOS ==== */}
+        <section className="painel-card">
+          <div className="painel-title">🧺 Suprimentos</div>
+          <div className="acoes-col">
+            <button
+              type="button"
+              className="btn-mini"
+              onClick={() => setTela("SuprComprasLista")}
+            >
+              Compras (Lista A–Z)
+            </button>
+
+            <button
+              type="button"
+              className="btn-mini"
+              onClick={() => setTela("SuprEstoque")}
+            >
+              Estoque (Inventário)
+            </button>
+          </div>
+        </section>
       </div>
 
-      {/* Rodapé padrão com marquee já existente no ERP */}
       <ERPFooter onBack={() => setTela("HomeERP")} />
     </>
   );
