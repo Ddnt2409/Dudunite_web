@@ -220,3 +220,60 @@
   .pcp-card-head{ font-size: 20px; }
   .pcp-inner-btn{ font-size: 15px; }
 }
+
+/* ===== HOTFIX: garantir que os botões internos tenham estilo,
+   mesmo que exista um reset global para <button> ===== */
+
+/* Container com um respiro entre os cards */
+.pcp-card { margin: 6px 0; }
+
+/* Força o estilo do cabeçalho do card (Produção / Suprimentos) */
+button.pcp-card-head {
+  all: unset;                       /* zera qualquer reset anterior */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+
+  border-radius: 16px !important;
+  padding: 18px 16px !important;
+  background: #8c3b1b !important;
+  color: #fff !important;
+  font-weight: 900 !important;
+  font-size: 24px !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,.25) !important;
+  gap: 10px !important;
+}
+
+/* Força o estilo dos botões internos (as ações que “descem”) */
+button.pcp-inner-btn {
+  all: unset;
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+
+  border: 1px solid #ead7c6 !important;
+  background: #fffaf4 !important;
+  color: #6b4a34 !important;
+  border-radius: 12px !important;
+  padding: 12px 14px !important;
+  font-weight: 800 !important;
+  font-size: 16px !important;
+  text-align: center !important;
+}
+button.pcp-inner-btn:hover { background:#fff3e7 !important; }
+
+/* Sutileza quando o card está aberto */
+.pcp-card.is-open > button.pcp-card-head {
+  filter: brightness(1.03) !important;
+  box-shadow: 0 10px 26px rgba(0,0,0,.28) !important;
+}
+
+/* Responsivo */
+@media (max-width: 420px){
+  button.pcp-card-head{ font-size: 20px !important; }
+  button.pcp-inner-btn{ font-size: 15px !important; }
+}
