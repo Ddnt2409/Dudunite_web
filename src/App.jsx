@@ -2,25 +2,30 @@
 import React, { useEffect, useState } from "react";
 
 // ==== Páginas ====
-import HomeERP     from "./pages/HomeERP";
-import HomePCP     from "./pages/HomePCP";
-import LanPed      from "./pages/LanPed";
-import AliSab      from "./pages/AliSab";
-import StaPed      from "./pages/StaPed";
-import CtsReceber  from "./pages/CtsReceber";
+import HomeERP from "./pages/HomeERP";
+import HomePCP from "./pages/HomePCP";
+import LanPed from "./pages/LanPed";
+import AliSab from "./pages/AliSab";
+import StaPed from "./pages/StaPed";
+import CtsReceber from "./pages/CtsReceber";
 import CtsReceberAvulso from "./pages/CtsReceberAvulso";
-import CtsPagar    from "./pages/CtsPagar";
-import FluxCx      from "./pages/FluxCx";
-import Cozinha     from "./pages/cozinha";
-// >>> NOVO
+import CtsPagar from "./pages/CtsPagar";
+import FluxCx from "./pages/FluxCx";
+import Cozinha from "./pages/cozinha";
+
+// ==== Suprimentos ====
 import SuprComprasLista from "./pages/SuprComprasLista";
+import SuprEstoque from "./pages/SuprEstoque";
 
 export default function App() {
   const [tela, setTela] = useState("HomeERP");
 
   useEffect(() => {
-    try { window.scrollTo({ top: 0, behavior: "instant" }); }
-    catch { window.scrollTo(0, 0); }
+    try {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    } catch {
+      window.scrollTo(0, 0);
+    }
   }, [tela]);
 
   switch (tela) {
@@ -54,9 +59,12 @@ export default function App() {
     case "Cozinha":
       return <Cozinha setTela={setTela} />;
 
-    // >>> NOVO
+    // ===== Suprimentos =====
     case "SuprComprasLista":
       return <SuprComprasLista setTela={setTela} />;
+
+    case "SuprEstoque":
+      return <SuprEstoque setTela={setTela} />;
 
     default:
       return (
