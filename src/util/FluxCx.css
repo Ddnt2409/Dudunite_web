@@ -124,3 +124,22 @@
 .form-row.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .form-row input{ padding:8px; border-radius:8px; border:1px solid #d9c3ac; }
 .modal-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+
+/* ===== Destaque de valores (pagamento x recebimento) ===== */
+.valor-cell.valor-pag { color: #7a0c0c; font-weight: 800; }   /* vermelho escuro */
+.valor-cell.valor-rec { color: #0e2a72; font-weight: 800; }   /* azul escuro */
+
+/* ===== Chip da coluna TIPO ===== */
+.tipo-chip{
+  display: inline-block;
+  min-width: 46px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: .3px;
+  text-align: center;
+}
+.tipo-pag{ background: #7a0c0c; }  /* PAG */
+.tipo-rec{ background: #0e2a72; }  /* REC */
