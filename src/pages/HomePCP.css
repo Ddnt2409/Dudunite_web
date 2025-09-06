@@ -277,3 +277,28 @@ button.pcp-inner-btn:hover { background:#fff3e7 !important; }
   button.pcp-card-head{ font-size: 20px !important; }
   button.pcp-inner-btn{ font-size: 15px !important; }
 }
+
+/* ===== Submenu inline exclusivo de Suprimentos ===== */
+.sup-inline-wrap{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: -10px 0 14px;  /* aproxima do botão */
+}
+.sup-inner{
+  width: min(640px, 92vw);
+  display: grid;
+  gap: 10px;
+}
+.sup-btn{
+  border: 1px solid #ead7c6;
+  background: #fffaf4;
+  color: #6b4a34;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-weight: 800;
+  font-size: 16px;
+  text-align: center;
+  cursor: pointer;
+}
+.sup-btn:hover{ background:#fff3e7; }
