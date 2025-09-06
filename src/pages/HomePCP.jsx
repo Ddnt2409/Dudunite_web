@@ -1,4 +1,3 @@
-// src/pages/HomePCP.jsx
 import React, { useEffect, useRef, useState } from "react";
 import ERPHeader from "./ERPHeader";
 import ERPFooter from "./ERPFooter";
@@ -8,7 +7,7 @@ export default function HomePCP({ setTela }) {
   const [mostrarSup, setMostrarSup] = useState(false);
   const supRef = useRef(null);
 
-  // Se veio da HomeERP pelo atalho "Suprimentos", abre o submenu e faz scroll
+  // Se veio da HomeERP pelo atalho "Suprimentos", abrir já expandido e rolar até ele
   useEffect(() => {
     try {
       if (sessionStorage.getItem("pcpOpenSup") === "1") {
@@ -56,35 +55,34 @@ export default function HomePCP({ setTela }) {
             📊 {"\n"} Status dos Pedidos
           </button>
 
-          <button
-            type="button"
-            className="botao-principal"
-            onClick={() => setMostrarSup((v) => !v)}
-            ref={supRef}
-          >
-            🧺 {"\n"} Suprimentos
-          </button>
-        </div>
+          {/* Wrapper RELATIVO do botão Suprimentos + dropdown “descendo” */}
+          <div className="sup-drop" ref={supRef}>
+            <button
+              type="button"
+              className="botao-principal"
+              onClick={() => setMostrarSup((v) => !v)}
+            >
+              🧺 {"\n"} Suprimentos
+            </button>
 
-        {/* Submenu inline SÓ para Suprimentos */}
-        {mostrarSup && (
-          <div className="sup-inline-wrap">
-            <div className="sup-inner">
-              <button
-                className="sup-btn"
-                onClick={() => setTela("SuprComprasLista")}
-              >
-                🧾 Compras (Lista A–Z)
-              </button>
-              <button
-                className="sup-btn"
-                onClick={() => setTela("SuprEstoque")}
-              >
-                📦 Estoque (Inventário)
-              </button>
-            </div>
+            {mostrarSup && (
+              <div className="sup-dropdown">
+                <button
+                  className="sup-btn"
+                  onClick={() => setTela("SuprComprasLista")}
+                >
+                  🧾 Compras (Lista A–Z)
+                </button>
+                <button
+                  className="sup-btn"
+                  onClick={() => setTela("SuprEstoque")}
+                >
+                  📦 Estoque (Inventário)
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       <ERPFooter onBack={() => setTela("HomeERP")} />
