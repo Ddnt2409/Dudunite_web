@@ -11,7 +11,7 @@ const CIDADE_FIXA = "Gravatá";
 const PLANO_FIXO  = "0202001 – Receita de Varejo – Venda Direta";
 const FORMAS = ["PIX", "Especie", "Cartao", "Link", "PDVDireto"];
 const PRODUTOS_VAREJO = [
-  "Brw 7x7","Brw 6x6", "Dudu", "Escondidinho","Pizza brownie","Kit especialidades","Kit romance",
+  "Aporte","Empréstimo","Brw 7x7","Brw 6x6", "Dudu", "Escondidinho","Pizza brownie","Kit especialidades","Kit romance",
   "Copo gourmet tradicional","Copo gourmet premium","Bombom de morangos","Bombrownie",
   "Naked","Mini naked","Mega naked","Café especial","Festa na bandeja",
   "Café kids especial","Café linha especial adulto","Café linha especial kids",
