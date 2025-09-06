@@ -29,6 +29,21 @@ const dtBR = (v) =>
     ? v.split("-").reverse().join("/")
     : new Date(v || Date.now()).toLocaleDateString("pt-BR");
 
+/* ===== datas locais (sem “dia anterior”) ===== */
+const ymdLocal = (d = new Date()) => {
+  const x = new Date(d);
+  const yyyy = x.getFullYear();
+  const mm = String(x.getMonth() + 1).padStart(2, "0");
+  const dd = String(x.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+// Constrói Date local a partir de "YYYY-MM-DD" (meio-dia evita problemas de fuso/DST)
+const dateFromYMDLocal = (s) => {
+  if (!s || typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date();
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0, 0);
+};
+
 /* ===================================================== */
 
 export default function FluxCx({ setTela }) {
@@ -37,8 +52,8 @@ export default function FluxCx({ setTela }) {
   const [modo, setModo] = useState("mes"); // "mes" | "periodo"
   const [ano, setAno] = useState(hoje.getFullYear());
   const [mes, setMes] = useState(hoje.getMonth() + 1);
-  const [de, setDe] = useState(new Date(ano, mes - 1, 1).toISOString().slice(0, 10));
-  const [ate, setAte] = useState(new Date(ano, mes, 1).toISOString().slice(0, 10));
+  const [de, setDe] = useState(ymdLocal(new Date(ano, mes - 1, 1)));
+  const [ate, setAte] = useState(ymdLocal(new Date(ano, mes, 1)));
   const meses = [
     "janeiro", "fevereiro", "março", "abril", "maio", "junho",
     "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
@@ -50,9 +65,24 @@ export default function FluxCx({ setTela }) {
 
   /* ===== Caixa Diário (topo) ===== */
   const [cxLinhas, setCxLinhas] = useState([]);
+
+  // Ordena: data ASC e "Fechamento" (fechado) SEMPRE por último
+  const cxOrdenadas = useMemo(() => {
+    const arr = [...cxLinhas];
+    arr.sort((a, b) => {
+      const d = (a.data || "").localeCompare(b.data || "");
+      if (d !== 0) return d;
+      // fechados depois dos abertos
+      if (a.fechado !== b.fechado) return a.fechado ? 1 : -1;
+      // desempatador estável
+      return String(a.descricao || "").localeCompare(String(b.descricao || ""));
+    });
+    return arr;
+  }, [cxLinhas]);
+
   const cxTotal = useMemo(
-    () => cxLinhas.reduce((s, l) => s + Number(l.valor || 0), 0),
-    [cxLinhas]
+    () => cxOrdenadas.reduce((s, l) => s + Number(l.valor || 0), 0),
+    [cxOrdenadas]
   );
   const cxSaldoFinal = useMemo(
     () => Number(saldoIniCx || 0) + Number(cxTotal || 0),
@@ -61,11 +91,13 @@ export default function FluxCx({ setTela }) {
   // Saldo acumulado por linha (estilo extrato)
   const cxComSaldo = useMemo(() => {
     let acc = Number(saldoIniCx || 0);
-    return cxLinhas.map((l) => {
+    const out = [];
+    for (const l of cxOrdenadas) {
       acc += Number(l.valor || 0);
-      return { ...l, saldo: acc };
-    });
-  }, [cxLinhas, saldoIniCx]);
+      out.push({ ...l, saldo: acc });
+    }
+    return out;
+  }, [cxOrdenadas, saldoIniCx]);
 
   // visibilidade do bloco de CAIXA (oculta só quando saldo zero; pode forçar mostrar)
   const [forcarMostrarCx, setForcarMostrarCx] = useState(false);
@@ -90,8 +122,8 @@ export default function FluxCx({ setTela }) {
   );
 
   /* ===== Fechamento Caixa ===== */
-  const [diaFechar, setDiaFechar] = useState(new Date().toISOString().slice(0, 10));
-  const [dataBanco, setDataBanco] = useState(new Date().toISOString().slice(0, 10));
+  const [diaFechar, setDiaFechar] = useState(ymdLocal(new Date()));
+  const [dataBanco, setDataBanco] = useState(ymdLocal(new Date()));
   const [valorFechar, setValorFechar] = useState("");
 
   /* ===== Assinaturas ===== */
@@ -125,8 +157,8 @@ export default function FluxCx({ setTela }) {
         setBkLinhas(linhas.map((l) => ({ ...l })))
       );
     } else {
-      const ini = new Date(de);
-      const fim = new Date(ate);
+      const ini = dateFromYMDLocal(de);
+      const fim = dateFromYMDLocal(ate);
       unsubCx.current = listenCaixaDiarioRange(ini, fim, ({ linhas }) => setCxLinhas(linhas));
       unsubBk.current = listenExtratoBancarioRange(ini, fim, ({ linhas }) =>
         setBkLinhas(linhas.map((l) => ({ ...l })))
@@ -152,8 +184,8 @@ export default function FluxCx({ setTela }) {
     const v = valorFechar === "" ? null : Number(valorFechar);
     try {
       const res = await fecharCaixaParcial({
-        diaOrigem: new Date(diaFechar),
-        dataBanco: new Date(dataBanco),
+        diaOrigem: dateFromYMDLocal(diaFechar),
+        dataBanco: dateFromYMDLocal(dataBanco),
         valorParcial: v,
       });
       if (!res?.criado) {
@@ -330,6 +362,20 @@ export default function FluxCx({ setTela }) {
               {cxSemSaldo && forcarMostrarCx && (
                 <button className="btn-acao" onClick={() => setForcarMostrarCx(false)}>Ocultar</button>
               )}
+              {/* Botão destacado */}
+              {!cxSemSaldo && (
+                <button
+                  className="btn-acao"
+                  style={{ background: "#7a0c0c", color: "#fff", fontWeight: 900 }}
+                  onClick={() => {
+                    // foca o bloco de fechamento
+                    const el = document.getElementById("fechamento-caixa");
+                    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }}
+                >
+                  FECHAMENTO DE CAIXA
+                </button>
+              )}
             </div>
           </div>
 
@@ -343,15 +389,21 @@ export default function FluxCx({ setTela }) {
           ) : (
             <>
               {/* Fechamento */}
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
+              <div id="fechamento-caixa" style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
                 <label>Dia a fechar: <input type="date" value={diaFechar} onChange={(e) => setDiaFechar(e.target.value)} /></label>
                 <label>Data no banco: <input type="date" value={dataBanco} onChange={(e) => setDataBanco(e.target.value)} /></label>
                 <label>Valor a fechar: <input type="number" step="0.01" value={valorFechar} onChange={(e) => setValorFechar(e.target.value)} style={{ width: 120 }} /></label>
-                <button onClick={onFecharCaixa}>Fechar caixa do dia → Banco</button>
+                <button
+                  onClick={onFecharCaixa}
+                  style={{ background: "#7a0c0c", color: "#fff", fontWeight: 900, border: "none", borderRadius: 10, padding: "8px 12px" }}
+                >
+                  FECHAMENTO DE CAIXA → BANCO
+                </button>
                 {cxSemSaldo && <button className="btn-acao" onClick={() => setForcarMostrarCx(false)}>Ocultar</button>}
               </div>
 
-              <div style={{ overflowX: "auto" }}>
+              {/* tabela com altura limitada + scroll */}
+              <div style={{ overflow: "auto", maxHeight: "50vh", border: "1px solid #e6d2c2", borderRadius: 10 }}>
                 <table className="extrato">
                   <thead>
                     <tr>
@@ -528,4 +580,4 @@ export default function FluxCx({ setTela }) {
       <ERPFooter onBack={() => setTela?.("HomeERP")} />
     </>
   );
-}
+  }
