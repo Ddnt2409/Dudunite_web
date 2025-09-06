@@ -157,3 +157,66 @@
   background: #fff; color:#6b4a34; font-weight: 800;
 }
 .btn-fechar-modal:hover{ background:#fff7ef; }
+
+/* ==== Cards com botões internos (padrão HomeERP) ==== */
+.pcp-sections{
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  align-items: center;
+  padding: 18px 12px 80px;
+}
+
+/* card “título” grande */
+.pcp-card{
+  width: min(640px, 92vw);
+}
+.pcp-card-head{
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  padding: 18px 16px;
+  background: #8c3b1b;
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(0,0,0,.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 900;
+  font-size: 24px;
+  cursor: pointer;
+}
+.pcp-card-emoji{ font-size: 22px; line-height: 1; }
+.pcp-card-title{ line-height: 1; }
+
+/* corpo com botões internos */
+.pcp-inner{
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+.pcp-inner-btn{
+  border: 1px solid #ead7c6;
+  background: #fffaf4;
+  color: #6b4a34;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-weight: 800;
+  font-size: 16px;
+  text-align: center;
+  cursor: pointer;
+}
+.pcp-inner-btn:hover{ background:#fff3e7; }
+
+/* estado visual quando aberto (sutil) */
+.pcp-card.is-open .pcp-card-head{
+  filter: brightness(1.03);
+  box-shadow: 0 10px 26px rgba(0,0,0,.28);
+}
+
+/* responsivo */
+@media (max-width: 420px){
+  .pcp-card-head{ font-size: 20px; }
+  .pcp-inner-btn{ font-size: 15px; }
+}
