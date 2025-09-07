@@ -72,9 +72,7 @@ export default function FluxCx({ setTela }) {
     arr.sort((a, b) => {
       const d = (a.data || "").localeCompare(b.data || "");
       if (d !== 0) return d;
-      // fechados depois dos abertos
       if (a.fechado !== b.fechado) return a.fechado ? 1 : -1;
-      // desempatador estável
       return String(a.descricao || "").localeCompare(String(b.descricao || ""));
     });
     return arr;
@@ -199,6 +197,11 @@ export default function FluxCx({ setTela }) {
     }
   }
 
+  /* ===== [NOVO] Controle de expandir/recolher por DIA ===== */
+  const [diasAbertos, setDiasAbertos] = useState({}); // { 'YYYY-MM-DD': true|false }
+  const abrirDia = (dia) => setDiasAbertos((p) => ({ ...p, [dia]: true }));
+  const fecharDia = (dia) => setDiasAbertos((p) => ({ ...p, [dia]: false }));
+
   /* ===== Banco agrupado por dia ===== */
   const gruposBanco = useMemo(() => {
     const porDia = new Map();
@@ -215,11 +218,20 @@ export default function FluxCx({ setTela }) {
       const saldoInicial = acumulado;
       const totalDia = linhas.reduce((s, l) => s + Number(l.valor || 0), 0);
       acumulado += totalDia;
+
+      // contadores do dia
+      const total = linhas.length;
+      const realizados = linhas.filter((l) => l.origem === "Realizado").length;
+      const todosRealizados = total > 0 && realizados === total;
+
       arr.push({
         dia,
         linhas,
         saldoInicial,
         saldoFinal: saldoInicial + totalDia,
+        total,
+        realizados,
+        todosRealizados,
       });
     }
     return arr.sort((a, b) => a.dia.localeCompare(b.dia));
@@ -229,21 +241,19 @@ export default function FluxCx({ setTela }) {
   async function onToggleRealizado(linha, checked) {
     try {
       if (linha.origem === "Previsto" && checked) {
-        // Vira REALIZADO no MESMO DIA do grupo
         await atualizarFluxo(linha.id, {
           conta: "EXTRATO BANCARIO",
           statusFinanceiro: "Realizado",
-          dataRealizado: linha.data,                 // mantém no mesmo dia
+          dataRealizado: linha.data,
           valorRealizado: Number(linha.valor ?? 0),
           dataPrevista: null,
           valorPrevisto: null,
         });
       } else if (linha.origem === "Realizado" && !checked) {
-        // Volta para PREVISTO no MESMO DIA do grupo
         await atualizarFluxo(linha.id, {
           conta: "EXTRATO BANCARIO",
           statusFinanceiro: "Previsto",
-          dataPrevista: linha.data,                  // mantém no mesmo dia
+          dataPrevista: linha.data,
           valorPrevisto: Number(linha.valor ?? 0),
           dataRealizado: null,
           valorRealizado: null,
@@ -256,12 +266,10 @@ export default function FluxCx({ setTela }) {
 
   /* ===== Status badge (tabela banco) ===== */
   function badgeStatus(l) {
-    // Realizado => PAGO/RECEBIDO
     if (l.origem === "Realizado") {
       if (Number(l.valor) < 0) return <span className="badge-paid">PAGO</span>;
       return <span className="badge-received">RECEBIDO</span>;
     }
-    // Previsto => EM DIA / ATRASADO / INADIMPLENTE
     const hojeZ = new Date(); hojeZ.setHours(0, 0, 0, 0);
     const d = new Date(`${l.data}T00:00:00`);
     const atrasado = d < hojeZ;
@@ -278,7 +286,7 @@ export default function FluxCx({ setTela }) {
   function openEdit(l) {
     setEdit(l);
     setEditForm({
-      descricao: (l.descricao || "").replace(/^PEDIDO\s*•\s*/i, ""), // sem "PEDIDO •"
+      descricao: (l.descricao || "").replace(/^PEDIDO\s*•\s*/i, ""),
       forma: l.forma || "",
       data: l.data || "",
       valor: String(l.valor ?? 0).replace(",", "."),
@@ -362,13 +370,11 @@ export default function FluxCx({ setTela }) {
               {cxSemSaldo && forcarMostrarCx && (
                 <button className="btn-acao" onClick={() => setForcarMostrarCx(false)}>Ocultar</button>
               )}
-              {/* Botão destacado */}
               {!cxSemSaldo && (
                 <button
                   className="btn-acao"
                   style={{ background: "#7a0c0c", color: "#fff", fontWeight: 900 }}
                   onClick={() => {
-                    // foca o bloco de fechamento
                     const el = document.getElementById("fechamento-caixa");
                     el?.scrollIntoView({ behavior: "smooth", block: "center" });
                   }}
@@ -451,77 +457,150 @@ export default function FluxCx({ setTela }) {
             </div>
           </div>
 
-          {gruposBanco.map((g) => (
-            <div key={g.dia} style={{ marginBottom: 10 }}>
-              <div className="dia-header">
-                {dtBR(g.dia)} — Saldo inicial do dia: {money(g.saldoInicial)}
-              </div>
+          {gruposBanco.map((g) => {
+            // Dia aberto? Regra:
+            //  - Se NÃO estão todos realizados: sempre ABERTO (ignora estado salvo)
+            //  - Se todos realizados: aberto depende do clique do usuário (default: fechado)
+            const aberto = g.todosRealizados ? (diasAbertos[g.dia] ?? false) : true;
 
-              <div style={{ overflowX: "auto" }}>
-                <table className="extrato">
-                  <thead>
-                    <tr>
-                      <th>Descrição</th>
-                      <th style={{ minWidth: 140 }}>Forma / Realizado</th>
-                      <th style={{ minWidth: 110 }}>Status</th>
-                      <th className="th-right" style={{ minWidth: 110 }}>Valor</th>
-                      <th style={{ minWidth: 140 }}>Ações</th>
-                      <th style={{ minWidth: 70, textAlign: "center" }}>Tipo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {g.linhas.map((l, i) => {
-                      const desc = (l.descricao || "").replace(/^PEDIDO\s*•\s*/i, "") || "-";
-                      const isPag = Number(l.valor) < 0; // pagamento (negativo) vs recebimento (positivo)
-                      return (
-                        <tr key={l.id || i}>
-                          <td>{desc}</td>
-                          <td>
-                            {l.forma || "-"}{" "}
-                            <input
-                              type="checkbox"
-                              checked={l.origem === "Realizado"}
-                              onChange={(e) => onToggleRealizado(l, e.target.checked)}
-                              style={{ marginLeft: 8 }}
-                            />{" "}
-                            Realizado
-                          </td>
-                          <td>{badgeStatus(l)}</td>
-                          <td className={`valor-cell ${isPag ? "valor-pag" : "valor-rec"}`}>
-                            {money(l.valor)}
-                          </td>
-                          <td>
-                            <button className="btn-acao" onClick={() => openEdit(l)}>Alterar</button>
-                            <button
-                              className="btn-acao btn-danger"
-                              onClick={async () => {
-                                if (confirm("Confirma a exclusão deste lançamento?")) {
-                                  try { await excluirFluxo(l.id); } 
-                                  catch (e) { alert("Erro ao excluir: " + (e?.message || e)); }
-                                }
-                              }}
-                            >
-                              Excluir
-                            </button>
-                          </td>
-                          {/* Coluna TIPO */}
-                          <td style={{ textAlign: "center" }}>
-                            <span className={`tipo-chip ${isPag ? "tipo-pag" : "tipo-rec"}`}>
-                              {isPag ? "PAG" : "REC"}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+            // Ícone/estado visual do cabeçalho do dia
+            let statusIcon = "⏳";
+            let statusLabel = "Em aberto";
+            if (g.realizados > 0 && !g.todosRealizados) { statusIcon = "🟡"; statusLabel = "Parcial"; }
+            if (g.todosRealizados) { statusIcon = "✅"; statusLabel = "Fechado"; }
 
-              <div className="dia-footer">
-                Saldo final do dia: <b>{money(g.saldoFinal)}</b>
+            return (
+              <div key={g.dia} style={{ marginBottom: 10 }}>
+                {/* Cabeçalho do dia */}
+                <div
+                  className="dia-header"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                  }}
+                >
+                  <div>
+                    {dtBR(g.dia)} — Saldo inicial do dia: {money(g.saldoInicial)}
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span
+                      title={statusLabel}
+                      style={{
+                        background: "#fff9ec",
+                        border: "1px solid #ead7c6",
+                        padding: "2px 8px",
+                        borderRadius: 999,
+                        fontWeight: 800,
+                        color: "#6b4a34",
+                      }}
+                    >
+                      {statusIcon} {statusLabel}
+                    </span>
+
+                    {/* Quando o dia está fechado automaticamente, mostra um MOSTRAR no cabeçalho também */}
+                    {!aberto && g.todosRealizados && (
+                      <button className="btn-acao" onClick={() => abrirDia(g.dia)}>MOSTRAR</button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Corpo do dia */}
+                {!aberto && g.todosRealizados ? (
+                  // Colapsado: só o resumo e botão MOSTRAR
+                  <div
+                    className="dia-footer"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div>Saldo final do dia: <b>{money(g.saldoFinal)}</b></div>
+                    <button className="btn-acao" onClick={() => abrirDia(g.dia)}>MOSTRAR</button>
+                  </div>
+                ) : (
+                  // Aberto: tabela completa + saldo final + (se todos realizados) botão OCULTAR
+                  <>
+                    <div style={{ overflowX: "auto" }}>
+                      <table className="extrato">
+                        <thead>
+                          <tr>
+                            <th>Descrição</th>
+                            <th style={{ minWidth: 140 }}>Forma / Realizado</th>
+                            <th style={{ minWidth: 110 }}>Status</th>
+                            <th className="th-right" style={{ minWidth: 110 }}>Valor</th>
+                            <th style={{ minWidth: 140 }}>Ações</th>
+                            <th style={{ minWidth: 70, textAlign: "center" }}>Tipo</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {g.linhas.map((l, i) => {
+                            const desc = (l.descricao || "").replace(/^PEDIDO\s*•\s*/i, "") || "-";
+                            const isPag = Number(l.valor) < 0;
+                            return (
+                              <tr key={l.id || i}>
+                                <td>{desc}</td>
+                                <td>
+                                  {l.forma || "-"}{" "}
+                                  <input
+                                    type="checkbox"
+                                    checked={l.origem === "Realizado"}
+                                    onChange={(e) => onToggleRealizado(l, e.target.checked)}
+                                    style={{ marginLeft: 8 }}
+                                  />{" "}
+                                  Realizado
+                                </td>
+                                <td>{badgeStatus(l)}</td>
+                                <td className={`valor-cell ${isPag ? "valor-pag" : "valor-rec"}`}>
+                                  {money(l.valor)}
+                                </td>
+                                <td>
+                                  <button className="btn-acao" onClick={() => openEdit(l)}>Alterar</button>
+                                  <button
+                                    className="btn-acao btn-danger"
+                                    onClick={async () => {
+                                      if (confirm("Confirma a exclusão deste lançamento?")) {
+                                        try { await excluirFluxo(l.id); }
+                                        catch (e) { alert("Erro ao excluir: " + (e?.message || e)); }
+                                      }
+                                    }}
+                                  >
+                                    Excluir
+                                  </button>
+                                </td>
+                                <td style={{ textAlign: "center" }}>
+                                  <span className={`tipo-chip ${isPag ? "tipo-pag" : "tipo-rec"}`}>
+                                    {isPag ? "PAG" : "REC"}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div
+                      className="dia-footer"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div>Saldo final do dia: <b>{money(g.saldoFinal)}</b></div>
+                      {g.todosRealizados && (
+                        <button className="btn-acao" onClick={() => fecharDia(g.dia)}>Ocultar</button>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </section>
 
         <button className="btn-voltar" onClick={() => setTela?.("HomeERP")}>Voltar</button>
@@ -580,4 +659,4 @@ export default function FluxCx({ setTela }) {
       <ERPFooter onBack={() => setTela?.("HomeERP")} />
     </>
   );
-  }
+      }
